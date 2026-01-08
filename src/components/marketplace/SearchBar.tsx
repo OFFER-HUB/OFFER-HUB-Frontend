@@ -78,20 +78,23 @@ export function SearchBar() {
             className={cn(
               "absolute top-full left-0 mt-2 min-w-[180px] py-2 rounded-2xl bg-white z-50",
               "shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff]",
-              "border border-border-light/50"
+              "border border-border-light/50",
+              "animate-fade-in"
             )}
           >
-            {locationOptions.map((option) => (
+            {locationOptions.map((option, index) => (
               <button
                 key={option.value}
                 type="button"
                 onClick={() => handleSelectLocation(option.value)}
                 className={cn(
                   "w-full px-4 py-2.5 text-left text-sm transition-all duration-150",
+                  "opacity-0 animate-slide-in-right",
                   location === option.value
                     ? "bg-primary/10 text-primary font-medium"
-                    : "text-text-secondary hover:bg-background hover:text-text-primary"
+                    : "text-text-secondary hover:bg-background hover:text-text-primary hover:pl-5"
                 )}
+                style={{ animationDelay: `${index * 0.03}s`, animationFillMode: "forwards" }}
               >
                 {option.label}
               </button>

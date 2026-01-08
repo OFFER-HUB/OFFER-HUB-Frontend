@@ -64,22 +64,33 @@ export function FilterSidebar() {
         <label className="text-sm font-medium text-text-primary mb-3 block">Availability</label>
         <div className="space-y-2">
           {availabilityOptions.map((option) => (
-            <label key={option} className="flex items-center gap-3 cursor-pointer">
+            <label
+              key={option}
+              className="flex items-center gap-3 cursor-pointer group"
+              onClick={() => toggleAvailability(option)}
+            >
               <div
                 className={cn(
                   "w-5 h-5 rounded-lg flex items-center justify-center transition-all duration-200",
                   selectedAvailability.includes(option)
-                    ? "bg-primary shadow-[inset_2px_2px_4px_rgba(0,0,0,0.2)]"
-                    : "bg-background shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]"
+                    ? "bg-primary shadow-[inset_2px_2px_4px_rgba(0,0,0,0.2)] scale-110"
+                    : "bg-background shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff] group-hover:shadow-[inset_3px_3px_6px_#d1d5db,inset_-3px_-3px_6px_#ffffff]"
                 )}
               >
                 {selectedAvailability.includes(option) && (
-                  <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="w-3 h-3 text-white animate-scale-in" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                   </svg>
                 )}
               </div>
-              <span className="text-sm text-text-secondary">{option}</span>
+              <span className={cn(
+                "text-sm transition-colors duration-200",
+                selectedAvailability.includes(option)
+                  ? "text-text-primary font-medium"
+                  : "text-text-secondary group-hover:text-text-primary"
+              )}>
+                {option}
+              </span>
             </label>
           ))}
         </div>
@@ -108,8 +119,10 @@ export function FilterSidebar() {
               <svg
                 key={star}
                 className={cn(
-                  "h-5 w-5 cursor-pointer transition-colors",
-                  star <= Math.round(rating) ? "text-yellow-500" : "text-border-light"
+                  "h-5 w-5 cursor-pointer transition-all duration-200",
+                  star <= Math.round(rating)
+                    ? "text-yellow-500 scale-110"
+                    : "text-border-light hover:text-yellow-300 hover:scale-125"
                 )}
                 fill="currentColor"
                 viewBox="0 0 20 20"
@@ -127,22 +140,33 @@ export function FilterSidebar() {
         <label className="text-sm font-medium text-text-primary mb-3 block">Experience</label>
         <div className="space-y-2">
           {experienceOptions.map((option) => (
-            <label key={option} className="flex items-center gap-3 cursor-pointer">
+            <label
+              key={option}
+              className="flex items-center gap-3 cursor-pointer group"
+              onClick={() => toggleExperience(option)}
+            >
               <div
                 className={cn(
                   "w-5 h-5 rounded-lg flex items-center justify-center transition-all duration-200",
                   selectedExperience.includes(option)
-                    ? "bg-primary shadow-[inset_2px_2px_4px_rgba(0,0,0,0.2)]"
-                    : "bg-background shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]"
+                    ? "bg-primary shadow-[inset_2px_2px_4px_rgba(0,0,0,0.2)] scale-110"
+                    : "bg-background shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff] group-hover:shadow-[inset_3px_3px_6px_#d1d5db,inset_-3px_-3px_6px_#ffffff]"
                 )}
               >
                 {selectedExperience.includes(option) && (
-                  <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="w-3 h-3 text-white animate-scale-in" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                   </svg>
                 )}
               </div>
-              <span className="text-sm text-text-secondary">{option}</span>
+              <span className={cn(
+                "text-sm transition-colors duration-200",
+                selectedExperience.includes(option)
+                  ? "text-text-primary font-medium"
+                  : "text-text-secondary group-hover:text-text-primary"
+              )}>
+                {option}
+              </span>
             </label>
           ))}
         </div>

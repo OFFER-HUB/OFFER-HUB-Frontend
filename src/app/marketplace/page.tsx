@@ -41,8 +41,14 @@ export default function MarketplacePage() {
               <section>
                 <h2 className="text-lg font-bold text-text-primary mb-4">Top Freelancers</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
-                  {freelancers.map((freelancer) => (
-                    <FreelancerCard key={freelancer.id} freelancer={freelancer} />
+                  {freelancers.map((freelancer, index) => (
+                    <div
+                      key={freelancer.id}
+                      className="opacity-0 animate-fade-in-up"
+                      style={{ animationDelay: `${index * 0.1}s`, animationFillMode: "forwards" }}
+                    >
+                      <FreelancerCard freelancer={freelancer} />
+                    </div>
                   ))}
                 </div>
               </section>
