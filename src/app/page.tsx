@@ -1,7 +1,27 @@
+import {
+  CTASection,
+  ExperienceSection,
+  FeaturesSection,
+  Footer,
+  HeroSection,
+  HowItWorks,
+  Navbar,
+  TrustedBy,
+} from "@/components/landing";
+
 export default function HomePage() {
   return (
-    <main className="flex min-h-screen items-center justify-center bg-secondary">
-      <h1 className="text-4xl font-bold text-primary">OFFER-HUB</h1>
-    </main>
+    <div className="min-h-screen bg-background">
+      <Navbar />
+      <main>
+        <HeroSection />
+        <TrustedBy />
+        <ExperienceSection />
+        <FeaturesSection />
+        <HowItWorks />
+        <CTASection />
+      </main>
+      <Footer />
+    </div>
   );
 }
