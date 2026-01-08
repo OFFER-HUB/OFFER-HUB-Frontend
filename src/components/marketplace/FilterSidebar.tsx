@@ -29,8 +29,8 @@ export function FilterSidebar() {
   return (
     <aside
       className={cn(
-        "w-full p-6 rounded-2xl bg-white",
-        "shadow-[var(--shadow-neumorphic-light)]"
+        "w-full p-6 rounded-3xl bg-white",
+        "shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff]"
       )}
     >
       <h2 className="text-lg font-bold text-text-primary mb-6">Filter</h2>
@@ -39,8 +39,8 @@ export function FilterSidebar() {
       <div className="mb-6">
         <div className="flex items-center justify-between mb-3">
           <label className="text-sm font-medium text-text-primary">Salary</label>
-          <span className="px-2 py-1 text-xs font-medium bg-secondary text-white rounded-md">
-            {salaryRange.max.toLocaleString()}
+          <span className="px-3 py-1.5 text-xs font-medium bg-secondary text-white rounded-xl shadow-[2px_2px_4px_#d1d5db,-2px_-2px_4px_#ffffff]">
+            ${salaryRange.max.toLocaleString()}
           </span>
         </div>
         <div className="relative">
@@ -67,10 +67,10 @@ export function FilterSidebar() {
             <label key={option} className="flex items-center gap-3 cursor-pointer">
               <div
                 className={cn(
-                  "w-5 h-5 rounded-md border-2 flex items-center justify-center transition-colors",
+                  "w-5 h-5 rounded-lg flex items-center justify-center transition-all duration-200",
                   selectedAvailability.includes(option)
-                    ? "bg-primary border-primary"
-                    : "border-border bg-white"
+                    ? "bg-primary shadow-[inset_2px_2px_4px_rgba(0,0,0,0.2)]"
+                    : "bg-background shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]"
                 )}
               >
                 {selectedAvailability.includes(option) && (
@@ -97,9 +97,10 @@ export function FilterSidebar() {
             max={5}
             step={0.1}
             className={cn(
-              "w-14 px-2 py-1.5 text-sm text-center rounded-lg",
-              "border border-border-light bg-white",
-              "focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+              "w-14 px-2 py-1.5 text-sm text-center rounded-xl",
+              "bg-background border-none",
+              "shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]",
+              "focus:outline-none focus:ring-2 focus:ring-primary/30"
             )}
           />
           <div className="flex items-center gap-0.5">
@@ -129,10 +130,10 @@ export function FilterSidebar() {
             <label key={option} className="flex items-center gap-3 cursor-pointer">
               <div
                 className={cn(
-                  "w-5 h-5 rounded-md border-2 flex items-center justify-center transition-colors",
+                  "w-5 h-5 rounded-lg flex items-center justify-center transition-all duration-200",
                   selectedExperience.includes(option)
-                    ? "bg-primary border-primary"
-                    : "border-border bg-white"
+                    ? "bg-primary shadow-[inset_2px_2px_4px_rgba(0,0,0,0.2)]"
+                    : "bg-background shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]"
                 )}
               >
                 {selectedExperience.includes(option) && (

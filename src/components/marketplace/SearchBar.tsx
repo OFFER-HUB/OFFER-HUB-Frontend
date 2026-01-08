@@ -10,8 +10,8 @@ export function SearchBar() {
   return (
     <div
       className={cn(
-        "flex items-center gap-4 p-2 rounded-2xl bg-white",
-        "shadow-[var(--shadow-neumorphic-light)]"
+        "flex items-center gap-4 p-3 rounded-3xl bg-white",
+        "shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff]"
       )}
     >
       {/* Location Selector */}
@@ -49,8 +49,10 @@ export function SearchBar() {
           className={cn(
             "p-2.5 rounded-xl",
             "bg-primary text-white",
-            "hover:bg-primary-hover transition-colors",
-            "shadow-[var(--shadow-neumorphic-light)]"
+            "hover:bg-primary-hover transition-all duration-200",
+            "shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]",
+            "hover:shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff]",
+            "active:shadow-[inset_3px_3px_6px_rgba(0,0,0,0.2)]"
           )}
           aria-label="Search"
         >

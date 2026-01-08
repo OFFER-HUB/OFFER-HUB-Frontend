@@ -13,8 +13,8 @@ export function ProfileSidebar() {
     return (
       <aside
         className={cn(
-          "w-full p-6 rounded-2xl bg-white",
-          "shadow-[var(--shadow-neumorphic-light)]"
+          "w-full p-6 rounded-3xl bg-white",
+          "shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff]"
         )}
       >
         {/* User Profile Card */}
@@ -63,8 +63,8 @@ export function ProfileSidebar() {
   return (
     <aside
       className={cn(
-        "w-full p-6 rounded-2xl bg-white",
-        "shadow-[var(--shadow-neumorphic-light)]"
+        "w-full p-6 rounded-3xl bg-white",
+        "shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff]"
       )}
     >
       {/* Illustration Placeholder */}
@@ -96,9 +96,10 @@ export function ProfileSidebar() {
         className={cn(
           "block w-full py-3 rounded-xl text-sm font-semibold text-center",
           "bg-primary text-white",
-          "hover:bg-primary-hover transition-colors",
-          "shadow-[var(--shadow-neumorphic-light)]",
-          "active:shadow-[var(--shadow-neumorphic-inset-light)]"
+          "hover:bg-primary-hover transition-all duration-200",
+          "shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]",
+          "hover:shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff]",
+          "active:shadow-[inset_4px_4px_8px_rgba(0,0,0,0.2)]"
         )}
       >
         Get Started

@@ -19,7 +19,7 @@ export default function MarketplacePage() {
       <main className="py-6 lg:py-8">
         <Container>
           {/* Main Grid Layout */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             {/* Left Sidebar - Filters */}
             <aside className="lg:col-span-3 order-2 lg:order-1">
               <div className="lg:sticky lg:top-24">
@@ -28,7 +28,7 @@ export default function MarketplacePage() {
             </aside>
 
             {/* Main Content */}
-            <div className="lg:col-span-6 order-1 lg:order-2 space-y-6">
+            <div className="lg:col-span-6 order-1 lg:order-2 space-y-8">
               {/* Search Bar */}
               <SearchBar />
 
@@ -55,7 +55,7 @@ export default function MarketplacePage() {
                 </div>
 
                 {/* Popular Offers Grid - Bento Style */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                   {popularOffers.map((offer) => (
                     <PopularOfferCard
                       key={offer.id}
@@ -72,7 +72,7 @@ export default function MarketplacePage() {
               {/* Freelancers Grid Section */}
               <section>
                 <h2 className="text-lg font-bold text-text-primary mb-4">Top Freelancers</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                   {freelancers.map((freelancer) => (
                     <FreelancerCard key={freelancer.id} freelancer={freelancer} />
                   ))}
