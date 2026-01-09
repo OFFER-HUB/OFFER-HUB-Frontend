@@ -1,15 +1,13 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { cn } from "@/lib/cn";
+import { useAuthStore } from "@/stores/auth-store";
 
 export function ProfileSidebar() {
-  // In a real app, this would check auth state
-  const isAuthenticated = false;
+  const { user, isAuthenticated } = useAuthStore();
 
-  if (isAuthenticated) {
-    // Show user profile when authenticated
+  if (isAuthenticated && user) {
     return (
       <aside
         className={cn(
@@ -17,44 +15,34 @@ export function ProfileSidebar() {
           "shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff]"
         )}
       >
-        {/* User Profile Card */}
+        {/* User Profile */}
         <div className="text-center mb-6">
           <div className="relative inline-block mb-3">
-            <Image
-              src="/mock-images/man1.png"
-              alt="User avatar"
-              width={80}
-              height={80}
-              className="rounded-full object-cover"
-            />
+            <div
+              className={cn(
+                "w-20 h-20 rounded-full flex items-center justify-center",
+                "bg-primary/10 text-primary text-2xl font-bold"
+              )}
+            >
+              {user.username.charAt(0).toUpperCase()}
+            </div>
             <span className="absolute bottom-1 right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full" />
           </div>
-          <h3 className="font-bold text-text-primary">John Doe</h3>
-          <p className="text-sm text-text-secondary">UI Designer</p>
+          <h3 className="font-bold text-text-primary text-lg">{user.username}</h3>
+          <p className="text-sm text-text-secondary">{user.email}</p>
         </div>
 
         {/* Stats */}
-        <div className="space-y-3 mb-6">
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-primary" />
-            <span className="text-sm text-primary font-medium">28 Available Connects</span>
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-text-secondary">Available Connects</span>
+            <span className="text-sm font-semibold text-primary">28</span>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-primary" />
-            <span className="text-sm text-primary font-medium">9 Submitted Proposal</span>
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-text-secondary">Submitted Proposals</span>
+            <span className="text-sm font-semibold text-primary">9</span>
           </div>
         </div>
-
-        {/* Edit Profile Button */}
-        <button
-          className={cn(
-            "w-full py-2.5 rounded-xl text-sm font-medium",
-            "border-2 border-border-light text-text-primary",
-            "hover:border-primary hover:text-primary transition-colors"
-          )}
-        >
-          Edit Profile
-        </button>
       </aside>
     );
   }

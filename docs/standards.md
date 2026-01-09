@@ -247,7 +247,7 @@ class ValidationError extends Error {
 - Avoid obvious comments
 - Document "why" not "what"
 - Use JSDoc for public APIs
-
+- IT IS ESSENTIAL THAT WHEN DESIGNING NEW COMPONENTS OR PAGES,  RESPONSIVE BEHAVIOR IS ENSURED AND PROPERLY IMPLEMENTED. THIS IS A CRITICAL POINT THAT MUST BE ADDRESSED.
 ```typescript
 /**
  * Merges class names with Tailwind conflict resolution.
