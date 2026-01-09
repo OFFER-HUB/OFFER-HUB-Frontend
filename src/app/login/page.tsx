@@ -17,6 +17,7 @@ function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const login = useAuthStore((state) => state.login);
+  const setRedirectAfterLogin = useAuthStore((state) => state.setRedirectAfterLogin);
   const [isLoading, setIsLoading] = useState(false);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [formData, setFormData] = useState<LoginFormData>({
@@ -24,13 +25,20 @@ function LoginContent() {
     password: "",
   });
   const [errors, setErrors] = useState<AuthFormErrors>({});
+  const [redirectPath, setRedirectPath] = useState<string | null>(null);
 
   useEffect(() => {
     if (searchParams.get("registered") === "true") {
       setShowSuccessMessage(true);
       setTimeout(() => setShowSuccessMessage(false), 5000);
     }
-  }, [searchParams]);
+    // Capture redirect parameter
+    const redirect = searchParams.get("redirect");
+    if (redirect) {
+      setRedirectPath(redirect);
+      setRedirectAfterLogin(redirect);
+    }
+  }, [searchParams, setRedirectAfterLogin]);
 
   const validateForm = (): boolean => {
     const newErrors: AuthFormErrors = {};
@@ -76,7 +84,8 @@ function LoginContent() {
 
     login(mockUser);
     setIsLoading(false);
-    router.push("/marketplace");
+    // Use window.location for full page navigation so middleware can read the cookie
+    window.location.href = redirectPath || "/app/dashboard";
   };
 
   return (
