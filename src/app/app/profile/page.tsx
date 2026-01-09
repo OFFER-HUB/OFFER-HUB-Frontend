@@ -15,6 +15,8 @@ interface ProfileFormData {
   phone: string;
 }
 
+type FormFieldName = keyof ProfileFormData;
+
 interface FormErrors {
   firstName?: string;
   lastName?: string;
@@ -24,23 +26,115 @@ interface FormErrors {
   phone?: string;
 }
 
-export default function ProfilePage() {
+const INPUT_BASE_STYLES = cn(
+  "w-full px-4 py-3 rounded-xl",
+  "bg-background",
+  "shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]",
+  "text-text-primary placeholder-text-secondary",
+  "outline-none focus:ring-2 focus:ring-primary/20",
+  "transition-all duration-200"
+);
+
+const INPUT_ERROR_STYLES = "ring-2 ring-error/50";
+
+interface FormInputProps {
+  label: string;
+  name: FormFieldName;
+  type?: string;
+  value: string;
+  placeholder: string;
+  error?: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  className?: string;
+}
+
+function FormInput({
+  label,
+  name,
+  type = "text",
+  value,
+  placeholder,
+  error,
+  onChange,
+  className,
+}: FormInputProps): React.JSX.Element {
+  return (
+    <div className={className}>
+      <label className="block text-sm font-medium text-text-primary mb-2">
+        {label}
+      </label>
+      <input
+        type={type}
+        name={name}
+        value={value}
+        onChange={onChange}
+        className={cn(INPUT_BASE_STYLES, error && INPUT_ERROR_STYLES)}
+        placeholder={placeholder}
+      />
+      {error && <p className="mt-1 text-sm text-error">{error}</p>}
+    </div>
+  );
+}
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PHONE_REGEX = /^[+]?[\d\s-()]+$/;
+const MIN_USERNAME_LENGTH = 3;
+const MAX_BIO_LENGTH = 500;
+const MOCK_API_DELAY = 1500;
+const SUCCESS_MESSAGE_DURATION = 3000;
+
+const INITIAL_FORM_DATA: ProfileFormData = {
+  firstName: "",
+  lastName: "",
+  email: "",
+  username: "",
+  bio: "",
+  location: "",
+  website: "",
+  phone: "",
+};
+
+function validateProfileForm(formData: ProfileFormData): FormErrors {
+  const errors: FormErrors = {};
+
+  if (!formData.firstName.trim()) {
+    errors.firstName = "First name is required";
+  }
+
+  if (!formData.lastName.trim()) {
+    errors.lastName = "Last name is required";
+  }
+
+  if (!formData.email.trim()) {
+    errors.email = "Email is required";
+  } else if (!EMAIL_REGEX.test(formData.email)) {
+    errors.email = "Please enter a valid email address";
+  }
+
+  if (!formData.username.trim()) {
+    errors.username = "Username is required";
+  } else if (formData.username.length < MIN_USERNAME_LENGTH) {
+    errors.username = `Username must be at least ${MIN_USERNAME_LENGTH} characters`;
+  }
+
+  if (formData.bio.length > MAX_BIO_LENGTH) {
+    errors.bio = `Bio must be less than ${MAX_BIO_LENGTH} characters`;
+  }
+
+  if (formData.phone && !PHONE_REGEX.test(formData.phone)) {
+    errors.phone = "Please enter a valid phone number";
+  }
+
+  return errors;
+}
+
+export default function ProfilePage(): React.JSX.Element {
   const user = useAuthStore((state) => state.user);
   const [isLoading, setIsLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
-  const [formData, setFormData] = useState<ProfileFormData>({
-    firstName: "",
-    lastName: "",
-    email: "",
-    username: "",
-    bio: "",
-    location: "",
-    website: "",
-    phone: "",
-  });
+  const [formData, setFormData] = useState<ProfileFormData>(INITIAL_FORM_DATA);
 
-  // Initialize form with user data
   useEffect(() => {
     if (user) {
       const nameParts = user.username.split(" ");
@@ -57,69 +151,35 @@ export default function ProfilePage() {
     }
   }, [user]);
 
-  const validateForm = (): boolean => {
-    const newErrors: FormErrors = {};
-
-    if (!formData.firstName.trim()) {
-      newErrors.firstName = "First name is required";
-    }
-
-    if (!formData.lastName.trim()) {
-      newErrors.lastName = "Last name is required";
-    }
-
-    if (!formData.email.trim()) {
-      newErrors.email = "Email is required";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = "Please enter a valid email address";
-    }
-
-    if (!formData.username.trim()) {
-      newErrors.username = "Username is required";
-    } else if (formData.username.length < 3) {
-      newErrors.username = "Username must be at least 3 characters";
-    }
-
-    if (formData.bio.length > 500) {
-      newErrors.bio = "Bio must be less than 500 characters";
-    }
-
-    if (formData.phone && !/^[+]?[\d\s-()]+$/.test(formData.phone)) {
-      newErrors.phone = "Please enter a valid phone number";
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleChange = (
+  function handleChange(
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
+  ): void {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
     if (errors[name as keyof FormErrors]) {
       setErrors((prev) => ({ ...prev, [name]: undefined }));
     }
-  };
+  }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  async function handleSubmit(e: React.FormEvent): Promise<void> {
     e.preventDefault();
 
-    if (!validateForm()) return;
+    const validationErrors = validateProfileForm(formData);
+    setErrors(validationErrors);
+
+    if (Object.keys(validationErrors).length > 0) {
+      return;
+    }
 
     setIsLoading(true);
-
-    // Mock API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-
+    await new Promise((resolve) => setTimeout(resolve, MOCK_API_DELAY));
     setIsLoading(false);
     setShowSuccess(true);
-    setTimeout(() => setShowSuccess(false), 3000);
-  };
+    setTimeout(() => setShowSuccess(false), SUCCESS_MESSAGE_DURATION);
+  }
 
   return (
     <div className="space-y-6 max-w-4xl">
-      {/* Page Header */}
       <div>
         <h1 className="text-2xl font-bold text-text-primary">Profile Settings</h1>
         <p className="text-text-secondary mt-1">
@@ -127,7 +187,6 @@ export default function ProfilePage() {
         </p>
       </div>
 
-      {/* Success Message */}
       {showSuccess && (
         <div
           className={cn(
@@ -157,7 +216,6 @@ export default function ProfilePage() {
         </div>
       )}
 
-      {/* Profile Card */}
       <div
         className={cn(
           "p-6 rounded-2xl",
@@ -166,7 +224,6 @@ export default function ProfilePage() {
         )}
       >
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Avatar Section */}
           <div className="flex items-center gap-6">
             <div
               className={cn(
@@ -199,183 +256,66 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          {/* Form Fields */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* First Name */}
-            <div>
-              <label className="block text-sm font-medium text-text-primary mb-2">
-                First Name
-              </label>
-              <input
-                type="text"
-                name="firstName"
-                value={formData.firstName}
-                onChange={handleChange}
-                className={cn(
-                  "w-full px-4 py-3 rounded-xl",
-                  "bg-background",
-                  "shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]",
-                  "text-text-primary placeholder-text-secondary",
-                  "outline-none focus:ring-2 focus:ring-primary/20",
-                  "transition-all duration-200",
-                  errors.firstName && "ring-2 ring-error/50"
-                )}
-                placeholder="John"
-              />
-              {errors.firstName && (
-                <p className="mt-1 text-sm text-error">{errors.firstName}</p>
-              )}
-            </div>
+            <FormInput
+              label="First Name"
+              name="firstName"
+              value={formData.firstName}
+              placeholder="John"
+              error={errors.firstName}
+              onChange={handleChange}
+            />
+            <FormInput
+              label="Last Name"
+              name="lastName"
+              value={formData.lastName}
+              placeholder="Doe"
+              error={errors.lastName}
+              onChange={handleChange}
+            />
+            <FormInput
+              label="Username"
+              name="username"
+              value={formData.username}
+              placeholder="johndoe"
+              error={errors.username}
+              onChange={handleChange}
+            />
+            <FormInput
+              label="Email"
+              name="email"
+              type="email"
+              value={formData.email}
+              placeholder="john@example.com"
+              error={errors.email}
+              onChange={handleChange}
+            />
+            <FormInput
+              label="Phone Number"
+              name="phone"
+              type="tel"
+              value={formData.phone}
+              placeholder="+1 (555) 000-0000"
+              error={errors.phone}
+              onChange={handleChange}
+            />
+            <FormInput
+              label="Location"
+              name="location"
+              value={formData.location}
+              placeholder="City, Country"
+              onChange={handleChange}
+            />
+            <FormInput
+              label="Website"
+              name="website"
+              type="url"
+              value={formData.website}
+              placeholder="https://yourwebsite.com"
+              onChange={handleChange}
+              className="md:col-span-2"
+            />
 
-            {/* Last Name */}
-            <div>
-              <label className="block text-sm font-medium text-text-primary mb-2">
-                Last Name
-              </label>
-              <input
-                type="text"
-                name="lastName"
-                value={formData.lastName}
-                onChange={handleChange}
-                className={cn(
-                  "w-full px-4 py-3 rounded-xl",
-                  "bg-background",
-                  "shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]",
-                  "text-text-primary placeholder-text-secondary",
-                  "outline-none focus:ring-2 focus:ring-primary/20",
-                  "transition-all duration-200",
-                  errors.lastName && "ring-2 ring-error/50"
-                )}
-                placeholder="Doe"
-              />
-              {errors.lastName && (
-                <p className="mt-1 text-sm text-error">{errors.lastName}</p>
-              )}
-            </div>
-
-            {/* Username */}
-            <div>
-              <label className="block text-sm font-medium text-text-primary mb-2">
-                Username
-              </label>
-              <input
-                type="text"
-                name="username"
-                value={formData.username}
-                onChange={handleChange}
-                className={cn(
-                  "w-full px-4 py-3 rounded-xl",
-                  "bg-background",
-                  "shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]",
-                  "text-text-primary placeholder-text-secondary",
-                  "outline-none focus:ring-2 focus:ring-primary/20",
-                  "transition-all duration-200",
-                  errors.username && "ring-2 ring-error/50"
-                )}
-                placeholder="johndoe"
-              />
-              {errors.username && (
-                <p className="mt-1 text-sm text-error">{errors.username}</p>
-              )}
-            </div>
-
-            {/* Email */}
-            <div>
-              <label className="block text-sm font-medium text-text-primary mb-2">
-                Email
-              </label>
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                className={cn(
-                  "w-full px-4 py-3 rounded-xl",
-                  "bg-background",
-                  "shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]",
-                  "text-text-primary placeholder-text-secondary",
-                  "outline-none focus:ring-2 focus:ring-primary/20",
-                  "transition-all duration-200",
-                  errors.email && "ring-2 ring-error/50"
-                )}
-                placeholder="john@example.com"
-              />
-              {errors.email && (
-                <p className="mt-1 text-sm text-error">{errors.email}</p>
-              )}
-            </div>
-
-            {/* Phone */}
-            <div>
-              <label className="block text-sm font-medium text-text-primary mb-2">
-                Phone Number
-              </label>
-              <input
-                type="tel"
-                name="phone"
-                value={formData.phone}
-                onChange={handleChange}
-                className={cn(
-                  "w-full px-4 py-3 rounded-xl",
-                  "bg-background",
-                  "shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]",
-                  "text-text-primary placeholder-text-secondary",
-                  "outline-none focus:ring-2 focus:ring-primary/20",
-                  "transition-all duration-200",
-                  errors.phone && "ring-2 ring-error/50"
-                )}
-                placeholder="+1 (555) 000-0000"
-              />
-              {errors.phone && (
-                <p className="mt-1 text-sm text-error">{errors.phone}</p>
-              )}
-            </div>
-
-            {/* Location */}
-            <div>
-              <label className="block text-sm font-medium text-text-primary mb-2">
-                Location
-              </label>
-              <input
-                type="text"
-                name="location"
-                value={formData.location}
-                onChange={handleChange}
-                className={cn(
-                  "w-full px-4 py-3 rounded-xl",
-                  "bg-background",
-                  "shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]",
-                  "text-text-primary placeholder-text-secondary",
-                  "outline-none focus:ring-2 focus:ring-primary/20",
-                  "transition-all duration-200"
-                )}
-                placeholder="City, Country"
-              />
-            </div>
-
-            {/* Website */}
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-text-primary mb-2">
-                Website
-              </label>
-              <input
-                type="url"
-                name="website"
-                value={formData.website}
-                onChange={handleChange}
-                className={cn(
-                  "w-full px-4 py-3 rounded-xl",
-                  "bg-background",
-                  "shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]",
-                  "text-text-primary placeholder-text-secondary",
-                  "outline-none focus:ring-2 focus:ring-primary/20",
-                  "transition-all duration-200"
-                )}
-                placeholder="https://yourwebsite.com"
-              />
-            </div>
-
-            {/* Bio */}
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-text-primary mb-2">
                 Bio
@@ -386,13 +326,9 @@ export default function ProfilePage() {
                 onChange={handleChange}
                 rows={4}
                 className={cn(
-                  "w-full px-4 py-3 rounded-xl resize-none",
-                  "bg-background",
-                  "shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]",
-                  "text-text-primary placeholder-text-secondary",
-                  "outline-none focus:ring-2 focus:ring-primary/20",
-                  "transition-all duration-200",
-                  errors.bio && "ring-2 ring-error/50"
+                  INPUT_BASE_STYLES,
+                  "resize-none",
+                  errors.bio && INPUT_ERROR_STYLES
                 )}
                 placeholder="Tell us about yourself..."
               />
@@ -401,13 +337,12 @@ export default function ProfilePage() {
                   <p className="text-sm text-error">{errors.bio}</p>
                 )}
                 <p className="text-xs text-text-secondary ml-auto">
-                  {formData.bio.length}/500
+                  {formData.bio.length}/{MAX_BIO_LENGTH}
                 </p>
               </div>
             </div>
           </div>
 
-          {/* Submit Button */}
           <div className="flex justify-end pt-4">
             <button
               type="submit"
