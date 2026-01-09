@@ -2,9 +2,17 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { cn } from "@/lib/cn";
+import { Logo } from "@/components/ui";
 import { useAuthStore } from "@/stores/auth-store";
+
+const navLinks = [
+  { href: "/app/dashboard", label: "Dashboard" },
+  { href: "/marketplace", label: "Marketplace" },
+  { href: "/faq", label: "FAQ" },
+  { href: "/help", label: "Help" },
+];
 
 interface AppHeaderProps {
   onMenuClick: () => void;
@@ -13,8 +21,15 @@ interface AppHeaderProps {
 export function AppHeader({ onMenuClick }: AppHeaderProps) {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
-  const router = useRouter();
+  const pathname = usePathname();
   const { user, logout } = useAuthStore();
+
+  const isActiveLink = (href: string) => {
+    if (href === "/app/dashboard") {
+      return pathname === "/app/dashboard" || pathname.startsWith("/app/");
+    }
+    return pathname.startsWith(href);
+  };
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -29,50 +44,57 @@ export function AppHeader({ onMenuClick }: AppHeaderProps) {
   const handleLogout = () => {
     logout();
     setIsUserMenuOpen(false);
-    router.push("/");
+    window.location.href = "/";
   };
 
   return (
     <header
       className={cn(
         "h-16 lg:h-20 flex items-center justify-between px-4 lg:px-6",
-        "bg-white/90 backdrop-blur-md",
-        "border-b border-border-light"
+        "bg-white",
+        "shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)]"
       )}
     >
-      {/* Mobile Menu Button */}
-      <button
-        onClick={onMenuClick}
-        className={cn(
-          "lg:hidden p-2 rounded-xl",
-          "text-text-primary",
-          "hover:bg-background transition-colors"
-        )}
-        aria-label="Toggle menu"
-      >
-        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-        </svg>
-      </button>
-
-      {/* Search Bar */}
-      <div className="hidden md:flex flex-1 max-w-md mx-4">
-        <div
+      {/* Left Section - Logo and Menu */}
+      <div className="flex items-center gap-4">
+        {/* Mobile Menu Button */}
+        <button
+          onClick={onMenuClick}
           className={cn(
-            "flex items-center w-full px-4 py-2 rounded-xl",
-            "bg-background",
-            "shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]"
+            "lg:hidden p-2 rounded-xl cursor-pointer",
+            "text-text-primary",
+            "hover:bg-background transition-colors"
           )}
+          aria-label="Toggle menu"
         >
-          <svg className="w-5 h-5 text-text-secondary mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
           </svg>
-          <input
-            type="text"
-            placeholder="Search..."
-            className="w-full bg-transparent text-sm text-text-primary placeholder-text-secondary outline-none"
-          />
-        </div>
+        </button>
+
+        {/* Logo */}
+        <Logo size="md" />
+
+        {/* Navigation Links */}
+        <nav className="hidden lg:flex items-center gap-6 ml-8">
+          {navLinks.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className={cn(
+                "font-medium transition-colors relative",
+                isActiveLink(link.href)
+                  ? "text-primary"
+                  : "text-text-secondary hover:text-text-primary"
+              )}
+            >
+              {link.label}
+              {isActiveLink(link.href) && (
+                <span className="absolute -bottom-1 left-0 right-0 h-0.5 bg-primary rounded-full" />
+              )}
+            </Link>
+          ))}
+        </nav>
       </div>
 
       {/* Right Section */}
@@ -80,7 +102,7 @@ export function AppHeader({ onMenuClick }: AppHeaderProps) {
         {/* Notifications */}
         <button
           className={cn(
-            "relative p-2 rounded-xl",
+            "relative p-2 rounded-xl cursor-pointer",
             "bg-white",
             "shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]",
             "hover:shadow-[2px_2px_4px_#d1d5db,-2px_-2px_4px_#ffffff]",
@@ -125,6 +147,16 @@ export function AppHeader({ onMenuClick }: AppHeaderProps) {
                   <p className="text-sm font-medium text-text-primary truncate">{user.username}</p>
                   <p className="text-xs text-text-secondary truncate">{user.email}</p>
                 </div>
+                <Link
+                  href="/app/dashboard"
+                  onClick={() => setIsUserMenuOpen(false)}
+                  className="flex items-center gap-3 px-4 py-2.5 text-sm text-text-primary hover:bg-background transition-colors"
+                >
+                  <svg className="w-4 h-4 text-text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                  </svg>
+                  Dashboard
+                </Link>
                 <Link
                   href="/app/profile"
                   onClick={() => setIsUserMenuOpen(false)}

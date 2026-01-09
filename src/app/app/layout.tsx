@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { cn } from "@/lib/cn";
-import { AppSidebar, AppHeader } from "@/components/app-shell";
+import { Navbar } from "@/components/landing/Navbar";
+import { AppSidebar } from "@/components/app-shell";
 
 export default function AppLayout({
   children,
@@ -12,29 +13,29 @@ export default function AppLayout({
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="flex">
-        {/* Sidebar */}
-        <AppSidebar
-          isOpen={isSidebarOpen}
-          onClose={() => setIsSidebarOpen(false)}
-        />
+    <div className="min-h-screen bg-background flex flex-col">
+      {/* Navbar - Same as landing/marketplace */}
+      <Navbar />
+
+      {/* Content area below navbar */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Sidebar - Only visible on lg screens, hidden on mobile */}
+        <div className="hidden lg:block">
+          <AppSidebar
+            isOpen={isSidebarOpen}
+            onClose={() => setIsSidebarOpen(false)}
+          />
+        </div>
 
         {/* Main Content */}
-        <div className="flex-1 flex flex-col min-h-screen lg:ml-0">
-          {/* Header */}
-          <AppHeader onMenuClick={() => setIsSidebarOpen(true)} />
-
-          {/* Page Content */}
-          <main
-            className={cn(
-              "flex-1 p-4 lg:p-6",
-              "overflow-auto"
-            )}
-          >
-            {children}
-          </main>
-        </div>
+        <main
+          className={cn(
+            "flex-1 p-4 lg:p-6",
+            "overflow-y-auto"
+          )}
+        >
+          {children}
+        </main>
       </div>
     </div>
   );

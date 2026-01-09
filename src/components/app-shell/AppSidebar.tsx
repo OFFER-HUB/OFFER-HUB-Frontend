@@ -4,7 +4,6 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/cn";
-import { Logo } from "@/components/ui";
 
 type UserMode = "freelancer" | "client";
 
@@ -67,7 +66,7 @@ interface AppSidebarProps {
   onClose: () => void;
 }
 
-export function AppSidebar({ isOpen, onClose }: AppSidebarProps) {
+export function AppSidebar({ isOpen: _isOpen, onClose: _onClose }: AppSidebarProps) {
   const pathname = usePathname();
   const [mode, setMode] = useState<UserMode>("freelancer");
 
@@ -76,90 +75,71 @@ export function AppSidebar({ isOpen, onClose }: AppSidebarProps) {
   };
 
   return (
-    <>
-      {/* Mobile overlay */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 bg-black/20 z-40 lg:hidden"
-          onClick={onClose}
-        />
+    <aside
+      className={cn(
+        "w-64 m-6 mr-0",
+        "bg-white rounded-2xl",
+        "shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff]",
+        "flex-shrink-0"
       )}
-
-      {/* Sidebar */}
-      <aside
-        className={cn(
-          "fixed top-0 left-0 z-50 h-full w-64",
-          "bg-background",
-          "shadow-[6px_0_12px_#d1d5db]",
-          "transform transition-transform duration-300 ease-in-out",
-          "lg:translate-x-0 lg:static lg:z-auto",
-          isOpen ? "translate-x-0" : "-translate-x-full"
-        )}
-      >
-        {/* Logo */}
-        <div className="h-16 lg:h-20 flex items-center px-6 border-b border-border-light">
-          <Logo size="md" />
-        </div>
-
-        {/* Navigation */}
-        <nav className="p-4 space-y-2">
-          {navItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={onClose}
+    >
+      {/* Mode Toggle - At Top */}
+      <div className="p-4 pb-2">
+        <div
+          className={cn(
+            "p-2 rounded-xl",
+            "bg-background",
+            "shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]"
+          )}
+        >
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setMode("freelancer")}
               className={cn(
-                "flex items-center gap-3 px-4 py-3 rounded-xl",
-                "transition-all duration-200",
-                isActiveLink(item.href)
-                  ? "bg-primary text-white shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]"
-                  : "text-text-secondary hover:bg-white hover:text-text-primary hover:shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]"
+                "flex-1 py-2 px-3 rounded-lg text-sm font-medium",
+                "transition-all duration-200 cursor-pointer",
+                mode === "freelancer"
+                  ? "bg-primary text-white shadow-[2px_2px_4px_#d1d5db,-2px_-2px_4px_#ffffff]"
+                  : "text-text-secondary hover:text-text-primary"
               )}
             >
-              {item.icon}
-              <span className="font-medium">{item.label}</span>
-            </Link>
-          ))}
-        </nav>
-
-        {/* Mode Toggle */}
-        <div className="absolute bottom-0 left-0 right-0 p-4">
-          <div
-            className={cn(
-              "p-3 rounded-2xl",
-              "bg-background",
-              "shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]"
-            )}
-          >
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setMode("freelancer")}
-                className={cn(
-                  "flex-1 py-2 px-3 rounded-xl text-sm font-medium",
-                  "transition-all duration-200 cursor-pointer",
-                  mode === "freelancer"
-                    ? "bg-primary text-white shadow-[2px_2px_4px_#d1d5db,-2px_-2px_4px_#ffffff]"
-                    : "text-text-secondary hover:text-text-primary"
-                )}
-              >
-                Freelancer
-              </button>
-              <button
-                onClick={() => setMode("client")}
-                className={cn(
-                  "flex-1 py-2 px-3 rounded-xl text-sm font-medium",
-                  "transition-all duration-200 cursor-pointer",
-                  mode === "client"
-                    ? "bg-primary text-white shadow-[2px_2px_4px_#d1d5db,-2px_-2px_4px_#ffffff]"
-                    : "text-text-secondary hover:text-text-primary"
-                )}
-              >
-                Client
-              </button>
-            </div>
+              Freelancer
+            </button>
+            <button
+              onClick={() => setMode("client")}
+              className={cn(
+                "flex-1 py-2 px-3 rounded-lg text-sm font-medium",
+                "transition-all duration-200 cursor-pointer",
+                mode === "client"
+                  ? "bg-primary text-white shadow-[2px_2px_4px_#d1d5db,-2px_-2px_4px_#ffffff]"
+                  : "text-text-secondary hover:text-text-primary"
+              )}
+            >
+              Client
+            </button>
           </div>
         </div>
-      </aside>
-    </>
+      </div>
+
+      {/* Navigation */}
+      <nav className="p-4 pt-2 space-y-2">
+        {navItems.map((item) => (
+          <Link
+            key={item.href}
+            href={item.href}
+            className={cn(
+              "flex items-center gap-3 px-4 py-3 rounded-xl",
+              "transition-all duration-200",
+              isActiveLink(item.href)
+                ? "bg-primary text-white shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]"
+                : "text-text-secondary hover:bg-background hover:text-text-primary hover:shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]"
+            )}
+          >
+            {item.icon}
+            <span className="font-medium">{item.label}</span>
+          </Link>
+        ))}
+      </nav>
+    </aside>
   );
 }

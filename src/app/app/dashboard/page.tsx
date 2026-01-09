@@ -8,6 +8,24 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
+      {/* Search Bar */}
+      <div
+        className={cn(
+          "flex items-center w-full px-4 py-3 rounded-2xl",
+          "bg-white",
+          "shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]"
+        )}
+      >
+        <svg className="w-5 h-5 text-text-secondary mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+        <input
+          type="text"
+          placeholder="Search projects, proposals, messages..."
+          className="w-full bg-transparent text-sm text-text-primary placeholder-text-secondary outline-none"
+        />
+      </div>
+
       {/* Welcome Section */}
       <div
         className={cn(

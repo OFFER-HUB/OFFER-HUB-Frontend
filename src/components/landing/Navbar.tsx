@@ -7,7 +7,7 @@ import { Container, Logo } from "@/components/ui";
 import { cn } from "@/lib/cn";
 import { useAuthStore } from "@/stores/auth-store";
 
-const navLinks = [
+const publicNavLinks = [
   { href: "/marketplace", label: "Marketplace" },
   { href: "/faq", label: "FAQ" },
   { href: "/help", label: "Help" },
@@ -42,6 +42,11 @@ export function Navbar() {
     if (href === "/") return pathname === "/";
     return pathname.startsWith(href);
   };
+
+  // Add Dashboard link if authenticated
+  const navLinks = isAuthenticated
+    ? [{ href: "/app/dashboard", label: "Dashboard" }, ...publicNavLinks]
+    : publicNavLinks;
 
   return (
     <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md shadow-[var(--shadow-neumorphic-light)]">
