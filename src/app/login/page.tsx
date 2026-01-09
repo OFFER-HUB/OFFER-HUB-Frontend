@@ -10,11 +10,13 @@ import {
   AuthDivider,
 } from "@/components/auth";
 import { cn } from "@/lib/cn";
+import { useAuthStore } from "@/stores/auth-store";
 import type { LoginFormData, AuthFormErrors } from "@/types/auth.types";
 
 function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const login = useAuthStore((state) => state.login);
   const [isLoading, setIsLoading] = useState(false);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [formData, setFormData] = useState<LoginFormData>({
@@ -65,6 +67,14 @@ function LoginContent() {
     // Mock login - simulate API call
     await new Promise((resolve) => setTimeout(resolve, 1500));
 
+    // Mock user data - in real implementation this would come from API
+    const mockUser = {
+      id: "1",
+      email: formData.email,
+      username: formData.email.split("@")[0],
+    };
+
+    login(mockUser);
     setIsLoading(false);
     router.push("/marketplace");
   };

@@ -1,14 +1,20 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { cn } from "@/lib/cn";
+import { useAuthStore } from "@/stores/auth-store";
 
 export function ProfileSidebar() {
-  // In a real app, this would check auth state
-  const isAuthenticated = false;
+  const router = useRouter();
+  const { user, isAuthenticated, logout } = useAuthStore();
 
-  if (isAuthenticated) {
+  const handleLogout = () => {
+    logout();
+    router.push("/");
+  };
+
+  if (isAuthenticated && user) {
     // Show user profile when authenticated
     return (
       <aside
@@ -20,17 +26,18 @@ export function ProfileSidebar() {
         {/* User Profile Card */}
         <div className="text-center mb-6">
           <div className="relative inline-block mb-3">
-            <Image
-              src="/mock-images/man1.png"
-              alt="User avatar"
-              width={80}
-              height={80}
-              className="rounded-full object-cover"
-            />
+            <div
+              className={cn(
+                "w-20 h-20 rounded-full flex items-center justify-center",
+                "bg-primary/10 text-primary text-2xl font-bold"
+              )}
+            >
+              {user.username.charAt(0).toUpperCase()}
+            </div>
             <span className="absolute bottom-1 right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full" />
           </div>
-          <h3 className="font-bold text-text-primary">John Doe</h3>
-          <p className="text-sm text-text-secondary">UI Designer</p>
+          <h3 className="font-bold text-text-primary">{user.username}</h3>
+          <p className="text-sm text-text-secondary">{user.email}</p>
         </div>
 
         {/* Stats */}
@@ -48,12 +55,28 @@ export function ProfileSidebar() {
         {/* Edit Profile Button */}
         <button
           className={cn(
-            "w-full py-2.5 rounded-xl text-sm font-medium",
+            "w-full py-2.5 rounded-xl text-sm font-medium mb-3 cursor-pointer",
             "border-2 border-border-light text-text-primary",
             "hover:border-primary hover:text-primary transition-colors"
           )}
         >
           Edit Profile
+        </button>
+
+        {/* Logout Button */}
+        <button
+          onClick={handleLogout}
+          className={cn(
+            "w-full py-2.5 rounded-xl text-sm font-medium cursor-pointer",
+            "bg-error/10 text-error border-2 border-error/20",
+            "hover:bg-error/20 hover:border-error/40 transition-all duration-200",
+            "flex items-center justify-center gap-2"
+          )}
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+          </svg>
+          Logout
         </button>
       </aside>
     );
