@@ -135,6 +135,42 @@ body {
   }
 }
 
+@keyframes waveFloat1 {
+  0%, 100% {
+    transform: translateX(0) translateY(0);
+  }
+  50% {
+    transform: translateX(-15px) translateY(-5px);
+  }
+}
+
+@keyframes waveFloat2 {
+  0%, 100% {
+    transform: translateX(0) translateY(0);
+  }
+  50% {
+    transform: translateX(20px) translateY(-8px);
+  }
+}
+
+@keyframes waveFloat3 {
+  0%, 100% {
+    transform: translateX(0) translateY(0);
+  }
+  50% {
+    transform: translateX(-10px) translateY(-3px);
+  }
+}
+
+@keyframes waveFloat4 {
+  0%, 100% {
+    transform: translateX(0) translateY(0);
+  }
+  50% {
+    transform: translateX(15px) translateY(-6px);
+  }
+}
+
 /* Animation utility classes */
 .animate-fade-in {
   animation: fadeIn 0.2s ease-out forwards;
@@ -164,6 +200,22 @@ body {
 
 .animate-shake {
   animation: shake 0.5s ease-in-out;
+}
+
+.animate-wave-1 {
+  animation: waveFloat1 6s ease-in-out infinite;
+}
+
+.animate-wave-2 {
+  animation: waveFloat2 8s ease-in-out infinite;
+}
+
+.animate-wave-3 {
+  animation: waveFloat3 7s ease-in-out infinite;
+}
+
+.animate-wave-4 {
+  animation: waveFloat4 9s ease-in-out infinite;
 }
 
 /* Stagger animation delays */

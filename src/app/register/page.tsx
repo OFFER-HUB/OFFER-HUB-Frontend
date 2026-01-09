@@ -8,6 +8,7 @@ import {
   SocialAuthButtons,
   AuthInput,
   AuthDivider,
+  PasswordRequirements,
 } from "@/components/auth";
 import { cn } from "@/lib/cn";
 import type { RegisterFormData, AuthFormErrors } from "@/types/auth.types";
@@ -16,6 +17,7 @@ export default function RegisterPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [passwordFocused, setPasswordFocused] = useState(false);
   const [formData, setFormData] = useState<RegisterFormData>({
     email: "",
     username: "",
@@ -183,9 +185,15 @@ export default function RegisterPage() {
             name="password"
             value={formData.password}
             onChange={handleChange}
+            onFocus={() => setPasswordFocused(true)}
+            onBlur={() => setPasswordFocused(false)}
             placeholder="Create a password"
             error={errors.password}
             autoComplete="new-password"
+          />
+          <PasswordRequirements
+            password={formData.password}
+            show={passwordFocused || formData.password.length > 0}
           />
         </div>
 

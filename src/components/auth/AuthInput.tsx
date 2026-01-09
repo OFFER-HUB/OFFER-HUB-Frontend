@@ -9,6 +9,8 @@ interface AuthInputProps {
   name: string;
   value: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onFocus?: () => void;
+  onBlur?: () => void;
   placeholder?: string;
   error?: string;
   autoComplete?: string;
@@ -20,6 +22,8 @@ export function AuthInput({
   name,
   value,
   onChange,
+  onFocus,
+  onBlur,
   placeholder,
   error,
   autoComplete,
@@ -39,6 +43,8 @@ export function AuthInput({
           name={name}
           value={value}
           onChange={onChange}
+          onFocus={onFocus}
+          onBlur={onBlur}
           placeholder={placeholder}
           autoComplete={autoComplete}
           className={cn(
