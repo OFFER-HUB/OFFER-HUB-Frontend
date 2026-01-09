@@ -216,7 +216,7 @@ export default function RegisterPage() {
             type="submit"
             disabled={isLoading}
             className={cn(
-              "w-full px-6 py-3 rounded-xl font-medium mt-4",
+              "w-full px-6 py-3 rounded-xl font-medium mt-4 cursor-pointer",
               "bg-primary text-white",
               "shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]",
               "hover:bg-primary-hover hover:shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff] hover:scale-[1.02]",
