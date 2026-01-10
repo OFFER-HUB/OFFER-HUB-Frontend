@@ -74,6 +74,11 @@ const CLIENT_DASHBOARD_ITEM: NavigationItem = {
 
 const CLIENT_ITEMS: NavigationItem[] = [
   {
+    href: "/app/client/offers",
+    label: "Manage Offers",
+    icon: "M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10",
+  },
+  {
     href: "/app/client/offers/new",
     label: "Create Offer",
     icon: "M12 4v16m8-8H4",
