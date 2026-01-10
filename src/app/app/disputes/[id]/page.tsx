@@ -18,6 +18,41 @@ import {
 } from "@/types/dispute.types";
 import type { Dispute, DisputeStatus, DisputeComment } from "@/types/dispute.types";
 
+const STATUS_COLORS: Record<DisputeStatus, string> = {
+  open: "bg-warning/20 text-warning",
+  under_review: "bg-primary/20 text-primary",
+  resolved: "bg-success/20 text-success",
+  closed: "bg-text-secondary/20 text-text-secondary",
+};
+
+const EVENT_ICONS: Record<string, string> = {
+  created: ICON_PATHS.plus,
+  evidence_added: ICON_PATHS.file,
+  status_changed: ICON_PATHS.flag,
+  comment_added: ICON_PATHS.chat,
+  resolved: ICON_PATHS.check,
+};
+
+const COMMENT_ROLE_COLORS: Record<DisputeComment["authorRole"], string> = {
+  client: "bg-primary/10 border-primary/20",
+  freelancer: "bg-secondary/10 border-secondary/20",
+  admin: "bg-warning/10 border-warning/20",
+};
+
+const COMMENT_ROLE_LABELS: Record<DisputeComment["authorRole"], string> = {
+  client: "Client",
+  freelancer: "Freelancer",
+  admin: "Support",
+};
+
+const PRIMARY_BUTTON = cn(
+  "px-5 py-2.5 rounded-xl font-medium cursor-pointer",
+  "bg-primary text-white",
+  "shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]",
+  "hover:bg-primary-hover",
+  "transition-all duration-200"
+);
+
 function formatDate(dateString: string): string {
   return new Date(dateString).toLocaleDateString("en-US", {
     year: "numeric",
@@ -36,62 +71,18 @@ function formatDateTime(dateString: string): string {
   });
 }
 
-function getStatusColor(status: DisputeStatus): string {
-  switch (status) {
-    case "open":
-      return "bg-warning/20 text-warning";
-    case "under_review":
-      return "bg-primary/20 text-primary";
-    case "resolved":
-      return "bg-success/20 text-success";
-    case "closed":
-      return "bg-text-secondary/20 text-text-secondary";
-    default:
-      return "bg-background text-text-secondary";
-  }
+interface InfoRowProps {
+  label: string;
+  children: React.ReactNode;
 }
 
-function getEventIcon(type: string): string {
-  switch (type) {
-    case "created":
-      return ICON_PATHS.plus;
-    case "evidence_added":
-      return ICON_PATHS.file;
-    case "status_changed":
-      return ICON_PATHS.flag;
-    case "comment_added":
-      return ICON_PATHS.chat;
-    case "resolved":
-      return ICON_PATHS.check;
-    default:
-      return ICON_PATHS.clock;
-  }
-}
-
-function getCommentRoleColor(role: DisputeComment["authorRole"]): string {
-  switch (role) {
-    case "client":
-      return "bg-primary/10 border-primary/20";
-    case "freelancer":
-      return "bg-secondary/10 border-secondary/20";
-    case "admin":
-      return "bg-warning/10 border-warning/20";
-    default:
-      return "bg-background border-border";
-  }
-}
-
-function getCommentRoleLabel(role: DisputeComment["authorRole"]): string {
-  switch (role) {
-    case "client":
-      return "Client";
-    case "freelancer":
-      return "Freelancer";
-    case "admin":
-      return "Support";
-    default:
-      return "";
-  }
+function InfoRow({ label, children }: InfoRowProps): React.JSX.Element {
+  return (
+    <div className="flex justify-between">
+      <span className="text-text-secondary text-sm">{label}</span>
+      {children}
+    </div>
+  );
 }
 
 export default function DisputeDetailPage(): React.JSX.Element {
@@ -161,13 +152,7 @@ export default function DisputeDetailPage(): React.JSX.Element {
           <button
             type="button"
             onClick={() => router.push("/app/disputes")}
-            className={cn(
-              "px-5 py-2.5 rounded-xl cursor-pointer",
-              "bg-primary text-white text-sm font-medium",
-              "shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]",
-              "hover:shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff]",
-              "transition-all duration-200"
-            )}
+            className={cn(PRIMARY_BUTTON, "text-sm")}
           >
             Back to Disputes
           </button>
@@ -190,7 +175,7 @@ export default function DisputeDetailPage(): React.JSX.Element {
             <span
               className={cn(
                 "px-3 py-1 rounded-lg text-sm font-medium flex-shrink-0",
-                getStatusColor(dispute.status)
+                STATUS_COLORS[dispute.status]
               )}
             >
               {DISPUTE_STATUS_LABELS[dispute.status]}
@@ -290,7 +275,7 @@ export default function DisputeDetailPage(): React.JSX.Element {
                     key={comment.id}
                     className={cn(
                       "p-4 rounded-xl border",
-                      getCommentRoleColor(comment.authorRole)
+                      COMMENT_ROLE_COLORS[comment.authorRole]
                     )}
                   >
                     <div className="flex items-center justify-between mb-2">
@@ -299,7 +284,7 @@ export default function DisputeDetailPage(): React.JSX.Element {
                           {comment.author}
                         </span>
                         <span className="text-xs px-2 py-0.5 rounded bg-background text-text-secondary">
-                          {getCommentRoleLabel(comment.authorRole)}
+                          {COMMENT_ROLE_LABELS[comment.authorRole]}
                         </span>
                       </div>
                       <span className="text-text-secondary text-sm">
@@ -310,7 +295,7 @@ export default function DisputeDetailPage(): React.JSX.Element {
                   </div>
                 ))}
 
-                {dispute.status !== "closed" && dispute.status !== "resolved" && (
+                {(dispute.status === "open" || dispute.status === "under_review") && (
                   <form onSubmit={handleSubmitComment} className="mt-4">
                     <div className={cn("rounded-xl", NEUMORPHIC_INSET)}>
                       <textarea
@@ -330,12 +315,8 @@ export default function DisputeDetailPage(): React.JSX.Element {
                         type="submit"
                         disabled={isSubmitting || !newComment.trim()}
                         className={cn(
-                          "px-5 py-2.5 rounded-xl font-medium cursor-pointer",
-                          "bg-primary text-white",
-                          "shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]",
-                          "hover:bg-primary-hover",
-                          "disabled:opacity-50 disabled:cursor-not-allowed",
-                          "transition-all duration-200"
+                          PRIMARY_BUTTON,
+                          "disabled:opacity-50 disabled:cursor-not-allowed"
                         )}
                       >
                         {isSubmitting ? "Sending..." : "Send Comment"}
@@ -366,7 +347,7 @@ export default function DisputeDetailPage(): React.JSX.Element {
                         )}
                       >
                         <Icon
-                          path={getEventIcon(event.type)}
+                          path={EVENT_ICONS[event.type] ?? ICON_PATHS.clock}
                           size="sm"
                           className={index === 0 ? "text-primary" : "text-text-secondary"}
                         />
@@ -393,41 +374,36 @@ export default function DisputeDetailPage(): React.JSX.Element {
                 Quick Info
               </h2>
               <div className="space-y-3">
-                <div className="flex justify-between">
-                  <span className="text-text-secondary text-sm">Status</span>
+                <InfoRow label="Status">
                   <span
                     className={cn(
                       "px-2 py-0.5 rounded text-xs font-medium",
-                      getStatusColor(dispute.status)
+                      STATUS_COLORS[dispute.status]
                     )}
                   >
                     {DISPUTE_STATUS_LABELS[dispute.status]}
                   </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-text-secondary text-sm">Created</span>
+                </InfoRow>
+                <InfoRow label="Created">
                   <span className="text-text-primary text-sm">
                     {formatDate(dispute.createdAt)}
                   </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-text-secondary text-sm">Last Updated</span>
+                </InfoRow>
+                <InfoRow label="Last Updated">
                   <span className="text-text-primary text-sm">
                     {formatDate(dispute.updatedAt)}
                   </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-text-secondary text-sm">Evidence Files</span>
+                </InfoRow>
+                <InfoRow label="Evidence Files">
                   <span className="text-text-primary text-sm">
                     {dispute.evidence.length}
                   </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-text-secondary text-sm">Comments</span>
+                </InfoRow>
+                <InfoRow label="Comments">
                   <span className="text-text-primary text-sm">
                     {dispute.comments.length}
                   </span>
-                </div>
+                </InfoRow>
               </div>
             </div>
           </div>
