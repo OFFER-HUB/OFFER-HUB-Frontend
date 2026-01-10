@@ -23,6 +23,7 @@ export default function ChatThreadPage() {
   const { isCollapsed: sidebarCollapsed, setCollapsed: setSidebarCollapsed } = useSidebarStore();
   const [showConversations, setShowConversations] = useState(false);
   const [showInfo, setShowInfo] = useState(true);
+  const [conversationsCollapsed, setConversationsCollapsed] = useState(true);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -46,8 +47,9 @@ export default function ChatThreadPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Handle when sidebar is expanded - collapse conversation list
-  const conversationsCollapsed = !sidebarCollapsed;
+  function handleToggleConversations(): void {
+    setConversationsCollapsed((prev) => !prev);
+  }
 
   function handleSendMessage(content: string): void {
     const newMessage: ChatMessage = {
@@ -120,7 +122,7 @@ export default function ChatThreadPage() {
           "transition-all duration-300 ease-in-out",
           // Desktop behavior
           "hidden lg:block",
-          conversationsCollapsed ? "lg:w-[72px]" : "lg:w-[340px]",
+          conversationsCollapsed ? "lg:w-[80px]" : "lg:w-[340px]",
           // Mobile behavior (overlay)
           showConversations && "fixed inset-y-0 left-0 z-50 w-[340px] m-0 rounded-none block lg:relative lg:rounded-2xl"
         )}
@@ -128,6 +130,7 @@ export default function ChatThreadPage() {
         <ConversationList
           conversations={MOCK_CONVERSATIONS}
           isCollapsed={conversationsCollapsed && !showConversations}
+          onToggleCollapse={handleToggleConversations}
         />
       </div>
 

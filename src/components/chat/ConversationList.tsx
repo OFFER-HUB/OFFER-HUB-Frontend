@@ -10,9 +10,10 @@ import type { Conversation } from "@/types/chat.types";
 interface ConversationListProps {
   conversations: Conversation[];
   isCollapsed?: boolean;
+  onToggleCollapse?: () => void;
 }
 
-export function ConversationList({ conversations, isCollapsed = false }: ConversationListProps) {
+export function ConversationList({ conversations, isCollapsed = false, onToggleCollapse }: ConversationListProps) {
   const pathname = usePathname();
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState<"all" | "unread">("all");
@@ -28,13 +29,35 @@ export function ConversationList({ conversations, isCollapsed = false }: Convers
     return pathname === `/app/chat/${id}`;
   }
 
-  // Collapsed view - just avatars
+  // Collapsed view - just avatars with expand button
   if (isCollapsed) {
     return (
-      <div className="flex flex-col h-full bg-background py-4">
+      <div className="flex flex-col h-full bg-white">
+        {/* Expand button at top */}
+        {onToggleCollapse && (
+          <div className="p-3 border-b border-border-light">
+            <button
+              type="button"
+              onClick={onToggleCollapse}
+              className={cn(
+                "w-full p-2.5 rounded-xl cursor-pointer",
+                "flex items-center justify-center",
+                "bg-background text-text-secondary",
+                "shadow-[3px_3px_6px_#d1d5db,-3px_-3px_6px_#ffffff]",
+                "hover:shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]",
+                "hover:text-primary",
+                "transition-all duration-300 ease-in-out"
+              )}
+              title="Expand conversations"
+            >
+              <Icon path={ICON_PATHS.chevronRight} size="md" />
+            </button>
+          </div>
+        )}
+
         {/* Conversation avatars */}
-        <div className="flex-1 overflow-y-auto px-2 space-y-3">
-          {conversations.slice(0, 8).map((conv) => (
+        <div className="flex-1 overflow-y-auto py-3 px-3 space-y-3">
+          {conversations.slice(0, 10).map((conv) => (
             <Link
               key={conv.id}
               href={`/app/chat/${conv.id}`}
@@ -44,11 +67,11 @@ export function ConversationList({ conversations, isCollapsed = false }: Convers
               <div
                 className={cn(
                   "w-11 h-11 rounded-full flex items-center justify-center",
-                  "transition-all duration-200",
+                  "transition-all duration-300 ease-in-out",
                   "shadow-[3px_3px_6px_#d1d5db,-3px_-3px_6px_#ffffff]",
                   isActiveConversation(conv.id)
-                    ? "bg-primary text-white scale-105"
-                    : "bg-white text-text-primary group-hover:shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]"
+                    ? "bg-primary text-white scale-110"
+                    : "bg-gradient-to-br from-primary/10 to-accent/10 text-text-primary group-hover:shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff] group-hover:scale-105"
                 )}
               >
                 <span className="text-xs font-bold">
@@ -56,12 +79,12 @@ export function ConversationList({ conversations, isCollapsed = false }: Convers
                 </span>
               </div>
               {conv.unreadCount > 0 && (
-                <span className="absolute -top-1 -right-0 w-5 h-5 bg-primary text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-sm">
+                <span className="absolute -top-1 -right-1 w-5 h-5 bg-primary text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-sm">
                   {conv.unreadCount}
                 </span>
               )}
               {conv.participant.isOnline && (
-                <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-background rounded-full" />
+                <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full" />
               )}
             </Link>
           ))}
@@ -75,7 +98,26 @@ export function ConversationList({ conversations, isCollapsed = false }: Convers
     <div className="flex flex-col h-full bg-white">
       {/* Header */}
       <div className="p-4 border-b border-border-light">
-        <h2 className="text-lg font-bold text-text-primary mb-4">Messages</h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-bold text-text-primary">Messages</h2>
+          {onToggleCollapse && (
+            <button
+              type="button"
+              onClick={onToggleCollapse}
+              className={cn(
+                "p-2 rounded-lg cursor-pointer",
+                "text-text-secondary hover:text-primary",
+                "bg-background",
+                "shadow-[2px_2px_4px_#d1d5db,-2px_-2px_4px_#ffffff]",
+                "hover:shadow-[3px_3px_6px_#d1d5db,-3px_-3px_6px_#ffffff]",
+                "transition-all duration-300 ease-in-out"
+              )}
+              title="Collapse conversations"
+            >
+              <Icon path={ICON_PATHS.chevronLeft} size="sm" />
+            </button>
+          )}
+        </div>
 
         {/* Search */}
         <div
