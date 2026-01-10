@@ -8,6 +8,8 @@ import { useModeStore } from "@/stores/mode-store";
 import { Icon, ICON_PATHS } from "@/components/ui/Icon";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { StarRating } from "@/components/ui/StarRating";
+import { RateFreelancerModal } from "@/components/rating/RateFreelancerModal";
 import {
   NEUMORPHIC_CARD,
   NEUMORPHIC_INSET,
@@ -20,7 +22,9 @@ import {
 } from "@/lib/styles";
 import { MOCK_CLIENT_OFFER_DETAILS } from "@/data/client-offer.data";
 import { isOfferEligibleForDispute } from "@/data/dispute.data";
+import { getRatingByOfferId, addRating } from "@/data/rating.data";
 import type { Applicant, ClientOfferDetail } from "@/types/client-offer.types";
+import type { FreelancerRating } from "@/types/rating.types";
 
 function formatDate(dateString: string): string {
   return new Date(dateString).toLocaleDateString("en-US", {
@@ -110,6 +114,8 @@ export default function OfferPanelPage(): React.JSX.Element {
   const params = useParams();
   const { setMode } = useModeStore();
   const [offer, setOffer] = useState<ClientOfferDetail | null>(null);
+  const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
+  const [existingRating, setExistingRating] = useState<FreelancerRating | null>(null);
 
   useEffect(() => {
     setMode("client");
@@ -121,8 +127,29 @@ export default function OfferPanelPage(): React.JSX.Element {
     const foundOffer = MOCK_CLIENT_OFFER_DETAILS[id];
     if (foundOffer) {
       setOffer(foundOffer);
+      setExistingRating(getRatingByOfferId(id) ?? null);
     }
   }, [params.id]);
+
+  async function handleSubmitRating(rating: number, comment: string): Promise<void> {
+    if (!offer || !offer.hiredFreelancer) return;
+
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    const newRating: FreelancerRating = {
+      id: `rating-${Date.now()}`,
+      offerId: offer.id,
+      freelancerId: offer.hiredFreelancer.id,
+      freelancerName: offer.hiredFreelancer.name,
+      clientId: "client-1",
+      rating,
+      comment,
+      createdAt: new Date().toISOString(),
+    };
+
+    addRating(newRating);
+    setExistingRating(newRating);
+  }
 
   if (!offer) {
     return (
@@ -206,6 +233,45 @@ export default function OfferPanelPage(): React.JSX.Element {
             </div>
           </div>
 
+          {offer.status === "completed" && offer.hiredFreelancer && (
+            <div className={NEUMORPHIC_CARD}>
+              <h2 className="text-lg font-semibold text-text-primary mb-4">
+                Hired Freelancer
+              </h2>
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 rounded-full flex items-center justify-center bg-primary text-white font-semibold">
+                  {offer.hiredFreelancer.avatar}
+                </div>
+                <div>
+                  <p className="font-medium text-text-primary">
+                    {offer.hiredFreelancer.name}
+                  </p>
+                  <p className="text-sm text-text-secondary">
+                    {offer.hiredFreelancer.title}
+                  </p>
+                </div>
+              </div>
+
+              {existingRating ? (
+                <div className={cn("p-4 rounded-xl", NEUMORPHIC_INSET)}>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-sm text-text-secondary">Your Rating:</span>
+                    <StarRating value={existingRating.rating} readonly size="sm" />
+                  </div>
+                  <p className="text-text-primary text-sm">{existingRating.comment}</p>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setIsRatingModalOpen(true)}
+                  className={ACTION_BUTTON_WARNING}
+                >
+                  <Icon path={ICON_PATHS.star} size="md" />
+                  Rate Freelancer
+                </button>
+              )}
+            </div>
+          )}
+
           <div className={NEUMORPHIC_CARD}>
             <h2 className="text-lg font-semibold text-text-primary mb-4">Actions</h2>
             <div className="space-y-3">
@@ -235,6 +301,16 @@ export default function OfferPanelPage(): React.JSX.Element {
           </div>
         </div>
       </div>
+
+      {offer.hiredFreelancer && (
+        <RateFreelancerModal
+          isOpen={isRatingModalOpen}
+          onClose={() => setIsRatingModalOpen(false)}
+          onSubmit={handleSubmitRating}
+          freelancerName={offer.hiredFreelancer.name}
+          offerTitle={offer.title}
+        />
+      )}
     </div>
   );
 }
