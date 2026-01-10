@@ -2,7 +2,7 @@
  * Client offer management types
  */
 
-export type OfferStatus = "active" | "pending" | "closed";
+export type OfferStatus = "active" | "pending" | "closed" | "completed";
 
 export interface Applicant {
   id: string;
@@ -29,6 +29,7 @@ export interface ClientOffer {
 export interface ClientOfferDetail extends Omit<ClientOffer, "applicants"> {
   description: string;
   applicants: Applicant[];
+  hiredFreelancer?: Applicant;
 }
 
 export type FilterStatus = OfferStatus | "all";
@@ -43,4 +44,5 @@ export const STATUS_CONFIG: Record<OfferStatus, StatusConfig> = {
   active: { label: "Active", color: "text-success", bg: "bg-success/10" },
   pending: { label: "Pending", color: "text-warning", bg: "bg-warning/10" },
   closed: { label: "Closed", color: "text-text-secondary", bg: "bg-gray-100" },
+  completed: { label: "Completed", color: "text-primary", bg: "bg-primary/10" },
 };
