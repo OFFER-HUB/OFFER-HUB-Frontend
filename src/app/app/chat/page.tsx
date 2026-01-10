@@ -16,7 +16,7 @@ export default function ChatPage() {
   }, [setCollapsed]);
 
   return (
-    <div className="flex h-full gap-4">
+    <div className="flex flex-1 min-h-0 gap-4">
       {/* Conversation List */}
       <div
         className={cn(

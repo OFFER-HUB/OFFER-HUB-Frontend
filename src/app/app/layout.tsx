@@ -13,7 +13,7 @@ export default function AppLayout({
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
-    <div className="app-no-scroll h-screen bg-background flex flex-col overflow-hidden">
+    <div className="min-h-screen bg-background flex flex-col">
       {/* Navbar - Same as landing/marketplace */}
       <div className="flex-shrink-0">
         <Navbar />
@@ -33,7 +33,7 @@ export default function AppLayout({
         <main
           className={cn(
             "flex-1 p-4 lg:p-6 min-h-0 min-w-0",
-            "overflow-hidden"
+            "overflow-auto"
           )}
         >
           {children}

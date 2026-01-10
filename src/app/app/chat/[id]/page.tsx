@@ -72,7 +72,7 @@ export default function ChatThreadPage() {
 
   if (!chatThread) {
     return (
-      <div className="flex h-full items-center justify-center bg-white rounded-2xl shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff]">
+      <div className="flex flex-1 min-h-0 items-center justify-center bg-white rounded-2xl shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff]">
         <div className="text-center">
           <div
             className={cn(
@@ -105,7 +105,7 @@ export default function ChatThreadPage() {
   }
 
   return (
-    <div className="flex h-full gap-4">
+    <div className="flex flex-1 min-h-0 gap-4">
       {/* Mobile Overlay */}
       {showConversations && (
         <div
