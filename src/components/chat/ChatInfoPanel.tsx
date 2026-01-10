@@ -81,26 +81,6 @@ export function ChatInfoPanel({ participant, sharedFiles, onClose }: ChatInfoPan
         </span>
       </div>
 
-      {/* Quick Stats */}
-      <div className="grid grid-cols-2 gap-3 p-4 border-b border-border-light">
-        <div className={cn(
-          "p-3 rounded-xl text-center",
-          "bg-background",
-          "shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]"
-        )}>
-          <p className="text-lg font-bold text-text-primary">126</p>
-          <p className="text-[10px] text-text-secondary uppercase tracking-wider">Messages</p>
-        </div>
-        <div className={cn(
-          "p-3 rounded-xl text-center",
-          "bg-background",
-          "shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]"
-        )}>
-          <p className="text-lg font-bold text-text-primary">24</p>
-          <p className="text-[10px] text-text-secondary uppercase tracking-wider">Files</p>
-        </div>
-      </div>
-
       {/* Shared Files Section */}
       <div className="flex-1 overflow-y-auto p-4">
         <h4 className="text-xs font-semibold text-text-secondary uppercase tracking-wider mb-3">
@@ -148,51 +128,6 @@ export function ChatInfoPanel({ participant, sharedFiles, onClose }: ChatInfoPan
               />
             </button>
           ))}
-        </div>
-      </div>
-
-      {/* Quick Actions */}
-      <div className="p-4 border-t border-border-light">
-        <div className="grid grid-cols-3 gap-2">
-          <button
-            type="button"
-            className={cn(
-              "flex flex-col items-center gap-1.5 p-3 rounded-xl cursor-pointer",
-              "bg-background",
-              "shadow-[2px_2px_4px_#d1d5db,-2px_-2px_4px_#ffffff]",
-              "hover:shadow-[3px_3px_6px_#d1d5db,-3px_-3px_6px_#ffffff]",
-              "transition-all duration-200"
-            )}
-          >
-            <Icon path={ICON_PATHS.link} size="md" className="text-primary" />
-            <span className="text-[10px] text-text-secondary">Share</span>
-          </button>
-          <button
-            type="button"
-            className={cn(
-              "flex flex-col items-center gap-1.5 p-3 rounded-xl cursor-pointer",
-              "bg-background",
-              "shadow-[2px_2px_4px_#d1d5db,-2px_-2px_4px_#ffffff]",
-              "hover:shadow-[3px_3px_6px_#d1d5db,-3px_-3px_6px_#ffffff]",
-              "transition-all duration-200"
-            )}
-          >
-            <Icon path={ICON_PATHS.bell} size="md" className="text-primary" />
-            <span className="text-[10px] text-text-secondary">Mute</span>
-          </button>
-          <button
-            type="button"
-            className={cn(
-              "flex flex-col items-center gap-1.5 p-3 rounded-xl cursor-pointer",
-              "bg-background",
-              "shadow-[2px_2px_4px_#d1d5db,-2px_-2px_4px_#ffffff]",
-              "hover:shadow-[3px_3px_6px_#d1d5db,-3px_-3px_6px_#ffffff]",
-              "transition-all duration-200 group"
-            )}
-          >
-            <Icon path={ICON_PATHS.flag} size="md" className="text-red-500" />
-            <span className="text-[10px] text-text-secondary">Report</span>
-          </button>
         </div>
       </div>
     </div>

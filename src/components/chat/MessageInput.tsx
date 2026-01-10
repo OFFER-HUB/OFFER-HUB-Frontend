@@ -25,32 +25,15 @@ export function MessageInput({ onSendMessage, disabled = false }: MessageInputPr
     <form
       onSubmit={handleSubmit}
       className={cn(
-        "flex items-center gap-3 px-6 py-4",
+        "flex items-center gap-2 sm:gap-3 px-4 sm:px-6 py-3 sm:py-4",
         "border-t border-border-light",
         "bg-white"
       )}
     >
-      {/* Attachment button */}
-      <button
-        type="button"
-        className={cn(
-          "p-2.5 rounded-xl cursor-pointer",
-          "text-text-secondary hover:text-primary",
-          "bg-background",
-          "shadow-[3px_3px_6px_#d1d5db,-3px_-3px_6px_#ffffff]",
-          "hover:shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]",
-          "transition-all duration-200",
-          "hidden sm:flex"
-        )}
-        title="Attach file"
-      >
-        <Icon path={ICON_PATHS.paperclip} size="md" />
-      </button>
-
       {/* Message input */}
       <div
         className={cn(
-          "flex-1 flex items-center gap-3 px-4 py-3 rounded-xl",
+          "flex-1 flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl",
           "bg-background",
           "shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]"
         )}
@@ -67,13 +50,6 @@ export function MessageInput({ onSendMessage, disabled = false }: MessageInputPr
             disabled && "cursor-not-allowed opacity-50"
           )}
         />
-        <button
-          type="button"
-          className="text-text-secondary hover:text-primary transition-colors cursor-pointer hidden sm:block"
-          title="Add emoji"
-        >
-          <Icon path={ICON_PATHS.emoji} size="md" />
-        </button>
       </div>
 
       {/* Send button */}

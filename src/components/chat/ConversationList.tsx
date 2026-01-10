@@ -15,7 +15,7 @@ interface ConversationListProps {
 export function ConversationList({ conversations, isCollapsed = false }: ConversationListProps) {
   const pathname = usePathname();
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeFilter, setActiveFilter] = useState<"all" | "unread" | "groups">("all");
+  const [activeFilter, setActiveFilter] = useState<"all" | "unread">("all");
 
   const filteredConversations = conversations.filter((conv) => {
     const matchesSearch = conv.participant.name.toLowerCase().includes(searchQuery.toLowerCase());
@@ -66,23 +66,6 @@ export function ConversationList({ conversations, isCollapsed = false }: Convers
             </Link>
           ))}
         </div>
-
-        {/* Bottom actions */}
-        <div className="px-2 pt-4 border-t border-border-light">
-          <button
-            type="button"
-            className={cn(
-              "w-full flex justify-center p-2.5 rounded-xl cursor-pointer",
-              "text-text-secondary hover:text-primary",
-              "shadow-[3px_3px_6px_#d1d5db,-3px_-3px_6px_#ffffff]",
-              "hover:shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]",
-              "transition-all duration-200"
-            )}
-            title="Settings"
-          >
-            <Icon path={ICON_PATHS.settings} size="md" />
-          </button>
-        </div>
       </div>
     );
   }
@@ -105,7 +88,7 @@ export function ConversationList({ conversations, isCollapsed = false }: Convers
           <Icon path={ICON_PATHS.search} size="sm" className="text-text-secondary" />
           <input
             type="text"
-            placeholder="Search messages..."
+            placeholder="Search conversations..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="flex-1 bg-transparent text-sm text-text-primary placeholder:text-text-secondary/60 outline-none"
@@ -116,13 +99,13 @@ export function ConversationList({ conversations, isCollapsed = false }: Convers
       {/* Filter Tabs */}
       <div className="px-4 py-3 border-b border-border-light">
         <div className="flex gap-2">
-          {(["all", "unread", "groups"] as const).map((filter) => (
+          {(["all", "unread"] as const).map((filter) => (
             <button
               key={filter}
               type="button"
               onClick={() => setActiveFilter(filter)}
               className={cn(
-                "px-3 py-1.5 rounded-lg text-xs font-medium capitalize",
+                "px-4 py-1.5 rounded-lg text-xs font-medium capitalize",
                 "transition-all duration-200 cursor-pointer",
                 activeFilter === filter
                   ? "bg-primary text-white shadow-[2px_2px_4px_#d1d5db,-2px_-2px_4px_#ffffff]"
@@ -222,24 +205,6 @@ export function ConversationList({ conversations, isCollapsed = false }: Convers
             ))}
           </div>
         )}
-      </div>
-
-      {/* New Message Button */}
-      <div className="p-4 border-t border-border-light">
-        <button
-          type="button"
-          className={cn(
-            "w-full flex items-center justify-center gap-2 py-3 rounded-xl",
-            "bg-primary text-white font-medium text-sm cursor-pointer",
-            "shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]",
-            "hover:shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff]",
-            "active:shadow-[inset_2px_2px_4px_rgba(0,0,0,0.1)]",
-            "transition-all duration-200"
-          )}
-        >
-          <Icon path={ICON_PATHS.plus} size="sm" />
-          New Message
-        </button>
       </div>
     </div>
   );
