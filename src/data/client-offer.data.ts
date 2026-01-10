@@ -47,7 +47,7 @@ export const MOCK_CLIENT_OFFERS: ClientOffer[] = [
     category: "Writing & Translation",
     budget: 300,
     deadline: "2026-01-30",
-    status: "active",
+    status: "completed",
     applicants: 3,
     createdAt: "2026-01-08",
   },
@@ -123,5 +123,40 @@ export const MOCK_CLIENT_OFFER_DETAILS: Record<string, ClientOfferDetail> = {
           "I've designed 15+ fitness apps and understand the space deeply. I'll create an engaging experience for your users.",
       },
     ],
+  },
+  "5": {
+    id: "5",
+    title: "Content writing for blog",
+    description:
+      "Need a skilled content writer to create engaging blog posts for our tech startup. Topics include AI, machine learning, and software development best practices. Looking for someone who can write technical content in an accessible way.",
+    category: "Writing & Translation",
+    budget: 300,
+    deadline: "2026-01-30",
+    status: "completed",
+    createdAt: "2026-01-08",
+    applicants: [
+      {
+        id: "a5",
+        name: "Alex Writer",
+        avatar: "AW",
+        title: "Technical Content Writer",
+        rating: 4.9,
+        hourlyRate: 45,
+        proposalDate: "2026-01-09",
+        coverLetter:
+          "I have 5+ years of experience writing technical content for tech companies. I can make complex topics easy to understand.",
+      },
+    ],
+    hiredFreelancer: {
+      id: "a5",
+      name: "Alex Writer",
+      avatar: "AW",
+      title: "Technical Content Writer",
+      rating: 4.9,
+      hourlyRate: 45,
+      proposalDate: "2026-01-09",
+      coverLetter:
+        "I have 5+ years of experience writing technical content for tech companies. I can make complex topics easy to understand.",
+    },
   },
 };
