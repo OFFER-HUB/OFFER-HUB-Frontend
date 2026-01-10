@@ -76,3 +76,28 @@ export const DROPDOWN_ITEM_DANGER = cn(
   "flex items-center gap-3 w-full px-4 py-2.5 text-sm",
   "text-error hover:bg-background transition-colors cursor-pointer"
 );
+
+export const ACTION_BUTTON_BASE = cn(
+  "flex items-center gap-2 w-full px-4 py-3 rounded-xl",
+  "font-medium transition-colors"
+);
+
+export const ACTION_BUTTON_DEFAULT = cn(
+  ACTION_BUTTON_BASE,
+  "text-text-primary bg-background hover:bg-gray-100"
+);
+
+export const ACTION_BUTTON_WARNING = cn(
+  ACTION_BUTTON_BASE,
+  "text-warning bg-warning/10 hover:bg-warning/20 cursor-pointer"
+);
+
+export const ACTION_BUTTON_DANGER = cn(
+  ACTION_BUTTON_BASE,
+  "text-error bg-error/10 hover:bg-error/20 cursor-pointer"
+);
+
+export const ACTION_BUTTON_SUBTLE = cn(
+  ACTION_BUTTON_BASE,
+  "text-text-secondary hover:bg-background"
+);
