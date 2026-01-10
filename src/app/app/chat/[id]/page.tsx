@@ -17,10 +17,10 @@ import {
 import { useSidebarStore } from "@/stores/sidebar-store";
 import type { ChatMessage } from "@/types/chat.types";
 
-export default function ChatThreadPage() {
+export default function ChatThreadPage(): React.JSX.Element {
   const params = useParams();
   const router = useRouter();
-  const { isCollapsed: sidebarCollapsed, setCollapsed: setSidebarCollapsed } = useSidebarStore();
+  const { setCollapsed: setSidebarCollapsed } = useSidebarStore();
   const [showConversations, setShowConversations] = useState(false);
   const [showInfo, setShowInfo] = useState(true);
   const [conversationsCollapsed, setConversationsCollapsed] = useState(true);
@@ -30,19 +30,16 @@ export default function ChatThreadPage() {
   const chatId = params.id as string;
   const chatThread = getChatThreadById(chatId);
 
-  // Auto-collapse sidebar when entering chat
   useEffect(() => {
     setSidebarCollapsed(true);
   }, [setSidebarCollapsed]);
 
-  // Load messages when thread changes
   useEffect(() => {
     if (chatThread) {
       setMessages(chatThread.messages);
     }
   }, [chatThread]);
 
-  // Scroll to bottom on new messages
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
@@ -62,12 +59,10 @@ export default function ChatThreadPage() {
     setMessages((prev) => [...prev, newMessage]);
   }
 
-  // Group messages by sender for avatar display
   function shouldShowAvatar(index: number): boolean {
-    if (index === messages.length - 1) return true;
-    const currentMessage = messages[index];
-    const nextMessage = messages[index + 1];
-    return currentMessage.senderId !== nextMessage.senderId;
+    const isLastMessage = index === messages.length - 1;
+    if (isLastMessage) return true;
+    return messages[index].senderId !== messages[index + 1].senderId;
   }
 
   if (!chatThread) {
@@ -106,7 +101,6 @@ export default function ChatThreadPage() {
 
   return (
     <div className="flex h-full gap-4">
-      {/* Mobile Overlay */}
       {showConversations && (
         <div
           className="fixed inset-0 bg-black/50 z-40 lg:hidden"
@@ -114,17 +108,15 @@ export default function ChatThreadPage() {
         />
       )}
 
-      {/* Conversation List */}
       <div
         className={cn(
           "flex-shrink-0 bg-white rounded-2xl overflow-hidden",
           "shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff]",
           "transition-all duration-300 ease-in-out",
-          // Desktop behavior
           "hidden lg:block",
           conversationsCollapsed ? "lg:w-[80px]" : "lg:w-[340px]",
-          // Mobile behavior (overlay)
-          showConversations && "fixed inset-y-0 left-0 z-50 w-[340px] m-0 rounded-none block lg:relative lg:rounded-2xl"
+          showConversations &&
+            "fixed inset-y-0 left-0 z-50 w-[340px] m-0 rounded-none block lg:relative lg:rounded-2xl"
         )}
       >
         <ConversationList
@@ -134,7 +126,6 @@ export default function ChatThreadPage() {
         />
       </div>
 
-      {/* Chat Area */}
       <div
         className={cn(
           "flex-1 flex flex-col min-w-0 min-h-0",
@@ -142,7 +133,6 @@ export default function ChatThreadPage() {
           "shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff]"
         )}
       >
-        {/* Chat Header */}
         <ChatHeader
           participant={chatThread.participant}
           onToggleSidebar={() => setShowConversations(true)}
@@ -150,14 +140,12 @@ export default function ChatThreadPage() {
           showInfoButton={true}
         />
 
-        {/* Messages Area - This is the only scrollable area */}
         <div
           className={cn(
             "flex-1 overflow-y-auto p-4 sm:p-6 min-h-0",
             "bg-background"
           )}
         >
-          {/* Date separator */}
           <div className="flex items-center justify-center mb-6">
             <span className="px-3 py-1 text-xs text-text-secondary bg-white rounded-full shadow-[2px_2px_4px_#d1d5db,-2px_-2px_4px_#ffffff]">
               Today
@@ -178,11 +166,9 @@ export default function ChatThreadPage() {
           </div>
         </div>
 
-        {/* Message Input */}
         <MessageInput onSendMessage={handleSendMessage} />
       </div>
 
-      {/* Info Panel */}
       <div
         className={cn(
           "flex-shrink-0 bg-white rounded-2xl overflow-hidden",

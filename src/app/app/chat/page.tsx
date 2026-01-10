@@ -7,17 +7,15 @@ import { ConversationList } from "@/components/chat/ConversationList";
 import { MOCK_CONVERSATIONS } from "@/data/chat.data";
 import { useSidebarStore } from "@/stores/sidebar-store";
 
-export default function ChatPage() {
+export default function ChatPage(): React.JSX.Element {
   const { setCollapsed } = useSidebarStore();
 
-  // Auto-collapse sidebar when entering chat
   useEffect(() => {
     setCollapsed(true);
   }, [setCollapsed]);
 
   return (
     <div className="flex h-full gap-4">
-      {/* Conversation List */}
       <div
         className={cn(
           "w-full sm:w-80 lg:w-[340px] flex-shrink-0",
@@ -28,7 +26,6 @@ export default function ChatPage() {
         <ConversationList conversations={MOCK_CONVERSATIONS} />
       </div>
 
-      {/* Empty State - Select Conversation */}
       <div
         className={cn(
           "hidden sm:flex flex-1 flex-col items-center justify-center",

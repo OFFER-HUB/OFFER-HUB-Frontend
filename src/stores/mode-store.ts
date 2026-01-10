@@ -49,6 +49,7 @@ const CLIENT_NAV_ITEMS: NavigationItem[] = [
   { href: "/app/client/offers/new", label: "Create Offer", icon: ICON_PATHS.plus },
   { href: "/app/freelancers", label: "Find Freelancers", icon: ICON_PATHS.users },
   { href: "/app/payments", label: "Payments", icon: ICON_PATHS.creditCard },
+  { href: "/app/disputes", label: "Disputes", icon: ICON_PATHS.flag },
 ];
 
 export function getNavigationItems(mode: UserMode): NavigationItem[] {

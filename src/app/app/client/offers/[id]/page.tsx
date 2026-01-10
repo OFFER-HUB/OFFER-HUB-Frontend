@@ -19,6 +19,7 @@ import {
   ACTION_BUTTON_SUBTLE,
 } from "@/lib/styles";
 import { MOCK_CLIENT_OFFER_DETAILS } from "@/data/client-offer.data";
+import { isOfferEligibleForDispute } from "@/data/dispute.data";
 import type { Applicant, ClientOfferDetail } from "@/types/client-offer.types";
 
 function formatDate(dateString: string): string {
@@ -222,12 +223,14 @@ export default function OfferPanelPage(): React.JSX.Element {
                 <Icon path={ICON_PATHS.trash} size="md" />
                 Delete Offer
               </button>
-              <div className="border-t border-border-light pt-3 mt-3">
-                <Link href="/app/disputes/new" className={ACTION_BUTTON_SUBTLE}>
-                  <Icon path={ICON_PATHS.flag} size="md" />
-                  Open Dispute
-                </Link>
-              </div>
+              {isOfferEligibleForDispute(offer.id, offer.status) && (
+                <div className="border-t border-border-light pt-3 mt-3">
+                  <Link href={`/app/disputes/new?offerId=${offer.id}`} className={ACTION_BUTTON_SUBTLE}>
+                    <Icon path={ICON_PATHS.flag} size="md" />
+                    Open Dispute
+                  </Link>
+                </div>
+              )}
             </div>
           </div>
         </div>
