@@ -32,7 +32,7 @@ export interface NavigationItem {
 }
 
 const SHARED_ITEMS: NavigationItem[] = [
-  { href: "/app/messages", label: "Messages", icon: ICON_PATHS.chat },
+  { href: "/app/chat", label: "Messages", icon: ICON_PATHS.chat },
   { href: "/app/profile", label: "Profile", icon: ICON_PATHS.user },
 ];
 
