@@ -31,16 +31,13 @@ export interface NavigationItem {
   icon: string;
 }
 
-const SHARED_ITEMS: NavigationItem[] = [
-  { href: "/app/chat", label: "Messages", icon: ICON_PATHS.chat },
-  { href: "/app/profile", label: "Profile", icon: ICON_PATHS.user },
-];
-
 const FREELANCER_NAV_ITEMS: NavigationItem[] = [
   { href: "/app/freelancer/dashboard", label: "Dashboard", icon: ICON_PATHS.home },
   { href: "/app/projects", label: "Find Projects", icon: ICON_PATHS.search },
   { href: "/app/proposals", label: "My Proposals", icon: ICON_PATHS.document },
   { href: "/app/earnings", label: "Earnings", icon: ICON_PATHS.currency },
+  { href: "/app/chat", label: "Messages", icon: ICON_PATHS.chat },
+  { href: "/app/freelancer/profile", label: "Profile", icon: ICON_PATHS.user },
 ];
 
 const CLIENT_NAV_ITEMS: NavigationItem[] = [
@@ -50,9 +47,10 @@ const CLIENT_NAV_ITEMS: NavigationItem[] = [
   { href: "/app/freelancers", label: "Find Freelancers", icon: ICON_PATHS.users },
   { href: "/app/payments", label: "Payments", icon: ICON_PATHS.creditCard },
   { href: "/app/disputes", label: "Disputes", icon: ICON_PATHS.flag },
+  { href: "/app/chat", label: "Messages", icon: ICON_PATHS.chat },
+  { href: "/app/profile", label: "Profile", icon: ICON_PATHS.user },
 ];
 
 export function getNavigationItems(mode: UserMode): NavigationItem[] {
-  const modeItems = mode === "client" ? CLIENT_NAV_ITEMS : FREELANCER_NAV_ITEMS;
-  return [...modeItems, ...SHARED_ITEMS];
+  return mode === "client" ? CLIENT_NAV_ITEMS : FREELANCER_NAV_ITEMS;
 }
