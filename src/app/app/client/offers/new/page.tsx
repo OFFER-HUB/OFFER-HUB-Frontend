@@ -306,7 +306,7 @@ export default function CreateOfferPage(): React.JSX.Element {
   const canAddMoreFiles = attachments.length < MAX_ATTACHMENTS;
 
   return (
-    <div className="space-y-6 max-w-3xl">
+    <div className="space-y-6">
       <div className="flex items-center gap-4">
         <Link href="/app/client/dashboard" className={ICON_BUTTON}>
           <Icon path={ICON_PATHS.chevronLeft} size="md" className="text-text-primary" />
@@ -317,168 +317,185 @@ export default function CreateOfferPage(): React.JSX.Element {
         </div>
       </div>
 
-      <div className={NEUMORPHIC_CARD}>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <FormField label="Offer Title" error={errors.title}>
-            <input
-              type="text"
-              name="title"
-              value={formData.title}
-              onChange={handleChange}
-              className={cn(NEUMORPHIC_INPUT, errors.title && INPUT_ERROR_STYLES)}
-              placeholder="e.g., Build a responsive website for my business"
-            />
-          </FormField>
+      <form onSubmit={handleSubmit}>
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+          <div className="xl:col-span-2 space-y-6">
+            <div className={NEUMORPHIC_CARD}>
+              <h2 className="text-lg font-semibold text-text-primary mb-4">Basic Information</h2>
+              <div className="space-y-5">
+                <FormField label="Offer Title" error={errors.title}>
+                  <input
+                    type="text"
+                    name="title"
+                    value={formData.title}
+                    onChange={handleChange}
+                    className={cn(NEUMORPHIC_INPUT, errors.title && INPUT_ERROR_STYLES)}
+                    placeholder="e.g., Build a responsive website for my business"
+                  />
+                </FormField>
 
-          <FormField label="Category" error={errors.category}>
-            <select
-              name="category"
-              value={formData.category}
-              onChange={handleChange}
-              className={cn(
-                NEUMORPHIC_INPUT,
-                "cursor-pointer",
-                errors.category && INPUT_ERROR_STYLES
-              )}
-            >
-              {CATEGORIES.map((cat) => (
-                <option key={cat.value} value={cat.value}>
-                  {cat.label}
-                </option>
-              ))}
-            </select>
-          </FormField>
+                <FormField label="Category" error={errors.category}>
+                  <select
+                    name="category"
+                    value={formData.category}
+                    onChange={handleChange}
+                    className={cn(
+                      NEUMORPHIC_INPUT,
+                      "cursor-pointer",
+                      errors.category && INPUT_ERROR_STYLES
+                    )}
+                  >
+                    {CATEGORIES.map((cat) => (
+                      <option key={cat.value} value={cat.value}>
+                        {cat.label}
+                      </option>
+                    ))}
+                  </select>
+                </FormField>
 
-          <FormField
-            label="Description"
-            error={errors.description}
-            hint={`${formData.description.length} / ${MIN_DESCRIPTION_LENGTH} minimum characters`}
-          >
-            <textarea
-              name="description"
-              value={formData.description}
-              onChange={handleChange}
-              rows={6}
-              className={cn(
-                NEUMORPHIC_INPUT,
-                "resize-none",
-                errors.description && INPUT_ERROR_STYLES
-              )}
-              placeholder="Describe your project in detail. Include requirements, deliverables, and any specific skills needed..."
-            />
-          </FormField>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormField label="Budget (USD)" error={errors.budget}>
-              <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary">
-                  $
-                </span>
-                <input
-                  type="number"
-                  name="budget"
-                  value={formData.budget}
-                  onChange={handleChange}
-                  min={MIN_BUDGET}
-                  step="1"
-                  className={cn(NEUMORPHIC_INPUT, "pl-8", errors.budget && INPUT_ERROR_STYLES)}
-                  placeholder="500"
-                />
+                <FormField
+                  label="Description"
+                  error={errors.description}
+                  hint={`${formData.description.length} / ${MIN_DESCRIPTION_LENGTH} minimum characters`}
+                >
+                  <textarea
+                    name="description"
+                    value={formData.description}
+                    onChange={handleChange}
+                    rows={8}
+                    className={cn(
+                      NEUMORPHIC_INPUT,
+                      "resize-none",
+                      errors.description && INPUT_ERROR_STYLES
+                    )}
+                    placeholder="Describe your project in detail. Include requirements, deliverables, and any specific skills needed..."
+                  />
+                </FormField>
               </div>
-            </FormField>
-
-            <FormField label="Deadline" error={errors.deadline}>
-              <input
-                type="date"
-                name="deadline"
-                value={formData.deadline}
-                onChange={handleChange}
-                min={today}
-                className={cn(
-                  NEUMORPHIC_INPUT,
-                  "cursor-pointer",
-                  errors.deadline && INPUT_ERROR_STYLES
-                )}
-              />
-            </FormField>
-          </div>
-
-          <FormField label="Attachments" optional>
-            <p className="text-xs text-text-secondary mb-3">
-              Add images or documents to show what you&apos;re looking for. Max 5 files, 10MB each.
-            </p>
-
-            <div
-              onClick={() => canAddMoreFiles && fileInputRef.current?.click()}
-              className={cn(
-                "border-2 border-dashed border-border-light rounded-xl p-6",
-                "flex flex-col items-center justify-center gap-2",
-                "cursor-pointer",
-                "hover:border-primary/50 hover:bg-primary/5",
-                "transition-all duration-200",
-                !canAddMoreFiles && "opacity-50 pointer-events-none"
-              )}
-            >
-              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                <Icon path={ICON_PATHS.image} className="text-primary" />
-              </div>
-              <p className="text-sm text-text-primary font-medium">Click to upload files</p>
-              <p className="text-xs text-text-secondary">PNG, JPG, GIF, PDF, DOC up to 10MB</p>
             </div>
 
-            <input
-              ref={fileInputRef}
-              type="file"
-              multiple
-              accept="image/jpeg,image/png,image/gif,image/webp,.pdf,.doc,.docx,.txt"
-              onChange={handleFileSelect}
-              className="hidden"
-            />
+            <div className={NEUMORPHIC_CARD}>
+              <h2 className="text-lg font-semibold text-text-primary mb-4">Attachments</h2>
+              <p className="text-sm text-text-secondary mb-4">
+                Add images or documents to help freelancers understand your project better.
+              </p>
 
-            {attachmentError && <p className="mt-2 text-sm text-error">{attachmentError}</p>}
-
-            {attachments.length > 0 && (
-              <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                {attachments.map((attachment) => (
-                  <AttachmentPreview
-                    key={attachment.id}
-                    attachment={attachment}
-                    onRemove={() => removeAttachment(attachment.id)}
-                  />
-                ))}
+              <div
+                onClick={() => canAddMoreFiles && fileInputRef.current?.click()}
+                className={cn(
+                  "border-2 border-dashed border-border-light rounded-xl p-8",
+                  "flex flex-col items-center justify-center gap-3",
+                  "cursor-pointer",
+                  "hover:border-primary/50 hover:bg-primary/5",
+                  "transition-all duration-200",
+                  !canAddMoreFiles && "opacity-50 pointer-events-none"
+                )}
+              >
+                <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Icon path={ICON_PATHS.image} size="lg" className="text-primary" />
+                </div>
+                <p className="text-sm text-text-primary font-medium">Click to upload files</p>
+                <p className="text-xs text-text-secondary">PNG, JPG, GIF, PDF, DOC up to 10MB each</p>
               </div>
-            )}
 
-            <p className="mt-2 text-xs text-text-secondary">
-              {attachments.length} / {MAX_ATTACHMENTS} files attached
-            </p>
-          </FormField>
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                accept="image/jpeg,image/png,image/gif,image/webp,.pdf,.doc,.docx,.txt"
+                onChange={handleFileSelect}
+                className="hidden"
+              />
 
-          <div className="flex items-center justify-end gap-4 pt-4">
-            <Link
-              href="/app/client/dashboard"
-              className={cn(
-                "px-6 py-3 rounded-xl font-medium",
-                "text-text-secondary",
-                "hover:text-text-primary",
-                "transition-colors duration-200"
+              {attachmentError && <p className="mt-3 text-sm text-error">{attachmentError}</p>}
+
+              {attachments.length > 0 && (
+                <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+                  {attachments.map((attachment) => (
+                    <AttachmentPreview
+                      key={attachment.id}
+                      attachment={attachment}
+                      onRemove={() => removeAttachment(attachment.id)}
+                    />
+                  ))}
+                </div>
               )}
-            >
-              Cancel
-            </Link>
-            <button type="submit" disabled={isLoading} className={PRIMARY_BUTTON}>
-              {isLoading ? (
-                <span className="flex items-center gap-2">
-                  <LoadingSpinner />
-                  Publishing...
-                </span>
-              ) : (
-                "Publish Offer"
-              )}
-            </button>
+
+              <p className="mt-3 text-xs text-text-secondary">
+                {attachments.length} / {MAX_ATTACHMENTS} files attached
+              </p>
+            </div>
           </div>
-        </form>
-      </div>
+
+          <div className="space-y-6">
+            <div className={NEUMORPHIC_CARD}>
+              <h2 className="text-lg font-semibold text-text-primary mb-4">Budget & Timeline</h2>
+              <div className="space-y-5">
+                <FormField label="Budget (USD)" error={errors.budget}>
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary">
+                      $
+                    </span>
+                    <input
+                      type="number"
+                      name="budget"
+                      value={formData.budget}
+                      onChange={handleChange}
+                      min={MIN_BUDGET}
+                      step="1"
+                      className={cn(NEUMORPHIC_INPUT, "pl-8", errors.budget && INPUT_ERROR_STYLES)}
+                      placeholder="500"
+                    />
+                  </div>
+                </FormField>
+
+                <FormField label="Deadline" error={errors.deadline}>
+                  <input
+                    type="date"
+                    name="deadline"
+                    value={formData.deadline}
+                    onChange={handleChange}
+                    min={today}
+                    className={cn(
+                      NEUMORPHIC_INPUT,
+                      "cursor-pointer",
+                      errors.deadline && INPUT_ERROR_STYLES
+                    )}
+                  />
+                </FormField>
+              </div>
+            </div>
+
+            <div className={NEUMORPHIC_CARD}>
+              <h2 className="text-lg font-semibold text-text-primary mb-4">Actions</h2>
+              <div className="space-y-3">
+                <button type="submit" disabled={isLoading} className={cn(PRIMARY_BUTTON, "w-full justify-center")}>
+                  {isLoading ? (
+                    <span className="flex items-center gap-2 justify-center">
+                      <LoadingSpinner />
+                      Publishing...
+                    </span>
+                  ) : (
+                    "Publish Offer"
+                  )}
+                </button>
+                <Link
+                  href="/app/client/dashboard"
+                  className={cn(
+                    "block w-full px-6 py-3 rounded-xl font-medium text-center",
+                    "bg-background text-text-secondary",
+                    "shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]",
+                    "hover:shadow-[2px_2px_4px_#d1d5db,-2px_-2px_4px_#ffffff]",
+                    "transition-all duration-200"
+                  )}
+                >
+                  Cancel
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </form>
     </div>
   );
 }
