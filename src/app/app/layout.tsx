@@ -29,7 +29,7 @@ export default function AppLayout({ children }: AppLayoutProps): React.JSX.Eleme
         <main
           className={cn(
             "flex-1 p-4 lg:p-6 min-h-0 min-w-0",
-            "overflow-hidden"
+            "overflow-y-auto"
           )}
         >
           {children}

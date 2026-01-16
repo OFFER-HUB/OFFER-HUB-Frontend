@@ -67,7 +67,7 @@ export default function ChatThreadPage(): React.JSX.Element {
 
   if (!chatThread) {
     return (
-      <div className="flex h-full items-center justify-center bg-white rounded-2xl shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff]">
+      <div className="page-full-height flex items-center justify-center bg-white rounded-2xl shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff]">
         <div className="text-center">
           <div
             className={cn(
@@ -100,7 +100,7 @@ export default function ChatThreadPage(): React.JSX.Element {
   }
 
   return (
-    <div className="flex h-full gap-4">
+    <div className="page-full-height flex gap-4">
       {showConversations && (
         <div
           className="fixed inset-0 bg-black/50 z-40 lg:hidden"
