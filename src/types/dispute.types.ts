@@ -54,6 +54,7 @@ export interface Dispute {
   updatedAt: string;
   resolution?: string;
   freelancerName?: string;
+  clientName?: string;
 }
 
 export interface DisputeFormData {

@@ -100,7 +100,7 @@ function OrderCard({ order }: OrderCardProps): React.JSX.Element {
 
           {order.hasDispute ? (
             <Link
-              href={`/app/disputes?order=${order.id}`}
+              href={`/app/freelancer/disputes?order=${order.id}`}
               className={cn(
                 "p-2 rounded-lg",
                 "text-error hover:bg-error/10",
@@ -112,7 +112,7 @@ function OrderCard({ order }: OrderCardProps): React.JSX.Element {
             </Link>
           ) : (
             <Link
-              href={`/app/disputes/new?order=${order.id}`}
+              href={`/app/freelancer/disputes/new?order=${order.id}`}
               className={cn(
                 "p-2 rounded-lg",
                 "text-text-secondary hover:text-warning hover:bg-warning/10",
