@@ -132,7 +132,7 @@ export default function DisputeDetailPage(): React.JSX.Element {
 
   if (!dispute) {
     return (
-      <div className="flex h-full items-center justify-center">
+      <div className="page-full-height flex items-center justify-center">
         <div className={cn(NEUMORPHIC_CARD, "text-center max-w-md")}>
           <div
             className={cn(
@@ -162,7 +162,7 @@ export default function DisputeDetailPage(): React.JSX.Element {
   }
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="page-full-height flex flex-col">
       <div className="flex items-center gap-4 mb-4 flex-shrink-0">
         <Link href="/app/disputes" className={ICON_BUTTON}>
           <Icon path={ICON_PATHS.chevronLeft} size="md" className="text-text-primary" />

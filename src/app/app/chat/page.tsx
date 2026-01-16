@@ -15,7 +15,7 @@ export default function ChatPage(): React.JSX.Element {
   }, [setCollapsed]);
 
   return (
-    <div className="flex h-full gap-4">
+    <div className="page-full-height flex gap-4">
       <div
         className={cn(
           "w-full sm:w-80 lg:w-[340px] flex-shrink-0",

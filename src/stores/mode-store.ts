@@ -38,6 +38,7 @@ const FREELANCER_NAV_ITEMS: NavigationItem[] = [
   { href: "/app/earnings", label: "Earnings", icon: ICON_PATHS.currency },
   { href: "/app/chat", label: "Messages", icon: ICON_PATHS.chat },
   { href: "/app/freelancer/profile", label: "Profile", icon: ICON_PATHS.user },
+  { href: "/app/freelancer/portfolio", label: "Portfolio", icon: ICON_PATHS.image },
 ];
 
 const CLIENT_NAV_ITEMS: NavigationItem[] = [
