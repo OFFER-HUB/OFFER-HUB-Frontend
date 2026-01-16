@@ -1,4 +1,4 @@
-import type { Service, ServiceCategory } from "@/types/service.types";
+import type { Service, ServiceCategory, ServiceOrder, OrderStatus } from "@/types/service.types";
 
 export const MIN_TITLE_LENGTH = 10;
 export const MIN_DESCRIPTION_LENGTH = 50;
@@ -60,3 +60,85 @@ export const MOCK_SERVICES: Service[] = [
     rating: 5.0,
   },
 ];
+
+export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
+  pending: "Pending",
+  in_progress: "In Progress",
+  delivered: "Delivered",
+  completed: "Completed",
+  cancelled: "Cancelled",
+};
+
+export const ORDER_STATUS_COLORS: Record<OrderStatus, string> = {
+  pending: "bg-warning/20 text-warning",
+  in_progress: "bg-primary/20 text-primary",
+  delivered: "bg-accent/20 text-accent",
+  completed: "bg-success/20 text-success",
+  cancelled: "bg-error/20 text-error",
+};
+
+export const MOCK_SERVICE_ORDERS: ServiceOrder[] = [
+  {
+    id: "ord-1",
+    serviceId: "1",
+    clientName: "Sarah Johnson",
+    clientAvatar: "SJ",
+    status: "in_progress",
+    price: 150,
+    orderedAt: "2024-12-01",
+    deliveryDate: "2024-12-08",
+    hasDispute: false,
+  },
+  {
+    id: "ord-2",
+    serviceId: "1",
+    clientName: "Michael Chen",
+    clientAvatar: "MC",
+    status: "pending",
+    price: 150,
+    orderedAt: "2024-12-10",
+    deliveryDate: "2024-12-17",
+    hasDispute: false,
+  },
+  {
+    id: "ord-3",
+    serviceId: "1",
+    clientName: "Emily Rodriguez",
+    clientAvatar: "ER",
+    status: "completed",
+    price: 150,
+    orderedAt: "2024-11-15",
+    deliveryDate: "2024-11-22",
+    hasDispute: false,
+  },
+  {
+    id: "ord-4",
+    serviceId: "1",
+    clientName: "David Kim",
+    clientAvatar: "DK",
+    status: "delivered",
+    price: 150,
+    orderedAt: "2024-11-28",
+    deliveryDate: "2024-12-05",
+    hasDispute: true,
+  },
+  {
+    id: "ord-5",
+    serviceId: "2",
+    clientName: "Lisa Thompson",
+    clientAvatar: "LT",
+    status: "in_progress",
+    price: 75,
+    orderedAt: "2024-12-08",
+    deliveryDate: "2024-12-11",
+    hasDispute: false,
+  },
+];
+
+export function getServiceById(id: string): Service | undefined {
+  return MOCK_SERVICES.find((s) => s.id === id);
+}
+
+export function getOrdersByServiceId(serviceId: string): ServiceOrder[] {
+  return MOCK_SERVICE_ORDERS.filter((o) => o.serviceId === serviceId);
+}

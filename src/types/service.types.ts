@@ -39,3 +39,17 @@ export interface Service {
   orders: number;
   rating: number;
 }
+
+export type OrderStatus = "pending" | "in_progress" | "delivered" | "completed" | "cancelled";
+
+export interface ServiceOrder {
+  id: string;
+  serviceId: string;
+  clientName: string;
+  clientAvatar: string;
+  status: OrderStatus;
+  price: number;
+  orderedAt: string;
+  deliveryDate: string;
+  hasDispute: boolean;
+}
