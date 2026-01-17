@@ -242,6 +242,85 @@ class ValidationError extends Error {
 - Utility functions: Max ~50 lines per function
 - Type files: Split by domain when > 100 lines
 
+## Scroll Behavior - CRITICAL RULES
+
+The app uses a specific scroll system that **MUST NOT be modified**. The layout is configured in `/src/app/app/layout.tsx` and `/src/app/globals.css`.
+
+### How the Scroll System Works
+
+1. **App Layout** (`/src/app/app/layout.tsx`):
+   - The root container has `overflow-hidden` (class `app-no-scroll`)
+   - The main content area has class `app-main-content` which enables `overflow-y: auto`
+   - This allows pages to scroll by default
+
+2. **CSS Classes** (`/src/app/globals.css`):
+   - `.app-no-scroll`: Disables scroll on html/body
+   - `.app-main-content`: Enables vertical scroll on the main content area
+   - `.page-full-height`: Used for pages that should NOT scroll externally
+
+### Page Categories
+
+#### Pages that NEED scroll (DEFAULT behavior):
+- Dashboard (`/app/freelancer/dashboard`)
+- Disputes list (`/app/freelancer/disputes`)
+- Profile (`/app/freelancer/profile`)
+- Services list (`/app/freelancer/services`)
+- Service detail (`/app/freelancer/services/[id]`)
+- Portfolio (`/app/freelancer/portfolio`)
+- Any page with content that extends beyond the viewport
+
+**DO NOT add `page-full-height` class to these pages.**
+
+#### Pages that should NOT have external scroll:
+- Chat/Messages (`/app/chat/[id]`)
+- Any page that displays everything within the viewport and manages its own internal scroll
+
+**These pages MUST have `page-full-height` class on their root container.**
+
+### Rules for Developers and AI
+
+| Rule | Description |
+|------|-------------|
+| Never remove `app-main-content` | This class enables scroll on the main content area |
+| Never change overflow settings | Do not modify overflow properties in globals.css for these classes |
+| Never add `page-full-height` to scrollable pages | Only use for pages that fill the viewport completely |
+| Always verify scroll | After making changes to any page, verify scroll works correctly |
+| Default is scrollable | When creating new pages, follow the default (scrollable) pattern |
+
+### Correct Page Structure Examples
+
+**Scrollable page (default - most pages):**
+```tsx
+export default function DashboardPage(): React.JSX.Element {
+  return (
+    <div className="space-y-4">
+      {/* Content that may exceed viewport height - WILL SCROLL */}
+    </div>
+  );
+}
+```
+
+**Full-height page (no external scroll - only Chat/Messages):**
+```tsx
+export default function ChatPage(): React.JSX.Element {
+  return (
+    <div className="page-full-height flex flex-col">
+      {/* Content that manages its own internal scroll */}
+      <div className="flex-1 overflow-y-auto">
+        {/* Scrollable area inside */}
+      </div>
+    </div>
+  );
+}
+```
+
+### Warning
+
+This scroll behavior has been broken multiple times. **DO NOT MODIFY** the scroll-related CSS classes or layout structure without explicit approval. If scroll is not working on a page, the issue is likely:
+1. Incorrectly added `page-full-height` class
+2. Missing `min-h-0` on flex containers
+3. Conflicting overflow styles
+
 ## Comments
 
 - Avoid obvious comments
