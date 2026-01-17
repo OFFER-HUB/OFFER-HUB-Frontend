@@ -5,6 +5,8 @@ interface IconProps {
   className?: string;
   size?: "sm" | "md" | "lg" | "xl";
   strokeWidth?: number;
+  ariaLabel?: string;
+  ariaHidden?: boolean;
 }
 
 const SIZE_CLASSES = {
@@ -19,6 +21,8 @@ export function Icon({
   className,
   size = "lg",
   strokeWidth = 2,
+  ariaLabel,
+  ariaHidden = !ariaLabel,
 }: IconProps): React.JSX.Element {
   return (
     <svg
@@ -27,6 +31,9 @@ export function Icon({
       viewBox="0 0 24 24"
       stroke="currentColor"
       strokeWidth={strokeWidth}
+      aria-label={ariaLabel}
+      aria-hidden={ariaHidden}
+      role={ariaLabel ? "img" : undefined}
     >
       <path strokeLinecap="round" strokeLinejoin="round" d={path} />
     </svg>
@@ -80,11 +87,28 @@ export const ICON_PATHS = {
   arrowUp: "M5 15l7-7 7 7",
   arrowDown: "M19 9l-7 7-7-7",
   externalLink: "M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14",
+  refresh: "M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15",
+  alertCircle: "M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z",
+  infoCircle: "M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z",
 } as const;
 
-export function LoadingSpinner(): React.JSX.Element {
+interface LoadingSpinnerProps {
+  size?: "sm" | "md" | "lg" | "xl";
+  className?: string;
+}
+
+export function LoadingSpinner({
+  size = "md",
+  className,
+}: LoadingSpinnerProps = {}): React.JSX.Element {
   return (
-    <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+    <svg
+      className={cn(SIZE_CLASSES[size], "animate-spin", className)}
+      fill="none"
+      viewBox="0 0 24 24"
+      role="status"
+      aria-label="Loading"
+    >
       <circle
         className="opacity-25"
         cx="12"

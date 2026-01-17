@@ -14,6 +14,10 @@ export default function AppLayout({ children }: AppLayoutProps): React.JSX.Eleme
 
   return (
     <div className="app-no-scroll h-screen bg-background flex flex-col overflow-hidden">
+      <a href="#main-content" className="skip-link">
+        Skip to main content
+      </a>
+
       <div className="flex-shrink-0">
         <Navbar />
       </div>
@@ -27,10 +31,13 @@ export default function AppLayout({ children }: AppLayoutProps): React.JSX.Eleme
         </div>
 
         <main
+          id="main-content"
           className={cn(
             "flex-1 p-4 lg:p-6 min-h-0 min-w-0",
             "app-main-content"
           )}
+          role="main"
+          aria-label="Main content"
         >
           {children}
         </main>

@@ -55,6 +55,92 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* ============================================
+   ACCESSIBILITY STYLES
+   ============================================ */
+
+/* Skip to main content link - visible on focus for keyboard users */
+.skip-link {
+  position: absolute;
+  top: -100px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.75rem 1.5rem;
+  background: var(--color-primary);
+  color: white;
+  font-weight: 600;
+  border-radius: 0 0 0.5rem 0.5rem;
+  z-index: 9999;
+  transition: top 0.2s ease;
+}
+
+.skip-link:focus {
+  top: 0;
+  outline: 2px solid var(--color-secondary);
+  outline-offset: 2px;
+}
+
+/* Focus styles - ensure all interactive elements have visible focus */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Remove default outline for mouse users, keep for keyboard */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Enhanced focus for buttons and links */
+button:focus-visible,
+a:focus-visible,
+[role="button"]:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Focus within for container elements */
+.focus-within-ring:focus-within {
+  ring: 2px;
+  ring-color: var(--color-primary);
+  ring-opacity: 0.5;
+}
+
+/* High contrast focus for form inputs */
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 0;
+  box-shadow: 0 0 0 3px rgba(20, 154, 155, 0.2);
+}
+
+/* Screen reader only - visually hidden but accessible */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Not sr-only - for toggling visibility */
+.not-sr-only {
+  position: static;
+  width: auto;
+  height: auto;
+  padding: 0;
+  margin: 0;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+}
+
 /* Prevent page scroll on app pages - only internal elements should scroll */
 html:has(.app-no-scroll),
 html:has(.app-no-scroll) body {
