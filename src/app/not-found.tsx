@@ -1,108 +1,145 @@
 import Link from "next/link";
 import { Icon, ICON_PATHS } from "@/components/ui/Icon";
 
+// 3D Isometric Number 4 Component
+function IsometricFour({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 120 160"
+      className={className}
+      fill="none"
+    >
+      {/* Back/Left faces (darkest) */}
+      {/* Vertical stem - left face */}
+      <polygon points="30,0 30,95 15,105 15,10" fill="#9ca3af" />
+      {/* Horizontal bar - left face */}
+      <polygon points="15,85 15,105 85,105 85,85" fill="#b0b5bd" />
+      {/* Descender - left face */}
+      <polygon points="70,85 70,160 55,160 55,95" fill="#9ca3af" />
+
+      {/* Front faces (medium) */}
+      {/* Vertical stem - front */}
+      <polygon points="30,0 45,10 45,95 30,95" fill="#d1d5db" />
+      {/* Horizontal bar - front */}
+      <polygon points="15,105 100,105 100,120 15,120" fill="#d1d5db" />
+      {/* Descender - front */}
+      <polygon points="70,105 85,105 85,160 70,160" fill="#d1d5db" />
+
+      {/* Top faces (lightest) */}
+      {/* Vertical stem - top */}
+      <polygon points="30,0 45,10 45,10 30,0" fill="#f3f4f6" />
+      {/* Horizontal bar - top */}
+      <polygon points="15,85 100,85 100,105 15,105" fill="#e8eaed" />
+
+      {/* Right faces */}
+      {/* Vertical stem - right */}
+      <polygon points="45,10 45,95 45,95 45,10" fill="#e5e7eb" />
+      {/* Horizontal bar - right */}
+      <polygon points="100,85 100,120 85,120 85,85" fill="#c4c9d1" />
+      {/* Descender - right */}
+      <polygon points="85,105 85,160 85,160 85,105" fill="#c4c9d1" />
+    </svg>
+  );
+}
+
+// Simplified cleaner 4 that looks like the Dribbble reference
+function CleanFour({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 100 140" className={className}>
+      {/* Main shape using a cleaner approach */}
+      {/* Left side of the "4" angle - darkest */}
+      <path d="M25,5 L25,75 L5,90 L5,20 Z" fill="#9ca3af" />
+
+      {/* Top face of angle */}
+      <path d="M25,5 L45,15 L45,85 L25,75 Z" fill="#e5e7eb" />
+
+      {/* Horizontal crossbar - top */}
+      <path d="M5,75 L85,75 L95,85 L15,85 Z" fill="#f3f4f6" />
+
+      {/* Horizontal crossbar - front */}
+      <path d="M15,85 L95,85 L95,100 L15,100 Z" fill="#d1d5db" />
+
+      {/* Horizontal crossbar - left edge */}
+      <path d="M5,75 L15,85 L15,100 L5,90 Z" fill="#9ca3af" />
+
+      {/* Vertical descender - left face */}
+      <path d="M60,85 L60,140 L50,140 L50,95 Z" fill="#9ca3af" />
+
+      {/* Vertical descender - front */}
+      <path d="M60,85 L80,85 L80,140 L60,140 Z" fill="#d1d5db" />
+
+      {/* Vertical descender - top */}
+      <path d="M60,75 L80,75 L80,85 L60,85 Z" fill="#e5e7eb" />
+
+      {/* Vertical descender - right face */}
+      <path d="M80,75 L90,85 L90,140 L80,140 Z" fill="#c4c9d1" />
+    </svg>
+  );
+}
+
 export default function NotFound(): React.JSX.Element {
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center px-4 overflow-hidden">
       {/* 3D Isometric 404 */}
       <div className="relative mb-12 select-none" aria-hidden="true">
-        <div className="flex items-end gap-0">
-          {/* First 4 - 3D Isometric */}
-          <svg
-            width="140"
-            height="200"
-            viewBox="0 0 140 200"
-            className="w-[80px] sm:w-[100px] lg:w-[140px] h-auto"
-          >
-            {/* Back face (darker) */}
-            <polygon
-              points="30,180 30,60 70,20 70,100 50,120 50,140 70,140 70,180"
-              fill="#d1d5db"
-            />
-            {/* Right face (medium) */}
-            <polygon
-              points="70,20 110,60 110,180 70,180 70,140 90,140 90,120 70,100"
-              fill="#e5e7eb"
-            />
-            {/* Top face (lightest) */}
-            <polygon
-              points="30,60 70,20 110,60 70,100 50,120 90,120 90,140 50,140"
-              fill="#f3f4f6"
-            />
-            {/* Inner cutout - left */}
-            <polygon points="50,120 50,140 70,140 70,120" fill="#9ca3af" />
-            {/* Inner cutout - right */}
-            <polygon points="70,120 90,120 90,140 70,140" fill="#d1d5db" />
-          </svg>
+        <div className="flex items-end justify-center gap-2 sm:gap-4">
+          {/* First 4 */}
+          <CleanFour className="w-[70px] sm:w-[90px] lg:w-[110px] h-auto" />
 
-          {/* Zero - 3D Isometric with sink animation */}
-          <div className="relative mx-[-10px] sm:mx-[-5px]">
-            {/* Shadow under zero */}
-            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[60px] sm:w-[80px] lg:w-[100px] h-[30px] bg-black/20 rounded-[50%] animate-shadow-pulse blur-sm" />
+          {/* Zero with animation */}
+          <div className="relative">
+            {/* Shadow */}
+            <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-[60px] sm:w-[75px] lg:w-[90px] h-[15px] bg-black/25 rounded-[50%] animate-shadow-pulse blur-sm" />
 
+            {/* Outer zero */}
             <svg
-              width="140"
-              height="200"
-              viewBox="0 0 140 200"
-              className="w-[80px] sm:w-[100px] lg:w-[140px] h-auto animate-zero-sink"
+              viewBox="0 0 100 140"
+              className="w-[70px] sm:w-[90px] lg:w-[110px] h-auto animate-zero-sink relative z-10"
             >
-              {/* Outer ring - back face */}
+              {/* Outer ellipse - creates the 0 shape */}
+              {/* Left side (darkest) */}
               <path
-                d="M70,20 C30,20 10,70 10,100 C10,130 30,180 70,180 C110,180 130,130 130,100 C130,70 110,20 70,20"
+                d="M50,10 C25,10 10,40 10,70 C10,100 25,130 50,130 C35,120 25,95 25,70 C25,45 35,20 50,10 Z"
+                fill="#9ca3af"
+              />
+              {/* Right side (medium) */}
+              <path
+                d="M50,10 C75,10 90,40 90,70 C90,100 75,130 50,130 C65,120 75,95 75,70 C75,45 65,20 50,10 Z"
                 fill="#d1d5db"
               />
-              {/* Outer ring - right face */}
+              {/* Top highlight */}
+              <ellipse cx="50" cy="25" rx="32" ry="15" fill="#f3f4f6" />
+              {/* Bottom */}
+              <ellipse cx="50" cy="115" rx="32" ry="15" fill="#e5e7eb" />
+              {/* Fill the body */}
+              <ellipse cx="50" cy="70" rx="40" ry="60" fill="#e0e3e8" />
+              {/* Re-add side shadows on top */}
               <path
-                d="M70,20 C110,20 130,70 130,100 C130,130 110,180 70,180 C90,170 100,140 100,100 C100,60 90,30 70,20"
-                fill="#e5e7eb"
+                d="M50,10 C25,10 10,40 10,70 C10,100 25,130 50,130 C35,120 25,95 25,70 C25,45 35,20 50,10 Z"
+                fill="#9ca3af"
               />
-              {/* Outer ring - top surface */}
-              <ellipse cx="70" cy="50" rx="50" ry="25" fill="#f3f4f6" />
+              <path
+                d="M50,10 C75,10 90,40 90,70 C90,100 75,130 50,130 C65,120 75,95 75,70 C75,45 65,20 50,10 Z"
+                fill="#d1d5db"
+              />
             </svg>
 
-            {/* Inner ellipse (the hole) - animated separately */}
-            <div className="absolute inset-0 flex items-center justify-center animate-zero-inner-rise">
+            {/* Inner hole */}
+            <div className="absolute inset-0 flex items-center justify-center animate-zero-inner-rise z-20">
               <svg
-                width="140"
-                height="200"
-                viewBox="0 0 140 200"
-                className="w-[80px] sm:w-[100px] lg:w-[140px] h-auto"
+                viewBox="0 0 100 140"
+                className="w-[70px] sm:w-[90px] lg:w-[110px] h-auto"
               >
-                {/* Inner hole - dark */}
-                <ellipse cx="70" cy="100" rx="25" ry="40" fill="#1f2937" />
-                {/* Inner hole - top rim */}
-                <ellipse cx="70" cy="70" rx="25" ry="12" fill="#374151" />
+                {/* Dark hole */}
+                <ellipse cx="50" cy="72" rx="18" ry="35" fill="#1f2937" />
+                {/* Hole rim */}
+                <ellipse cx="50" cy="45" rx="18" ry="10" fill="#374151" />
               </svg>
             </div>
           </div>
 
-          {/* Second 4 - 3D Isometric */}
-          <svg
-            width="140"
-            height="200"
-            viewBox="0 0 140 200"
-            className="w-[80px] sm:w-[100px] lg:w-[140px] h-auto"
-          >
-            {/* Back face (darker) */}
-            <polygon
-              points="30,180 30,60 70,20 70,100 50,120 50,140 70,140 70,180"
-              fill="#d1d5db"
-            />
-            {/* Right face (medium) */}
-            <polygon
-              points="70,20 110,60 110,180 70,180 70,140 90,140 90,120 70,100"
-              fill="#e5e7eb"
-            />
-            {/* Top face (lightest) */}
-            <polygon
-              points="30,60 70,20 110,60 70,100 50,120 90,120 90,140 50,140"
-              fill="#f3f4f6"
-            />
-            {/* Inner cutout - left */}
-            <polygon points="50,120 50,140 70,140 70,120" fill="#9ca3af" />
-            {/* Inner cutout - right */}
-            <polygon points="70,120 90,120 90,140 70,140" fill="#d1d5db" />
-          </svg>
+          {/* Second 4 */}
+          <CleanFour className="w-[70px] sm:w-[90px] lg:w-[110px] h-auto" />
         </div>
       </div>
 
