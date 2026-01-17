@@ -332,6 +332,48 @@ html:has(.app-no-scroll) body {
 .stagger-5 { animation-delay: 0.25s; }
 .stagger-6 { animation-delay: 0.3s; }
 
+/* 404 Page - 3D isometric zero sink animation */
+@keyframes zeroSink {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(20px);
+  }
+}
+
+@keyframes zeroInnerRise {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-15px);
+  }
+}
+
+@keyframes shadowPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.3;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.5;
+  }
+}
+
+.animate-zero-sink {
+  animation: zeroSink 3s ease-in-out infinite;
+}
+
+.animate-zero-inner-rise {
+  animation: zeroInnerRise 3s ease-in-out infinite;
+}
+
+.animate-shadow-pulse {
+  animation: shadowPulse 3s ease-in-out infinite;
+}
+
 /* Hide scrollbar but keep functionality */
 .scrollbar-hide {
   -ms-overflow-style: none;
