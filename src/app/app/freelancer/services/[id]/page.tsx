@@ -52,10 +52,43 @@ interface OrderCardProps {
   onRateClient: (order: ServiceOrder) => void;
 }
 
-function OrderCard({ order, onRateClient }: OrderCardProps): React.JSX.Element {
+function RatingButton({
+  order,
+  onRateClient,
+}: {
+  order: ServiceOrder;
+  onRateClient: (order: ServiceOrder) => void;
+}): React.JSX.Element | null {
   const isCompleted = order.status === "completed" || order.status === "delivered";
+  if (!isCompleted) return null;
+
   const alreadyRated = hasClientRating(order.id);
 
+  if (alreadyRated) {
+    return (
+      <span className="p-2 rounded-lg text-success" title="Client rated">
+        <Icon path={ICON_PATHS.star} size="sm" />
+      </span>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={() => onRateClient(order)}
+      className={cn(
+        "p-2 rounded-lg",
+        "text-text-secondary hover:text-warning hover:bg-warning/10",
+        "transition-colors cursor-pointer"
+      )}
+      title="Rate client"
+    >
+      <Icon path={ICON_PATHS.star} size="sm" />
+    </button>
+  );
+}
+
+function OrderCard({ order, onRateClient }: OrderCardProps): React.JSX.Element {
   return (
     <div className="flex items-center justify-between p-4 rounded-xl bg-background">
       <div className="flex items-center gap-3">
@@ -93,32 +126,7 @@ function OrderCard({ order, onRateClient }: OrderCardProps): React.JSX.Element {
         </span>
 
         <div className="flex items-center gap-1">
-          {isCompleted && (
-            alreadyRated ? (
-              <span
-                className={cn(
-                  "p-2 rounded-lg",
-                  "text-success"
-                )}
-                title="Client rated"
-              >
-                <Icon path={ICON_PATHS.star} size="sm" />
-              </span>
-            ) : (
-              <button
-                type="button"
-                onClick={() => onRateClient(order)}
-                className={cn(
-                  "p-2 rounded-lg",
-                  "text-text-secondary hover:text-warning hover:bg-warning/10",
-                  "transition-colors cursor-pointer"
-                )}
-                title="Rate client"
-              >
-                <Icon path={ICON_PATHS.star} size="sm" />
-              </button>
-            )
-          )}
+          <RatingButton order={order} onRateClient={onRateClient} />
 
           <Link
             href={`/app/chat/${getChatIdByOrderId(order.id)}`}

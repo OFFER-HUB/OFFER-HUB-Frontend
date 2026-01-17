@@ -18,6 +18,14 @@ interface RateClientModalProps {
 const MIN_COMMENT_LENGTH = 20;
 const MAX_COMMENT_LENGTH = 500;
 
+const RATING_LABELS: Record<number, string> = {
+  1: "Poor",
+  2: "Fair",
+  3: "Good",
+  4: "Very Good",
+  5: "Excellent",
+};
+
 export function RateClientModal({
   order,
   serviceTitle,
@@ -135,11 +143,7 @@ export function RateClientModal({
             </div>
             {rating > 0 && (
               <p className="text-center text-sm text-text-secondary mt-2">
-                {rating === 1 && "Poor"}
-                {rating === 2 && "Fair"}
-                {rating === 3 && "Good"}
-                {rating === 4 && "Very Good"}
-                {rating === 5 && "Excellent"}
+                {RATING_LABELS[rating]}
               </p>
             )}
             {errors.rating && (
