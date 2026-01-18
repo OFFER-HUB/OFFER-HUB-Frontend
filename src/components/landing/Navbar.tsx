@@ -104,11 +104,11 @@ export function Navbar(): React.JSX.Element {
 
                 {isUserMenuOpen && (
                   <div className={DROPDOWN_MENU}>
-                    <Link href="/profile" onClick={closeUserMenu} className={DROPDOWN_ITEM}>
+                    <Link href="/app/profile" onClick={closeUserMenu} className={DROPDOWN_ITEM}>
                       <Icon path={ICON_PATHS.user} size="sm" className="text-text-secondary" />
                       My Profile
                     </Link>
-                    <Link href="/settings" onClick={closeUserMenu} className={DROPDOWN_ITEM}>
+                    <Link href="/app/settings" onClick={closeUserMenu} className={DROPDOWN_ITEM}>
                       <Icon path={ICON_PATHS.settings} size="sm" className="text-text-secondary" />
                       Settings
                     </Link>
@@ -175,14 +175,14 @@ export function Navbar(): React.JSX.Element {
               {isAuthenticated && user ? (
                 <>
                   <Link
-                    href="/profile"
+                    href="/app/profile"
                     onClick={closeMobileMenu}
                     className="text-text-secondary hover:text-text-primary font-medium py-2 transition-colors"
                   >
                     My Profile
                   </Link>
                   <Link
-                    href="/settings"
+                    href="/app/settings"
                     onClick={closeMobileMenu}
                     className="text-text-secondary hover:text-text-primary font-medium py-2 transition-colors"
                   >
