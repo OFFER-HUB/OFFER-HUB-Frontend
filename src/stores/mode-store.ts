@@ -34,9 +34,6 @@ export interface NavigationItem {
 const FREELANCER_NAV_ITEMS: NavigationItem[] = [
   { href: "/app/freelancer/dashboard", label: "Dashboard", icon: ICON_PATHS.home },
   { href: "/app/freelancer/services", label: "My Services", icon: ICON_PATHS.briefcase },
-  { href: "/app/projects", label: "Find Projects", icon: ICON_PATHS.search },
-  { href: "/app/proposals", label: "My Proposals", icon: ICON_PATHS.document },
-  { href: "/app/earnings", label: "Earnings", icon: ICON_PATHS.currency },
   { href: "/app/freelancer/disputes", label: "Disputes", icon: ICON_PATHS.flag },
   { href: "/app/chat", label: "Messages", icon: ICON_PATHS.chat },
   { href: "/app/freelancer/profile", label: "Profile", icon: ICON_PATHS.user },
@@ -44,11 +41,9 @@ const FREELANCER_NAV_ITEMS: NavigationItem[] = [
 ];
 
 const CLIENT_NAV_ITEMS: NavigationItem[] = [
-  { href: "/app/client/dashboard", label: "Client Dashboard", icon: ICON_PATHS.home },
+  { href: "/app/client/dashboard", label: "Dashboard", icon: ICON_PATHS.home },
   { href: "/app/client/offers", label: "Manage Offers", icon: ICON_PATHS.briefcase },
   { href: "/app/client/offers/new", label: "Create Offer", icon: ICON_PATHS.plus },
-  { href: "/app/freelancers", label: "Find Freelancers", icon: ICON_PATHS.users },
-  { href: "/app/payments", label: "Payments", icon: ICON_PATHS.creditCard },
   { href: "/app/disputes", label: "Disputes", icon: ICON_PATHS.flag },
   { href: "/app/chat", label: "Messages", icon: ICON_PATHS.chat },
   { href: "/app/profile", label: "Profile", icon: ICON_PATHS.user },
