@@ -1,6 +1,6 @@
 import { MetadataRoute } from "next";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://offerhub.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://offer-hub.org";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const currentDate = new Date().toISOString();

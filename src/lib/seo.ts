@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 export const SITE_CONFIG = {
   name: "OFFER HUB",
   description: "Connect with top freelancers and clients on OFFER HUB - the premier marketplace for professional services. Find talent, post projects, and grow your business.",
-  url: process.env.NEXT_PUBLIC_SITE_URL || "https://offerhub.com",
+  url: process.env.NEXT_PUBLIC_SITE_URL || "https://offer-hub.org",
   locale: "en_US",
   twitterHandle: "@offerhub",
 } as const;

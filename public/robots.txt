@@ -17,4 +17,4 @@ Allow: /login
 Allow: /register
 
 # Sitemap location
-Sitemap: https://offerhub.com/sitemap.xml
+Sitemap: https://offer-hub.org/sitemap.xml
