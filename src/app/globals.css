@@ -324,6 +324,63 @@ html:has(.app-no-scroll) body {
   animation: waveFloat5 5.5s ease-in-out infinite;
 }
 
+/* 404 Page - Lamp animations */
+@keyframes flicker {
+  0%, 100% {
+    opacity: 1;
+  }
+  5% {
+    opacity: 0.8;
+  }
+  10% {
+    opacity: 1;
+  }
+  15% {
+    opacity: 0.4;
+  }
+  20% {
+    opacity: 1;
+  }
+  55% {
+    opacity: 1;
+  }
+  57% {
+    opacity: 0.6;
+  }
+  60% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  82% {
+    opacity: 0.5;
+  }
+  85% {
+    opacity: 0.8;
+  }
+  87% {
+    opacity: 1;
+  }
+}
+
+@keyframes lamp-swing {
+  0%, 100% {
+    transform: rotate(-3deg);
+  }
+  50% {
+    transform: rotate(3deg);
+  }
+}
+
+.animate-flicker {
+  animation: flicker 4s ease-in-out infinite;
+}
+
+.animate-lamp-swing {
+  animation: lamp-swing 4s ease-in-out infinite;
+}
+
 /* Stagger animation delays */
 .stagger-1 { animation-delay: 0.05s; }
 .stagger-2 { animation-delay: 0.1s; }
