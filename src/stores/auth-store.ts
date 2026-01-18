@@ -1,5 +1,7 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
+import { clientCookies, COOKIE_CONFIG } from "@/lib/cookies";
+import { clearAuthTokens } from "@/lib/auth-client";
 
 export interface User {
   id: string;
@@ -13,26 +15,27 @@ interface AuthState {
   isLoading: boolean;
   redirectAfterLogin: string | null;
   login: (user: User) => void;
-  logout: () => void;
+  logout: () => Promise<void>;
   setLoading: (loading: boolean) => void;
   setRedirectAfterLogin: (path: string | null) => void;
 }
 
-// Cookie storage for SSR compatibility
-const cookieStorage = {
+/**
+ * Secure cookie storage for auth state
+ *
+ * Note: This stores only non-sensitive user info (id, email, username).
+ * Actual auth tokens are stored in httpOnly cookies via the server API.
+ * See /api/auth/token for secure token management.
+ */
+const secureCookieStorage = {
   getItem: (name: string): string | null => {
-    if (typeof document === "undefined") return null;
-    const match = document.cookie.match(new RegExp(`(^| )${name}=([^;]+)`));
-    return match ? decodeURIComponent(match[2]) : null;
+    return clientCookies.get(name);
   },
   setItem: (name: string, value: string): void => {
-    if (typeof document === "undefined") return;
-    const expires = new Date(Date.now() + 7 * 864e5).toUTCString();
-    document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/`;
+    clientCookies.set(name, value, COOKIE_CONFIG.EXPIRY_DAYS);
   },
   removeItem: (name: string): void => {
-    if (typeof document === "undefined") return;
-    document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
+    clientCookies.remove(name);
   },
 };
 
@@ -46,15 +49,23 @@ export const useAuthStore = create<AuthState>()(
       login: (user) => {
         set({ user, isAuthenticated: true });
       },
-      logout: () => {
+      logout: async () => {
+        // Clear secure httpOnly token cookies via server API
+        await clearAuthTokens();
+        // Clear client-side auth state
         set({ user: null, isAuthenticated: false, redirectAfterLogin: null });
       },
       setLoading: (loading) => set({ isLoading: loading }),
       setRedirectAfterLogin: (path) => set({ redirectAfterLogin: path }),
     }),
     {
-      name: "auth-storage",
-      storage: createJSONStorage(() => cookieStorage),
+      name: COOKIE_CONFIG.AUTH_STATE,
+      storage: createJSONStorage(() => secureCookieStorage),
+      // Only persist non-sensitive data
+      partialize: (state) => ({
+        user: state.user,
+        isAuthenticated: state.isAuthenticated,
+      }),
     }
   )
 );

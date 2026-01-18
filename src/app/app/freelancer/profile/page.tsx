@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useAuthStore } from "@/stores/auth-store";
 import { useModeStore } from "@/stores/mode-store";
@@ -37,7 +38,7 @@ const SECONDARY_BUTTON_STYLES = cn(
 );
 
 const AVATAR_STYLES = cn(
-  "w-20 h-20 rounded-full flex items-center justify-center",
+  "relative w-20 h-20 rounded-full flex items-center justify-center",
   "bg-primary text-white text-2xl font-bold",
   "shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]"
 );
@@ -132,7 +133,16 @@ interface AvatarDisplayProps {
 
 function AvatarDisplay({ profileImage, firstName, lastName }: AvatarDisplayProps): React.JSX.Element {
   if (profileImage) {
-    return <img src={profileImage} alt="Profile" className="w-full h-full rounded-full object-cover" />;
+    return (
+      <Image
+        src={profileImage}
+        alt="Profile"
+        fill
+        className="rounded-full object-cover"
+        sizes="(max-width: 768px) 96px, 128px"
+        priority
+      />
+    );
   }
   return (
     <>

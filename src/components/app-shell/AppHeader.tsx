@@ -49,8 +49,8 @@ export function AppHeader({ onMenuClick }: AppHeaderProps): React.JSX.Element {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  function handleLogout(): void {
-    logout();
+  async function handleLogout(): Promise<void> {
+    await logout();
     setIsUserMenuOpen(false);
     window.location.href = "/";
   }

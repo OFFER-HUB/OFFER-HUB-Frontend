@@ -43,8 +43,8 @@ export function Navbar(): React.JSX.Element {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  function handleLogout(): void {
-    logout();
+  async function handleLogout(): Promise<void> {
+    await logout();
     setIsUserMenuOpen(false);
     router.push("/");
   }

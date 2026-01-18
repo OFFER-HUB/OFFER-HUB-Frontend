@@ -1,0 +1,20 @@
+# robots.txt for OFFER HUB
+# https://www.robotstxt.org/robotstxt.html
+
+User-agent: *
+Allow: /
+
+# Disallow private/authenticated areas
+Disallow: /app/
+Disallow: /api/
+
+# Allow public pages
+Allow: /
+Allow: /marketplace
+Allow: /faq
+Allow: /help
+Allow: /login
+Allow: /register
+
+# Sitemap location
+Sitemap: https://offer-hub.org/sitemap.xml
