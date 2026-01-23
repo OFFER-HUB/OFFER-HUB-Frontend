@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { COOKIE_CONFIG } from "@/lib/cookies";
 
-const PUBLIC_ROUTES = ["/", "/login", "/register", "/marketplace", "/faq", "/help"];
 const AUTH_ROUTES = ["/login", "/register"];
 const PRIVATE_ROUTE_PREFIX = "/app";
 
@@ -9,12 +9,12 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Check if user has auth token in cookies (set by Zustand persist)
-  const authStorage = request.cookies.get("auth-storage");
+  const authState = request.cookies.get(COOKIE_CONFIG.AUTH_STATE);
   let isAuthenticated = false;
 
-  if (authStorage?.value) {
+  if (authState?.value) {
     try {
-      const decoded = decodeURIComponent(authStorage.value);
+      const decoded = decodeURIComponent(authState.value);
       const parsed = JSON.parse(decoded);
       // Zustand persist stores state in "state" property
       isAuthenticated = parsed.state?.isAuthenticated === true;
