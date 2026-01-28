@@ -11,10 +11,12 @@ import {
   PasswordRequirements,
 } from "@/components/auth";
 import { cn } from "@/lib/cn";
+import { useAuthStore } from "@/stores/auth-store";
 import type { RegisterFormData, AuthFormErrors } from "@/types/auth.types";
 
 export default function RegisterPage() {
   const router = useRouter();
+  const login = useAuthStore((state) => state.login);
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [passwordFocused, setPasswordFocused] = useState(false);
@@ -78,9 +80,22 @@ export default function RegisterPage() {
     setIsLoading(false);
     setIsSuccess(true);
 
-    // Redirect to login after success animation
+    // Mock user data - in real implementation this would come from API
+    const mockUser = {
+      id: "1",
+      email: formData.email,
+      username: formData.username,
+    };
+
+    // Auto-login after successful registration
+    login(mockUser);
+    
+    // Wait for Zustand persist to write cookie before redirecting
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    // Redirect to dashboard after success animation
     setTimeout(() => {
-      router.push("/login?registered=true");
+      window.location.href = "/app/dashboard";
     }, 1500);
   };
 
@@ -114,7 +129,7 @@ export default function RegisterPage() {
             Account Created!
           </h2>
           <p className="text-sm text-text-secondary mt-2 text-center opacity-0 animate-fade-in-up" style={{ animationDelay: "0.5s", animationFillMode: "forwards" }}>
-            Redirecting you to sign in...
+            Redirecting you to dashboard...
           </p>
 
           {/* Loading dots */}

@@ -82,8 +82,15 @@ function LoginContent() {
       username: formData.email.split("@")[0],
     };
 
+    // Update auth state
     login(mockUser);
+    
+    // Wait for Zustand persist to write cookie before redirecting
+    // This ensures middleware can read the auth state on next page load
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    
     setIsLoading(false);
+    
     // Use window.location for full page navigation so middleware can read the cookie
     window.location.href = redirectPath || "/app/dashboard";
   };
