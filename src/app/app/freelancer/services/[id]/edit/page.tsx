@@ -1,14 +1,12 @@
 "use client";
 
-import { use, useState } from "react";
+import { use, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { cn } from "@/lib/cn";
-import { MOCK_API_DELAY } from "@/lib/constants";
 import { Icon, ICON_PATHS, LoadingSpinner } from "@/components/ui/Icon";
 import { NEUMORPHIC_CARD, NEUMORPHIC_INPUT, INPUT_ERROR_STYLES, PRIMARY_BUTTON, ICON_BUTTON } from "@/lib/styles";
 import {
-  MOCK_SERVICES,
   SERVICE_CATEGORIES,
   MIN_TITLE_LENGTH,
   MIN_DESCRIPTION_LENGTH,
@@ -17,7 +15,9 @@ import {
   MIN_DELIVERY_DAYS,
   MAX_DELIVERY_DAYS,
 } from "@/data/service.data";
-import type { ServiceFormData, ServiceFormErrors } from "@/types/service.types";
+import { getServiceById, updateService } from "@/lib/api/services";
+import { useAuthStore } from "@/stores/auth-store";
+import type { Service, ServiceFormData, ServiceFormErrors } from "@/types/service.types";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -79,31 +79,57 @@ function FormField({ label, required, error, children }: FormFieldProps): React.
 export default function EditServicePage({ params }: PageProps): React.JSX.Element {
   const { id } = use(params);
   const router = useRouter();
+  const token = useAuthStore((state) => state.token);
 
-  const service = MOCK_SERVICES.find((item) => item.id === id);
-
-  const [formData, setFormData] = useState<ServiceFormData>(() => {
-    if (!service) {
-      return {
-        title: "",
-        description: "",
-        category: "",
-        price: 0,
-        deliveryDays: 1,
-      };
-    }
-
-    return {
-      title: service.title,
-      description: service.description,
-      category: service.category,
-      price: service.price,
-      deliveryDays: service.deliveryDays,
-    };
+  const [mounted, setMounted] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
+  const [service, setService] = useState<Service | null>(null);
+  const [isFetchingService, setIsFetchingService] = useState(true);
+  const [formData, setFormData] = useState<ServiceFormData>({
+    title: "",
+    description: "",
+    category: "",
+    price: 0,
+    deliveryDays: 1,
   });
 
   const [errors, setErrors] = useState<ServiceFormErrors>({});
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    useAuthStore.persist.rehydrate();
+
+    setTimeout(() => {
+      setHydrated(true);
+      setMounted(true);
+    }, 100);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted || !hydrated) return;
+
+    if (token) {
+      getServiceById(token, id)
+        .then((data) => {
+          setService(data);
+          setFormData({
+            title: data.title,
+            description: data.description,
+            category: data.category,
+            price: parseFloat(data.price),
+            deliveryDays: data.deliveryDays,
+          });
+        })
+        .catch((error) => {
+          console.error('Failed to fetch service:', error);
+        })
+        .finally(() => {
+          setIsFetchingService(false);
+        });
+    } else {
+      setIsFetchingService(false);
+    }
+  }, [mounted, hydrated, token, id]);
 
   const detailHref = `/app/freelancer/services/${id}`;
 
@@ -136,13 +162,58 @@ export default function EditServicePage({ params }: PageProps): React.JSX.Elemen
       return;
     }
 
-    setIsLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, MOCK_API_DELAY));
-    setIsLoading(false);
+    if (!token) {
+      setErrors({ title: "Authentication required" });
+      return;
+    }
 
-    router.push(`${detailHref}?updated=true`);
+    setIsSubmitting(true);
+
+    try {
+      // Convert form data to API payload format
+      const payload = {
+        title: formData.title,
+        description: formData.description,
+        category: formData.category as any,
+        price: formData.price.toFixed(2), // Convert number to decimal string
+        deliveryDays: formData.deliveryDays,
+      };
+
+      await updateService(token, id, payload);
+      router.push(`${detailHref}?updated=true`);
+    } catch (error) {
+      console.error('Failed to update service:', error);
+      setErrors({ title: 'Failed to update service. Please try again.' });
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
+  // Show loading state while fetching service
+  if (isFetchingService) {
+    return (
+      <div className="max-w-3xl mx-auto space-y-4">
+        <div className="flex items-center gap-4">
+          <div className="w-10 h-10 bg-gray-200 rounded-lg animate-pulse" />
+          <div>
+            <div className="h-8 bg-gray-200 rounded w-48 mb-2 animate-pulse" />
+            <div className="h-4 bg-gray-200 rounded w-64 animate-pulse" />
+          </div>
+        </div>
+        <div className={cn(NEUMORPHIC_CARD, "p-6 space-y-5 animate-pulse")}>
+          <div className="h-10 bg-gray-200 rounded" />
+          <div className="h-10 bg-gray-200 rounded" />
+          <div className="h-32 bg-gray-200 rounded" />
+          <div className="grid grid-cols-2 gap-4">
+            <div className="h-10 bg-gray-200 rounded" />
+            <div className="h-10 bg-gray-200 rounded" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show not found if service doesn't exist after loading
   if (!service) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -284,8 +355,8 @@ export default function EditServicePage({ params }: PageProps): React.JSX.Elemen
               Cancel
             </Link>
 
-            <button type="submit" disabled={isLoading} className={PRIMARY_BUTTON}>
-              {isLoading ? (
+            <button type="submit" disabled={isSubmitting} className={PRIMARY_BUTTON}>
+              {isSubmitting ? (
                 <span className="flex items-center gap-2">
                   <LoadingSpinner />
                   Saving...

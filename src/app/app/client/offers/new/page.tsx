@@ -4,8 +4,8 @@ import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { cn } from "@/lib/cn";
-import { MOCK_API_DELAY } from "@/lib/constants";
 import { useModeStore } from "@/stores/mode-store";
+import { useAuthStore } from "@/stores/auth-store";
 import {
   NEUMORPHIC_CARD,
   NEUMORPHIC_INPUT,
@@ -17,24 +17,39 @@ import { Icon, ICON_PATHS, LoadingSpinner } from "@/components/ui/Icon";
 import { FormField } from "@/components/ui/FormField";
 import { AttachmentPreview } from "@/components/offers/AttachmentPreview";
 import { ImageUpload } from "@/components/ui/ImageUpload";
+import { DatePicker } from "@/components/ui/DatePicker";
+import { createOffer, uploadAttachment, type OfferCategory } from "@/lib/api/offers";
 import type { Attachment, FormErrors, OfferFormData } from "@/types/client-offer.types";
 import {
-  CATEGORIES,
   INITIAL_FORM_DATA,
   MIN_BUDGET,
   MIN_DESCRIPTION_LENGTH,
-  MAX_FILE_SIZE,
   MAX_ATTACHMENTS,
   ALLOWED_IMAGE_TYPES,
   ALLOWED_DOC_TYPES,
   validateOfferForm,
 } from "@/data/client-offer.data";
 
+const API_CATEGORIES: { value: OfferCategory | ""; label: string }[] = [
+  { value: "", label: "Select a category" },
+  { value: "WEB_DEVELOPMENT", label: "Web Development" },
+  { value: "MOBILE_DEVELOPMENT", label: "Mobile Development" },
+  { value: "DESIGN", label: "Design & Creative" },
+  { value: "WRITING", label: "Writing & Translation" },
+  { value: "MARKETING", label: "Marketing & Sales" },
+  { value: "VIDEO", label: "Video & Animation" },
+  { value: "MUSIC", label: "Music & Audio" },
+  { value: "DATA", label: "Data & Analytics" },
+  { value: "OTHER", label: "Other" },
+];
+
 export default function CreateOfferPage(): React.JSX.Element {
   const router = useRouter();
   const { setMode } = useModeStore();
+  const token = useAuthStore((state) => state.token);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
+  const [apiError, setApiError] = useState<string | null>(null);
   const [formData, setFormData] = useState<OfferFormData>(INITIAL_FORM_DATA);
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [attachmentError, setAttachmentError] = useState<string | null>(null);
@@ -46,6 +61,7 @@ export default function CreateOfferPage(): React.JSX.Element {
   }, []);
 
   function handleUpload(files: File[]): void {
+
     if (attachments.length + files.length > MAX_ATTACHMENTS) {
       setAttachmentError(`Maximum ${MAX_ATTACHMENTS} attachments allowed`);
       return;
@@ -88,6 +104,7 @@ export default function CreateOfferPage(): React.JSX.Element {
 
   async function handleSubmit(e: React.FormEvent): Promise<void> {
     e.preventDefault();
+    setApiError(null);
 
     const validationErrors = validateOfferForm(formData);
     setErrors(validationErrors);
@@ -96,11 +113,46 @@ export default function CreateOfferPage(): React.JSX.Element {
       return;
     }
 
-    setIsLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, MOCK_API_DELAY));
-    setIsLoading(false);
+    if (!token) {
+      setApiError("You must be logged in to create an offer");
+      return;
+    }
 
-    router.push("/app/client/dashboard");
+    setIsLoading(true);
+
+    try {
+      const budgetValue = parseFloat(formData.budget);
+      const offer = await createOffer(token, {
+        title: formData.title,
+        description: formData.description,
+        category: formData.category as OfferCategory,
+        budget: budgetValue.toFixed(2),
+        deadline: formData.deadline,
+      });
+
+      // Upload attachments if any
+      if (attachments.length > 0) {
+        const uploadErrors: string[] = [];
+        for (const attachment of attachments) {
+          try {
+            await uploadAttachment(token, offer.id, attachment.file);
+          } catch (err) {
+            uploadErrors.push(
+              `Failed to upload "${attachment.file.name}": ${err instanceof Error ? err.message : "Unknown error"}`
+            );
+          }
+        }
+        if (uploadErrors.length > 0) {
+          console.warn("Some attachments failed to upload:", uploadErrors);
+        }
+      }
+
+      router.push("/app/client/offers?created=true");
+    } catch (error) {
+      setApiError(error instanceof Error ? error.message : "Failed to create offer");
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   const today = new Date().toISOString().split("T")[0];
@@ -146,7 +198,7 @@ export default function CreateOfferPage(): React.JSX.Element {
                       errors.category && INPUT_ERROR_STYLES
                     )}
                   >
-                    {CATEGORIES.map((cat) => (
+                    {API_CATEGORIES.map((cat) => (
                       <option key={cat.value} value={cat.value}>
                         {cat.label}
                       </option>
@@ -229,17 +281,17 @@ export default function CreateOfferPage(): React.JSX.Element {
                 </FormField>
 
                 <FormField label="Deadline" error={errors.deadline}>
-                  <input
-                    type="date"
-                    name="deadline"
+                  <DatePicker
                     value={formData.deadline}
-                    onChange={handleChange}
-                    min={today}
-                    className={cn(
-                      NEUMORPHIC_INPUT,
-                      "cursor-pointer",
-                      errors.deadline && INPUT_ERROR_STYLES
-                    )}
+                    onChange={(date) => {
+                      setFormData((prev) => ({ ...prev, deadline: date }));
+                      if (errors.deadline) {
+                        setErrors((prev) => ({ ...prev, deadline: undefined }));
+                      }
+                    }}
+                    minDate={today}
+                    error={!!errors.deadline}
+                    placeholder="Select deadline"
                   />
                 </FormField>
               </div>
@@ -248,6 +300,11 @@ export default function CreateOfferPage(): React.JSX.Element {
             <div className={NEUMORPHIC_CARD}>
               <h2 className="text-lg font-semibold text-text-primary mb-4">Actions</h2>
               <div className="space-y-3">
+                {apiError && (
+                  <div className="p-3 rounded-lg bg-error/10 text-error text-sm">
+                    {apiError}
+                  </div>
+                )}
                 <button
                   type="submit"
                   disabled={isLoading}

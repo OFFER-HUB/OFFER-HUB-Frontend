@@ -15,9 +15,13 @@ import {
 } from "@/lib/styles";
 
 const PUBLIC_NAV_LINKS = [
-  { href: "/marketplace", label: "Marketplace" },
   { href: "/faq", label: "FAQ" },
   { href: "/help", label: "Help" },
+];
+
+const MARKETPLACE_LINKS = [
+  { href: "/marketplace/offers", label: "Browse Offers", icon: ICON_PATHS.briefcase },
+  { href: "/marketplace/services", label: "Browse Services", icon: ICON_PATHS.users },
 ];
 
 function isActiveLink(pathname: string, href: string): boolean {
@@ -26,12 +30,21 @@ function isActiveLink(pathname: string, href: string): boolean {
 }
 
 export function Navbar(): React.JSX.Element {
+  const [mounted, setMounted] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isMarketplaceMenuOpen, setIsMarketplaceMenuOpen] = useState(false);
+  const [isMarketplaceHovered, setIsMarketplaceHovered] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
+  const marketplaceMenuRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
   const router = useRouter();
   const { user, isAuthenticated, logout } = useAuthStore();
+
+  // Set mounted state after hydration to prevent SSR mismatch
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent): void {
@@ -76,6 +89,87 @@ export function Navbar(): React.JSX.Element {
           <Logo size="md" />
 
           <div className="hidden lg:flex items-center gap-8">
+            {/* Home Link */}
+            <Link
+              href="/"
+              className={cn(
+                "font-medium transition-colors relative",
+                isActiveLink(pathname, "/")
+                  ? "text-primary"
+                  : "text-text-secondary hover:text-text-primary"
+              )}
+            >
+              Home
+              {isActiveLink(pathname, "/") && (
+                <span className="absolute -bottom-1 left-0 right-0 h-0.5 bg-primary rounded-full" />
+              )}
+            </Link>
+
+            {/* Marketplace Dropdown */}
+            <div
+              ref={marketplaceMenuRef}
+              className="relative"
+              onMouseEnter={() => {
+                setIsMarketplaceMenuOpen(true);
+                setIsMarketplaceHovered(true);
+              }}
+              onMouseLeave={() => {
+                setIsMarketplaceMenuOpen(false);
+                setIsMarketplaceHovered(false);
+              }}
+            >
+              <button
+                className={cn(
+                  "font-medium transition-colors relative flex items-center gap-1 pb-1",
+                  isMarketplaceHovered
+                    ? "text-primary"
+                    : "text-text-secondary hover:text-text-primary"
+                )}
+              >
+                Marketplace
+                <Icon
+                  path={ICON_PATHS.chevronDown}
+                  size="sm"
+                  className={cn(
+                    "transition-transform duration-200",
+                    isMarketplaceMenuOpen && "rotate-180"
+                  )}
+                />
+                {isMarketplaceHovered && (
+                  <span className="absolute -bottom-1 left-0 right-0 h-0.5 bg-primary rounded-full" />
+                )}
+              </button>
+
+              {isMarketplaceMenuOpen && (
+                <div
+                  className={cn(
+                    "absolute left-0 top-full pt-2 w-56",
+                    "z-50"
+                  )}
+                >
+                  <div
+                    className={cn(
+                      "py-2 rounded-xl bg-white",
+                      "shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff]",
+                      "border border-border-light"
+                    )}
+                  >
+                    {MARKETPLACE_LINKS.map((link) => (
+                      <Link
+                        key={link.href}
+                        href={link.href}
+                        className={DROPDOWN_ITEM}
+                      >
+                        <Icon path={link.icon} size="sm" className="text-text-secondary" />
+                        {link.label}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Other Nav Links */}
             {navLinks.map((link) => (
               <Link
                 key={link.href}
@@ -96,44 +190,49 @@ export function Navbar(): React.JSX.Element {
           </div>
 
           <div className="hidden lg:flex items-center gap-3">
-            {isAuthenticated && user ? (
-              <div ref={userMenuRef} className="relative">
-                <button onClick={toggleUserMenu} className={USER_AVATAR_BUTTON}>
-                  {user.username.charAt(0).toUpperCase()}
-                </button>
-
-                {isUserMenuOpen && (
-                  <div className={DROPDOWN_MENU}>
-                    <Link href="/app/profile" onClick={closeUserMenu} className={DROPDOWN_ITEM}>
-                      <Icon path={ICON_PATHS.user} size="sm" className="text-text-secondary" />
-                      My Profile
-                    </Link>
-                    <Link href="/app/settings" onClick={closeUserMenu} className={DROPDOWN_ITEM}>
-                      <Icon path={ICON_PATHS.settings} size="sm" className="text-text-secondary" />
-                      Settings
-                    </Link>
-                    <div className="border-t border-border-light my-1" />
-                    <button onClick={handleLogout} className={DROPDOWN_ITEM_DANGER}>
-                      <Icon path={ICON_PATHS.logout} size="sm" />
-                      Sign Out
-                    </button>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <>
-                <Link
-                  href="/login"
-                  className="px-4 py-2 text-sm font-medium text-text-secondary hover:text-text-primary transition-colors"
-                >
-                  Login
-                </Link>
-                <Link href="/register">
-                  <button className="px-5 py-2.5 text-sm font-semibold text-white bg-primary rounded-xl shadow-[var(--shadow-neumorphic-light)] hover:bg-primary-hover active:shadow-[var(--shadow-neumorphic-inset-light)] transition-all duration-200 cursor-pointer">
-                    Sign Up
+            {mounted ? (
+              isAuthenticated && user ? (
+                <div ref={userMenuRef} className="relative">
+                  <button onClick={toggleUserMenu} className={USER_AVATAR_BUTTON}>
+                    {user.username.charAt(0).toUpperCase()}
                   </button>
-                </Link>
-              </>
+
+                  {isUserMenuOpen && (
+                    <div className={DROPDOWN_MENU}>
+                      <Link href="/app/profile" onClick={closeUserMenu} className={DROPDOWN_ITEM}>
+                        <Icon path={ICON_PATHS.user} size="sm" className="text-text-secondary" />
+                        My Profile
+                      </Link>
+                      <Link href="/app/settings" onClick={closeUserMenu} className={DROPDOWN_ITEM}>
+                        <Icon path={ICON_PATHS.settings} size="sm" className="text-text-secondary" />
+                        Settings
+                      </Link>
+                      <div className="border-t border-border-light my-1" />
+                      <button onClick={handleLogout} className={DROPDOWN_ITEM_DANGER}>
+                        <Icon path={ICON_PATHS.logout} size="sm" />
+                        Sign Out
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <>
+                  <Link
+                    href="/login"
+                    className="px-4 py-2 text-sm font-medium text-text-secondary hover:text-text-primary transition-colors"
+                  >
+                    Login
+                  </Link>
+                  <Link href="/register">
+                    <button className="px-5 py-2.5 text-sm font-semibold text-white bg-primary rounded-xl shadow-[var(--shadow-neumorphic-light)] hover:bg-primary-hover active:shadow-[var(--shadow-neumorphic-inset-light)] transition-all duration-200 cursor-pointer">
+                      Sign Up
+                    </button>
+                  </Link>
+                </>
+              )
+            ) : (
+              // Placeholder during SSR to prevent layout shift
+              <div className="w-32 h-10" />
             )}
           </div>
 
@@ -156,6 +255,39 @@ export function Navbar(): React.JSX.Element {
           )}
         >
           <div className="flex flex-col gap-4">
+            {/* Home Link */}
+            <Link
+              href="/"
+              className={cn(
+                "font-medium py-2 transition-colors",
+                isActiveLink(pathname, "/")
+                  ? "text-primary"
+                  : "text-text-secondary hover:text-text-primary"
+              )}
+              onClick={closeMobileMenu}
+            >
+              Home
+            </Link>
+
+            {/* Marketplace Links */}
+            <div className="font-semibold text-text-primary text-sm">Marketplace</div>
+            {MARKETPLACE_LINKS.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={cn(
+                  "font-medium py-2 pl-4 transition-colors",
+                  isActiveLink(pathname, link.href)
+                    ? "text-primary"
+                    : "text-text-secondary hover:text-text-primary"
+                )}
+                onClick={closeMobileMenu}
+              >
+                {link.label}
+              </Link>
+            ))}
+
+            {/* Other Nav Links */}
             {navLinks.map((link) => (
               <Link
                 key={link.href}
@@ -172,47 +304,51 @@ export function Navbar(): React.JSX.Element {
               </Link>
             ))}
             <div className="flex flex-col gap-3 pt-4 border-t border-border-light">
-              {isAuthenticated && user ? (
-                <>
-                  <Link
-                    href="/app/profile"
-                    onClick={closeMobileMenu}
-                    className="text-text-secondary hover:text-text-primary font-medium py-2 transition-colors"
-                  >
-                    My Profile
-                  </Link>
-                  <Link
-                    href="/app/settings"
-                    onClick={closeMobileMenu}
-                    className="text-text-secondary hover:text-text-primary font-medium py-2 transition-colors"
-                  >
-                    Settings
-                  </Link>
-                  <button
-                    onClick={() => {
-                      handleLogout();
-                      closeMobileMenu();
-                    }}
-                    className="text-error font-medium py-2 text-left cursor-pointer"
-                  >
-                    Sign Out
-                  </button>
-                </>
-              ) : (
-                <>
-                  <Link
-                    href="/login"
-                    className="text-text-secondary hover:text-text-primary font-medium py-2 text-center transition-colors"
-                    onClick={closeMobileMenu}
-                  >
-                    Login
-                  </Link>
-                  <Link href="/register" onClick={closeMobileMenu}>
-                    <button className="w-full px-5 py-3 text-sm font-semibold text-white bg-primary rounded-xl shadow-[var(--shadow-neumorphic-light)] hover:bg-primary-hover active:shadow-[var(--shadow-neumorphic-inset-light)] transition-all duration-200 cursor-pointer">
-                      Sign Up
+              {mounted ? (
+                isAuthenticated && user ? (
+                  <>
+                    <Link
+                      href="/app/profile"
+                      onClick={closeMobileMenu}
+                      className="text-text-secondary hover:text-text-primary font-medium py-2 transition-colors"
+                    >
+                      My Profile
+                    </Link>
+                    <Link
+                      href="/app/settings"
+                      onClick={closeMobileMenu}
+                      className="text-text-secondary hover:text-text-primary font-medium py-2 transition-colors"
+                    >
+                      Settings
+                    </Link>
+                    <button
+                      onClick={() => {
+                        handleLogout();
+                        closeMobileMenu();
+                      }}
+                      className="text-error font-medium py-2 text-left cursor-pointer"
+                    >
+                      Sign Out
                     </button>
-                  </Link>
-                </>
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      href="/login"
+                      className="text-text-secondary hover:text-text-primary font-medium py-2 text-center transition-colors"
+                      onClick={closeMobileMenu}
+                    >
+                      Login
+                    </Link>
+                    <Link href="/register" onClick={closeMobileMenu}>
+                      <button className="w-full px-5 py-3 text-sm font-semibold text-white bg-primary rounded-xl shadow-[var(--shadow-neumorphic-light)] hover:bg-primary-hover active:shadow-[var(--shadow-neumorphic-inset-light)] transition-all duration-200 cursor-pointer">
+                        Sign Up
+                      </button>
+                    </Link>
+                  </>
+                )
+              ) : (
+                <div className="h-10" />
               )}
             </div>
           </div>

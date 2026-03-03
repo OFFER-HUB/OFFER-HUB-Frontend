@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import Link from "next/link";
 import { useAuthStore } from "@/stores/auth-store";
 import { useModeStore } from "@/stores/mode-store";
@@ -12,87 +12,8 @@ import {
   ICON_CONTAINER,
 } from "@/lib/styles";
 import { Icon, ICON_PATHS } from "@/components/ui/Icon";
-import { CLIENT_ACTIVITY, CLIENT_ACTIVITY_ICONS } from "@/data/client-dashboard.data";
-
-interface StatCard {
-  label: string;
-  value: string | number;
-  iconPath: string;
-  color: string;
-}
-
-interface ActivityItem {
-  id: string;
-  type: "offer_created" | "proposal_received" | "message" | "payment";
-  title: string;
-  description: string;
-  time: string;
-}
-
-const MOCK_STATS: StatCard[] = [
-  {
-    label: "Active Offers",
-    value: 5,
-    iconPath: ICON_PATHS.briefcase,
-    color: "bg-primary",
-  },
-  {
-    label: "Pending Proposals",
-    value: 12,
-    iconPath: ICON_PATHS.document,
-    color: "bg-secondary",
-  },
-  {
-    label: "Unread Messages",
-    value: 3,
-    iconPath: ICON_PATHS.chat,
-    color: "bg-accent",
-  },
-  {
-    label: "Total Spent",
-    value: "$2,450",
-    iconPath: ICON_PATHS.currency,
-    color: "bg-success",
-  },
-];
-
-const MOCK_ACTIVITY: ActivityItem[] = [
-  {
-    id: "1",
-    type: "proposal_received",
-    title: "New proposal received",
-    description: "John D. submitted a proposal for 'Website Redesign'",
-    time: "2 hours ago",
-  },
-  {
-    id: "2",
-    type: "message",
-    title: "New message",
-    description: "Sarah M. sent you a message about 'Mobile App Development'",
-    time: "5 hours ago",
-  },
-  {
-    id: "3",
-    type: "offer_created",
-    title: "Offer published",
-    description: "Your offer 'Logo Design' is now live",
-    time: "1 day ago",
-  },
-  {
-    id: "4",
-    type: "payment",
-    title: "Payment completed",
-    description: "You paid $500 for 'Backend API Development'",
-    time: "2 days ago",
-  },
-];
-
-const ACTIVITY_ICONS: Record<ActivityItem["type"], string> = {
-  offer_created: ICON_PATHS.plus,
-  proposal_received: ICON_PATHS.document,
-  message: ICON_PATHS.chat,
-  payment: ICON_PATHS.creditCard,
-};
+import { WalletAddress } from "@/components/ui/WalletAddress";
+import { getClientStats, getClientActivities, type ClientStats, type ClientActivity } from "@/lib/api/client";
 
 interface QuickActionProps {
   href: string;
@@ -122,37 +43,50 @@ function QuickAction({
   );
 }
 
-interface StatCardComponentProps {
-  stat: StatCard;
+interface StatCardProps {
+  label: string;
+  value: string | number;
+  iconPath: string;
+  color: string;
 }
 
-function StatCardComponent({ stat }: StatCardComponentProps): React.JSX.Element {
+function StatCard({ label, value, iconPath, color }: StatCardProps): React.JSX.Element {
   return (
     <div className={NEUMORPHIC_CARD}>
       <div className="flex items-center gap-4">
-        <div className={cn(ICON_CONTAINER, stat.color)}>
-          <Icon path={stat.iconPath} className="text-white" />
+        <div className={cn(ICON_CONTAINER, color)}>
+          <Icon path={iconPath} className="text-white" />
         </div>
         <div>
-          <p className="text-2xl font-bold text-text-primary">{stat.value}</p>
-          <p className="text-sm text-text-secondary">{stat.label}</p>
+          <p className="text-2xl font-bold text-text-primary">{value}</p>
+          <p className="text-sm text-text-secondary">{label}</p>
         </div>
       </div>
     </div>
   );
 }
 
-interface ActivityItemComponentProps {
-  activity: ActivityItem;
+interface ActivityItemProps {
+  activity: ClientActivity;
 }
 
-function ActivityItemComponent({
-  activity,
-}: ActivityItemComponentProps): React.JSX.Element {
+function ActivityItem({ activity }: ActivityItemProps): React.JSX.Element {
+  const getIconPath = (type: ClientActivity['type']): string => {
+    switch (type) {
+      case 'order_created':
+      case 'order_completed':
+        return ICON_PATHS.briefcase;
+      case 'topup_completed':
+        return ICON_PATHS.plus;
+      default:
+        return ICON_PATHS.check;
+    }
+  };
+
   return (
     <div className={cn("flex items-start gap-4 p-4 rounded-xl", NEUMORPHIC_INSET)}>
       <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-        <Icon path={CLIENT_ACTIVITY_ICONS[activity.type] || ICON_PATHS.infoCircle} size="md" className="text-primary" />
+        <Icon path={getIconPath(activity.type)} size="md" className="text-primary" />
       </div>
       <div className="flex-1 min-w-0">
         <p className="font-medium text-text-primary">{activity.title}</p>
@@ -164,14 +98,83 @@ function ActivityItemComponent({
 }
 
 export default function ClientDashboardPage(): React.JSX.Element {
-  const user = useAuthStore((state) => state.user);
   const { setMode } = useModeStore();
+  const [mounted, setMounted] = useState(false);
+  const lastFetchRef = useRef<number>(0);
+  const [stats, setStats] = useState<ClientStats | null>(null);
+  const [activities, setActivities] = useState<ClientActivity[]>([]);
+  const [isLoadingStats, setIsLoadingStats] = useState(true);
+  const [isLoadingActivities, setIsLoadingActivities] = useState(true);
 
-  // Set client mode only on initial mount, not on every mode change
+  const user = useAuthStore((state) => state.user);
+  const token = useAuthStore((state) => state.token);
+
+  const fetchData = useCallback(async (force = false) => {
+    if (!token) {
+      setIsLoadingStats(false);
+      setIsLoadingActivities(false);
+      return;
+    }
+
+    // Debounce: skip if fetched less than 2 seconds ago (unless forced)
+    const now = Date.now();
+    if (!force && now - lastFetchRef.current < 2000) {
+      return;
+    }
+    lastFetchRef.current = now;
+
+    setIsLoadingStats(true);
+    setIsLoadingActivities(true);
+
+    try {
+      const [statsData, activitiesData] = await Promise.all([
+        getClientStats(token),
+        getClientActivities(token),
+      ]);
+      setStats(statsData);
+      setActivities(activitiesData);
+    } catch (error) {
+      console.error("Failed to fetch dashboard data:", error);
+    } finally {
+      setIsLoadingStats(false);
+      setIsLoadingActivities(false);
+    }
+  }, [token]);
+
   useEffect(() => {
     setMode("client");
+    setMounted(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Fetch data on mount
+  useEffect(() => {
+    if (!mounted) return;
+    fetchData(true);
+  }, [mounted, fetchData]);
+
+  // Refetch data when user navigates back to this page (visibility change)
+  useEffect(() => {
+    if (!mounted) return;
+
+    function handleVisibilityChange() {
+      if (document.visibilityState === "visible") {
+        fetchData();
+      }
+    }
+
+    function handleFocus() {
+      fetchData();
+    }
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("focus", handleFocus);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("focus", handleFocus);
+    };
+  }, [mounted, fetchData]);
 
   return (
     <div className="space-y-6">
@@ -180,8 +183,13 @@ export default function ClientDashboardPage(): React.JSX.Element {
           Welcome back, {user?.username || "Client"}!
         </h1>
         <p className="text-text-secondary mt-1">
-          Manage your offers and find the perfect freelancers for your projects
+          Find talented freelancers and manage your projects
         </p>
+        {mounted && user?.wallet?.publicKey && (
+          <div className="mt-3">
+            <WalletAddress address={user.wallet.publicKey} />
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -190,21 +198,58 @@ export default function ClientDashboardPage(): React.JSX.Element {
           iconPath={ICON_PATHS.plus}
           iconColor="bg-primary"
           title="Create Offer"
-          description="Post a new job for freelancers"
+          description="Post a new job opportunity"
         />
         <QuickAction
-          href="/marketplace"
-          iconPath={ICON_PATHS.search}
+          href="/app/client/offers"
+          iconPath={ICON_PATHS.briefcase}
           iconColor="bg-secondary"
-          title="View Marketplace"
-          description="Browse available freelancers"
+          title="View Offers"
+          description="Manage your posted offers"
         />
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {MOCK_STATS.map((stat) => (
-          <StatCardComponent key={stat.label} stat={stat} />
-        ))}
+        {isLoadingStats ? (
+          Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className={cn(NEUMORPHIC_CARD, "animate-pulse")}>
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-gray-200" />
+                <div className="flex-1">
+                  <div className="h-8 bg-gray-200 rounded mb-2" />
+                  <div className="h-4 bg-gray-200 rounded w-2/3" />
+                </div>
+              </div>
+            </div>
+          ))
+        ) : (
+          <>
+            <StatCard
+              label="Active Offers"
+              value={stats?.activeOffers ?? 0}
+              iconPath={ICON_PATHS.document}
+              color="bg-primary"
+            />
+            <StatCard
+              label="Active Orders"
+              value={stats?.activeOrders ?? 0}
+              iconPath={ICON_PATHS.briefcase}
+              color="bg-secondary"
+            />
+            <StatCard
+              label="Services Purchased"
+              value={stats?.servicesPurchased ?? 0}
+              iconPath={ICON_PATHS.check}
+              color="bg-accent"
+            />
+            <StatCard
+              label="Budget Spent"
+              value={stats?.budgetSpent ?? "$0.00"}
+              iconPath={ICON_PATHS.currency}
+              color="bg-success"
+            />
+          </>
+        )}
       </div>
 
       <div className={NEUMORPHIC_CARD}>
@@ -219,9 +264,26 @@ export default function ClientDashboardPage(): React.JSX.Element {
         </div>
 
         <div className="space-y-4">
-          {CLIENT_ACTIVITY.slice(0, 5).map((activity) => (
-            <ActivityItemComponent key={activity.id} activity={activity} />
-          ))}
+          {isLoadingActivities ? (
+            Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className={cn("flex items-start gap-4 p-4 rounded-xl animate-pulse", NEUMORPHIC_INSET)}>
+                <div className="w-10 h-10 rounded-lg bg-gray-200 flex-shrink-0" />
+                <div className="flex-1">
+                  <div className="h-5 bg-gray-200 rounded mb-2 w-1/3" />
+                  <div className="h-4 bg-gray-200 rounded w-2/3" />
+                </div>
+                <div className="h-4 bg-gray-200 rounded w-16" />
+              </div>
+            ))
+          ) : activities.length > 0 ? (
+            activities.slice(0, 5).map((activity) => (
+              <ActivityItem key={activity.id} activity={activity} />
+            ))
+          ) : (
+            <div className="text-center text-text-secondary py-8">
+              No recent activity
+            </div>
+          )}
         </div>
       </div>
     </div>

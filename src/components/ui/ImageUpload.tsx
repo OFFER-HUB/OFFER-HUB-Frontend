@@ -49,7 +49,9 @@ export function ImageUpload({
 
   const handleFiles = useCallback(
     async (files: FileList | null) => {
-      if (!files || files.length === 0) return;
+      if (!files || files.length === 0) {
+        return;
+      }
 
       setError(null);
       const newFiles: File[] = [];

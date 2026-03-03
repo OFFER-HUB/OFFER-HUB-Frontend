@@ -33,6 +33,7 @@ export interface NavigationItem {
 
 const FREELANCER_NAV_ITEMS: NavigationItem[] = [
   { href: "/app/freelancer/dashboard", label: "Dashboard", icon: ICON_PATHS.home },
+  { href: "/app/orders", label: "Orders", icon: ICON_PATHS.shoppingCart },
   { href: "/app/freelancer/services", label: "My Services", icon: ICON_PATHS.briefcase },
   { href: "/app/freelancer/disputes", label: "Disputes", icon: ICON_PATHS.flag },
   { href: "/app/chat", label: "Messages", icon: ICON_PATHS.chat },
@@ -42,6 +43,7 @@ const FREELANCER_NAV_ITEMS: NavigationItem[] = [
 
 const CLIENT_NAV_ITEMS: NavigationItem[] = [
   { href: "/app/client/dashboard", label: "Dashboard", icon: ICON_PATHS.home },
+  { href: "/app/orders", label: "Orders", icon: ICON_PATHS.shoppingCart },
   { href: "/app/client/offers", label: "Manage Offers", icon: ICON_PATHS.briefcase },
   { href: "/app/client/offers/new", label: "Create Offer", icon: ICON_PATHS.plus },
   { href: "/app/disputes", label: "Disputes", icon: ICON_PATHS.flag },

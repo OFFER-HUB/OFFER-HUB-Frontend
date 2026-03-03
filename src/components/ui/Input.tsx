@@ -1,4 +1,6 @@
-import { useId } from "react";
+"use client";
+
+import { useId, useState, useEffect } from "react";
 import { cn } from "@/lib/cn";
 import type { InputHTMLAttributes, ReactNode } from "react";
 
@@ -20,8 +22,14 @@ export function Input({
   ...props
 }: InputProps) {
   const generatedId = useId();
-  const inputId = id || generatedId;
-  const errorId = `${inputId}-error`;
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const inputId = id || (mounted ? generatedId : undefined);
+  const errorId = inputId ? `${inputId}-error` : undefined;
 
   return (
     <div className="flex flex-col gap-1.5">
@@ -62,7 +70,7 @@ export function Input({
           </span>
         )}
       </div>
-      {error && (
+      {error && errorId && (
         <span id={errorId} className="text-sm text-error" role="alert">
           {error}
         </span>

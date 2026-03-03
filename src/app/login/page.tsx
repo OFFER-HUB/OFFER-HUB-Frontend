@@ -11,6 +11,7 @@ import {
 } from "@/components/auth";
 import { cn } from "@/lib/cn";
 import { useAuthStore } from "@/stores/auth-store";
+import { useModeStore } from "@/stores/mode-store";
 import type { LoginFormData, AuthFormErrors } from "@/types/auth.types";
 
 function LoginContent() {
@@ -18,6 +19,7 @@ function LoginContent() {
   const searchParams = useSearchParams();
   const login = useAuthStore((state) => state.login);
   const setRedirectAfterLogin = useAuthStore((state) => state.setRedirectAfterLogin);
+  const mode = useModeStore((state) => state.mode);
   const [isLoading, setIsLoading] = useState(false);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [formData, setFormData] = useState<LoginFormData>({
@@ -72,27 +74,43 @@ function LoginContent() {
 
     setIsLoading(true);
 
-    // Mock login - simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+        }),
+      });
 
-    // Mock user data - in real implementation this would come from API
-    const mockUser = {
-      id: "1",
-      email: formData.email,
-      username: formData.email.split("@")[0],
-    };
+      const data = await response.json();
 
-    // Update auth state
-    login(mockUser);
-    
-    // Wait for Zustand persist to write cookie before redirecting
-    // This ensures middleware can read the auth state on next page load
-    await new Promise((resolve) => setTimeout(resolve, 100));
-    
-    setIsLoading(false);
-    
-    // Use window.location for full page navigation so middleware can read the cookie
-    window.location.href = redirectPath || "/app/dashboard";
+      if (!response.ok) {
+        setErrors({ email: data.error || "Login failed" });
+        setIsLoading(false);
+        return;
+      }
+
+      // Update auth state with user and token from API
+      login(data.user, data.token);
+
+      setIsLoading(false);
+
+      // Redirect to the appropriate dashboard based on mode
+      const defaultDashboard = mode === "freelancer"
+        ? "/app/freelancer/dashboard"
+        : mode === "client"
+        ? "/app/client/dashboard"
+        : "/app/dashboard";
+
+      // Use router.push for client-side navigation
+      router.push(redirectPath || defaultDashboard);
+    } catch (error) {
+      console.error("Login error:", error);
+      setErrors({ email: "Connection error. Please try again." });
+      setIsLoading(false);
+    }
   };
 
   return (

@@ -9,9 +9,7 @@ import type { ApiResponse, ResponseCode } from "@/types/api-response.types";
 import type { RequestOptions } from "@/types/http.types";
 import { HttpError } from "@/types/http.types";
 
-// Base URL will be configured when API is available
-// For now, paths should be full URLs or relative to the app
-const API_BASE_URL = "";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api/v1";
 
 const DEFAULT_HEADERS: Record<string, string> = {
   "Content-Type": "application/json",

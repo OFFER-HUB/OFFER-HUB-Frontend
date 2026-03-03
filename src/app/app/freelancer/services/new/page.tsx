@@ -4,8 +4,9 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { cn } from "@/lib/cn";
-import { MOCK_API_DELAY } from "@/lib/constants";
 import { Icon, ICON_PATHS, LoadingSpinner } from "@/components/ui/Icon";
+import { createService } from "@/lib/api/services";
+import { useAuthStore } from "@/stores/auth-store";
 import {
   NEUMORPHIC_CARD,
   NEUMORPHIC_INPUT,
@@ -87,6 +88,7 @@ function FormField({ label, required, error, children }: FormFieldProps): React.
 
 export default function CreateServicePage(): React.JSX.Element {
   const router = useRouter();
+  const token = useAuthStore((state) => state.token);
   const [formData, setFormData] = useState<ServiceFormData>(INITIAL_FORM_DATA);
   const [errors, setErrors] = useState<ServiceFormErrors>({});
   const [isLoading, setIsLoading] = useState(false);
@@ -106,17 +108,42 @@ export default function CreateServicePage(): React.JSX.Element {
 
   async function handleSubmit(e: React.FormEvent): Promise<void> {
     e.preventDefault();
+
+    // Clear previous errors first
+    setErrors({});
+
     const validationErrors = validateForm(formData);
-    setErrors(validationErrors);
 
     if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return;
+    }
+
+    if (!token) {
+      setErrors({ title: "Please log in to create a service" });
       return;
     }
 
     setIsLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, MOCK_API_DELAY));
-    setIsLoading(false);
-    router.push("/app/freelancer/services");
+
+    try {
+      // Convert form data to API payload format
+      const payload = {
+        title: formData.title,
+        description: formData.description,
+        category: formData.category as any, // Already in uppercase from select
+        price: formData.price.toFixed(2), // Convert number to decimal string
+        deliveryDays: formData.deliveryDays,
+      };
+
+      await createService(token, payload);
+      router.push("/app/freelancer/services");
+    } catch (error) {
+      console.error('Failed to create service:', error);
+      setErrors({ title: 'Failed to create service. Please try again.' });
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (

@@ -1,15 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { cn } from "@/lib/cn";
 import { useModeStore } from "@/stores/mode-store";
-import { Icon, ICON_PATHS } from "@/components/ui/Icon";
+import { useAuthStore } from "@/stores/auth-store";
+import { Icon, ICON_PATHS, LoadingSpinner } from "@/components/ui/Icon";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { StarRating } from "@/components/ui/StarRating";
 import { RateFreelancerModal } from "@/components/rating/RateFreelancerModal";
+import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 import {
   NEUMORPHIC_CARD,
   NEUMORPHIC_INSET,
@@ -20,10 +22,13 @@ import {
   ACTION_BUTTON_DANGER,
   ACTION_BUTTON_SUBTLE,
 } from "@/lib/styles";
-import { MOCK_CLIENT_OFFER_DETAILS } from "@/data/client-offer.data";
+import { getOfferById, deleteOffer, updateOfferStatus, type Offer, type OfferCategory, type OfferAttachment } from "@/lib/api/offers";
+import { getOfferApplications, updateApplicationStatus } from "@/lib/api/applications";
+import { ApplicationCard } from "@/components/offers/ApplicationCard";
+import type { Application } from "@/types/application.types";
 import { isOfferEligibleForDispute } from "@/data/dispute.data";
 import { getRatingByOfferId, addRating } from "@/data/rating.data";
-import type { Applicant, ClientOfferDetail } from "@/types/client-offer.types";
+import type { Applicant, ClientOfferDetail, OfferStatus } from "@/types/client-offer.types";
 import type { FreelancerRating } from "@/types/rating.types";
 
 function formatDate(dateString: string): string {
@@ -32,61 +37,6 @@ function formatDate(dateString: string): string {
     month: "long",
     day: "numeric",
   });
-}
-
-interface ApplicantCardProps {
-  applicant: Applicant;
-}
-
-function ApplicantCard({ applicant }: ApplicantCardProps): React.JSX.Element {
-  return (
-    <div className={cn("p-4 rounded-xl", NEUMORPHIC_INSET)}>
-      <div className="flex items-start gap-4">
-        <div
-          className={cn(
-            "w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0",
-            "bg-primary text-white font-semibold"
-          )}
-        >
-          {applicant.avatar}
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center justify-between gap-2">
-            <h3 className="font-medium text-text-primary">{applicant.name}</h3>
-            <div className="flex items-center gap-1 text-warning">
-              <Icon path={ICON_PATHS.star} size="sm" />
-              <span className="text-sm font-medium">{applicant.rating}</span>
-            </div>
-          </div>
-          <p className="text-sm text-text-secondary">{applicant.title}</p>
-          <p className="text-sm text-primary font-medium mt-1">${applicant.hourlyRate}/hr</p>
-          <p className="text-sm text-text-secondary mt-2 line-clamp-2">{applicant.coverLetter}</p>
-          <div className="flex items-center gap-2 mt-3">
-            <Link
-              href={`/app/messages?user=${applicant.id}`}
-              className={cn(
-                "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium",
-                "bg-primary text-white hover:bg-primary-hover transition-colors"
-              )}
-            >
-              <Icon path={ICON_PATHS.chat} size="sm" />
-              Chat
-            </Link>
-            <button
-              className={cn(
-                "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium",
-                "text-text-secondary hover:text-text-primary hover:bg-background",
-                "transition-colors cursor-pointer"
-              )}
-            >
-              <Icon path={ICON_PATHS.user} size="sm" />
-              Profile
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
 }
 
 interface DetailItemProps {
@@ -110,26 +60,159 @@ function DetailItem({ icon, iconBgColor, label, value }: DetailItemProps): React
   );
 }
 
+const CATEGORY_MAP: Record<OfferCategory, string> = {
+  WEB_DEVELOPMENT: "Web Development",
+  MOBILE_DEVELOPMENT: "Mobile Development",
+  DESIGN: "Design & Creative",
+  WRITING: "Writing & Translation",
+  MARKETING: "Marketing & Sales",
+  VIDEO: "Video & Animation",
+  MUSIC: "Music & Audio",
+  DATA: "Data & Analytics",
+  OTHER: "Other",
+};
+
+function mapApiOfferToDetail(apiOffer: Offer): ClientOfferDetail & { apiAttachments?: OfferAttachment[] } {
+  return {
+    id: apiOffer.id,
+    title: apiOffer.title,
+    description: apiOffer.description,
+    category: CATEGORY_MAP[apiOffer.category] || apiOffer.category,
+    budget: parseFloat(apiOffer.budget),
+    deadline: apiOffer.deadline.split("T")[0],
+    status: apiOffer.status.toLowerCase() as OfferStatus,
+    createdAt: apiOffer.createdAt.split("T")[0],
+    applicants: [], // TODO: Will be populated when applicants feature is added
+    hiredFreelancer: undefined,
+    attachments: undefined,
+    apiAttachments: apiOffer.attachments,
+  };
+}
+
 export default function OfferPanelPage(): React.JSX.Element {
   const params = useParams();
+  const router = useRouter();
   const { setMode } = useModeStore();
-  const [offer, setOffer] = useState<ClientOfferDetail | null>(null);
+  const token = useAuthStore((state) => state.token);
+  const [mounted, setMounted] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [offer, setOffer] = useState<(ClientOfferDetail & { apiAttachments?: OfferAttachment[] }) | null>(null);
   const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
   const [existingRating, setExistingRating] = useState<FreelancerRating | null>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
+  const [applications, setApplications] = useState<Application[]>([]);
+  const [isLoadingApplications, setIsLoadingApplications] = useState(false);
 
   useEffect(() => {
     setMode("client");
+    setMounted(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
-    const id = params.id as string;
-    const foundOffer = MOCK_CLIENT_OFFER_DETAILS[id];
-    if (foundOffer) {
-      setOffer(foundOffer);
-      setExistingRating(getRatingByOfferId(id) ?? null);
+    if (!mounted) return;
+
+    async function fetchOffer() {
+      const id = params.id as string;
+      if (!token) {
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        const apiOffer = await getOfferById(token, id);
+        setOffer(mapApiOfferToDetail(apiOffer));
+        setExistingRating(getRatingByOfferId(id) ?? null);
+      } catch (error) {
+        console.error("Failed to fetch offer:", error);
+        setOffer(null);
+      } finally {
+        setIsLoading(false);
+      }
     }
-  }, [params.id]);
+
+    fetchOffer();
+  }, [mounted, params.id, token]);
+
+  // Fetch applications for this offer
+  useEffect(() => {
+    if (!token || !offer) return;
+
+    const offerId = offer.id;
+    async function fetchApplications() {
+      if (!token) return;
+      setIsLoadingApplications(true);
+      try {
+        const apps = await getOfferApplications(token, offerId);
+        setApplications(apps);
+      } catch (error) {
+        console.error('Failed to fetch applications:', error);
+      } finally {
+        setIsLoadingApplications(false);
+      }
+    }
+
+    fetchApplications();
+  }, [token, offer]);
+
+  async function handleAcceptApplication(applicationId: string): Promise<void> {
+    if (!token || !offer) return;
+
+    try {
+      await updateApplicationStatus(token, applicationId, { status: 'ACCEPTED' });
+      // Refresh applications
+      const apps = await getOfferApplications(token, offer.id);
+      setApplications(apps);
+    } catch (error) {
+      console.error('Failed to accept application:', error);
+      throw error;
+    }
+  }
+
+  async function handleRejectApplication(applicationId: string): Promise<void> {
+    if (!token || !offer) return;
+
+    try {
+      await updateApplicationStatus(token, applicationId, { status: 'REJECTED' });
+      // Refresh applications
+      const apps = await getOfferApplications(token, offer.id);
+      setApplications(apps);
+    } catch (error) {
+      console.error('Failed to reject application:', error);
+      throw error;
+    }
+  }
+
+  async function handleDelete(): Promise<void> {
+    if (!token || !offer) return;
+    setIsDeleting(true);
+
+    try {
+      await deleteOffer(token, offer.id);
+      router.push("/app/client/offers");
+    } catch (error) {
+      console.error("Failed to delete offer:", error);
+    } finally {
+      setIsDeleting(false);
+      setIsDeleteModalOpen(false);
+    }
+  }
+
+  async function handleCloseOffer(): Promise<void> {
+    if (!token || !offer) return;
+    setIsClosing(true);
+
+    try {
+      await updateOfferStatus(token, offer.id, { status: "CLOSED" });
+      setOffer((prev) => prev ? { ...prev, status: "closed" } : null);
+    } catch (error) {
+      console.error("Failed to close offer:", error);
+    } finally {
+      setIsClosing(false);
+    }
+  }
 
   async function handleSubmitRating(rating: number, comment: string): Promise<void> {
     if (!offer || !offer.hiredFreelancer) return;
@@ -149,6 +232,15 @@ export default function OfferPanelPage(): React.JSX.Element {
 
     addRating(newRating);
     setExistingRating(newRating);
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <LoadingSpinner size="lg" />
+        <span className="ml-3 text-text-secondary">Loading offer...</span>
+      </div>
+    );
   }
 
   if (!offer) {
@@ -187,21 +279,79 @@ export default function OfferPanelPage(): React.JSX.Element {
             <p className="text-text-secondary whitespace-pre-line">{offer.description}</p>
           </div>
 
+          {offer.apiAttachments && offer.apiAttachments.length > 0 && (
+            <div className={NEUMORPHIC_CARD}>
+              <h2 className="text-lg font-semibold text-text-primary mb-4">
+                Attachments ({offer.apiAttachments.length})
+              </h2>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                {offer.apiAttachments.map((attachment) => {
+                  const isImage = attachment.mimeType.startsWith("image/");
+                  const backendUrl = process.env.NEXT_PUBLIC_API_URL?.replace("/api/v1", "") || "http://localhost:4000";
+                  const fileUrl = `${backendUrl}${attachment.url}`;
+
+                  return (
+                    <a
+                      key={attachment.id}
+                      href={fileUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={cn(
+                        "group relative rounded-xl overflow-hidden",
+                        NEUMORPHIC_INSET,
+                        "hover:shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]",
+                        "transition-all duration-200"
+                      )}
+                    >
+                      {isImage ? (
+                        <div className="aspect-square">
+                          <img
+                            src={fileUrl}
+                            alt={attachment.filename}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      ) : (
+                        <div className="aspect-square flex flex-col items-center justify-center p-4 bg-background">
+                          <Icon path={ICON_PATHS.document} size="xl" className="text-text-secondary mb-2" />
+                          <p className="text-xs text-text-secondary text-center truncate w-full">
+                            {attachment.filename}
+                          </p>
+                        </div>
+                      )}
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
+                    </a>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           <div className={NEUMORPHIC_CARD}>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-text-primary">
-                Applicants ({offer.applicants.length})
+                Applicants ({applications.length})
               </h2>
             </div>
-            {offer.applicants.length === 0 ? (
+            {isLoadingApplications ? (
+              <div className="text-center py-8">
+                <LoadingSpinner className="text-primary mx-auto" />
+              </div>
+            ) : applications.length === 0 ? (
               <div className="text-center py-8">
                 <Icon path={ICON_PATHS.users} size="xl" className="text-text-secondary mx-auto mb-2" />
                 <p className="text-text-secondary">No applicants yet</p>
               </div>
             ) : (
               <div className="space-y-4">
-                {offer.applicants.map((applicant) => (
-                  <ApplicantCard key={applicant.id} applicant={applicant} />
+                {applications.map((application) => (
+                  <ApplicationCard
+                    key={application.id}
+                    application={application}
+                    onAccept={handleAcceptApplication}
+                    onReject={handleRejectApplication}
+                    showActions
+                  />
                 ))}
               </div>
             )}
@@ -228,7 +378,7 @@ export default function OfferPanelPage(): React.JSX.Element {
                 icon={ICON_PATHS.users}
                 iconBgColor="bg-accent"
                 label="Applicants"
-                value={String(offer.applicants.length)}
+                value={String(applications.length)}
               />
             </div>
           </div>
@@ -280,12 +430,28 @@ export default function OfferPanelPage(): React.JSX.Element {
                 Edit Offer
               </Link>
               {offer.status === "active" && (
-                <button className={ACTION_BUTTON_WARNING}>
-                  <Icon path={ICON_PATHS.clock} size="md" />
-                  Close Offer
+                <button
+                  onClick={handleCloseOffer}
+                  disabled={isClosing}
+                  className={ACTION_BUTTON_WARNING}
+                >
+                  {isClosing ? (
+                    <>
+                      <LoadingSpinner size="sm" />
+                      Closing...
+                    </>
+                  ) : (
+                    <>
+                      <Icon path={ICON_PATHS.clock} size="md" />
+                      Close Offer
+                    </>
+                  )}
                 </button>
               )}
-              <button className={ACTION_BUTTON_DANGER}>
+              <button
+                onClick={() => setIsDeleteModalOpen(true)}
+                className={ACTION_BUTTON_DANGER}
+              >
                 <Icon path={ICON_PATHS.trash} size="md" />
                 Delete Offer
               </button>
@@ -311,6 +477,19 @@ export default function OfferPanelPage(): React.JSX.Element {
           offerTitle={offer.title}
         />
       )}
+
+      <ConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleDelete}
+        title="Delete Offer?"
+        message="Are you sure you want to delete this offer? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="danger"
+        icon={ICON_PATHS.trash}
+        isLoading={isDeleting}
+      />
     </div>
   );
 }

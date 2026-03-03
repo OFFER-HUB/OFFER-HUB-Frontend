@@ -43,12 +43,24 @@ export const INPUT_ERROR_STYLES = "ring-2 ring-error/50";
 
 export const PRIMARY_BUTTON = cn(
   "px-6 py-3 rounded-xl font-medium",
-  "bg-primary text-white",
+  "bg-background text-primary",
   "shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]",
-  "hover:bg-primary-hover hover:shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff] hover:scale-[1.02]",
-  "active:shadow-[inset_4px_4px_8px_rgba(0,0,0,0.2)] active:scale-[0.98]",
-  "disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100",
-  "transition-all duration-200 cursor-pointer"
+  "hover:shadow-[2px_2px_4px_#d1d5db,-2px_-2px_4px_#ffffff]",
+  "active:shadow-[inset_3px_3px_6px_#d1d5db,inset_-3px_-3px_6px_#ffffff]",
+  "disabled:opacity-50 disabled:cursor-not-allowed",
+  "transition-all duration-200 cursor-pointer",
+  "flex items-center gap-2"
+);
+
+export const DANGER_BUTTON = cn(
+  "px-6 py-3 rounded-xl font-medium",
+  "bg-background text-error",
+  "shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]",
+  "hover:shadow-[2px_2px_4px_#d1d5db,-2px_-2px_4px_#ffffff]",
+  "active:shadow-[inset_3px_3px_6px_#d1d5db,inset_-3px_-3px_6px_#ffffff]",
+  "disabled:opacity-50 disabled:cursor-not-allowed",
+  "transition-all duration-200 cursor-pointer",
+  "flex items-center gap-2"
 );
 
 export const USER_AVATAR_BUTTON = cn(
@@ -79,27 +91,31 @@ export const DROPDOWN_ITEM_DANGER = cn(
 
 export const ACTION_BUTTON_BASE = cn(
   "flex items-center gap-2 w-full px-4 py-3 rounded-xl",
-  "font-medium transition-colors"
+  "font-medium bg-white",
+  "shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]",
+  "hover:shadow-[2px_2px_4px_#d1d5db,-2px_-2px_4px_#ffffff]",
+  "active:shadow-[inset_3px_3px_6px_rgba(0,0,0,0.1)]",
+  "transition-all duration-200"
 );
 
 export const ACTION_BUTTON_DEFAULT = cn(
   ACTION_BUTTON_BASE,
-  "text-text-primary bg-background hover:bg-gray-100"
+  "text-primary"
 );
 
 export const ACTION_BUTTON_WARNING = cn(
   ACTION_BUTTON_BASE,
-  "text-warning bg-warning/10 hover:bg-warning/20 cursor-pointer"
+  "text-warning cursor-pointer"
 );
 
 export const ACTION_BUTTON_DANGER = cn(
   ACTION_BUTTON_BASE,
-  "text-error bg-error/10 hover:bg-error/20 cursor-pointer"
+  "text-error cursor-pointer"
 );
 
 export const ACTION_BUTTON_SUBTLE = cn(
   ACTION_BUTTON_BASE,
-  "text-text-secondary hover:bg-background"
+  "text-text-secondary"
 );
 
 export const SCROLLABLE_CONTAINER = cn(

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/cn";
 import { Icon, ICON_PATHS } from "@/components/ui/Icon";
 import { useModeStore, getNavigationItems, type UserMode } from "@/stores/mode-store";
@@ -52,6 +52,7 @@ function getNavLinkStyles(isActive: boolean, isCollapsed: boolean): string {
 
 export function AppSidebar(_props: AppSidebarProps): React.JSX.Element {
   const pathname = usePathname();
+  const router = useRouter();
   const { mode, setMode } = useModeStore();
   const { isCollapsed, toggleCollapsed } = useSidebarStore();
   const [hydrated, setHydrated] = useState(false);
@@ -77,6 +78,13 @@ export function AppSidebar(_props: AppSidebarProps): React.JSX.Element {
 
   function handleModeChange(newMode: UserMode): void {
     setMode(newMode);
+
+    // Redirect to the appropriate dashboard based on mode
+    if (newMode === "freelancer") {
+      router.push("/app/freelancer/dashboard");
+    } else if (newMode === "client") {
+      router.push("/app/client/dashboard");
+    }
   }
 
   return (

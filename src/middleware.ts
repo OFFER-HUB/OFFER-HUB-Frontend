@@ -6,35 +6,9 @@ const AUTH_ROUTES = ["/login", "/register"];
 const PRIVATE_ROUTE_PREFIX = "/app";
 
 export function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-
-  // Check if user has auth token in cookies (set by Zustand persist)
-  const authState = request.cookies.get(COOKIE_CONFIG.AUTH_STATE);
-  let isAuthenticated = false;
-
-  if (authState?.value) {
-    try {
-      const decoded = decodeURIComponent(authState.value);
-      const parsed = JSON.parse(decoded);
-      // Zustand persist stores state in "state" property
-      isAuthenticated = parsed.state?.isAuthenticated === true;
-    } catch {
-      isAuthenticated = false;
-    }
-  }
-
-  // Redirect authenticated users away from auth pages
-  if (isAuthenticated && AUTH_ROUTES.includes(pathname)) {
-    return NextResponse.redirect(new URL("/app/dashboard", request.url));
-  }
-
-  // Protect private routes
-  if (pathname.startsWith(PRIVATE_ROUTE_PREFIX) && !isAuthenticated) {
-    const loginUrl = new URL("/login", request.url);
-    loginUrl.searchParams.set("redirect", pathname);
-    return NextResponse.redirect(loginUrl);
-  }
-
+  // DISABLED: Middleware auth check disabled because we moved to localStorage
+  // localStorage is not available in middleware (server-side)
+  // Pages handle authentication client-side instead
   return NextResponse.next();
 }
 
