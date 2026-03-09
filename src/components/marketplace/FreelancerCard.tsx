@@ -51,13 +51,21 @@ export function FreelancerCard({ freelancer }: FreelancerCardProps) {
         <div className="flex items-start gap-4 mb-5">
           <div className="relative flex-shrink-0">
             <div className="p-1 rounded-[24px] shadow-[3px_3px_6px_#d1d5db,-3px_-3px_6px_#ffffff]">
-              <Image
-                src={freelancer.avatar}
-                alt={freelancer.name}
-                width={56}
-                height={72}
-                className="rounded-[20px] object-cover w-14 h-[72px]"
-              />
+              {freelancer.avatar ? (
+                <Image
+                  src={freelancer.avatar}
+                  alt={freelancer.name}
+                  width={56}
+                  height={72}
+                  className="rounded-[20px] object-cover w-14 h-[72px]"
+                />
+              ) : (
+                <div className="rounded-[20px] w-14 h-[72px] bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
+                  <span className="text-primary font-bold text-xl">
+                    {freelancer.name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase()}
+                  </span>
+                </div>
+              )}
             </div>
             {freelancer.isAvailable && (
               <span className="absolute bottom-0 right-0 w-4 h-4 bg-green-500 border-2 border-white rounded-full shadow-sm" />

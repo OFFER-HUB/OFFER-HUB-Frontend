@@ -34,13 +34,21 @@ export function PopularOfferCard({ offer, onClick }: PopularOfferCardProps) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Image
-            src={offer.company.logo}
-            alt={offer.company.name}
-            width={36}
-            height={48}
-            className="rounded-[14px] object-cover w-9 h-12"
-          />
+          {offer.company.logo ? (
+            <Image
+              src={offer.company.logo}
+              alt={offer.company.name}
+              width={36}
+              height={48}
+              className="rounded-[14px] object-cover w-9 h-12"
+            />
+          ) : (
+            <div className="rounded-[14px] w-9 h-12 bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
+              <span className="text-primary font-bold text-sm">
+                {offer.company.name.charAt(0).toUpperCase()}
+              </span>
+            </div>
+          )}
           <span className="text-sm font-medium text-text-secondary">{offer.company.name}</span>
         </div>
         <button
