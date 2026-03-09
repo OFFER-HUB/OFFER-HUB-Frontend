@@ -5,6 +5,7 @@ import { cn } from "@/lib/cn";
 import { MOCK_API_DELAY } from "@/lib/constants";
 import { Icon, ICON_PATHS, LoadingSpinner } from "@/components/ui/Icon";
 import { NEUMORPHIC_CARD, PRIMARY_BUTTON } from "@/lib/styles";
+import { useOnboardingStore } from "@/stores/onboarding-store";
 
 interface NotificationSettings {
   emailNotifications: boolean;
@@ -85,6 +86,13 @@ export default function SettingsPage(): React.JSX.Element {
   const [privacy, setPrivacy] = useState<PrivacySettings>(INITIAL_PRIVACY);
   const [isLoading, setIsLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const { hasCompletedTour, resetTour } = useOnboardingStore();
+
+  function handleRestartTour(): void {
+    resetTour();
+    // Redirect to dashboard to start the tour
+    window.location.href = "/app/freelancer/dashboard";
+  }
 
   function toggleNotification(key: keyof NotificationSettings): void {
     setNotifications((prev) => ({ ...prev, [key]: !prev[key] }));
@@ -216,6 +224,38 @@ export default function SettingsPage(): React.JSX.Element {
             label="Allow Direct Messages"
             description="Let others send you direct messages"
           />
+        </div>
+      </div>
+
+      {/* Help & Support */}
+      <div className={NEUMORPHIC_CARD}>
+        <h2 className="text-lg font-semibold text-text-primary mb-4 flex items-center gap-2">
+          <Icon path={ICON_PATHS.help} size="md" className="text-primary" />
+          Help & Support
+        </h2>
+
+        <div className="space-y-4">
+          <div className="flex items-center justify-between py-2">
+            <div className="flex-1">
+              <p className="text-sm font-medium text-text-primary">Platform Tour</p>
+              <p className="text-xs text-text-secondary mt-0.5">
+                {hasCompletedTour
+                  ? "You have completed the tour. Restart to see it again."
+                  : "Take a guided tour to learn how to use OFFER-HUB."}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={handleRestartTour}
+              className={cn(
+                "px-4 py-2 text-sm font-medium rounded-xl transition-all duration-200",
+                "bg-primary/10 text-primary hover:bg-primary/20",
+                "shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]"
+              )}
+            >
+              {hasCompletedTour ? "Restart Tour" : "Start Tour"}
+            </button>
+          </div>
         </div>
       </div>
 

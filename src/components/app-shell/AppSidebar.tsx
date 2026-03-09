@@ -131,7 +131,7 @@ export function AppSidebar(_props: AppSidebarProps): React.JSX.Element {
                 "shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]"
               )}
             >
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1" data-tour="mode-switcher">
                 <button
                   type="button"
                   onClick={() => handleModeChange("freelancer")}
@@ -184,17 +184,33 @@ export function AppSidebar(_props: AppSidebarProps): React.JSX.Element {
         "flex-1 space-y-2 overflow-y-auto",
         isCollapsed ? "p-2" : "p-4 pt-2"
       )}>
-        {navItems.map((item) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            className={getNavLinkStyles(isActiveLink(item.href), isCollapsed)}
-            title={isCollapsed ? item.label : undefined}
-          >
-            <Icon path={item.icon} size="md" />
-            {!isCollapsed && <span className="font-medium">{item.label}</span>}
-          </Link>
-        ))}
+        {navItems.map((item) => {
+          // Generate data-tour attribute based on route
+          const tourId = item.href.includes("services")
+            ? "nav-services"
+            : item.href.includes("orders")
+            ? "nav-orders"
+            : item.href.includes("profile")
+            ? "nav-profile"
+            : item.href.includes("marketplace")
+            ? "nav-marketplace"
+            : item.href.includes("dashboard")
+            ? "nav-dashboard"
+            : undefined;
+
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={getNavLinkStyles(isActiveLink(item.href), isCollapsed)}
+              title={isCollapsed ? item.label : undefined}
+              data-tour={tourId}
+            >
+              <Icon path={item.icon} size="md" />
+              {!isCollapsed && <span className="font-medium">{item.label}</span>}
+            </Link>
+          );
+        })}
       </nav>
     </aside>
   );
