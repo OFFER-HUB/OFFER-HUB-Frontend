@@ -60,7 +60,7 @@ export function FreelancerCard({ freelancer }: FreelancerCardProps) {
                   className="rounded-[20px] object-cover w-14 h-[72px]"
                 />
               ) : (
-                <div className="rounded-[20px] w-14 h-[72px] bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
+                <div className="rounded-[20px] w-14 h-[72px] bg-background shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff] flex items-center justify-center">
                   <span className="text-primary font-bold text-xl">
                     {freelancer.name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase()}
                   </span>
