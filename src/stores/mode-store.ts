@@ -37,7 +37,7 @@ const FREELANCER_NAV_ITEMS: NavigationItem[] = [
   { href: "/app/freelancer/services", label: "My Services", icon: ICON_PATHS.briefcase },
   { href: "/app/freelancer/disputes", label: "Disputes", icon: ICON_PATHS.flag },
   { href: "/app/chat", label: "Messages", icon: ICON_PATHS.chat },
-  { href: "/app/freelancer/profile", label: "Profile", icon: ICON_PATHS.user },
+  { href: "/app/profile", label: "Profile", icon: ICON_PATHS.user },
   { href: "/app/freelancer/portfolio", label: "Portfolio", icon: ICON_PATHS.image },
 ];
 

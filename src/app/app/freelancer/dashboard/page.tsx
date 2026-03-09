@@ -183,11 +183,11 @@ export default function FreelancerDashboardPage(): React.JSX.Element {
           description="Offer a new service to clients"
         />
         <QuickAction
-          href="/app/freelancer/profile"
+          href="/app/profile"
           iconPath={ICON_PATHS.user}
           iconColor="bg-secondary/90 shadow-lg shadow-secondary/20"
           title="View Profile"
-          description="Update your freelancer profile"
+          description="Update your profile"
         />
       </div>
 
