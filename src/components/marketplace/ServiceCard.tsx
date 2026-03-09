@@ -67,7 +67,7 @@ export function ServiceCard({ service, className }: ServiceCardProps): React.JSX
                 className="w-full h-full object-cover"
               />
             ) : (
-              <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/10 text-primary flex items-center justify-center font-bold text-xl">
+              <div className="w-full h-full bg-background shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff] text-primary flex items-center justify-center font-bold text-xl">
                 {initials.toUpperCase()}
               </div>
             )}
