@@ -218,7 +218,10 @@ export default function FreelancerDashboardPage(): React.JSX.Element {
               </div>
             </div>
 
-            <div className={cn(NEUMORPHIC_CARD, "group transition-all duration-300 hover:-translate-y-1 hover:shadow-[10px_10px_20px_#d1d5db,-10px_-10px_20px_#ffffff]")}>
+            <div
+              className={cn(NEUMORPHIC_CARD, "group transition-all duration-300 hover:-translate-y-1 hover:shadow-[10px_10px_20px_#d1d5db,-10px_-10px_20px_#ffffff]")}
+              data-tour="balance-card"
+            >
               <div className="flex items-center gap-4">
                 <div className={cn(ICON_CONTAINER, "bg-success group-hover:scale-110 transition-transform duration-500")}>
                   <Icon path={ICON_PATHS.currency} className="text-white" />

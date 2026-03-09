@@ -4,6 +4,7 @@ import { useState } from "react";
 import { cn } from "@/lib/cn";
 import { Navbar } from "@/components/landing/Navbar";
 import { AppSidebar } from "@/components/app-shell";
+import { OnboardingTour } from "@/components/onboarding";
 
 interface AppLayoutClientProps {
   children: React.ReactNode;
@@ -14,6 +15,8 @@ export function AppLayoutClient({ children }: AppLayoutClientProps): React.JSX.E
 
   return (
     <div className="app-no-scroll h-screen bg-background flex flex-col overflow-hidden">
+      <OnboardingTour />
+
       <a href="#main-content" className="skip-link">
         Skip to main content
       </a>
