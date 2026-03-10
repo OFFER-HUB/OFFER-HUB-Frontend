@@ -153,17 +153,9 @@ function LoginContent() {
         </div>
 
         <div className="opacity-0 animate-fade-in-up" style={{ animationDelay: "0.25s", animationFillMode: "forwards" }}>
-          <div className="flex items-center justify-between mb-2">
-            <label className="text-sm font-medium text-text-primary">
-              Password
-            </label>
-            <Link
-              href="/forgot-password"
-              className="text-xs text-primary hover:text-primary-hover transition-colors"
-            >
-              Forgot?
-            </Link>
-          </div>
+          <label className="block text-sm font-medium text-text-primary mb-2">
+            Password
+          </label>
           <AuthInput
             label=""
             type="password"
@@ -174,6 +166,14 @@ function LoginContent() {
             error={errors.password}
             autoComplete="current-password"
           />
+          <div className="flex justify-end mt-2">
+            <Link
+              href="/forgot-password"
+              className="text-sm font-medium text-primary hover:text-primary-hover transition-colors"
+            >
+              Forgot your password?
+            </Link>
+          </div>
         </div>
 
         {/* Submit Button */}
