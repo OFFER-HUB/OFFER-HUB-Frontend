@@ -30,6 +30,7 @@
     "react-dom": "^19.2.3",
     "react-hook-form": "^7.70.0",
     "react-joyride": "^2.9.3",
+    "recharts": "^2.15.4",
     "tailwind-merge": "^3.4.0",
     "tailwindcss": "^4.1.18",
     "zod": "^4.3.5",
