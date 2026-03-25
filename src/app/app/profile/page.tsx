@@ -14,6 +14,7 @@ import {
 import { ImageUpload } from "@/components/ui/ImageUpload";
 import { getProfile, updateProfile } from "@/lib/api/profile";
 import { uploadImage } from "@/lib/api/upload";
+import Link from "next/link";
 import { ConnectedAccounts } from "@/components/profile/ConnectedAccounts";
 
 interface ProfileFormData {
@@ -310,12 +311,18 @@ export default function ProfilePage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-text-primary">Profile Settings</h1>
           <p className="text-text-secondary text-sm">
             Manage your account information
           </p>
+          <Link
+            href="/app/profile/edit"
+            className="inline-block mt-2 text-sm font-medium text-primary hover:underline"
+          >
+            Availability settings
+          </Link>
         </div>
         {showSuccess && (
           <div
