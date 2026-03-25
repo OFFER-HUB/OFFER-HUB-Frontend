@@ -33,6 +33,7 @@ export interface NavigationItem {
 
 const FREELANCER_NAV_ITEMS: NavigationItem[] = [
   { href: "/app/freelancer/dashboard", label: "Dashboard", icon: ICON_PATHS.home },
+  { href: "/app/analytics/earnings", label: "Earnings", icon: ICON_PATHS.chartBar },
   { href: "/app/wallet", label: "Wallet", icon: ICON_PATHS.creditCard },
   { href: "/app/orders", label: "Orders", icon: ICON_PATHS.shoppingCart },
   { href: "/app/freelancer/services", label: "My Services", icon: ICON_PATHS.briefcase },

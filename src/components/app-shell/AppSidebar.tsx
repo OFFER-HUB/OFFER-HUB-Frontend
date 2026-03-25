@@ -196,6 +196,8 @@ export function AppSidebar(_props: AppSidebarProps): React.JSX.Element {
             ? "nav-marketplace"
             : item.href.includes("dashboard")
             ? "nav-dashboard"
+            : item.href.includes("analytics")
+            ? "nav-analytics"
             : undefined;
 
           return (
