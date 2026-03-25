@@ -5,18 +5,19 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/cn";
 import { Icon, ICON_PATHS } from "@/components/ui/Icon";
-import type { Conversation } from "@/types/chat.types";
+import { useChatStore } from "@/stores/chat-store";
 
 interface ConversationListProps {
-  conversations: Conversation[];
   isCollapsed?: boolean;
   onToggleCollapse?: () => void;
 }
 
-export function ConversationList({ conversations, isCollapsed = false, onToggleCollapse }: ConversationListProps) {
+export function ConversationList({ isCollapsed = false, onToggleCollapse }: ConversationListProps) {
   const pathname = usePathname();
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState<"all" | "unread">("all");
+
+  const conversations = useChatStore((s) => s.conversations);
 
   const filteredConversations = conversations.filter((conv) => {
     const matchesSearch = conv.participant.name.toLowerCase().includes(searchQuery.toLowerCase());

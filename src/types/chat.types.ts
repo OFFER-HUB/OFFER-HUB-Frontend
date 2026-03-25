@@ -36,3 +36,64 @@ export interface SharedFile {
   size: string;
   count?: number;
 }
+
+// ─── SSE ───────────────────────────────────────────────────────────────────
+
+export type SSEConnectionStatus =
+  | "connecting"
+  | "connected"
+  | "disconnected"
+  | "error";
+
+export type SSEEventType =
+  | "new_message"
+  | "message_edited"
+  | "message_deleted"
+  | "typing";
+
+export interface SSENewMessageEvent {
+  type: "new_message";
+  conversationId: string;
+  message: ChatMessage;
+}
+
+export interface SSEMessageEditedEvent {
+  type: "message_edited";
+  conversationId: string;
+  messageId: string;
+  content: string;
+  editedAt: string;
+}
+
+export interface SSEMessageDeletedEvent {
+  type: "message_deleted";
+  conversationId: string;
+  messageId: string;
+}
+
+export interface SSETypingEvent {
+  type: "typing";
+  conversationId: string;
+  userId: string;
+  isTyping: boolean;
+}
+
+export type SSEChatEvent =
+  | SSENewMessageEvent
+  | SSEMessageEditedEvent
+  | SSEMessageDeletedEvent
+  | SSETypingEvent;
+
+// ─── API response shapes ────────────────────────────────────────────────────
+
+export interface ConversationsResponse {
+  conversations: Conversation[];
+  hasMore: boolean;
+  nextCursor?: string;
+}
+
+export interface MessagesResponse {
+  messages: ChatMessage[];
+  hasMore: boolean;
+  nextCursor?: string;
+}

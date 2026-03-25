@@ -1,24 +1,67 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useState, useRef, useCallback, type FormEvent } from "react";
 import { cn } from "@/lib/cn";
 import { Icon, ICON_PATHS } from "@/components/ui/Icon";
 
+const TYPING_STOP_DELAY_MS = 2_000;
+
 interface MessageInputProps {
   onSendMessage: (content: string) => void;
+  onTypingChange?: (isTyping: boolean) => void;
   disabled?: boolean;
 }
 
-export function MessageInput({ onSendMessage, disabled = false }: MessageInputProps) {
+export function MessageInput({
+  onSendMessage,
+  onTypingChange,
+  disabled = false,
+}: MessageInputProps) {
   const [message, setMessage] = useState("");
+  const isTypingRef = useRef(false);
+  const typingStopTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const notifyTypingStop = useCallback(() => {
+    if (isTypingRef.current) {
+      isTypingRef.current = false;
+      onTypingChange?.(false);
+    }
+  }, [onTypingChange]);
+
+  const handleChange = useCallback(
+    (value: string) => {
+      setMessage(value);
+      if (!onTypingChange) return;
+
+      if (typingStopTimerRef.current !== null) {
+        clearTimeout(typingStopTimerRef.current);
+      }
+
+      if (value.trim()) {
+        if (!isTypingRef.current) {
+          isTypingRef.current = true;
+          onTypingChange(true);
+        }
+        typingStopTimerRef.current = setTimeout(notifyTypingStop, TYPING_STOP_DELAY_MS);
+      } else {
+        notifyTypingStop();
+      }
+    },
+    [onTypingChange, notifyTypingStop]
+  );
 
   function handleSubmit(e: FormEvent<HTMLFormElement>): void {
     e.preventDefault();
     const trimmedMessage = message.trim();
-    if (trimmedMessage && !disabled) {
-      onSendMessage(trimmedMessage);
-      setMessage("");
+    if (!trimmedMessage || disabled) return;
+
+    if (typingStopTimerRef.current !== null) {
+      clearTimeout(typingStopTimerRef.current);
+      typingStopTimerRef.current = null;
     }
+    notifyTypingStop();
+    onSendMessage(trimmedMessage);
+    setMessage("");
   }
 
   return (
@@ -41,7 +84,7 @@ export function MessageInput({ onSendMessage, disabled = false }: MessageInputPr
         <input
           type="text"
           value={message}
-          onChange={(e) => setMessage(e.target.value)}
+          onChange={(e) => handleChange(e.target.value)}
           placeholder="Type your message..."
           disabled={disabled}
           className={cn(
