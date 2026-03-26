@@ -2,20 +2,19 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { ProfileViewsCard } from "@/components/analytics/ProfileViewsCard";
 import { useAuthStore } from "@/stores/auth-store";
 import { useModeStore } from "@/stores/mode-store";
 import { cn } from "@/lib/cn";
-import {
-  NEUMORPHIC_CARD,
-  NEUMORPHIC_BUTTON,
-  NEUMORPHIC_INSET,
-  ICON_CONTAINER,
-} from "@/lib/styles";
+import { NEUMORPHIC_CARD, NEUMORPHIC_BUTTON, NEUMORPHIC_INSET, ICON_CONTAINER } from "@/lib/styles";
 import { Icon, ICON_PATHS } from "@/components/ui/Icon";
 import { WalletAddress } from "@/components/ui/WalletAddress";
-import { ACTIVITY_ICONS } from "@/data/freelancer-dashboard.data";
-import type { FreelancerActivity as FreelancerActivityType } from "@/types/freelancer-dashboard.types";
-import { getFreelancerStats, getFreelancerActivities, type FreelancerStats, type FreelancerActivity } from "@/lib/api/freelancer";
+import {
+  getFreelancerStats,
+  getFreelancerActivities,
+  type FreelancerStats,
+  type FreelancerActivity,
+} from "@/lib/api/freelancer";
 
 interface QuickActionProps {
   href: string;
@@ -45,45 +44,22 @@ function QuickAction({
   );
 }
 
-interface StatCardProps {
-  label: string;
-  value: string | number;
-  iconPath: string;
-  color: string;
-}
-
-function StatCard({ label, value, iconPath, color }: StatCardProps): React.JSX.Element {
-  return (
-    <div className={NEUMORPHIC_CARD}>
-      <div className="flex items-center gap-4">
-        <div className={cn(ICON_CONTAINER, color)}>
-          <Icon path={iconPath} className="text-white" />
-        </div>
-        <div>
-          <p className="text-2xl font-bold text-text-primary">{value}</p>
-          <p className="text-sm text-text-secondary">{label}</p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 interface ActivityItemProps {
   activity: FreelancerActivity;
 }
 
 function ActivityItem({ activity }: ActivityItemProps): React.JSX.Element {
   // Map activity types to icon paths
-  const getIconPath = (type: FreelancerActivity['type']): string => {
+  const getIconPath = (type: FreelancerActivity["type"]): string => {
     switch (type) {
-      case 'order_created':
-      case 'order_completed':
+      case "order_created":
+      case "order_completed":
         return ICON_PATHS.briefcase;
-      case 'payment_received':
+      case "payment_received":
         return ICON_PATHS.currency;
-      case 'withdrawal_completed':
+      case "withdrawal_completed":
         return ICON_PATHS.document;
-      case 'topup_completed':
+      case "topup_completed":
         return ICON_PATHS.plus;
       default:
         return ICON_PATHS.check;
@@ -133,7 +109,7 @@ export default function FreelancerDashboardPage(): React.JSX.Element {
           setStats(data);
         })
         .catch((error) => {
-          console.error('Failed to fetch stats:', error);
+          console.error("Failed to fetch stats:", error);
         })
         .finally(() => {
           setIsLoadingStats(false);
@@ -145,7 +121,7 @@ export default function FreelancerDashboardPage(): React.JSX.Element {
           setActivities(data);
         })
         .catch((error) => {
-          console.error('Failed to fetch activities:', error);
+          console.error("Failed to fetch activities:", error);
         })
         .finally(() => {
           setIsLoadingActivities(false);
@@ -206,32 +182,57 @@ export default function FreelancerDashboardPage(): React.JSX.Element {
           ))
         ) : (
           <>
-            <div className={cn(NEUMORPHIC_CARD, "group transition-all duration-300 hover:-translate-y-1 hover:shadow-[10px_10px_20px_#d1d5db,-10px_-10px_20px_#ffffff]")}>
+            <div
+              className={cn(
+                NEUMORPHIC_CARD,
+                "group transition-all duration-300 hover:-translate-y-1 hover:shadow-[10px_10px_20px_#d1d5db,-10px_-10px_20px_#ffffff]"
+              )}
+            >
               <div className="flex items-center gap-4">
-                <div className={cn(ICON_CONTAINER, "bg-primary group-hover:scale-110 transition-transform duration-500")}>
+                <div
+                  className={cn(
+                    ICON_CONTAINER,
+                    "bg-primary group-hover:scale-110 transition-transform duration-500"
+                  )}
+                >
                   <Icon path={ICON_PATHS.briefcase} className="text-white" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-text-primary">{stats?.activeServices ?? 0}</p>
+                  <p className="text-2xl font-bold text-text-primary">
+                    {stats?.activeServices ?? 0}
+                  </p>
                   <p className="text-sm text-text-secondary">Active Services</p>
                 </div>
               </div>
             </div>
 
             <div
-              className={cn(NEUMORPHIC_CARD, "group transition-all duration-300 hover:-translate-y-1 hover:shadow-[10px_10px_20px_#d1d5db,-10px_-10px_20px_#ffffff]")}
+              className={cn(
+                NEUMORPHIC_CARD,
+                "group transition-all duration-300 hover:-translate-y-1 hover:shadow-[10px_10px_20px_#d1d5db,-10px_-10px_20px_#ffffff]"
+              )}
               data-tour="balance-card"
             >
               <div className="flex items-center gap-4">
-                <div className={cn(ICON_CONTAINER, "bg-success group-hover:scale-110 transition-transform duration-500")}>
+                <div
+                  className={cn(
+                    ICON_CONTAINER,
+                    "bg-success group-hover:scale-110 transition-transform duration-500"
+                  )}
+                >
                   <Icon path={ICON_PATHS.currency} className="text-white" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-2xl font-bold text-text-primary">{stats?.totalEarnings ?? "$0.00"}</p>
+                  <p className="text-2xl font-bold text-text-primary">
+                    {stats?.totalEarnings ?? "$0.00"}
+                  </p>
                   <div className="flex items-center gap-2">
                     <p className="text-sm text-text-secondary">Total Balance</p>
                     {stats?.balanceSynced === false && (
-                      <span className="text-xs text-warning" title="Balance may not be synced with Stellar">
+                      <span
+                        className="text-xs text-warning"
+                        title="Balance may not be synced with Stellar"
+                      >
                         ⚠️
                       </span>
                     )}
@@ -240,25 +241,49 @@ export default function FreelancerDashboardPage(): React.JSX.Element {
               </div>
             </div>
 
-            <div className={cn(NEUMORPHIC_CARD, "group transition-all duration-300 hover:-translate-y-1 hover:shadow-[10px_10px_20px_#d1d5db,-10px_-10px_20px_#ffffff]")}>
+            <div
+              className={cn(
+                NEUMORPHIC_CARD,
+                "group transition-all duration-300 hover:-translate-y-1 hover:shadow-[10px_10px_20px_#d1d5db,-10px_-10px_20px_#ffffff]"
+              )}
+            >
               <div className="flex items-center gap-4">
-                <div className={cn(ICON_CONTAINER, "bg-secondary group-hover:scale-110 transition-transform duration-500")}>
+                <div
+                  className={cn(
+                    ICON_CONTAINER,
+                    "bg-secondary group-hover:scale-110 transition-transform duration-500"
+                  )}
+                >
                   <Icon path={ICON_PATHS.document} className="text-white" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-text-primary">{stats?.pendingProposals ?? 0}</p>
+                  <p className="text-2xl font-bold text-text-primary">
+                    {stats?.pendingProposals ?? 0}
+                  </p>
                   <p className="text-sm text-text-secondary">Pending Proposals</p>
                 </div>
               </div>
             </div>
 
-            <div className={cn(NEUMORPHIC_CARD, "group transition-all duration-300 hover:-translate-y-1 hover:shadow-[10px_10px_20px_#d1d5db,-10px_-10px_20px_#ffffff]")}>
+            <div
+              className={cn(
+                NEUMORPHIC_CARD,
+                "group transition-all duration-300 hover:-translate-y-1 hover:shadow-[10px_10px_20px_#d1d5db,-10px_-10px_20px_#ffffff]"
+              )}
+            >
               <div className="flex items-center gap-4">
-                <div className={cn(ICON_CONTAINER, "bg-accent group-hover:scale-110 transition-transform duration-500")}>
+                <div
+                  className={cn(
+                    ICON_CONTAINER,
+                    "bg-accent group-hover:scale-110 transition-transform duration-500"
+                  )}
+                >
                   <Icon path={ICON_PATHS.chat} className="text-white" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-text-primary">{stats?.unreadMessages ?? 0}</p>
+                  <p className="text-2xl font-bold text-text-primary">
+                    {stats?.unreadMessages ?? 0}
+                  </p>
                   <p className="text-sm text-text-secondary">Unread Messages</p>
                 </div>
               </div>
@@ -267,25 +292,39 @@ export default function FreelancerDashboardPage(): React.JSX.Element {
         )}
       </div>
 
+      <ProfileViewsCard token={token} />
+
       <div className={cn(NEUMORPHIC_CARD, "stagger-4 animate-fade-in-up border border-white/40")}>
         <div className="flex items-center justify-between mb-8">
           <div>
             <h2 className="text-xl font-bold text-text-primary">Recent Activity</h2>
-            <p className="text-sm text-text-secondary mt-1">Stay updated with your latest transactions and jobs</p>
+            <p className="text-sm text-text-secondary mt-1">
+              Stay updated with your latest transactions and jobs
+            </p>
           </div>
           <Link
             href="/app/freelancer/activities"
             className="group flex items-center gap-2 px-4 py-2 rounded-full bg-background text-sm font-semibold text-primary shadow-sm hover:shadow-md transition-all active:scale-95"
           >
             View all
-            <Icon path={ICON_PATHS.chevronRight} size="sm" className="group-hover:translate-x-1 transition-transform" />
+            <Icon
+              path={ICON_PATHS.chevronRight}
+              size="sm"
+              className="group-hover:translate-x-1 transition-transform"
+            />
           </Link>
         </div>
 
         <div className="grid grid-cols-1 gap-4">
           {isLoadingActivities ? (
             Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className={cn("flex items-start gap-4 p-4 rounded-xl animate-pulse", NEUMORPHIC_INSET)}>
+              <div
+                key={i}
+                className={cn(
+                  "flex items-start gap-4 p-4 rounded-xl animate-pulse",
+                  NEUMORPHIC_INSET
+                )}
+              >
                 <div className="w-10 h-10 rounded-lg bg-gray-200 flex-shrink-0" />
                 <div className="flex-1">
                   <div className="h-5 bg-gray-200 rounded mb-2 w-1/3" />
@@ -296,7 +335,11 @@ export default function FreelancerDashboardPage(): React.JSX.Element {
             ))
           ) : activities.length > 0 ? (
             activities.slice(0, 5).map((activity, idx) => (
-              <div key={activity.id} className={cn("animate-fade-in")} style={{ animationDelay: `${0.1 * idx}s` }}>
+              <div
+                key={activity.id}
+                className={cn("animate-fade-in")}
+                style={{ animationDelay: `${0.1 * idx}s` }}
+              >
                 <ActivityItem activity={activity} />
               </div>
             ))
