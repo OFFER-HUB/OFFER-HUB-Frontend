@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { cn } from "@/lib/cn";
 import { MOCK_API_DELAY } from "@/lib/constants";
 import { Icon, ICON_PATHS, LoadingSpinner } from "@/components/ui/Icon";
@@ -58,7 +59,12 @@ interface ToggleSwitchProps {
   description?: string;
 }
 
-function ToggleSwitch({ enabled, onChange, label, description }: ToggleSwitchProps): React.JSX.Element {
+function ToggleSwitch({
+  enabled,
+  onChange,
+  label,
+  description,
+}: ToggleSwitchProps): React.JSX.Element {
   return (
     <div className="flex items-center justify-between py-3">
       <div className="flex-1">
@@ -259,8 +265,34 @@ export default function SettingsPage(): React.JSX.Element {
         </div>
       </div>
 
+      <div className={NEUMORPHIC_CARD}>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-lg font-semibold text-text-primary mb-1 flex items-center gap-2">
+              <Icon path={ICON_PATHS.settings} size="md" className="text-primary" />
+              Preferences
+            </h2>
+            <p className="text-sm text-text-secondary">
+              Customize language, timezone, currency, and theme from a dedicated preferences page.
+            </p>
+          </div>
+
+          <Link
+            href="/app/settings/preferences"
+            className={cn(PRIMARY_BUTTON, "justify-center py-2 px-5")}
+          >
+            Open Preferences
+          </Link>
+        </div>
+      </div>
+
       <div className="flex justify-end">
-        <button type="button" onClick={handleSave} disabled={isLoading} className={cn(PRIMARY_BUTTON, "py-2 px-5")}>
+        <button
+          type="button"
+          onClick={handleSave}
+          disabled={isLoading}
+          className={cn(PRIMARY_BUTTON, "py-2 px-5")}
+        >
           {isLoading ? (
             <span className="flex items-center gap-2">
               <LoadingSpinner />

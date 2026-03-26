@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "@/app/globals.css";
 import { NavigationProgressProvider } from "@/components/providers/NavigationProgressProvider";
 import { AuthProvider } from "@/components/providers/AuthProvider";
+import { PreferencesProvider } from "@/components/providers/PreferencesProvider";
 import { GlobalErrorHandler } from "@/components/error";
 import { CookieConsentBanner } from "@/components/cookie";
 import { SITE_CONFIG, DEFAULT_OG_IMAGE, getOrganizationSchema, getWebsiteSchema } from "@/lib/seo";
@@ -81,6 +82,7 @@ export default function RootLayout({
       </head>
       <body>
         <AuthProvider>
+          <PreferencesProvider />
           <GlobalErrorHandler />
           <NavigationProgressProvider />
           {children}
