@@ -7,6 +7,12 @@ import { cn } from "@/lib/cn";
 import { Icon, ICON_PATHS } from "@/components/ui/Icon";
 import { useModeStore, getNavigationItems, type UserMode } from "@/stores/mode-store";
 import { useSidebarStore } from "@/stores/sidebar-store";
+import { useAuthStore } from "@/stores/auth-store";
+
+const ADMIN_NAV_ITEMS = [
+  { href: "/admin/users", label: "Users", icon: ICON_PATHS.users },
+  { href: "/admin/disputes", label: "Disputes", icon: ICON_PATHS.flag },
+];
 
 interface AppSidebarProps {
   isOpen: boolean;
@@ -55,7 +61,9 @@ export function AppSidebar(_props: AppSidebarProps): React.JSX.Element {
   const router = useRouter();
   const { mode, setMode } = useModeStore();
   const { isCollapsed, toggleCollapsed } = useSidebarStore();
+  const { user } = useAuthStore();
   const [hydrated, setHydrated] = useState(false);
+  const isAdmin = user?.type === "ADMIN";
 
   useEffect(() => {
     setHydrated(true);
@@ -211,6 +219,31 @@ export function AppSidebar(_props: AppSidebarProps): React.JSX.Element {
             </Link>
           );
         })}
+
+        {/* Admin section */}
+        {isAdmin && (
+          <>
+            {!isCollapsed && (
+              <div className="pt-3 pb-1">
+                <p className="px-4 text-xs font-semibold text-text-secondary uppercase tracking-wider">
+                  Admin
+                </p>
+              </div>
+            )}
+            {isCollapsed && <div className="my-2 border-t border-gray-100" />}
+            {ADMIN_NAV_ITEMS.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={getNavLinkStyles(isActiveLink(item.href), isCollapsed)}
+                title={isCollapsed ? item.label : undefined}
+              >
+                <Icon path={item.icon} size="md" />
+                {!isCollapsed && <span className="font-medium">{item.label}</span>}
+              </Link>
+            ))}
+          </>
+        )}
       </nav>
     </aside>
   );
