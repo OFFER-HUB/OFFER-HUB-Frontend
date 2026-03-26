@@ -286,6 +286,27 @@ export default function SettingsPage(): React.JSX.Element {
         </div>
       </div>
 
+      <div className={NEUMORPHIC_CARD}>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-lg font-semibold text-text-primary mb-1 flex items-center gap-2">
+              <Icon path={ICON_PATHS.bell} size="md" className="text-primary" />
+              Notification Preferences
+            </h2>
+            <p className="text-sm text-text-secondary">
+              Customize notification channels and delivery frequency in a dedicated matrix.
+            </p>
+          </div>
+
+          <Link
+            href="/app/settings/notifications"
+            className={cn(PRIMARY_BUTTON, "justify-center py-2 px-5")}
+          >
+            Open Notifications
+          </Link>
+        </div>
+      </div>
+
       <div className="flex justify-end">
         <button
           type="button"
