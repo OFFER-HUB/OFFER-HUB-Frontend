@@ -6,6 +6,7 @@ import Link from "next/link";
 import { cn } from "@/lib/cn";
 import { useModeStore } from "@/stores/mode-store";
 import { Icon, ICON_PATHS } from "@/components/ui/Icon";
+import { EvidenceList } from "@/components/disputes/EvidenceList";
 import {
   NEUMORPHIC_CARD,
   NEUMORPHIC_INSET,
@@ -18,6 +19,7 @@ import {
   DISPUTE_STATUS_LABELS,
 } from "@/types/dispute.types";
 import type { Dispute, DisputeStatus, DisputeComment } from "@/types/dispute.types";
+import type { EvidenceUploadItem } from "@/components/disputes/EvidenceItem";
 
 const STATUS_COLORS: Record<DisputeStatus, string> = {
   open: "bg-warning/20 text-warning",
@@ -76,6 +78,21 @@ function InfoRow({ label, children }: InfoRowProps): React.JSX.Element {
       {children}
     </div>
   );
+}
+
+function toEvidenceUploadItems(dispute: Dispute): EvidenceUploadItem[] {
+  return dispute.evidence.map((file) => ({
+    localId: file.id,
+    evidence: file,
+    name: file.name,
+    type: file.type,
+    size: file.size,
+    description: file.description ?? "",
+    uploadedAt: file.uploadedAt,
+    previewUrl: file.url,
+    progress: 100,
+    status: "uploaded",
+  }));
 }
 
 export default function FreelancerDisputeDetailPage(): React.JSX.Element {
@@ -156,7 +173,7 @@ export default function FreelancerDisputeDetailPage(): React.JSX.Element {
 
   return (
     <div className="page-full-height flex flex-col">
-      <div className="flex items-center gap-4 mb-4 flex-shrink-0">
+      <div className="flex items-center gap-4 mb-4 shrink-0">
         <Link href="/app/freelancer/disputes" className={ICON_BUTTON}>
           <Icon path={ICON_PATHS.chevronLeft} size="md" className="text-text-primary" />
         </Link>
@@ -167,7 +184,7 @@ export default function FreelancerDisputeDetailPage(): React.JSX.Element {
             </h1>
             <span
               className={cn(
-                "px-3 py-1 rounded-lg text-sm font-medium flex-shrink-0",
+                "px-3 py-1 rounded-lg text-sm font-medium shrink-0",
                 STATUS_COLORS[dispute.status]
               )}
             >
@@ -231,30 +248,7 @@ export default function FreelancerDisputeDetailPage(): React.JSX.Element {
                 <h2 className="text-lg font-semibold text-text-primary mb-4">
                   Evidence ({dispute.evidence.length})
                 </h2>
-                <div className="space-y-2">
-                  {dispute.evidence.map((file) => (
-                    <div
-                      key={file.id}
-                      className="flex items-center justify-between p-3 rounded-lg bg-background"
-                    >
-                      <div className="flex items-center gap-3 min-w-0">
-                        <Icon
-                          path={file.type.startsWith("image/") ? ICON_PATHS.image : ICON_PATHS.file}
-                          size="md"
-                          className="text-text-secondary flex-shrink-0"
-                        />
-                        <div className="min-w-0">
-                          <p className="text-text-primary text-sm font-medium truncate">
-                            {file.name}
-                          </p>
-                          <p className="text-text-secondary text-xs">
-                            Uploaded {formatDate(file.uploadedAt)}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                <EvidenceList items={toEvidenceUploadItems(dispute)} />
               </div>
             )}
 

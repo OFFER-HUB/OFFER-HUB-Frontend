@@ -7,13 +7,14 @@ interface StarRatingProps {
   value: number;
   onChange?: (rating: number) => void;
   readonly?: boolean;
-  size?: "sm" | "md" | "lg";
+  size?: "sm" | "md" | "lg" | "xl";
 }
 
 const SIZE_CLASSES = {
   sm: "w-5 h-5",
   md: "w-7 h-7",
   lg: "w-9 h-9",
+  xl: "w-11 h-11",
 } as const;
 
 const STAR_PATH =
@@ -43,8 +44,9 @@ export function StarRating({
             onMouseEnter={isInteractive ? () => setHoverValue(star) : undefined}
             onMouseLeave={isInteractive ? () => setHoverValue(0) : undefined}
             disabled={readonly}
+            aria-label={`${star} star${star === 1 ? "" : "s"}`}
             className={cn(
-              "transition-transform duration-150",
+              "rounded-full p-1 transition-transform duration-150",
               isInteractive ? "cursor-pointer hover:scale-110" : "cursor-default"
             )}
           >

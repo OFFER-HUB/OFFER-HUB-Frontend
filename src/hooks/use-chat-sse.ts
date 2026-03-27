@@ -35,6 +35,7 @@ export function useChatSSE({ conversationId }: UseChatSSEOptions): void {
     setConnectionStatus,
     updateConversationLastMessage,
     incrementUnread,
+    applyReadReceipt,
   } = useChatStore();
 
   // Stable refs so the connect function doesn't capture stale closures
@@ -137,6 +138,16 @@ export function useChatSSE({ conversationId }: UseChatSSEOptions): void {
       }
     });
 
+    es.addEventListener("messages_read", (event: MessageEvent) => {
+      if (!isMountedRef.current) return;
+      try {
+        const data = JSON.parse(event.data as string) as SSEChatEvent;
+        handleEvent(cid, data);
+      } catch {
+        // skip
+      }
+    });
+
     es.onerror = () => {
       if (!isMountedRef.current) return;
 
@@ -187,6 +198,15 @@ export function useChatSSE({ conversationId }: UseChatSSEOptions): void {
           setTyping(conversationId, event.userId, event.isTyping);
           break;
         }
+        case "messages_read": {
+          applyReadReceipt(
+            conversationId,
+            event.lastReadMessageId,
+            event.readAt,
+            event.userId
+          );
+          break;
+        }
       }
     }
   }, [
@@ -197,6 +217,7 @@ export function useChatSSE({ conversationId }: UseChatSSEOptions): void {
     setConnectionStatus,
     updateConversationLastMessage,
     incrementUnread,
+    applyReadReceipt,
     currentUserId,
   ]);
 

@@ -12,6 +12,9 @@ export interface ChatMessage {
   content: string;
   timestamp: string;
   isRead: boolean;
+  status?: "sent" | "delivered" | "read";
+  deliveredAt?: string;
+  readAt?: string;
 }
 
 export interface Conversation {
@@ -49,7 +52,8 @@ export type SSEEventType =
   | "new_message"
   | "message_edited"
   | "message_deleted"
-  | "typing";
+  | "typing"
+  | "messages_read";
 
 export interface SSENewMessageEvent {
   type: "new_message";
@@ -78,11 +82,20 @@ export interface SSETypingEvent {
   isTyping: boolean;
 }
 
+export interface SSEMessagesReadEvent {
+  type: "messages_read";
+  conversationId: string;
+  userId: string;
+  lastReadMessageId: string;
+  readAt: string;
+}
+
 export type SSEChatEvent =
   | SSENewMessageEvent
   | SSEMessageEditedEvent
   | SSEMessageDeletedEvent
-  | SSETypingEvent;
+  | SSETypingEvent
+  | SSEMessagesReadEvent;
 
 // ─── API response shapes ────────────────────────────────────────────────────
 

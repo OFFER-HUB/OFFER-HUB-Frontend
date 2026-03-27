@@ -9,6 +9,27 @@ interface RecentTransactionsProps {
   className?: string;
 }
 
+const TYPE_STYLES = {
+  credit: {
+    icon: ICON_PATHS.plus,
+    amountClass: "text-success",
+    badgeClass: "bg-success/15 text-success",
+    prefix: "+",
+  },
+  debit: {
+    icon: ICON_PATHS.shoppingCart,
+    amountClass: "text-text-primary",
+    badgeClass: "bg-warning/15 text-warning",
+    prefix: "−",
+  },
+  reserve: {
+    icon: ICON_PATHS.clock,
+    amountClass: "text-warning",
+    badgeClass: "bg-warning/15 text-warning",
+    prefix: "−",
+  },
+} as const;
+
 function formatMoney(value: string): string {
   const n = parseFloat(value);
   if (Number.isNaN(n)) return value;
@@ -36,7 +57,7 @@ export function RecentTransactions({ transactions, className }: RecentTransactio
       <h2 className="text-lg font-bold text-text-primary mb-4">Recent transactions</h2>
       <ul className="space-y-3">
         {transactions.map((tx) => {
-          const isCredit = tx.type === "credit";
+          const typeStyle = TYPE_STYLES[tx.type];
           return (
             <li
               key={tx.id}
@@ -49,10 +70,10 @@ export function RecentTransactions({ transactions, className }: RecentTransactio
               <div
                 className={cn(
                   "w-10 h-10 rounded-xl flex items-center justify-center shrink-0",
-                  isCredit ? "bg-success/15 text-success" : "bg-warning/15 text-warning"
+                  typeStyle.badgeClass
                 )}
               >
-                <Icon path={isCredit ? ICON_PATHS.plus : ICON_PATHS.shoppingCart} size="md" />
+                <Icon path={typeStyle.icon} size="md" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-medium text-text-primary truncate">{tx.description}</p>
@@ -61,10 +82,10 @@ export function RecentTransactions({ transactions, className }: RecentTransactio
               <span
                 className={cn(
                   "font-semibold tabular-nums shrink-0",
-                  isCredit ? "text-success" : "text-text-primary"
+                  typeStyle.amountClass
                 )}
               >
-                {isCredit ? "+" : "−"}
+                {typeStyle.prefix}
                 {formatMoney(tx.amount)}
               </span>
             </li>

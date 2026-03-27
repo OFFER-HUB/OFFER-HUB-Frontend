@@ -180,7 +180,7 @@ export default function WalletPage(): React.JSX.Element {
             Withdraw
           </button>
           <Link
-            href="/app/orders"
+            href="/app/wallet/transactions"
             className={cn(
               "inline-flex items-center justify-center px-4 py-2.5 rounded-xl text-sm font-medium",
               "bg-background text-text-primary",

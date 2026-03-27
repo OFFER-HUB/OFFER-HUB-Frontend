@@ -4,8 +4,13 @@ import {
   getConversations,
   getMessages,
   sendMessage as apiSendMessage,
-  markConversationRead,
+  markMessagesAsRead,
 } from "@/lib/api/chat";
+
+const READ_BATCH_DEBOUNCE_MS = 350;
+
+const readBatchTimers: Record<string, ReturnType<typeof setTimeout> | undefined> = {};
+const readBatchLastMessageId: Record<string, string | undefined> = {};
 
 interface ChatState {
   // Conversations
@@ -32,7 +37,8 @@ interface ChatState {
   fetchMessages: (conversationId: string) => Promise<void>;
   fetchMoreMessages: (conversationId: string) => Promise<void>;
   sendMessage: (conversationId: string, content: string) => Promise<void>;
-  markAsRead: (conversationId: string) => Promise<void>;
+  markAsRead: (conversationId: string, lastReadMessageId?: string) => Promise<void>;
+  queueMarkAsRead: (conversationId: string, lastReadMessageId?: string) => void;
 
   // Real-time mutations (called by useChatSSE)
   appendMessage: (conversationId: string, message: ChatMessage) => void;
@@ -43,6 +49,12 @@ interface ChatState {
   updateConversationLastMessage: (conversationId: string, message: ChatMessage) => void;
   incrementUnread: (conversationId: string) => void;
   clearUnread: (conversationId: string) => void;
+  applyReadReceipt: (
+    conversationId: string,
+    lastReadMessageId: string,
+    readAt: string,
+    readerUserId?: string
+  ) => void;
 }
 
 export const useChatStore = create<ChatState>()((set, get) => ({
@@ -162,9 +174,38 @@ export const useChatStore = create<ChatState>()((set, get) => ({
     }
   },
 
-  markAsRead: async (conversationId: string) => {
+  markAsRead: async (conversationId: string, lastReadMessageId?: string) => {
     get().clearUnread(conversationId);
-    await markConversationRead(conversationId);
+    await markMessagesAsRead(conversationId, lastReadMessageId);
+  },
+
+  queueMarkAsRead: (conversationId: string, lastReadMessageId?: string) => {
+    get().clearUnread(conversationId);
+
+    const currentQueuedId = readBatchLastMessageId[conversationId];
+    const messages = get().messagesByConversation[conversationId] ?? [];
+    const currentIndex = currentQueuedId
+      ? messages.findIndex((m) => m.id === currentQueuedId)
+      : -1;
+    const nextIndex = lastReadMessageId
+      ? messages.findIndex((m) => m.id === lastReadMessageId)
+      : -1;
+
+    // Keep the furthest visible message in a batch window.
+    if (!currentQueuedId || nextIndex >= currentIndex) {
+      readBatchLastMessageId[conversationId] = lastReadMessageId;
+    }
+
+    if (readBatchTimers[conversationId]) {
+      clearTimeout(readBatchTimers[conversationId]);
+    }
+
+    readBatchTimers[conversationId] = setTimeout(() => {
+      const queuedId = readBatchLastMessageId[conversationId];
+      delete readBatchLastMessageId[conversationId];
+      delete readBatchTimers[conversationId];
+      void get().markAsRead(conversationId, queuedId);
+    }, READ_BATCH_DEBOUNCE_MS);
   },
 
   // ─── Real-time mutations ──────────────────────────────────────────────────
@@ -172,8 +213,18 @@ export const useChatStore = create<ChatState>()((set, get) => ({
   appendMessage: (conversationId, message) => {
     set((state) => {
       const existing = state.messagesByConversation[conversationId] ?? [];
-      // Guard against duplicate deliveries
-      if (existing.some((m) => m.id === message.id)) return state;
+      const existingIndex = existing.findIndex((m) => m.id === message.id);
+      // Merge duplicate deliveries so status/read fields can still update in real-time.
+      if (existingIndex >= 0) {
+        const merged = [...existing];
+        merged[existingIndex] = { ...merged[existingIndex], ...message };
+        return {
+          messagesByConversation: {
+            ...state.messagesByConversation,
+            [conversationId]: merged,
+          },
+        };
+      }
       return {
         messagesByConversation: {
           ...state.messagesByConversation,
@@ -265,5 +316,32 @@ export const useChatStore = create<ChatState>()((set, get) => ({
         c.id === conversationId ? { ...c, unreadCount: 0 } : c
       ),
     }));
+  },
+
+  applyReadReceipt: (conversationId, lastReadMessageId, readAt, readerUserId) => {
+    set((state) => {
+      const existing = state.messagesByConversation[conversationId] ?? [];
+      const lastReadIndex = existing.findIndex((m) => m.id === lastReadMessageId);
+      if (lastReadIndex < 0) return state;
+
+      const updatedMessages = existing.map((message, index) => {
+        if (index > lastReadIndex) return message;
+        if (readerUserId && message.senderId === readerUserId) return message;
+
+        return {
+          ...message,
+          isRead: true,
+          status: "read" as const,
+          readAt,
+        };
+      });
+
+      return {
+        messagesByConversation: {
+          ...state.messagesByConversation,
+          [conversationId]: updatedMessages,
+        },
+      };
+    });
   },
 }));

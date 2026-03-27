@@ -4,9 +4,9 @@
   "description": "OFFER-HUB Frontend - Production-grade Next.js application",
   "private": true,
   "scripts": {
-    "dev": "next dev --port ${PORT:-3000}",
+    "dev": "next dev",
     "build": "next build",
-    "start": "next start --port ${PORT:-3000}",
+    "start": "next start",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
