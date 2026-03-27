@@ -10,3 +10,40 @@ export const FILE_UPLOAD = {
   ],
   MAX_ATTACHMENTS: 5,
 };
+
+export interface PasswordChecks {
+  hasMinLength: boolean;
+  hasUppercase: boolean;
+  hasLowercase: boolean;
+  hasNumber: boolean;
+}
+
+export function getPasswordChecks(password: string): PasswordChecks {
+  return {
+    hasMinLength: password.length >= 8,
+    hasUppercase: /[A-Z]/.test(password),
+    hasLowercase: /[a-z]/.test(password),
+    hasNumber: /[0-9]/.test(password),
+  };
+}
+
+export function isPasswordValid(password: string): boolean {
+  const checks = getPasswordChecks(password);
+  return Object.values(checks).every(Boolean);
+}
+
+export type PasswordStrength = "weak" | "medium" | "strong";
+
+export function getPasswordStrength(password: string): PasswordStrength {
+  const checks = Object.values(getPasswordChecks(password)).filter(Boolean).length;
+
+  if (password.length === 0 || checks <= 2) {
+    return "weak";
+  }
+
+  if (checks === 3) {
+    return "medium";
+  }
+
+  return "strong";
+}

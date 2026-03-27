@@ -143,6 +143,48 @@ export default function SettingsPage(): React.JSX.Element {
         )}
       </div>
 
+      <div className="grid gap-4 md:grid-cols-2">
+        <Link
+          href="/app/settings/preferences"
+          className={cn(
+            NEUMORPHIC_CARD,
+            "transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[8px_8px_16px_#d1d5db,-8px_-8px_16px_#ffffff]"
+          )}
+        >
+          <div className="flex items-start gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <Icon path={ICON_PATHS.settings} size="md" />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-text-primary">Preferences</h2>
+              <p className="mt-1 text-sm text-text-secondary">
+                Configure regional settings, theme, and display defaults.
+              </p>
+            </div>
+          </div>
+        </Link>
+
+        <Link
+          href="/app/settings/security"
+          className={cn(
+            NEUMORPHIC_CARD,
+            "transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[8px_8px_16px_#d1d5db,-8px_-8px_16px_#ffffff]"
+          )}
+        >
+          <div className="flex items-start gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <Icon path={ICON_PATHS.lock} size="md" />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-text-primary">Security</h2>
+              <p className="mt-1 text-sm text-text-secondary">
+                Change your password and review account access protections.
+              </p>
+            </div>
+          </div>
+        </Link>
+      </div>
+
       <div className={NEUMORPHIC_CARD}>
         <h2 className="text-lg font-semibold text-text-primary mb-4 flex items-center gap-2">
           <Icon path={ICON_PATHS.bell} size="md" className="text-primary" />
