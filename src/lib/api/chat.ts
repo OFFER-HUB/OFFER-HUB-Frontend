@@ -10,6 +10,10 @@ import type {
 
 const BASE = "/chat/conversations";
 
+interface MarkConversationReadPayload {
+  lastReadMessageId?: string;
+}
+
 /**
  * Fetch paginated conversations for the current user.
  */
@@ -66,9 +70,23 @@ export async function sendTypingStatus(
  * Mark all messages in a conversation as read.
  */
 export async function markConversationRead(
-  conversationId: string
+  conversationId: string,
+  payload?: MarkConversationReadPayload
 ): Promise<ApiResponse<null>> {
-  return httpPatch<null>(`${BASE}/${conversationId}/read`);
+  return httpPatch<null>(`${BASE}/${conversationId}/read`, payload);
+}
+
+/**
+ * Mark messages as read up to an optional message ID.
+ */
+export async function markMessagesAsRead(
+  conversationId: string,
+  lastReadMessageId?: string
+): Promise<ApiResponse<null>> {
+  return markConversationRead(
+    conversationId,
+    lastReadMessageId ? { lastReadMessageId } : undefined
+  );
 }
 
 /**

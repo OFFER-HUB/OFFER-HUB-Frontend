@@ -2,6 +2,7 @@
 
 import { cn } from "@/lib/cn";
 import type { ChatMessage } from "@/types/chat.types";
+import { ReadReceipt } from "@/components/chat/ReadReceipt";
 
 interface MessageBubbleProps {
   message: ChatMessage;
@@ -68,22 +69,7 @@ export function MessageBubble({ message, isOwn, showAvatar = true, participantAv
           )}
         >
           <span className="text-[10px] text-text-secondary">{message.timestamp}</span>
-          {isOwn && (
-            <span className={cn(
-              "text-[10px]",
-              message.isRead ? "text-primary" : "text-text-secondary"
-            )}>
-              {message.isRead ? (
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              ) : (
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                </svg>
-              )}
-            </span>
-          )}
+          {isOwn && <ReadReceipt message={message} />}
         </div>
       </div>
     </div>

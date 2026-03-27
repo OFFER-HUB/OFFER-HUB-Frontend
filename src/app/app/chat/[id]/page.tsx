@@ -16,6 +16,7 @@ import { useSidebarStore } from "@/stores/sidebar-store";
 import { useAuthStore } from "@/stores/auth-store";
 import { useChatStore } from "@/stores/chat-store";
 import { useChatSSE } from "@/hooks/use-chat-sse";
+import { useMarkAsRead } from "@/hooks/use-mark-as-read";
 import { sendTypingStatus } from "@/lib/api/chat";
 
 export default function ChatThreadPage(): React.JSX.Element {
@@ -44,13 +45,16 @@ export default function ChatThreadPage(): React.JSX.Element {
     fetchMessages,
     fetchMoreMessages,
     sendMessage,
-    markAsRead,
   } = useChatStore();
 
   const activeConversation = conversations.find((c) => c.id === chatId);
 
   // ── SSE subscription ─────────────────────────────────────────────────────
   useChatSSE({ conversationId: chatId });
+  const { getMessageRef } = useMarkAsRead({
+    conversationId: chatId,
+    currentUserId,
+  });
 
   // ── Bootstrap ────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -66,9 +70,8 @@ export default function ChatThreadPage(): React.JSX.Element {
   useEffect(() => {
     if (chatId) {
       fetchMessages(chatId);
-      markAsRead(chatId);
     }
-  }, [chatId, fetchMessages, markAsRead]);
+  }, [chatId, fetchMessages]);
 
   // ── Auto-scroll on new messages ──────────────────────────────────────────
   useEffect(() => {
@@ -240,13 +243,14 @@ export default function ChatThreadPage(): React.JSX.Element {
 
           <div className="space-y-4">
             {messages.map((message, index) => (
-              <MessageBubble
-                key={message.id}
-                message={message}
-                isOwn={message.senderId === currentUserId}
-                showAvatar={shouldShowAvatar(index)}
-                participantAvatar={participant?.avatar ?? "?"}
-              />
+              <div key={message.id} ref={getMessageRef(message)}>
+                <MessageBubble
+                  message={message}
+                  isOwn={message.senderId === currentUserId}
+                  showAvatar={shouldShowAvatar(index)}
+                  participantAvatar={participant?.avatar ?? "?"}
+                />
+              </div>
             ))}
 
             {isParticipantTyping && participant && (
