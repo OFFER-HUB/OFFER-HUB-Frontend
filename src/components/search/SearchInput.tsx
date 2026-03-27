@@ -1,8 +1,12 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState, useMemo } from "react";
 import { cn } from "@/lib/cn";
 import { Icon, ICON_PATHS } from "@/components/ui/Icon";
+import { useAuthStore } from "@/stores/auth-store";
+import { useSearchSuggestions } from "@/hooks/useSearchSuggestions";
+import { SearchSuggestions } from "@/components/search/SearchSuggestions";
+import type { SuggestionItem } from "@/lib/search-suggestions";
 
 const RECENT_KEY = "offer-hub-recent-searches";
 const MAX_RECENT = 8;
@@ -30,14 +34,15 @@ export function pushRecentSearch(query: string): void {
 interface SearchInputProps {
   value: string;
   onChange: (value: string) => void;
-  /** Called with the query to run (form submit or recent pick). */
+  /** Called with the query to run (form submit or suggestion pick). */
   onSearch: (query: string) => void;
   placeholder?: string;
   className?: string;
 }
 
 /**
- * Primary search field with neumorphic styling, clear control, and recent suggestions.
+ * Primary search field with debounced autocomplete (skills, popular, recent when logged in),
+ * keyboard navigation, and click-outside to close.
  */
 export function SearchInput({
   value,
@@ -46,24 +51,118 @@ export function SearchInput({
   placeholder = "Search offers, services, and freelancers…",
   className,
 }: SearchInputProps): React.JSX.Element {
-  const [recentOpen, setRecentOpen] = useState(false);
-  const [recent, setRecent] = useState<string[]>([]);
+  const listboxId = useId();
+  const formRef = useRef<HTMLFormElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const [recentSnapshot, setRecentSnapshot] = useState<string[]>([]);
+  const [inputFocused, setInputFocused] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(-1);
 
   const refreshRecent = useCallback(() => {
-    setRecent(readRecentSearches());
+    setRecentSnapshot(readRecentSearches());
   }, []);
+
+  const { sections, flatItems, isDebouncing } = useSearchSuggestions({
+    rawQuery: value,
+    isAuthenticated,
+    recentSearches: recentSnapshot,
+  });
+
+  const showPanel = inputFocused && (isDebouncing || flatItems.length > 0);
+
+  const navIndex = useMemo(() => {
+    if (activeIndex < 0 || flatItems.length === 0) return -1;
+    return Math.min(activeIndex, flatItems.length - 1);
+  }, [activeIndex, flatItems]);
+
+  useEffect(() => {
+    const onMouseDown = (e: MouseEvent) => {
+      if (!formRef.current?.contains(e.target as Node)) {
+        setInputFocused(false);
+        setActiveIndex(-1);
+      }
+    };
+    document.addEventListener("mousedown", onMouseDown);
+    return () => document.removeEventListener("mousedown", onMouseDown);
+  }, []);
+
+  const applySuggestion = useCallback(
+    (item: SuggestionItem) => {
+      const q = item.text.trim();
+      onChange(q);
+      pushRecentSearch(q);
+      refreshRecent();
+      setActiveIndex(-1);
+      setInputFocused(false);
+      inputRef.current?.blur();
+      onSearch(q);
+    },
+    [onChange, onSearch, refreshRecent]
+  );
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (navIndex >= 0 && flatItems[navIndex]) {
+      applySuggestion(flatItems[navIndex]);
+      return;
+    }
     const q = value.trim();
     pushRecentSearch(q);
     refreshRecent();
-    setRecentOpen(false);
+    setInputFocused(false);
     onSearch(q);
   };
 
+  const onInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Escape") {
+      if (showPanel) {
+        e.preventDefault();
+        setInputFocused(false);
+        setActiveIndex(-1);
+      }
+      return;
+    }
+
+    if (!flatItems.length && !isDebouncing) return;
+
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      if (!flatItems.length) return;
+      const len = flatItems.length;
+      setActiveIndex((i) => {
+        const clamped = i < 0 ? -1 : Math.min(i, len - 1);
+        if (clamped < 0) return 0;
+        return Math.min(clamped + 1, len - 1);
+      });
+      return;
+    }
+
+    if (e.key === "ArrowUp") {
+      e.preventDefault();
+      if (!flatItems.length) return;
+      const len = flatItems.length;
+      setActiveIndex((i) => {
+        if (i < 0) return -1;
+        const clamped = Math.min(i, len - 1);
+        if (clamped <= 0) return -1;
+        return clamped - 1;
+      });
+      return;
+    }
+
+    if (e.key === "Enter" && navIndex >= 0 && flatItems[navIndex]) {
+      e.preventDefault();
+      applySuggestion(flatItems[navIndex]);
+    }
+  };
+
+  const activeOptionId =
+    showPanel && navIndex >= 0 && flatItems[navIndex] ? flatItems[navIndex].id : undefined;
+
   return (
-    <form onSubmit={handleSubmit} className={cn("relative", className)}>
+    <form ref={formRef} onSubmit={handleSubmit} className={cn("relative", className)}>
       <div
         className={cn(
           "flex items-center gap-3 p-3 rounded-3xl bg-white",
@@ -79,17 +178,25 @@ export function SearchInput({
         >
           <Icon path={ICON_PATHS.search} size="md" className="text-text-secondary/60 shrink-0" />
           <input
+            ref={inputRef}
             type="search"
             value={value}
-            onChange={(e) => onChange(e.target.value)}
-            onFocus={() => {
-              setRecent(readRecentSearches());
-              setRecentOpen(true);
+            onChange={(e) => {
+              setActiveIndex(-1);
+              onChange(e.target.value);
             }}
-            onBlur={() => setTimeout(() => setRecentOpen(false), 180)}
+            onFocus={() => {
+              refreshRecent();
+              setInputFocused(true);
+            }}
+            onKeyDown={onInputKeyDown}
             placeholder={placeholder}
             className="flex-1 min-w-0 bg-transparent text-text-primary placeholder:text-text-secondary/60 outline-none text-base"
             aria-label="Search"
+            aria-autocomplete="list"
+            aria-expanded={showPanel}
+            aria-controls={listboxId}
+            aria-activedescendant={activeOptionId}
             autoComplete="off"
           />
           {value ? (
@@ -115,37 +222,15 @@ export function SearchInput({
         </button>
       </div>
 
-      {recentOpen && recent.length > 0 && !value ? (
-        <div
-          className={cn(
-            "absolute z-20 left-0 right-0 mt-2 p-2 rounded-2xl bg-white border border-black/5",
-            "shadow-[6px_6px_16px_rgba(0,0,0,0.08)]"
-          )}
-        >
-          <p className="px-2 py-1 text-xs font-medium text-text-secondary uppercase tracking-wide">
-            Recent
-          </p>
-          <ul className="max-h-48 overflow-y-auto">
-            {recent.map((r) => (
-              <li key={r}>
-                <button
-                  type="button"
-                  className="w-full text-left px-3 py-2 rounded-xl text-sm text-text-primary hover:bg-background"
-                  onMouseDown={(e) => e.preventDefault()}
-                  onClick={() => {
-                    onChange(r);
-                    pushRecentSearch(r);
-                    refreshRecent();
-                    setRecentOpen(false);
-                    onSearch(r.trim());
-                  }}
-                >
-                  {r}
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
+      {showPanel ? (
+        <SearchSuggestions
+          listboxId={listboxId}
+          sections={sections}
+          activeIndex={navIndex}
+          isDebouncing={isDebouncing}
+          onActiveIndexChange={setActiveIndex}
+          onSelect={applySuggestion}
+        />
       ) : null}
     </form>
   );
