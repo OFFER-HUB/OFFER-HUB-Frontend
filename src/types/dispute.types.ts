@@ -14,6 +14,8 @@ export interface DisputeEvidence {
   type: string;
   size: number;
   uploadedAt: string;
+  description?: string;
+  url?: string;
 }
 
 export type DisputeEventType =

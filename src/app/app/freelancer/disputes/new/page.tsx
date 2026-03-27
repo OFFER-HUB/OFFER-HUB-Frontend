@@ -5,7 +5,9 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { cn } from "@/lib/cn";
 import { useModeStore } from "@/stores/mode-store";
+import { useAuthStore } from "@/stores/auth-store";
 import { Icon, ICON_PATHS } from "@/components/ui/Icon";
+import { EvidenceUploader } from "@/components/disputes/EvidenceUploader";
 import {
   NEUMORPHIC_CARD,
   NEUMORPHIC_INSET,
@@ -13,18 +15,23 @@ import {
 } from "@/lib/styles";
 import { DISPUTE_REASONS, MOCK_FREELANCER_ELIGIBLE_SERVICES } from "@/data/dispute.data";
 import type { DisputeReason } from "@/types/dispute.types";
+import type { EvidenceUploadItem } from "@/components/disputes/EvidenceItem";
 
 function NewDisputeForm(): React.JSX.Element {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { setMode } = useModeStore();
+  const token = useAuthStore((state) => state.token);
 
   const [selectedService, setSelectedService] = useState("");
   const [selectedReason, setSelectedReason] = useState<DisputeReason | "">("");
   const [description, setDescription] = useState("");
-  const [files, setFiles] = useState<File[]>([]);
+  const [evidenceItems, setEvidenceItems] = useState<EvidenceUploadItem[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const hasPendingEvidence = evidenceItems.some(
+    (item) => item.status === "uploading" || item.status === "queued"
+  );
 
   useEffect(() => {
     setMode("freelancer");
@@ -37,25 +44,6 @@ function NewDisputeForm(): React.JSX.Element {
       setSelectedService("service-1");
     }
   }, [setMode, searchParams]);
-
-  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>): void {
-    if (e.target.files) {
-      const newFiles = Array.from(e.target.files);
-      setFiles((prev) => [...prev, ...newFiles].slice(0, 5));
-    }
-  }
-
-  function removeFile(index: number): void {
-    setFiles((prev) => prev.filter((_, i) => i !== index));
-  }
-
-  function formatFileSize(bytes: number): string {
-    const KB = 1024;
-    const MB = KB * 1024;
-    if (bytes < KB) return `${bytes} B`;
-    if (bytes < MB) return `${(bytes / KB).toFixed(1)} KB`;
-    return `${(bytes / MB).toFixed(1)} MB`;
-  }
 
   function validateForm(): boolean {
     const newErrors: Record<string, string> = {};
@@ -87,7 +75,7 @@ function NewDisputeForm(): React.JSX.Element {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex items-center gap-4 mb-4 flex-shrink-0">
+      <div className="flex items-center gap-4 mb-4 shrink-0">
         <Link href="/app/freelancer/disputes" className={ICON_BUTTON}>
           <Icon path={ICON_PATHS.chevronLeft} size="md" className="text-text-primary" />
         </Link>
@@ -212,73 +200,14 @@ function NewDisputeForm(): React.JSX.Element {
             </div>
           </div>
 
-          <div className={NEUMORPHIC_CARD}>
-            <h2 className="text-lg font-semibold text-text-primary mb-2">
-              Upload Evidence
-            </h2>
-            <p className="text-text-secondary text-sm mb-4">
-              Upload screenshots, documents, or other files that support your dispute (max 5 files)
-            </p>
-
-            <label
-              className={cn(
-                "flex flex-col items-center justify-center p-8 rounded-xl cursor-pointer",
-                "border-2 border-dashed border-border",
-                "hover:border-primary hover:bg-primary/5",
-                "transition-all duration-200"
-              )}
-            >
-              <Icon path={ICON_PATHS.upload} size="xl" className="text-text-secondary mb-3" />
-              <span className="text-text-primary font-medium">Click to upload files</span>
-              <span className="text-text-secondary text-sm mt-1">
-                PNG, JPG, PDF up to 10MB each
-              </span>
-              <input
-                type="file"
-                multiple
-                accept="image/*,.pdf,.doc,.docx"
-                onChange={handleFileChange}
-                className="hidden"
-                disabled={files.length >= 5}
-              />
-            </label>
-
-            {files.length > 0 && (
-              <div className="mt-4 space-y-2">
-                {files.map((file, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between p-3 rounded-lg bg-background"
-                  >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <Icon
-                        path={file.type.startsWith("image/") ? ICON_PATHS.image : ICON_PATHS.file}
-                        size="md"
-                        className="text-text-secondary flex-shrink-0"
-                      />
-                      <div className="min-w-0">
-                        <p className="text-text-primary text-sm font-medium truncate">
-                          {file.name}
-                        </p>
-                        <p className="text-text-secondary text-xs">
-                          {formatFileSize(file.size)}
-                        </p>
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => removeFile(index)}
-                      className="p-1.5 text-text-secondary hover:text-error transition-colors cursor-pointer"
-                    >
-                      <Icon path={ICON_PATHS.close} size="sm" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+          <EvidenceUploader token={token} onChange={setEvidenceItems} />
 
           <div className="flex items-center justify-end gap-4">
+            {hasPendingEvidence && (
+              <p className="text-sm text-text-secondary">
+                Wait for uploads to complete before submitting.
+              </p>
+            )}
             <Link
               href="/app/freelancer/disputes"
               className={cn(
@@ -291,7 +220,7 @@ function NewDisputeForm(): React.JSX.Element {
             </Link>
             <button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isSubmitting || hasPendingEvidence}
               className={cn(
                 "px-8 py-3 rounded-xl font-semibold",
                 "bg-primary text-white",
