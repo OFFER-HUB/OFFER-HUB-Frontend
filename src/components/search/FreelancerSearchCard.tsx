@@ -44,7 +44,7 @@ export function FreelancerSearchCard({
 
   return (
     <Link
-      href={`/marketplace/services/${hit.showcaseServiceId}`}
+      href={`/marketplace/freelancers/${hit.userId}`}
       className={cn(
         "group block rounded-3xl transition-all duration-300 bg-background",
         "shadow-[8px_8px_16px_#d1d5db,-8px_-8px_16px_#ffffff]",
