@@ -1,4 +1,5 @@
 import { API_URL } from "@/config/api";
+import type { DashboardStats } from "@/types/freelancer-dashboard.types";
 
 const API_BASE_URL = API_URL;
 
@@ -30,6 +31,22 @@ export async function getFreelancerStats(token: string): Promise<FreelancerStats
 
   if (!response.ok) {
     throw new Error('Failed to fetch freelancer stats');
+  }
+
+  const data = await response.json();
+  return data.data;
+}
+
+export async function getDashboardStats(token: string): Promise<DashboardStats> {
+  const response = await fetch(`${API_BASE_URL}/freelancer/dashboard/stats`, {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch dashboard stats');
   }
 
   const data = await response.json();
