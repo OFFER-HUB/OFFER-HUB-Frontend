@@ -14,6 +14,7 @@ import {
   BalanceCard,
   BalanceChart,
   RecentTransactions,
+  WithdrawModal,
   WalletPageSkeleton,
 } from "@/components/wallet";
 
@@ -41,6 +42,8 @@ export default function WalletPage(): React.JSX.Element {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isDemo, setIsDemo] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
+  const [withdrawSuccess, setWithdrawSuccess] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     if (!token) {
@@ -166,15 +169,16 @@ export default function WalletPage(): React.JSX.Element {
             />
             Refresh
           </button>
-          <Link
-            href="/help"
+          <button
+            type="button"
+            onClick={() => setIsWithdrawOpen(true)}
             className={cn(
               "inline-flex items-center justify-center px-4 py-2.5 rounded-xl text-sm font-medium",
               "bg-primary text-white shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]"
             )}
           >
             Withdraw
-          </Link>
+          </button>
           <Link
             href="/app/wallet/transactions"
             className={cn(
@@ -195,6 +199,11 @@ export default function WalletPage(): React.JSX.Element {
       {error ? (
         <div className="mb-4 p-3 rounded-xl bg-error/10 text-error text-sm" role="alert">
           {error}
+        </div>
+      ) : null}
+      {withdrawSuccess ? (
+        <div className="mb-4 p-3 rounded-xl bg-success/10 text-success text-sm" role="status">
+          {withdrawSuccess}
         </div>
       ) : null}
 
@@ -292,6 +301,24 @@ export default function WalletPage(): React.JSX.Element {
       <p className="text-xs text-text-secondary text-center">
         Balances shown in {data.balance.currency}. Currency conversion may apply at payout.
       </p>
+
+      <WithdrawModal
+        isOpen={isWithdrawOpen}
+        token={token}
+        availableBalance={parseMoney(data.balance.available)}
+        currency={data.balance.currency}
+        isDemo={isDemo}
+        onClose={() => setIsWithdrawOpen(false)}
+        onSuccess={(result) => {
+          setWithdrawSuccess(
+            `Withdrawal request ${result.id} submitted for ${new Intl.NumberFormat("en-US", {
+              style: "currency",
+              currency: result.currency,
+            }).format(parseMoney(result.amount))}.`
+          );
+          refresh();
+        }}
+      />
     </div>
   );
 }

@@ -6,3 +6,5 @@ export { TransactionHistorySkeleton } from "./TransactionHistorySkeleton";
 export { TransactionItem } from "./TransactionItem";
 export { TransactionList } from "./TransactionList";
 export { WalletPageSkeleton } from "./WalletPageSkeleton";
+export { WithdrawModal } from "./WithdrawModal";
+export { WithdrawForm } from "./WithdrawForm";

@@ -50,6 +50,25 @@ export interface WalletDashboardData {
   recentTransactions: WalletTransactionRow[];
 }
 
+export interface CreateWithdrawalRequestInput {
+  amount: number;
+  destination: string;
+  saveDestination?: boolean;
+}
+
+export interface WithdrawalRequestData {
+  id: string;
+  status: "pending" | "processing" | "completed" | "failed";
+  amount: string;
+  fee: string;
+  totalDeducted: string;
+  currency: string;
+  destination: string;
+  estimatedArrival: string;
+  createdAt: string;
+  message?: string;
+}
+
 /**
  * Demo payload when the API is unavailable (local dev or endpoint not deployed).
  */
@@ -269,6 +288,44 @@ export async function getWalletDashboard(token: string): Promise<WalletDashboard
   return json.data;
 }
 
+export async function createWithdrawalRequest(
+  token: string,
+  payload: CreateWithdrawalRequestInput
+): Promise<WithdrawalRequestData> {
+  const response = await fetch(`${API_URL}/wallet/withdrawals`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const json = (await response.json().catch(() => null)) as
+    | {
+        message?: string;
+        title?: string;
+        data?: WithdrawalRequestData;
+        error?: { message?: string };
+      }
+    | null;
+
+  if (!response.ok) {
+    const message =
+      json?.error?.message ??
+      json?.message ??
+      json?.title ??
+      "Failed to create withdrawal request";
+    throw new Error(message);
+  }
+
+  if (json?.data) {
+    return json.data;
+  }
+
+  throw new Error("Withdrawal request was created, but no response data was returned.");
+}
+
 export async function getWalletTransactions(token: string): Promise<WalletTransactionsData> {
   const response = await fetch(`${API_URL}/wallet/transactions`, {
     headers: {
@@ -293,14 +350,14 @@ export async function getWalletTransactions(token: string): Promise<WalletTransa
     | WalletTransactionsData
     | WalletTransactionRow[];
 
-  const payload = "data" in json ? json.data : json;
-  if (Array.isArray(payload)) {
+  const data = "data" in json ? json.data : json;
+  if (Array.isArray(data)) {
     return {
       currency: "USD",
-      runningBalanceAvailable: payload.some((tx) => Boolean(tx.balanceAfter)),
-      transactions: payload,
+      runningBalanceAvailable: data.some((tx) => Boolean(tx.balanceAfter)),
+      transactions: data,
     };
   }
 
-  return payload;
+  return data;
 }
