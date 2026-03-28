@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { cn } from "@/lib/cn";
 import { Icon, ICON_PATHS } from "@/components/ui/Icon";
@@ -9,63 +9,118 @@ import { ChatHeader } from "@/components/chat/ChatHeader";
 import { MessageBubble } from "@/components/chat/MessageBubble";
 import { MessageInput } from "@/components/chat/MessageInput";
 import { ChatInfoPanel } from "@/components/chat/ChatInfoPanel";
-import {
-  MOCK_CONVERSATIONS,
-  MOCK_SHARED_FILES,
-  getChatThreadById,
-} from "@/data/chat.data";
+import { TypingIndicator } from "@/components/chat/TypingIndicator";
+import { ConnectionStatus } from "@/components/chat/ConnectionStatus";
+import { MOCK_SHARED_FILES } from "@/data/chat.data";
 import { useSidebarStore } from "@/stores/sidebar-store";
-import type { ChatMessage } from "@/types/chat.types";
+import { useAuthStore } from "@/stores/auth-store";
+import { useChatStore } from "@/stores/chat-store";
+import { useChatSSE } from "@/hooks/use-chat-sse";
+import { useMarkAsRead } from "@/hooks/use-mark-as-read";
+import { sendTypingStatus } from "@/lib/api/chat";
 
 export default function ChatThreadPage(): React.JSX.Element {
   const params = useParams();
   const router = useRouter();
   const { setCollapsed: setSidebarCollapsed } = useSidebarStore();
+  const currentUserId = useAuthStore((s) => s.user?.id);
+
   const [showConversations, setShowConversations] = useState(false);
   const [showInfo, setShowInfo] = useState(true);
   const [conversationsCollapsed, setConversationsCollapsed] = useState(true);
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const chatId = params.id as string;
-  const chatThread = getChatThreadById(chatId);
 
+  // ── Store selectors ──────────────────────────────────────────────────────
+  const conversations = useChatStore((s) => s.conversations);
+  const messages = useChatStore((s) => s.messagesByConversation[chatId] ?? []);
+  const isLoadingMessages = useChatStore((s) => s.messagesLoading[chatId] ?? false);
+  const hasMoreMessages = useChatStore((s) => s.messagesHasMore[chatId] ?? false);
+  const typingUsers = useChatStore((s) => s.typingUsers[chatId] ?? new Set<string>());
+  const connectionStatus = useChatStore((s) => s.connectionStatus[chatId] ?? "disconnected");
+
+  const {
+    fetchConversations,
+    fetchMessages,
+    fetchMoreMessages,
+    sendMessage,
+  } = useChatStore();
+
+  const activeConversation = conversations.find((c) => c.id === chatId);
+
+  // ── SSE subscription ─────────────────────────────────────────────────────
+  useChatSSE({ conversationId: chatId });
+  const { getMessageRef } = useMarkAsRead({
+    conversationId: chatId,
+    currentUserId,
+  });
+
+  // ── Bootstrap ────────────────────────────────────────────────────────────
   useEffect(() => {
     setSidebarCollapsed(true);
   }, [setSidebarCollapsed]);
 
   useEffect(() => {
-    if (chatThread) {
-      setMessages(chatThread.messages);
+    if (conversations.length === 0) {
+      fetchConversations();
     }
-  }, [chatThread]);
+  }, [conversations.length, fetchConversations]);
 
+  useEffect(() => {
+    if (chatId) {
+      fetchMessages(chatId);
+    }
+  }, [chatId, fetchMessages]);
+
+  // ── Auto-scroll on new messages ──────────────────────────────────────────
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  // ── Handlers ─────────────────────────────────────────────────────────────
   function handleToggleConversations(): void {
     setConversationsCollapsed((prev) => !prev);
   }
 
-  function handleSendMessage(content: string): void {
-    const newMessage: ChatMessage = {
-      id: `m${Date.now()}`,
-      senderId: "current",
-      content,
-      timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-      isRead: false,
-    };
-    setMessages((prev) => [...prev, newMessage]);
+  async function handleSendMessage(content: string): Promise<void> {
+    await sendMessage(chatId, content);
   }
 
+  const handleTypingChange = useCallback(
+    (isTyping: boolean) => {
+      sendTypingStatus(chatId, isTyping);
+    },
+    [chatId]
+  );
+
   function shouldShowAvatar(index: number): boolean {
-    const isLastMessage = index === messages.length - 1;
-    if (isLastMessage) return true;
+    if (index === messages.length - 1) return true;
     return messages[index].senderId !== messages[index + 1].senderId;
   }
 
-  if (!chatThread) {
+  // ── Loading state (initial fetch) ────────────────────────────────────────
+  if (isLoadingMessages && messages.length === 0) {
+    return (
+      <div className="page-full-height flex items-center justify-center bg-white rounded-2xl shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff]">
+        <div className="text-center">
+          <div
+            className={cn(
+              "w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center",
+              "bg-background animate-pulse",
+              "shadow-[inset_4px_4px_8px_#d1d5db,inset_-4px_-4px_8px_#ffffff]"
+            )}
+          >
+            <Icon path={ICON_PATHS.chat} size="xl" className="text-primary/50" />
+          </div>
+          <p className="text-sm text-text-secondary">Loading messages…</p>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Not found (after conversations loaded) ───────────────────────────────
+  if (!isLoadingMessages && !activeConversation && conversations.length > 0) {
     return (
       <div className="page-full-height flex items-center justify-center bg-white rounded-2xl shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff]">
         <div className="text-center">
@@ -99,6 +154,9 @@ export default function ChatThreadPage(): React.JSX.Element {
     );
   }
 
+  const participant = activeConversation?.participant;
+  const isParticipantTyping = typingUsers.size > 0;
+
   return (
     <div className="page-full-height flex gap-4">
       {showConversations && (
@@ -108,6 +166,7 @@ export default function ChatThreadPage(): React.JSX.Element {
         />
       )}
 
+      {/* Conversation list sidebar */}
       <div
         className={cn(
           "flex-shrink-0 bg-white rounded-2xl overflow-hidden",
@@ -120,12 +179,12 @@ export default function ChatThreadPage(): React.JSX.Element {
         )}
       >
         <ConversationList
-          conversations={MOCK_CONVERSATIONS}
           isCollapsed={conversationsCollapsed && !showConversations}
           onToggleCollapse={handleToggleConversations}
         />
       </div>
 
+      {/* Main chat panel */}
       <div
         className={cn(
           "flex-1 flex flex-col min-w-0 min-h-0",
@@ -133,13 +192,43 @@ export default function ChatThreadPage(): React.JSX.Element {
           "shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff]"
         )}
       >
-        <ChatHeader
-          participant={chatThread.participant}
-          onToggleSidebar={() => setShowConversations(true)}
-          onToggleInfo={() => setShowInfo(!showInfo)}
-          showInfoButton={true}
-        />
+        {/* Header row with connection status */}
+        <div className="flex items-center border-b border-border-light">
+          <div className="flex-1 min-w-0">
+            {participant && (
+              <ChatHeader
+                participant={participant}
+                onToggleSidebar={() => setShowConversations(true)}
+                onToggleInfo={() => setShowInfo(!showInfo)}
+                showInfoButton={true}
+              />
+            )}
+          </div>
+          <ConnectionStatus status={connectionStatus} className="mr-4 flex-shrink-0" />
+        </div>
 
+        {/* Load older messages */}
+        {hasMoreMessages && (
+          <div className="flex justify-center py-2 border-b border-border-light">
+            <button
+              type="button"
+              onClick={() => fetchMoreMessages(chatId)}
+              disabled={isLoadingMessages}
+              className={cn(
+                "px-4 py-1.5 rounded-lg text-xs font-medium cursor-pointer",
+                "text-primary bg-background",
+                "shadow-[2px_2px_4px_#d1d5db,-2px_-2px_4px_#ffffff]",
+                "hover:shadow-[3px_3px_6px_#d1d5db,-3px_-3px_6px_#ffffff]",
+                "transition-all duration-200",
+                isLoadingMessages && "opacity-50 cursor-not-allowed"
+              )}
+            >
+              {isLoadingMessages ? "Loading…" : "Load older messages"}
+            </button>
+          </div>
+        )}
+
+        {/* Message list */}
         <div
           className={cn(
             "flex-1 overflow-y-auto p-4 sm:p-6 min-h-0",
@@ -154,21 +243,31 @@ export default function ChatThreadPage(): React.JSX.Element {
 
           <div className="space-y-4">
             {messages.map((message, index) => (
-              <MessageBubble
-                key={message.id}
-                message={message}
-                isOwn={message.senderId === "current"}
-                showAvatar={shouldShowAvatar(index)}
-                participantAvatar={chatThread.participant.avatar}
-              />
+              <div key={message.id} ref={getMessageRef(message)}>
+                <MessageBubble
+                  message={message}
+                  isOwn={message.senderId === currentUserId}
+                  showAvatar={shouldShowAvatar(index)}
+                  participantAvatar={participant?.avatar ?? "?"}
+                />
+              </div>
             ))}
+
+            {isParticipantTyping && participant && (
+              <TypingIndicator name={participant.name} />
+            )}
+
             <div ref={messagesEndRef} />
           </div>
         </div>
 
-        <MessageInput onSendMessage={handleSendMessage} />
+        <MessageInput
+          onSendMessage={handleSendMessage}
+          onTypingChange={handleTypingChange}
+        />
       </div>
 
+      {/* Info panel */}
       <div
         className={cn(
           "flex-shrink-0 bg-white rounded-2xl overflow-hidden",
@@ -178,11 +277,13 @@ export default function ChatThreadPage(): React.JSX.Element {
           showInfo ? "xl:w-[280px]" : "xl:w-0 xl:opacity-0"
         )}
       >
-        <ChatInfoPanel
-          participant={chatThread.participant}
-          sharedFiles={MOCK_SHARED_FILES}
-          onClose={() => setShowInfo(false)}
-        />
+        {participant && (
+          <ChatInfoPanel
+            participant={participant}
+            sharedFiles={MOCK_SHARED_FILES}
+            onClose={() => setShowInfo(false)}
+          />
+        )}
       </div>
     </div>
   );

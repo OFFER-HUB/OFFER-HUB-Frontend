@@ -5,8 +5,8 @@
 
 @theme {
   /* Primary (Teal) */
-  --color-primary: #149A9B;
-  --color-primary-alt: #159A9C;
+  --color-primary: #149a9b;
+  --color-primary-alt: #159a9c;
   --color-primary-hover: #0d7377;
   --color-primary-hover-alt: #0d6e6e;
 
@@ -14,20 +14,20 @@
   --color-secondary: #002333;
 
   /* Accent */
-  --color-accent: #15949C;
+  --color-accent: #15949c;
 
   /* Neutrals */
-  --color-text-primary: #19213D;
-  --color-text-secondary: #6D758F;
-  --color-border: #B4B9C9;
-  --color-border-light: #E1E4ED;
-  --color-background: #F1F3F7;
-  --color-input: #DEEFE7;
+  --color-text-primary: #19213d;
+  --color-text-secondary: #6d758f;
+  --color-border: #b4b9c9;
+  --color-border-light: #e1e4ed;
+  --color-background: #f1f3f7;
+  --color-input: #deefe7;
 
   /* States */
   --color-success: #16a34a;
   --color-warning: #d97706;
-  --color-error: #FF0000;
+  --color-error: #ff0000;
 }
 
 /* Neumorphism shadows and custom properties */
@@ -41,7 +41,9 @@
   --shadow-neumorphic-inset-dark: inset 4px 4px 8px #0a0f1a, inset -4px -4px 8px #1e2a4a;
 
   /* Hero gradient */
-  --gradient-hero: linear-gradient(to right, #002333, #15949C);
+  --gradient-hero: linear-gradient(to right, #002333, #15949c);
+
+  color-scheme: light;
 }
 
 /* Base styles */
@@ -50,7 +52,13 @@ html {
 }
 
 body {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -153,6 +161,46 @@ html:has(.app-no-scroll) body {
   color-scheme: dark;
 }
 
+.dark {
+  --color-text-primary: #f3f6fb;
+  --color-text-secondary: #b4bfd7;
+  --color-border: #334155;
+  --color-border-light: #1e293b;
+  --color-background: #0f172a;
+  --color-input: #162033;
+  --shadow-neumorphic-light: 6px 6px 12px #0b1220, -6px -6px 12px #182235;
+  --shadow-neumorphic-inset-light: inset 4px 4px 8px #0b1220, inset -4px -4px 8px #182235;
+}
+
+.dark body {
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
+}
+
+.dark .bg-white {
+  background-color: #111c30;
+}
+
+.dark .bg-background {
+  background-color: var(--color-background);
+}
+
+.dark .text-white {
+  color: #f8fafc;
+}
+
+.dark .text-text-primary {
+  color: var(--color-text-primary);
+}
+
+.dark .text-text-secondary {
+  color: var(--color-text-secondary);
+}
+
+.dark .border-border-light {
+  border-color: var(--color-border-light);
+}
+
 /* Custom animations */
 @keyframes fadeIn {
   from {
@@ -199,7 +247,8 @@ html:has(.app-no-scroll) body {
 }
 
 @keyframes pulse-soft {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {
@@ -217,19 +266,28 @@ html:has(.app-no-scroll) body {
 }
 
 @keyframes shake {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateX(0);
   }
-  10%, 30%, 50%, 70%, 90% {
+  10%,
+  30%,
+  50%,
+  70%,
+  90% {
     transform: translateX(-4px);
   }
-  20%, 40%, 60%, 80% {
+  20%,
+  40%,
+  60%,
+  80% {
     transform: translateX(4px);
   }
 }
 
 @keyframes waveFloat1 {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateX(0) translateY(0);
   }
   50% {
@@ -238,7 +296,8 @@ html:has(.app-no-scroll) body {
 }
 
 @keyframes waveFloat2 {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateX(0) translateY(0);
   }
   50% {
@@ -247,7 +306,8 @@ html:has(.app-no-scroll) body {
 }
 
 @keyframes waveFloat3 {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateX(0) translateY(0);
   }
   50% {
@@ -256,7 +316,8 @@ html:has(.app-no-scroll) body {
 }
 
 @keyframes waveFloat4 {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateX(0) translateY(0);
   }
   50% {
@@ -265,7 +326,8 @@ html:has(.app-no-scroll) body {
 }
 
 @keyframes waveFloat5 {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateX(0) translateY(0);
   }
   50% {
@@ -341,7 +403,8 @@ html:has(.app-no-scroll) body {
 
 /* 404 Page - Lamp animations */
 @keyframes flicker {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   5% {
@@ -380,7 +443,8 @@ html:has(.app-no-scroll) body {
 }
 
 @keyframes lamp-swing {
-  0%, 100% {
+  0%,
+  100% {
     transform: rotate(-3deg);
   }
   50% {
@@ -397,12 +461,24 @@ html:has(.app-no-scroll) body {
 }
 
 /* Stagger animation delays */
-.stagger-1 { animation-delay: 0.05s; }
-.stagger-2 { animation-delay: 0.1s; }
-.stagger-3 { animation-delay: 0.15s; }
-.stagger-4 { animation-delay: 0.2s; }
-.stagger-5 { animation-delay: 0.25s; }
-.stagger-6 { animation-delay: 0.3s; }
+.stagger-1 {
+  animation-delay: 0.05s;
+}
+.stagger-2 {
+  animation-delay: 0.1s;
+}
+.stagger-3 {
+  animation-delay: 0.15s;
+}
+.stagger-4 {
+  animation-delay: 0.2s;
+}
+.stagger-5 {
+  animation-delay: 0.25s;
+}
+.stagger-6 {
+  animation-delay: 0.3s;
+}
 
 /* Hide scrollbar but keep functionality */
 .scrollbar-hide {
@@ -463,8 +539,10 @@ html:has(.app-no-scroll) body {
   width: 100%;
   height: 8px;
   border-radius: 8px;
-  background: #F1F3F7;
-  box-shadow: inset 2px 2px 4px #d1d5db, inset -2px -2px 4px #ffffff;
+  background: #f1f3f7;
+  box-shadow:
+    inset 2px 2px 4px #d1d5db,
+    inset -2px -2px 4px #ffffff;
   outline: none;
   cursor: pointer;
 }
@@ -476,20 +554,26 @@ html:has(.app-no-scroll) body {
   height: 22px;
   border-radius: 50%;
   background: linear-gradient(145deg, #ffffff, #e6e6e6);
-  box-shadow: 3px 3px 6px #d1d5db, -3px -3px 6px #ffffff;
+  box-shadow:
+    3px 3px 6px #d1d5db,
+    -3px -3px 6px #ffffff;
   cursor: pointer;
-  border: 3px solid #149A9B;
+  border: 3px solid #149a9b;
   transition: all 0.2s ease;
 }
 
 .range-neumorphic::-webkit-slider-thumb:hover {
   transform: scale(1.1);
-  box-shadow: 4px 4px 8px #d1d5db, -4px -4px 8px #ffffff;
+  box-shadow:
+    4px 4px 8px #d1d5db,
+    -4px -4px 8px #ffffff;
 }
 
 .range-neumorphic::-webkit-slider-thumb:active {
   transform: scale(0.95);
-  box-shadow: inset 2px 2px 4px #d1d5db, inset -2px -2px 4px #ffffff;
+  box-shadow:
+    inset 2px 2px 4px #d1d5db,
+    inset -2px -2px 4px #ffffff;
 }
 
 .range-neumorphic::-moz-range-thumb {
@@ -497,9 +581,11 @@ html:has(.app-no-scroll) body {
   height: 22px;
   border-radius: 50%;
   background: linear-gradient(145deg, #ffffff, #e6e6e6);
-  box-shadow: 3px 3px 6px #d1d5db, -3px -3px 6px #ffffff;
+  box-shadow:
+    3px 3px 6px #d1d5db,
+    -3px -3px 6px #ffffff;
   cursor: pointer;
-  border: 3px solid #149A9B;
+  border: 3px solid #149a9b;
   transition: all 0.2s ease;
 }
 
@@ -510,8 +596,10 @@ html:has(.app-no-scroll) body {
 .range-neumorphic::-moz-range-track {
   height: 8px;
   border-radius: 8px;
-  background: #F1F3F7;
-  box-shadow: inset 2px 2px 4px #d1d5db, inset -2px -2px 4px #ffffff;
+  background: #f1f3f7;
+  box-shadow:
+    inset 2px 2px 4px #d1d5db,
+    inset -2px -2px 4px #ffffff;
 }
 
 /* ============================================
@@ -532,7 +620,9 @@ html:has(.app-no-scroll) body {
 .navigation-progress-bar {
   height: 100%;
   background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
-  box-shadow: 0 0 8px var(--color-primary), 0 0 4px var(--color-accent);
+  box-shadow:
+    0 0 8px var(--color-primary),
+    0 0 4px var(--color-accent);
 }
 
 /* ============================================
@@ -548,33 +638,41 @@ html:has(.app-no-scroll) body {
 /* Next button (primary) hover */
 .__floater__body button[data-action="primary"]:hover,
 .react-joyride__tooltip button[data-action="primary"]:hover {
-  box-shadow: 2px 2px 4px #d1d5db, -2px -2px 4px #ffffff !important;
+  box-shadow:
+    2px 2px 4px #d1d5db,
+    -2px -2px 4px #ffffff !important;
   transform: translateY(-1px) !important;
 }
 
 .__floater__body button[data-action="primary"]:active,
 .react-joyride__tooltip button[data-action="primary"]:active {
-  box-shadow: inset 2px 2px 4px #d1d5db, inset -2px -2px 4px #ffffff !important;
+  box-shadow:
+    inset 2px 2px 4px #d1d5db,
+    inset -2px -2px 4px #ffffff !important;
   transform: translateY(0) !important;
 }
 
 /* Back button hover */
 .__floater__body button[data-action="back"]:hover,
 .react-joyride__tooltip button[data-action="back"]:hover {
-  box-shadow: 2px 2px 4px #d1d5db, -2px -2px 4px #ffffff !important;
+  box-shadow:
+    2px 2px 4px #d1d5db,
+    -2px -2px 4px #ffffff !important;
   transform: translateY(-1px) !important;
 }
 
 .__floater__body button[data-action="back"]:active,
 .react-joyride__tooltip button[data-action="back"]:active {
-  box-shadow: inset 2px 2px 4px #d1d5db, inset -2px -2px 4px #ffffff !important;
+  box-shadow:
+    inset 2px 2px 4px #d1d5db,
+    inset -2px -2px 4px #ffffff !important;
   transform: translateY(0) !important;
 }
 
 /* Skip button hover */
 .__floater__body button[data-action="skip"]:hover,
 .react-joyride__tooltip button[data-action="skip"]:hover {
-  color: #6B7280 !important;
+  color: #6b7280 !important;
 }
 
 /* Close button - smaller and styled */
@@ -596,8 +694,10 @@ html:has(.app-no-scroll) body {
 
 .__floater__body button[aria-label="Close"]:hover,
 .react-joyride__tooltip button[aria-label="Close"]:hover {
-  box-shadow: 1px 1px 2px #d1d5db, -1px -1px 2px #ffffff !important;
-  background-color: #E5E7EB !important;
+  box-shadow:
+    1px 1px 2px #d1d5db,
+    -1px -1px 2px #ffffff !important;
+  background-color: #e5e7eb !important;
 }
 
 .__floater__body button[aria-label="Close"] svg,

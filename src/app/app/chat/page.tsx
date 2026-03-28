@@ -4,15 +4,22 @@ import { useEffect } from "react";
 import { cn } from "@/lib/cn";
 import { Icon, ICON_PATHS } from "@/components/ui/Icon";
 import { ConversationList } from "@/components/chat/ConversationList";
-import { MOCK_CONVERSATIONS } from "@/data/chat.data";
 import { useSidebarStore } from "@/stores/sidebar-store";
+import { useChatStore } from "@/stores/chat-store";
 
 export default function ChatPage(): React.JSX.Element {
   const { setCollapsed } = useSidebarStore();
+  const { fetchConversations, conversations } = useChatStore();
 
   useEffect(() => {
     setCollapsed(true);
   }, [setCollapsed]);
+
+  useEffect(() => {
+    if (conversations.length === 0) {
+      fetchConversations();
+    }
+  }, [conversations.length, fetchConversations]);
 
   return (
     <div className="page-full-height flex gap-4">
@@ -23,7 +30,7 @@ export default function ChatPage(): React.JSX.Element {
           "shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff]"
         )}
       >
-        <ConversationList conversations={MOCK_CONVERSATIONS} />
+        <ConversationList />
       </div>
 
       <div

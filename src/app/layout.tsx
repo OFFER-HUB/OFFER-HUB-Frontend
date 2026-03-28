@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "@/app/globals.css";
 import { NavigationProgressProvider } from "@/components/providers/NavigationProgressProvider";
 import { AuthProvider } from "@/components/providers/AuthProvider";
+import { PreferencesProvider } from "@/components/providers/PreferencesProvider";
 import { GlobalErrorHandler } from "@/components/error";
 import { CookieConsentBanner } from "@/components/cookie";
 import { SITE_CONFIG, DEFAULT_OG_IMAGE, getOrganizationSchema, getWebsiteSchema } from "@/lib/seo";
@@ -14,8 +15,8 @@ export const metadata: Metadata = {
   description: SITE_CONFIG.description,
   metadataBase: new URL(SITE_CONFIG.url),
   icons: {
-    icon: "/OFFER-HUB-logo.png",
-    shortcut: "/OFFER-HUB-logo.png",
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
     apple: "/OFFER-HUB-logo.png",
   },
   openGraph: {
@@ -81,6 +82,7 @@ export default function RootLayout({
       </head>
       <body>
         <AuthProvider>
+          <PreferencesProvider />
           <GlobalErrorHandler />
           <NavigationProgressProvider />
           {children}

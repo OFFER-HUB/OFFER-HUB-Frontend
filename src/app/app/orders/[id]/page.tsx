@@ -15,11 +15,19 @@ import {
   markOrderCompleted,
   type OpenDisputePayload
 } from "@/lib/api/orders";
+import { getOrderReview, submitOrderReview, submitReviewResponse } from "@/lib/api/reviews";
 import type { Order } from "@/types/order.types";
 import { ORDER_STATUS_CONFIG } from "@/types/order.types";
+import type { OrderReview } from "@/types/review.types";
 import { cn } from "@/lib/cn";
 import { Icon, ICON_PATHS, LoadingSpinner } from "@/components/ui/Icon";
 import { NEUMORPHIC_CARD, NEUMORPHIC_INSET, PRIMARY_BUTTON, DANGER_BUTTON } from "@/lib/styles";
+import { StarRating } from "@/components/ui/StarRating";
+import {
+  LeaveReviewModal,
+  ReviewResponse,
+  ReviewResponseForm,
+} from "@/components/rating";
 
 // User-friendly step labels
 const STEP_LABELS = {
@@ -33,12 +41,12 @@ const STEP_LABELS = {
   CLOSED: { step: 7, label: "Completed", action: null, nextLabel: null },
 } as const;
 
-const TOTAL_STEPS = 7;
+const _TOTAL_STEPS = 7;
 
 export default function OrderDetailPage(): React.JSX.Element {
   const params = useParams();
-  const router = useRouter();
-  const orderId = params.id as string;
+  const _router = useRouter();
+  const orderId = typeof params.id === "string" ? params.id : "";
   const { token, user } = useAuthStore();
 
   const [order, setOrder] = useState<Order | null>(null);
@@ -46,6 +54,10 @@ export default function OrderDetailPage(): React.JSX.Element {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [review, setReview] = useState<OrderReview | null>(null);
+  const [isReviewLoading, setIsReviewLoading] = useState(true);
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const [hasDismissedReviewPrompt, setHasDismissedReviewPrompt] = useState(false);
 
   // Resolution modals
   const [showReleaseModal, setShowReleaseModal] = useState(false);
@@ -55,6 +67,7 @@ export default function OrderDetailPage(): React.JSX.Element {
   const isBuyer = user?.id === order?.buyerId;
   const isSeller = user?.id === order?.sellerId;
   const isWorkCompleted = order?.metadata?.completedBySeller === true;
+  const isOrderComplete = order?.status === "RELEASED" || order?.status === "CLOSED";
 
   // Fetch order
   useEffect(() => {
@@ -73,6 +86,45 @@ export default function OrderDetailPage(): React.JSX.Element {
 
     fetch();
   }, [token, orderId]);
+
+  useEffect(() => {
+    if (!token || !orderId) {
+      setIsReviewLoading(false);
+      return;
+    }
+
+    const authToken = token;
+    let isMounted = true;
+
+    async function fetchReview() {
+      setIsReviewLoading(true);
+
+      try {
+        const existingReview = await getOrderReview(authToken, orderId);
+        if (!isMounted) return;
+        setReview(existingReview);
+      } catch (err) {
+        if (!isMounted) return;
+        console.error("Failed to fetch review:", err);
+      } finally {
+        if (isMounted) setIsReviewLoading(false);
+      }
+    }
+
+    void fetchReview();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [token, orderId]);
+
+  useEffect(() => {
+    if (!isBuyer || !isOrderComplete || review || hasDismissedReviewPrompt) {
+      return;
+    }
+
+    setIsReviewModalOpen(true);
+  }, [hasDismissedReviewPrompt, isBuyer, isOrderComplete, review]);
 
   async function handleReserveFunds() {
     if (!token) return;
@@ -104,7 +156,7 @@ export default function OrderDetailPage(): React.JSX.Element {
     }
   }
 
-  async function handleFundEscrow() {
+  async function _handleFundEscrow() {
     if (!token) return;
     setIsProcessing(true);
     setError(null);
@@ -190,6 +242,44 @@ export default function OrderDetailPage(): React.JSX.Element {
     }
   }
 
+  async function handleSubmitReview(rating: number, comment: string): Promise<void> {
+    if (!token || !order || !user) {
+      throw new Error("You must be signed in to leave a review");
+    }
+
+    const reviewee = order.seller;
+
+    if (!reviewee?.id) {
+      throw new Error("Unable to identify the review recipient for this order");
+    }
+
+    const createdReview = await submitOrderReview(token, {
+      orderId: order.id,
+      rating,
+      comment,
+      revieweeId: reviewee.id,
+      revieweeName: reviewee.name || reviewee.email || "Freelancer",
+      reviewerId: user.id,
+      reviewerName: user.username || user.email,
+      orderTitle: order.title,
+      serviceTitle: order.service?.title,
+    });
+
+    setReview(createdReview);
+    setHasDismissedReviewPrompt(true);
+    setSuccess("Review submitted successfully.");
+  }
+
+  async function handleSubmitReviewResponse(content: string): Promise<void> {
+    if (!token || !review || !order) {
+      throw new Error("Unable to submit a response right now");
+    }
+
+    const response = await submitReviewResponse(token, review.id, order.id, content);
+    setReview({ ...review, response });
+    setSuccess("Response posted successfully.");
+  }
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -222,6 +312,8 @@ export default function OrderDetailPage(): React.JSX.Element {
   const stepInfo = STEP_LABELS[order.status as keyof typeof STEP_LABELS] || { step: 1, label: order.status };
   const amount = parseFloat(order.amount);
   const otherUser = isBuyer ? order.seller : order.buyer;
+  const canLeaveReview = isBuyer && isOrderComplete && !review;
+  const canRespondToReview = Boolean(review && isSeller && user?.id === review.revieweeId && !review.response);
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
@@ -391,6 +483,93 @@ export default function OrderDetailPage(): React.JSX.Element {
           <p className="text-text-secondary">{order.description || 'No description provided'}</p>
         </div>
       </div>
+
+      {(isReviewLoading || review || canLeaveReview || (isSeller && isOrderComplete)) && (
+        <section className={NEUMORPHIC_CARD}>
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-text-primary">Review</h2>
+              <p className="mt-1 text-sm text-text-secondary">
+                {review
+                  ? "Feedback captured for this completed order."
+                  : canLeaveReview
+                  ? "Share your experience after order completion."
+                  : "Reviews will appear here after the client submits one."}
+              </p>
+            </div>
+
+            {canLeaveReview ? (
+              <button
+                type="button"
+                onClick={() => setIsReviewModalOpen(true)}
+                className={cn(PRIMARY_BUTTON, "justify-center")}
+              >
+                <Icon path={ICON_PATHS.star} size="sm" />
+                <span>Leave review</span>
+              </button>
+            ) : null}
+          </div>
+
+          {isReviewLoading ? (
+            <div className={cn("mt-4 flex items-center gap-3 rounded-2xl p-4", NEUMORPHIC_INSET)}>
+              <LoadingSpinner size="sm" />
+              <p className="text-sm text-text-secondary">Loading review…</p>
+            </div>
+          ) : review ? (
+            <div className={cn("mt-4 rounded-2xl p-5", NEUMORPHIC_INSET)}>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <p className="font-semibold text-text-primary">{review.reviewerName}</p>
+                  <p className="mt-1 text-sm text-text-secondary">
+                    {new Date(review.createdAt).toLocaleString("en-US", {
+                      dateStyle: "medium",
+                      timeStyle: "short",
+                    })}
+                  </p>
+                </div>
+
+                <div className="flex flex-col items-start gap-2 sm:items-end">
+                  <StarRating value={review.rating} readonly size="md" />
+                  <span className="text-sm font-medium text-text-secondary">{review.rating}/5</span>
+                </div>
+              </div>
+
+              <div className="mt-4 rounded-2xl bg-white/70 p-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-text-secondary">
+                  Order context
+                </p>
+                <p className="mt-2 font-medium text-text-primary">{review.orderTitle}</p>
+                {review.serviceTitle ? (
+                  <p className="mt-1 text-sm text-text-secondary">Service: {review.serviceTitle}</p>
+                ) : null}
+              </div>
+
+              <p className="mt-4 whitespace-pre-wrap text-sm leading-6 text-text-secondary">
+                {review.comment}
+              </p>
+
+              {review.response ? (
+                <ReviewResponse
+                  response={review.response}
+                  responderName={review.revieweeName}
+                />
+              ) : null}
+
+              {canRespondToReview ? (
+                <ReviewResponseForm onSubmit={handleSubmitReviewResponse} />
+              ) : null}
+            </div>
+          ) : (
+            <div className={cn("mt-4 rounded-2xl p-4", NEUMORPHIC_INSET)}>
+              <p className="text-sm text-text-secondary">
+                {canLeaveReview
+                  ? "You can skip for now, but leaving a review helps future clients make informed decisions."
+                  : "No review has been submitted for this order yet."}
+              </p>
+            </div>
+          )}
+        </section>
+      )}
 
       {/* Action Panel - Buyer Only */}
       {isBuyer && (
@@ -855,7 +1034,11 @@ export default function OrderDetailPage(): React.JSX.Element {
               </label>
               <select
                 value={disputeReason}
-                onChange={(e) => setDisputeReason(e.target.value as any)}
+                onChange={(e) =>
+                  setDisputeReason(
+                    e.target.value as "NOT_DELIVERED" | "QUALITY_ISSUE" | "OTHER"
+                  )
+                }
                 className={cn(
                   "w-full px-4 py-3 rounded-xl",
                   "bg-background text-text-primary",
@@ -910,6 +1093,22 @@ export default function OrderDetailPage(): React.JSX.Element {
           </div>
         </div>
       )}
+
+      <LeaveReviewModal
+        isOpen={isReviewModalOpen}
+        revieweeName={order.seller?.name || order.seller?.email || "the freelancer"}
+        orderTitle={order.title}
+        serviceTitle={order.service?.title}
+        onClose={() => {
+          setIsReviewModalOpen(false);
+          setHasDismissedReviewPrompt(true);
+        }}
+        onSkip={() => {
+          setIsReviewModalOpen(false);
+          setHasDismissedReviewPrompt(true);
+        }}
+        onSubmit={handleSubmitReview}
+      />
     </div>
   );
 }

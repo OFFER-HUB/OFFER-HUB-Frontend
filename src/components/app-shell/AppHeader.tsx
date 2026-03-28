@@ -7,6 +7,8 @@ import { cn } from "@/lib/cn";
 import { Logo } from "@/components/ui";
 import { Icon, ICON_PATHS } from "@/components/ui/Icon";
 import { useAuthStore } from "@/stores/auth-store";
+import { useNotificationStore } from "@/stores/notification-store";
+import { NotificationDropdown } from "@/components/notifications";
 import {
   ICON_BUTTON,
   USER_AVATAR_BUTTON,
@@ -36,17 +38,35 @@ function isActiveLink(pathname: string, href: string): boolean {
 export function AppHeader({ onMenuClick }: AppHeaderProps): React.JSX.Element {
   const [mounted, setMounted] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
+
   const userMenuRef = useRef<HTMLDivElement>(null);
+  const notifRef = useRef<HTMLDivElement>(null);
+
   const pathname = usePathname();
   const { user, logout } = useAuthStore();
+  const { unreadCount } = useNotificationStore();
 
   useEffect(() => {
     setMounted(true);
+
     function handleClickOutside(event: MouseEvent): void {
-      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+      // Close user menu
+      if (
+        userMenuRef.current &&
+        !userMenuRef.current.contains(event.target as Node)
+      ) {
         setIsUserMenuOpen(false);
       }
+      // Close notification dropdown
+      if (
+        notifRef.current &&
+        !notifRef.current.contains(event.target as Node)
+      ) {
+        setIsNotifOpen(false);
+      }
     }
+
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
@@ -59,10 +79,16 @@ export function AppHeader({ onMenuClick }: AppHeaderProps): React.JSX.Element {
 
   function toggleUserMenu(): void {
     setIsUserMenuOpen((prev) => !prev);
+    setIsNotifOpen(false); // close notif if open
   }
 
   function closeUserMenu(): void {
     setIsUserMenuOpen(false);
+  }
+
+  function toggleNotif(): void {
+    setIsNotifOpen((prev) => !prev);
+    setIsUserMenuOpen(false); // close user menu if open
   }
 
   return (
@@ -110,11 +136,45 @@ export function AppHeader({ onMenuClick }: AppHeaderProps): React.JSX.Element {
       </div>
 
       <div className="flex items-center gap-3">
-        <button className={cn(ICON_BUTTON, "relative cursor-pointer")}>
-          <Icon path={ICON_PATHS.bell} size="md" className="text-text-secondary" />
-          <span className="absolute top-1 right-1 w-2 h-2 bg-error rounded-full" />
-        </button>
+        {/* Notification Bell */}
+        <div ref={notifRef} className="relative">
+          <button
+            onClick={toggleNotif}
+            className={cn(ICON_BUTTON, "relative cursor-pointer")}
+            aria-label={
+              unreadCount > 0
+                ? `${unreadCount} unread notifications`
+                : "Notifications"
+            }
+            aria-expanded={isNotifOpen}
+            aria-haspopup="dialog"
+          >
+            <Icon
+              path={ICON_PATHS.bell}
+              size="md"
+              className="text-text-secondary"
+            />
+            {true && (
+              <span
+                className={cn(
+                  "absolute -top-1 -right-1",
+                  "min-w-[1.1rem] h-[1.1rem] px-0.5",
+                  "flex items-center justify-center rounded-full",
+                  "bg-error text-white text-[9px] font-bold leading-none"
+                )}
+              >
+                {unreadCount > 99 ? "99+" : unreadCount}
+              </span>
+            )}
+          </button>
 
+          <NotificationDropdown
+            isOpen={isNotifOpen}
+            onClose={() => setIsNotifOpen(false)}
+          />
+        </div>
+
+        {/* User Avatar + Menu */}
         {mounted && user && (
           <div ref={userMenuRef} className="relative">
             <button
@@ -122,7 +182,8 @@ export function AppHeader({ onMenuClick }: AppHeaderProps): React.JSX.Element {
               className={cn(
                 USER_AVATAR_BUTTON,
                 "overflow-hidden transition-all duration-300",
-                isUserMenuOpen && "shadow-[inset_4px_4px_8px_#d1d5db,inset_-4px_-4px_8px_#ffffff]"
+                isUserMenuOpen &&
+                  "shadow-[inset_4px_4px_8px_#d1d5db,inset_-4px_-4px_8px_#ffffff]"
               )}
             >
               {user.avatarUrl ? (
@@ -132,7 +193,9 @@ export function AppHeader({ onMenuClick }: AppHeaderProps): React.JSX.Element {
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <span className="animate-fade-in">{user.username.charAt(0).toUpperCase()}</span>
+                <span className="animate-fade-in">
+                  {user.username.charAt(0).toUpperCase()}
+                </span>
               )}
             </button>
 
@@ -142,32 +205,73 @@ export function AppHeader({ onMenuClick }: AppHeaderProps): React.JSX.Element {
                   <p className="text-sm font-bold text-text-primary truncate">
                     {user.username}
                   </p>
-                  <p className="text-xs text-text-secondary truncate mt-0.5">{user.email}</p>
+                  <p className="text-xs text-text-secondary truncate mt-0.5">
+                    {user.email}
+                  </p>
                 </div>
                 <div className="flex flex-col gap-1 pb-3">
-                  <Link href="/app/dashboard" onClick={closeUserMenu} className={cn(DROPDOWN_ITEM, "stagger-1")}>
+                  <Link
+                    href="/app/dashboard"
+                    onClick={closeUserMenu}
+                    className={cn(DROPDOWN_ITEM, "stagger-1")}
+                  >
                     <div className="flex items-center gap-3">
-                      <Icon path={ICON_PATHS.home} size="sm" className="group-hover:text-primary transition-colors" />
+                      <Icon
+                        path={ICON_PATHS.home}
+                        size="sm"
+                        className="group-hover:text-primary transition-colors"
+                      />
                       <span>Dashboard</span>
                     </div>
-                    <Icon path={ICON_PATHS.chevronRight} size="sm" className="opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0" />
+                    <Icon
+                      path={ICON_PATHS.chevronRight}
+                      size="sm"
+                      className="opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0"
+                    />
                   </Link>
-                  <Link href="/app/profile" onClick={closeUserMenu} className={cn(DROPDOWN_ITEM, "stagger-2")}>
+                  <Link
+                    href="/app/profile"
+                    onClick={closeUserMenu}
+                    className={cn(DROPDOWN_ITEM, "stagger-2")}
+                  >
                     <div className="flex items-center gap-3">
-                      <Icon path={ICON_PATHS.user} size="sm" className="group-hover:text-primary transition-colors" />
+                      <Icon
+                        path={ICON_PATHS.user}
+                        size="sm"
+                        className="group-hover:text-primary transition-colors"
+                      />
                       <span>My Profile</span>
                     </div>
-                    <Icon path={ICON_PATHS.chevronRight} size="sm" className="opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0" />
+                    <Icon
+                      path={ICON_PATHS.chevronRight}
+                      size="sm"
+                      className="opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0"
+                    />
                   </Link>
-                  <Link href="/app/settings" onClick={closeUserMenu} className={cn(DROPDOWN_ITEM, "stagger-3")}>
+                  <Link
+                    href="/app/settings"
+                    onClick={closeUserMenu}
+                    className={cn(DROPDOWN_ITEM, "stagger-3")}
+                  >
                     <div className="flex items-center gap-3">
-                      <Icon path={ICON_PATHS.settings} size="sm" className="group-hover:text-primary transition-colors" />
+                      <Icon
+                        path={ICON_PATHS.settings}
+                        size="sm"
+                        className="group-hover:text-primary transition-colors"
+                      />
                       <span>Settings</span>
                     </div>
-                    <Icon path={ICON_PATHS.chevronRight} size="sm" className="opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0" />
+                    <Icon
+                      path={ICON_PATHS.chevronRight}
+                      size="sm"
+                      className="opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0"
+                    />
                   </Link>
                   <div className="border-t border-background my-2 mx-4" />
-                  <button onClick={handleLogout} className={cn(DROPDOWN_ITEM_DANGER, "stagger-4")}>
+                  <button
+                    onClick={handleLogout}
+                    className={cn(DROPDOWN_ITEM_DANGER, "stagger-4")}
+                  >
                     <div className="flex items-center gap-3">
                       <Icon path={ICON_PATHS.logout} size="sm" />
                       <span>Sign Out</span>

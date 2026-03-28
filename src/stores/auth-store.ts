@@ -17,7 +17,7 @@ export interface User {
   email: string;
   username: string;
   avatarUrl?: string;
-  type?: "BUYER" | "SELLER" | "BOTH";
+  type?: "BUYER" | "SELLER" | "BOTH" | "ADMIN";
   balance?: UserBalance;
   wallet?: UserWallet;
 }

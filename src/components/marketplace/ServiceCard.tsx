@@ -5,10 +5,12 @@ import Image from "next/image";
 import { cn } from "@/lib/cn";
 import { Icon, ICON_PATHS } from "@/components/ui/Icon";
 import type { MarketplaceService } from "@/lib/api/marketplace";
+import { HighlightedText } from "@/components/search/HighlightedText";
 
 interface ServiceCardProps {
   service: MarketplaceService;
   className?: string;
+  highlightQuery?: string;
 }
 
 const CATEGORY_MAP: Record<string, string> = {
@@ -23,7 +25,7 @@ const CATEGORY_MAP: Record<string, string> = {
   OTHER: "Other",
 };
 
-export function ServiceCard({ service, className }: ServiceCardProps): React.JSX.Element {
+export function ServiceCard({ service, className, highlightQuery }: ServiceCardProps): React.JSX.Element {
   const price = parseFloat(service.price);
   const category = CATEGORY_MAP[service.category] || service.category;
   const rating = service.averageRating ? parseFloat(service.averageRating) : null;
@@ -106,10 +108,18 @@ export function ServiceCard({ service, className }: ServiceCardProps): React.JSX
       {/* Service Title */}
       <div className="mb-4">
         <h4 className="font-bold text-text-primary text-base line-clamp-2 leading-tight mb-2">
-          {service.title}
+          {highlightQuery ? (
+            <HighlightedText text={service.title} query={highlightQuery} />
+          ) : (
+            service.title
+          )}
         </h4>
         <p className="text-sm text-text-secondary line-clamp-2 leading-relaxed">
-          {service.description}
+          {highlightQuery ? (
+            <HighlightedText text={service.description} query={highlightQuery} />
+          ) : (
+            service.description
+          )}
         </p>
       </div>
 

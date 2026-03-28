@@ -2,8 +2,7 @@
 
 import { useState } from "react";
 import { cn } from "@/lib/cn";
-import { Navbar } from "@/components/landing/Navbar";
-import { AppSidebar } from "@/components/app-shell";
+import { AppHeader, AppSidebar } from "@/components/app-shell";
 import { OnboardingTour } from "@/components/onboarding";
 
 interface AppLayoutClientProps {
@@ -22,7 +21,7 @@ export function AppLayoutClient({ children }: AppLayoutClientProps): React.JSX.E
       </a>
 
       <div className="flex-shrink-0">
-        <Navbar />
+        <AppHeader onMenuClick={() => setIsSidebarOpen((prev) => !prev)} />
       </div>
 
       <div className="flex flex-1 min-h-0">

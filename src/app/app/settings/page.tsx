@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { cn } from "@/lib/cn";
 import { MOCK_API_DELAY } from "@/lib/constants";
 import { Icon, ICON_PATHS, LoadingSpinner } from "@/components/ui/Icon";
-import { NEUMORPHIC_CARD, PRIMARY_BUTTON } from "@/lib/styles";
+import { NEUMORPHIC_CARD, PRIMARY_BUTTON, DANGER_BUTTON } from "@/lib/styles";
 import { useOnboardingStore } from "@/stores/onboarding-store";
 
 interface NotificationSettings {
@@ -58,7 +59,12 @@ interface ToggleSwitchProps {
   description?: string;
 }
 
-function ToggleSwitch({ enabled, onChange, label, description }: ToggleSwitchProps): React.JSX.Element {
+function ToggleSwitch({
+  enabled,
+  onChange,
+  label,
+  description,
+}: ToggleSwitchProps): React.JSX.Element {
   return (
     <div className="flex items-center justify-between py-3">
       <div className="flex-1">
@@ -90,7 +96,6 @@ export default function SettingsPage(): React.JSX.Element {
 
   function handleRestartTour(): void {
     resetTour();
-    // Redirect to dashboard to start the tour
     window.location.href = "/app/freelancer/dashboard";
   }
 
@@ -135,6 +140,48 @@ export default function SettingsPage(): React.JSX.Element {
             </div>
           </div>
         )}
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        <Link
+          href="/app/settings/preferences"
+          className={cn(
+            NEUMORPHIC_CARD,
+            "transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[8px_8px_16px_#d1d5db,-8px_-8px_16px_#ffffff]"
+          )}
+        >
+          <div className="flex items-start gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <Icon path={ICON_PATHS.settings} size="md" />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-text-primary">Preferences</h2>
+              <p className="mt-1 text-sm text-text-secondary">
+                Configure regional settings, theme, and display defaults.
+              </p>
+            </div>
+          </div>
+        </Link>
+
+        <Link
+          href="/app/settings/security"
+          className={cn(
+            NEUMORPHIC_CARD,
+            "transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[8px_8px_16px_#d1d5db,-8px_-8px_16px_#ffffff]"
+          )}
+        >
+          <div className="flex items-start gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <Icon path={ICON_PATHS.lock} size="md" />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-text-primary">Security</h2>
+              <p className="mt-1 text-sm text-text-secondary">
+                Change your password and review account access protections.
+              </p>
+            </div>
+          </div>
+        </Link>
       </div>
 
       <div className={NEUMORPHIC_CARD}>
@@ -227,7 +274,6 @@ export default function SettingsPage(): React.JSX.Element {
         </div>
       </div>
 
-      {/* Help & Support */}
       <div className={NEUMORPHIC_CARD}>
         <h2 className="text-lg font-semibold text-text-primary mb-4 flex items-center gap-2">
           <Icon path={ICON_PATHS.help} size="md" className="text-primary" />
@@ -259,8 +305,75 @@ export default function SettingsPage(): React.JSX.Element {
         </div>
       </div>
 
+      <div className={NEUMORPHIC_CARD}>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-lg font-semibold text-text-primary mb-1 flex items-center gap-2">
+              <Icon path={ICON_PATHS.settings} size="md" className="text-primary" />
+              Preferences
+            </h2>
+            <p className="text-sm text-text-secondary">
+              Customize language, timezone, currency, and theme from a dedicated preferences page.
+            </p>
+          </div>
+
+          <Link
+            href="/app/settings/preferences"
+            className={cn(PRIMARY_BUTTON, "justify-center py-2 px-5")}
+          >
+            Open Preferences
+          </Link>
+        </div>
+      </div>
+
+      <div className={NEUMORPHIC_CARD}>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-lg font-semibold text-text-primary mb-1 flex items-center gap-2">
+              <Icon path={ICON_PATHS.bell} size="md" className="text-primary" />
+              Notification Preferences
+            </h2>
+            <p className="text-sm text-text-secondary">
+              Customize notification channels and delivery frequency in a dedicated matrix.
+            </p>
+          </div>
+
+          <Link
+            href="/app/settings/notifications"
+            className={cn(PRIMARY_BUTTON, "justify-center py-2 px-5")}
+          >
+            Open Notifications
+          </Link>
+        </div>
+      </div>
+
+      <div className={cn(NEUMORPHIC_CARD, "border border-error/20")}>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-lg font-semibold text-error mb-1 flex items-center gap-2">
+              <Icon path={ICON_PATHS.alertCircle} size="md" className="text-error" />
+              Account
+            </h2>
+            <p className="text-sm text-text-secondary">
+              Manage account details, linked services, and account deletion.
+            </p>
+          </div>
+          <Link
+            href="/app/settings/account"
+            className={cn(DANGER_BUTTON, "justify-center py-2 px-5")}
+          >
+            Manage Account
+          </Link>
+        </div>
+      </div>
+
       <div className="flex justify-end">
-        <button type="button" onClick={handleSave} disabled={isLoading} className={cn(PRIMARY_BUTTON, "py-2 px-5")}>
+        <button
+          type="button"
+          onClick={handleSave}
+          disabled={isLoading}
+          className={cn(PRIMARY_BUTTON, "py-2 px-5")}
+        >
           {isLoading ? (
             <span className="flex items-center gap-2">
               <LoadingSpinner />

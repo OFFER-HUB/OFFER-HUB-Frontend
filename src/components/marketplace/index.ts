@@ -4,3 +4,4 @@ export { PopularCarousel } from "./PopularCarousel";
 export { PopularOfferCard } from "./PopularOfferCard";
 export { ProfileSidebar } from "./ProfileSidebar";
 export { SearchBar } from "./SearchBar";
+export * from "./freelancer-reviews";

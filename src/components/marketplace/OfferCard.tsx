@@ -5,10 +5,12 @@ import { cn } from "@/lib/cn";
 import { Icon, ICON_PATHS } from "@/components/ui/Icon";
 import { BACKEND_URL } from "@/config/api";
 import type { MarketplaceOffer } from "@/lib/api/marketplace";
+import { HighlightedText } from "@/components/search/HighlightedText";
 
 interface OfferCardProps {
   offer: MarketplaceOffer;
   className?: string;
+  highlightQuery?: string;
 }
 
 const CATEGORY_MAP: Record<string, string> = {
@@ -23,7 +25,7 @@ const CATEGORY_MAP: Record<string, string> = {
   OTHER: "Other",
 };
 
-export function OfferCard({ offer, className }: OfferCardProps): React.JSX.Element {
+export function OfferCard({ offer, className, highlightQuery }: OfferCardProps): React.JSX.Element {
   const budget = parseFloat(offer.budget);
   const deadline = new Date(offer.deadline).toLocaleDateString("en-US", {
     month: "short",
@@ -77,11 +79,21 @@ export function OfferCard({ offer, className }: OfferCardProps): React.JSX.Eleme
 
       {/* Title */}
       <h3 className="text-lg font-semibold text-text-primary mb-2 line-clamp-2">
-        {offer.title}
+        {highlightQuery ? (
+          <HighlightedText text={offer.title} query={highlightQuery} />
+        ) : (
+          offer.title
+        )}
       </h3>
 
       {/* Description */}
-      <p className="text-sm text-text-secondary mb-4 line-clamp-3">{offer.description}</p>
+      <p className="text-sm text-text-secondary mb-4 line-clamp-3">
+        {highlightQuery ? (
+          <HighlightedText text={offer.description} query={highlightQuery} />
+        ) : (
+          offer.description
+        )}
+      </p>
 
       {/* Details */}
       <div className="flex items-center justify-between pt-4 border-t border-border-light">
