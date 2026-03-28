@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ProfileViewsCard } from "@/components/analytics/ProfileViewsCard";
+import { ProfileCompleteness } from "@/components/profile/ProfileCompleteness";
 import { useAuthStore } from "@/stores/auth-store";
 import { useModeStore } from "@/stores/mode-store";
 import { cn } from "@/lib/cn";
@@ -290,6 +291,10 @@ export default function FreelancerDashboardPage(): React.JSX.Element {
             </div>
           </>
         )}
+      </div>
+
+      <div className="stagger-3 animate-fade-in-up">
+        <ProfileCompleteness />
       </div>
 
       <ProfileViewsCard token={token} />

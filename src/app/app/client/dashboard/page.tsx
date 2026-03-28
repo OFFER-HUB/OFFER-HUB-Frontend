@@ -5,12 +5,7 @@ import Link from "next/link";
 import { useAuthStore } from "@/stores/auth-store";
 import { useModeStore } from "@/stores/mode-store";
 import { cn } from "@/lib/cn";
-import {
-  NEUMORPHIC_CARD,
-  NEUMORPHIC_BUTTON,
-  NEUMORPHIC_INSET,
-  ICON_CONTAINER,
-} from "@/lib/styles";
+import { NEUMORPHIC_CARD, NEUMORPHIC_BUTTON, NEUMORPHIC_INSET, ICON_CONTAINER } from "@/lib/styles";
 import { Icon, ICON_PATHS } from "@/components/ui/Icon";
 import { WalletAddress } from "@/components/ui/WalletAddress";
 import {
@@ -22,6 +17,7 @@ import {
 import { getMyOffers, type Offer } from "@/lib/api/offers";
 import { ApplicationsToReview } from "@/components/client-dashboard/ApplicationsToReview";
 import { RecommendedFreelancers } from "@/components/client-dashboard/RecommendedFreelancers";
+import { ProfileCompleteness } from "@/components/profile/ProfileCompleteness";
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
@@ -77,7 +73,13 @@ function StatCard({
       )}
     >
       <div className="flex items-center gap-4">
-        <div className={cn(ICON_CONTAINER, color, "group-hover:scale-110 transition-transform duration-500")}>
+        <div
+          className={cn(
+            ICON_CONTAINER,
+            color,
+            "group-hover:scale-110 transition-transform duration-500"
+          )}
+        >
           <Icon path={iconPath} className="text-white" />
         </div>
         <div className="flex-1 min-w-0">
@@ -354,54 +356,55 @@ export default function ClientDashboardPage(): React.JSX.Element {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 stagger-3 animate-fade-in-up">
-        {isLoadingStats
-          ? Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className={cn(NEUMORPHIC_CARD, "animate-pulse")}>
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-gray-200 flex-shrink-0" />
-                  <div className="flex-1">
-                    <div className="h-8 bg-gray-200 rounded mb-2" />
-                    <div className="h-4 bg-gray-200 rounded w-2/3" />
-                  </div>
+        {isLoadingStats ? (
+          Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className={cn(NEUMORPHIC_CARD, "animate-pulse")}>
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-gray-200 flex-shrink-0" />
+                <div className="flex-1">
+                  <div className="h-8 bg-gray-200 rounded mb-2" />
+                  <div className="h-4 bg-gray-200 rounded w-2/3" />
                 </div>
               </div>
-            ))
-          : (
-            <>
-              <StatCard
-                label="Active Offers"
-                value={stats?.activeOffers ?? 0}
-                iconPath={ICON_PATHS.document}
-                color="bg-primary"
-              />
-              <StatCard
-                label="Active Orders"
-                value={stats?.activeOrders ?? 0}
-                iconPath={ICON_PATHS.briefcase}
-                color="bg-secondary"
-              />
-              <StatCard
-                label="Services Purchased"
-                value={stats?.servicesPurchased ?? 0}
-                iconPath={ICON_PATHS.check}
-                color="bg-accent"
-              />
-              <StatCard
-                label="Budget Spent"
-                value={stats?.budgetSpent ?? "$0.00"}
-                iconPath={ICON_PATHS.currency}
-                color="bg-success"
-                isPositive={false}
-              />
-            </>
-          )}
+            </div>
+          ))
+        ) : (
+          <>
+            <StatCard
+              label="Active Offers"
+              value={stats?.activeOffers ?? 0}
+              iconPath={ICON_PATHS.document}
+              color="bg-primary"
+            />
+            <StatCard
+              label="Active Orders"
+              value={stats?.activeOrders ?? 0}
+              iconPath={ICON_PATHS.briefcase}
+              color="bg-secondary"
+            />
+            <StatCard
+              label="Services Purchased"
+              value={stats?.servicesPurchased ?? 0}
+              iconPath={ICON_PATHS.check}
+              color="bg-accent"
+            />
+            <StatCard
+              label="Budget Spent"
+              value={stats?.budgetSpent ?? "$0.00"}
+              iconPath={ICON_PATHS.currency}
+              color="bg-success"
+              isPositive={false}
+            />
+          </>
+        )}
+      </div>
+
+      <div className="stagger-3 animate-fade-in-up">
+        <ProfileCompleteness />
       </div>
 
       {/* Applications Awaiting Review — shown only when there are applicants */}
-      <ApplicationsToReview
-        offers={offers}
-        isLoading={isLoadingOffers}
-      />
+      <ApplicationsToReview offers={offers} isLoading={isLoadingOffers} />
 
       {/* Recent Activity */}
       <div className={cn(NEUMORPHIC_CARD, "stagger-4 animate-fade-in-up border border-white/40")}>
@@ -426,48 +429,47 @@ export default function ClientDashboardPage(): React.JSX.Element {
         </div>
 
         <div className="grid grid-cols-1 gap-4">
-          {isLoadingActivities
-            ? Array.from({ length: 5 }).map((_, i) => (
-                <div
-                  key={i}
-                  className={cn("flex items-start gap-4 p-4 rounded-xl animate-pulse", NEUMORPHIC_INSET)}
-                >
-                  <div className="w-10 h-10 rounded-lg bg-gray-200 flex-shrink-0" />
-                  <div className="flex-1">
-                    <div className="h-5 bg-gray-200 rounded mb-2 w-1/3" />
-                    <div className="h-4 bg-gray-200 rounded w-2/3" />
-                  </div>
-                  <div className="h-4 bg-gray-200 rounded w-16" />
+          {isLoadingActivities ? (
+            Array.from({ length: 5 }).map((_, i) => (
+              <div
+                key={i}
+                className={cn(
+                  "flex items-start gap-4 p-4 rounded-xl animate-pulse",
+                  NEUMORPHIC_INSET
+                )}
+              >
+                <div className="w-10 h-10 rounded-lg bg-gray-200 flex-shrink-0" />
+                <div className="flex-1">
+                  <div className="h-5 bg-gray-200 rounded mb-2 w-1/3" />
+                  <div className="h-4 bg-gray-200 rounded w-2/3" />
                 </div>
-              ))
-            : activities.length > 0
-            ? activities.slice(0, 5).map((activity, idx) => (
-                <div
-                  key={activity.id}
-                  className="animate-fade-in"
-                  style={{ animationDelay: `${0.1 * idx}s` }}
-                >
-                  <ActivityItem activity={activity} />
-                </div>
-              ))
-            : (
-              <div className="flex flex-col items-center justify-center py-12 text-center">
-                <div className="w-16 h-16 bg-background rounded-full flex items-center justify-center mb-4 shadow-inner">
-                  <Icon
-                    path={ICON_PATHS.calendar}
-                    size="lg"
-                    className="text-text-secondary/30"
-                  />
-                </div>
-                <p className="text-text-secondary font-medium">No recent activity to show</p>
-                <Link
-                  href="/app/client/offers/new"
-                  className="mt-4 text-sm text-primary font-semibold hover:underline"
-                >
-                  Post your first offer →
-                </Link>
+                <div className="h-4 bg-gray-200 rounded w-16" />
               </div>
-            )}
+            ))
+          ) : activities.length > 0 ? (
+            activities.slice(0, 5).map((activity, idx) => (
+              <div
+                key={activity.id}
+                className="animate-fade-in"
+                style={{ animationDelay: `${0.1 * idx}s` }}
+              >
+                <ActivityItem activity={activity} />
+              </div>
+            ))
+          ) : (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <div className="w-16 h-16 bg-background rounded-full flex items-center justify-center mb-4 shadow-inner">
+                <Icon path={ICON_PATHS.calendar} size="lg" className="text-text-secondary/30" />
+              </div>
+              <p className="text-text-secondary font-medium">No recent activity to show</p>
+              <Link
+                href="/app/client/offers/new"
+                className="mt-4 text-sm text-primary font-semibold hover:underline"
+              >
+                Post your first offer →
+              </Link>
+            </div>
+          )}
         </div>
       </div>
 
