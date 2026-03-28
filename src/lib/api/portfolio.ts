@@ -1,5 +1,6 @@
 import { API_URL } from "@/config/api";
 import { MOCK_PORTFOLIO_ITEMS } from "@/data/portfolio.data";
+import { normalizePortfolioImages } from "@/lib/portfolio-image-helpers";
 import type { PortfolioItem, PortfolioFormData } from "@/types/portfolio.types";
 
 const API_BASE_URL = API_URL;
@@ -38,7 +39,11 @@ export async function getPortfolioItems(token: string | null): Promise<Portfolio
   }
 
   const data = await response.json();
-  return (data.data ?? data) as PortfolioItem[];
+  const list = (data.data ?? data) as PortfolioItem[];
+  return list.map((item) => ({
+    ...item,
+    images: normalizePortfolioImages(item.images),
+  }));
 }
 
 export async function getPortfolioItemById(
@@ -62,7 +67,11 @@ export async function getPortfolioItemById(
   }
 
   const data = await response.json();
-  return (data.data ?? data) as PortfolioItem;
+  const item = (data.data ?? data) as PortfolioItem;
+  return {
+    ...item,
+    images: normalizePortfolioImages(item.images),
+  };
 }
 
 export async function createPortfolioItem(
@@ -106,7 +115,11 @@ export async function createPortfolioItem(
   }
 
   const data = await response.json();
-  return (data.data ?? data) as PortfolioItem;
+  const created = (data.data ?? data) as PortfolioItem;
+  return {
+    ...created,
+    images: normalizePortfolioImages(created.images),
+  };
 }
 
 export async function updatePortfolioItem(
@@ -152,7 +165,11 @@ export async function updatePortfolioItem(
   }
 
   const data = await response.json();
-  return (data.data ?? data) as PortfolioItem;
+  const updated = (data.data ?? data) as PortfolioItem;
+  return {
+    ...updated,
+    images: normalizePortfolioImages(updated.images),
+  };
 }
 
 export async function deletePortfolioItem(
@@ -210,5 +227,9 @@ export async function reorderPortfolioItems(
   }
 
   const data = await response.json();
-  return (data.data ?? data) as PortfolioItem[];
+  const list = (data.data ?? data) as PortfolioItem[];
+  return list.map((item) => ({
+    ...item,
+    images: normalizePortfolioImages(item.images),
+  }));
 }
