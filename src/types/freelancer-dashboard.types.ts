@@ -5,18 +5,15 @@ export interface FreelancerStatCard {
   color: string;
 }
 
-export type FreelancerActivityType =
-  | "service_created"
-  | "proposal_accepted"
-  | "message"
-  | "payment_received"
-  | "review_received";
-
-export interface FreelancerActivity {
-  id: string;
-  type: FreelancerActivityType;
-  title: string;
-  description: string;
-  time: string;
-  createdAt: string;
+export interface DashboardStats {
+  activeApplications: number;
+  activeOrders: number;
+  totalEarnings: string;
+  rating: number | null;
+  ratingCount: number;
+  // Trend vs previous period (percentage). null = not available
+  activeApplicationsTrend: number | null;
+  activeOrdersTrend: number | null;
+  earningsTrend: number | null;
+  ratingTrend: number | null;
 }
