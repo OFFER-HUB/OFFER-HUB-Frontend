@@ -6,96 +6,13 @@ import { ProfileViewsCard } from "@/components/analytics/ProfileViewsCard";
 import { ProfileCompleteness } from "@/components/profile/ProfileCompleteness";
 import { useAuthStore } from "@/stores/auth-store";
 import { useModeStore } from "@/stores/mode-store";
-import { cn } from "@/lib/cn";
-import { NEUMORPHIC_CARD, NEUMORPHIC_BUTTON, NEUMORPHIC_INSET, ICON_CONTAINER } from "@/lib/styles";
-import { Icon, ICON_PATHS } from "@/components/ui/Icon";
-import { WalletAddress } from "@/components/ui/WalletAddress";
-import {
-  getFreelancerStats,
-  getFreelancerActivities,
-  type FreelancerStats,
-  type FreelancerActivity,
-} from "@/lib/api/freelancer";
-
-interface QuickActionProps {
-  href: string;
-  iconPath: string;
-  iconColor: string;
-  title: string;
-  description: string;
-}
-
-function QuickAction({
-  href,
-  iconPath,
-  iconColor,
-  title,
-  description,
-}: QuickActionProps): React.JSX.Element {
-  return (
-    <Link href={href} className={NEUMORPHIC_BUTTON}>
-      <div className={cn(ICON_CONTAINER, iconColor)}>
-        <Icon path={iconPath} className="text-white" />
-      </div>
-      <div>
-        <h3 className="font-semibold text-text-primary">{title}</h3>
-        <p className="text-sm text-text-secondary">{description}</p>
-      </div>
-    </Link>
-  );
-}
-
-interface ActivityItemProps {
-  activity: FreelancerActivity;
-}
-
-function ActivityItem({ activity }: ActivityItemProps): React.JSX.Element {
-  // Map activity types to icon paths
-  const getIconPath = (type: FreelancerActivity["type"]): string => {
-    switch (type) {
-      case "order_created":
-      case "order_completed":
-        return ICON_PATHS.briefcase;
-      case "payment_received":
-        return ICON_PATHS.currency;
-      case "withdrawal_completed":
-        return ICON_PATHS.document;
-      case "topup_completed":
-        return ICON_PATHS.plus;
-      default:
-        return ICON_PATHS.check;
-    }
-  };
-
-  return (
-    <div className={cn("flex items-start gap-4 p-4 rounded-xl", NEUMORPHIC_INSET)}>
-      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-        <Icon path={getIconPath(activity.type)} size="md" className="text-primary" />
-      </div>
-      <div className="flex-1 min-w-0">
-        <p className="font-medium text-text-primary">{activity.title}</p>
-        <p className="text-sm text-text-secondary truncate">{activity.description}</p>
-      </div>
-      <span className="text-xs text-text-secondary whitespace-nowrap">{activity.time}</span>
-    </div>
-  );
-}
+import { FreelancerDashboard } from "@/components/freelancer-dashboard/FreelancerDashboard";
 
 export default function FreelancerDashboardPage(): React.JSX.Element {
   const { setMode } = useModeStore();
-  const [mounted, setMounted] = useState(false);
-  const [stats, setStats] = useState<FreelancerStats | null>(null);
-  const [activities, setActivities] = useState<FreelancerActivity[]>([]);
-  const [isLoadingStats, setIsLoadingStats] = useState(true);
-  const [isLoadingActivities, setIsLoadingActivities] = useState(true);
-
-  // Always call hooks - but only use values after mounted
-  const user = useAuthStore((state) => state.user);
-  const token = useAuthStore((state) => state.token);
 
   useEffect(() => {
     setMode("freelancer");
-    setMounted(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -360,4 +277,5 @@ export default function FreelancerDashboardPage(): React.JSX.Element {
       </div>
     </div>
   );
+  return <FreelancerDashboard />;
 }

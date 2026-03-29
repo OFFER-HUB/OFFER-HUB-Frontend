@@ -1,11 +1,11 @@
-import type { Order, CreateOrderPayload, Milestone } from '@/types/order.types';
+import type { Order, CreateOrderPayload, Milestone } from "@/types/order.types";
 import { API_URL } from "@/config/api";
 
 export async function createOrder(token: string, payload: CreateOrderPayload): Promise<Order> {
   const response = await fetch(`${API_URL}/orders`, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify(payload),
@@ -13,27 +13,31 @@ export async function createOrder(token: string, payload: CreateOrderPayload): P
 
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.error?.message || 'Failed to create order');
+    throw new Error(error.error?.message || "Failed to create order");
   }
 
   const data = await response.json();
   return data.data || data;
 }
 
-export async function listOrders(token: string, userId: string, filters?: {
-  role?: 'buyer' | 'seller';
-  status?: string;
-}): Promise<Order[]> {
+export async function listOrders(
+  token: string,
+  userId: string,
+  filters?: {
+    role?: "buyer" | "seller";
+    status?: string;
+  }
+): Promise<Order[]> {
   const query = new URLSearchParams();
 
   // Convert role filter to buyer_id or seller_id query param
-  if (filters?.role === 'buyer') {
-    query.append('buyer_id', userId);
-  } else if (filters?.role === 'seller') {
-    query.append('seller_id', userId);
+  if (filters?.role === "buyer") {
+    query.append("buyer_id", userId);
+  } else if (filters?.role === "seller") {
+    query.append("seller_id", userId);
   }
 
-  if (filters?.status) query.append('status', filters.status);
+  if (filters?.status) query.append("status", filters.status);
 
   const response = await fetch(`${API_URL}/orders?${query.toString()}`, {
     headers: { Authorization: `Bearer ${token}` },
@@ -41,7 +45,7 @@ export async function listOrders(token: string, userId: string, filters?: {
 
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.error?.message || 'Failed to fetch orders');
+    throw new Error(error.error?.message || "Failed to fetch orders");
   }
 
   const responseData = await response.json();
@@ -57,7 +61,7 @@ export async function getOrderById(token: string, orderId: string): Promise<Orde
 
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.error?.message || 'Failed to fetch order');
+    throw new Error(error.error?.message || "Failed to fetch order");
   }
 
   const data = await response.json();
@@ -66,13 +70,13 @@ export async function getOrderById(token: string, orderId: string): Promise<Orde
 
 export async function reserveFunds(token: string, orderId: string): Promise<Order> {
   const response = await fetch(`${API_URL}/orders/${orderId}/reserve`, {
-    method: 'POST',
+    method: "POST",
     headers: { Authorization: `Bearer ${token}` },
   });
 
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.error?.message || 'Failed to reserve funds');
+    throw new Error(error.error?.message || "Failed to reserve funds");
   }
 
   const data = await response.json();
@@ -81,13 +85,13 @@ export async function reserveFunds(token: string, orderId: string): Promise<Orde
 
 export async function cancelOrder(token: string, orderId: string): Promise<Order> {
   const response = await fetch(`${API_URL}/orders/${orderId}/cancel`, {
-    method: 'POST',
+    method: "POST",
     headers: { Authorization: `Bearer ${token}` },
   });
 
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.error?.message || 'Failed to cancel order');
+    throw new Error(error.error?.message || "Failed to cancel order");
   }
 
   const data = await response.json();
@@ -96,13 +100,13 @@ export async function cancelOrder(token: string, orderId: string): Promise<Order
 
 export async function createEscrow(token: string, orderId: string): Promise<Order> {
   const response = await fetch(`${API_URL}/orders/${orderId}/escrow`, {
-    method: 'POST',
+    method: "POST",
     headers: { Authorization: `Bearer ${token}` },
   });
 
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.error?.message || 'Failed to create escrow');
+    throw new Error(error.error?.message || "Failed to create escrow");
   }
 
   const data = await response.json();
@@ -111,13 +115,13 @@ export async function createEscrow(token: string, orderId: string): Promise<Orde
 
 export async function fundEscrow(token: string, orderId: string): Promise<Order> {
   const response = await fetch(`${API_URL}/orders/${orderId}/escrow/fund`, {
-    method: 'POST',
+    method: "POST",
     headers: { Authorization: `Bearer ${token}` },
   });
 
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.error?.message || 'Failed to fund escrow');
+    throw new Error(error.error?.message || "Failed to fund escrow");
   }
 
   const data = await response.json();
@@ -131,7 +135,7 @@ export async function getMilestones(token: string, orderId: string): Promise<Mil
 
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.error?.message || 'Failed to fetch milestones');
+    throw new Error(error.error?.message || "Failed to fetch milestones");
   }
 
   const data = await response.json();
@@ -140,13 +144,13 @@ export async function getMilestones(token: string, orderId: string): Promise<Mil
 
 export async function completeMilestone(token: string, milestoneId: string): Promise<Milestone> {
   const response = await fetch(`${API_URL}/milestones/${milestoneId}/complete`, {
-    method: 'POST',
+    method: "POST",
     headers: { Authorization: `Bearer ${token}` },
   });
 
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.error?.message || 'Failed to complete milestone');
+    throw new Error(error.error?.message || "Failed to complete milestone");
   }
 
   const data = await response.json();
@@ -157,11 +161,15 @@ export async function completeMilestone(token: string, milestoneId: string): Pro
 // Resolution Actions
 // =====================
 
-export async function releaseFunds(token: string, orderId: string, reason?: string): Promise<Order> {
+export async function releaseFunds(
+  token: string,
+  orderId: string,
+  reason?: string
+): Promise<Order> {
   const response = await fetch(`${API_URL}/orders/${orderId}/resolution/release`, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify({ reason }),
@@ -169,18 +177,22 @@ export async function releaseFunds(token: string, orderId: string, reason?: stri
 
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.error?.message || 'Failed to release funds');
+    throw new Error(error.error?.message || "Failed to release funds");
   }
 
   const data = await response.json();
   return data.data || data;
 }
 
-export async function requestRefund(token: string, orderId: string, reason: string): Promise<Order> {
+export async function requestRefund(
+  token: string,
+  orderId: string,
+  reason: string
+): Promise<Order> {
   const response = await fetch(`${API_URL}/orders/${orderId}/resolution/refund`, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify({ reason }),
@@ -188,7 +200,7 @@ export async function requestRefund(token: string, orderId: string, reason: stri
 
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.error?.message || 'Failed to request refund');
+    throw new Error(error.error?.message || "Failed to request refund");
   }
 
   const data = await response.json();
@@ -197,16 +209,17 @@ export async function requestRefund(token: string, orderId: string, reason: stri
 
 export interface OpenDisputePayload {
   orderId: string;
-  openedBy: 'BUYER' | 'SELLER';
-  reason: 'NOT_DELIVERED' | 'QUALITY_ISSUE' | 'OTHER';
+  openedBy: "BUYER" | "SELLER";
+  reason: "NOT_DELIVERED" | "QUALITY_ISSUE" | "OTHER";
+  description?: string;
   evidence?: string[];
 }
 
 export async function openDispute(token: string, payload: OpenDisputePayload): Promise<any> {
   const response = await fetch(`${API_URL}/orders/${payload.orderId}/resolution/dispute`, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify(payload),
@@ -214,7 +227,7 @@ export async function openDispute(token: string, payload: OpenDisputePayload): P
 
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.error?.message || 'Failed to open dispute');
+    throw new Error(error.error?.message || "Failed to open dispute");
   }
 
   const data = await response.json();
@@ -223,9 +236,9 @@ export async function openDispute(token: string, payload: OpenDisputePayload): P
 
 export async function markOrderCompleted(token: string, orderId: string): Promise<Order> {
   const response = await fetch(`${API_URL}/orders/${orderId}/complete`, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify({}),
@@ -233,7 +246,7 @@ export async function markOrderCompleted(token: string, orderId: string): Promis
 
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.error?.message || 'Failed to mark order as completed');
+    throw new Error(error.error?.message || "Failed to mark order as completed");
   }
 
   const data = await response.json();
@@ -250,16 +263,19 @@ export interface PurchasesResponse {
   nextCursor?: string;
 }
 
-export async function getMyPurchases(token: string, filters?: {
-  status?: string;
-  limit?: number;
-  cursor?: string;
-}): Promise<PurchasesResponse> {
+export async function getMyPurchases(
+  token: string,
+  filters?: {
+    status?: string;
+    limit?: number;
+    cursor?: string;
+  }
+): Promise<PurchasesResponse> {
   const query = new URLSearchParams();
 
-  if (filters?.status) query.append('status', filters.status);
-  if (filters?.limit) query.append('limit', filters.limit.toString());
-  if (filters?.cursor) query.append('cursor', filters.cursor);
+  if (filters?.status) query.append("status", filters.status);
+  if (filters?.limit) query.append("limit", filters.limit.toString());
+  if (filters?.cursor) query.append("cursor", filters.cursor);
 
   const response = await fetch(`${API_URL}/orders/my-purchases?${query.toString()}`, {
     headers: { Authorization: `Bearer ${token}` },
@@ -267,7 +283,7 @@ export async function getMyPurchases(token: string, filters?: {
 
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.error?.message || 'Failed to fetch purchases');
+    throw new Error(error.error?.message || "Failed to fetch purchases");
   }
 
   const responseData = await response.json();

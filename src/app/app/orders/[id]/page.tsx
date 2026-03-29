@@ -13,7 +13,7 @@ import {
   releaseFunds,
   openDispute,
   markOrderCompleted,
-  type OpenDisputePayload
+  type OpenDisputePayload,
 } from "@/lib/api/orders";
 import { getOrderReview, submitOrderReview, submitReviewResponse } from "@/lib/api/reviews";
 import type { Order } from "@/types/order.types";
@@ -23,16 +23,23 @@ import { cn } from "@/lib/cn";
 import { Icon, ICON_PATHS, LoadingSpinner } from "@/components/ui/Icon";
 import { NEUMORPHIC_CARD, NEUMORPHIC_INSET, PRIMARY_BUTTON, DANGER_BUTTON } from "@/lib/styles";
 import { StarRating } from "@/components/ui/StarRating";
-import {
-  LeaveReviewModal,
-  ReviewResponse,
-  ReviewResponseForm,
-} from "@/components/rating";
+import { LeaveReviewModal, ReviewResponse, ReviewResponseForm } from "@/components/rating";
+import { OpenDisputeModal } from "@/components/orders/OpenDisputeModal";
 
 // User-friendly step labels
 const STEP_LABELS = {
-  ORDER_CREATED: { step: 1, label: "Order Created", action: "Confirm Order", nextLabel: "Confirm & Reserve Funds" },
-  FUNDS_RESERVED: { step: 2, label: "Payment Confirmed", action: "Start Payment", nextLabel: "Start Secure Payment" },
+  ORDER_CREATED: {
+    step: 1,
+    label: "Order Created",
+    action: "Confirm Order",
+    nextLabel: "Confirm & Reserve Funds",
+  },
+  FUNDS_RESERVED: {
+    step: 2,
+    label: "Payment Confirmed",
+    action: "Start Payment",
+    nextLabel: "Start Secure Payment",
+  },
   ESCROW_CREATING: { step: 3, label: "Setting up...", action: "Processing", nextLabel: null },
   ESCROW_FUNDING: { step: 4, label: "Processing...", action: "Processing", nextLabel: null },
   IN_PROGRESS: { step: 5, label: "Work in Progress", action: null, nextLabel: null },
@@ -62,7 +69,6 @@ export default function OrderDetailPage(): React.JSX.Element {
   // Resolution modals
   const [showReleaseModal, setShowReleaseModal] = useState(false);
   const [showDisputeModal, setShowDisputeModal] = useState(false);
-  const [disputeReason, setDisputeReason] = useState<'NOT_DELIVERED' | 'QUALITY_ISSUE' | 'OTHER'>('QUALITY_ISSUE');
 
   const isBuyer = user?.id === order?.buyerId;
   const isSeller = user?.id === order?.sellerId;
@@ -78,7 +84,7 @@ export default function OrderDetailPage(): React.JSX.Element {
         const data = await getOrderById(token!, orderId);
         setOrder(data);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load order');
+        setError(err instanceof Error ? err.message : "Failed to load order");
       } finally {
         setIsLoading(false);
       }
@@ -133,9 +139,9 @@ export default function OrderDetailPage(): React.JSX.Element {
     try {
       const updated = await reserveFunds(token, orderId);
       setOrder(updated);
-      setSuccess('Order confirmed! Funds reserved successfully.');
+      setSuccess("Order confirmed! Funds reserved successfully.");
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to confirm order');
+      setError(err instanceof Error ? err.message : "Failed to confirm order");
     } finally {
       setIsProcessing(false);
     }
@@ -148,9 +154,9 @@ export default function OrderDetailPage(): React.JSX.Element {
     try {
       const updated = await createEscrow(token, orderId);
       setOrder(updated);
-      setSuccess('Secure payment started successfully!');
+      setSuccess("Secure payment started successfully!");
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to start secure payment');
+      setError(err instanceof Error ? err.message : "Failed to start secure payment");
     } finally {
       setIsProcessing(false);
     }
@@ -163,9 +169,9 @@ export default function OrderDetailPage(): React.JSX.Element {
     try {
       const updated = await fundEscrow(token, orderId);
       setOrder(updated);
-      setSuccess('Payment completed successfully!');
+      setSuccess("Payment completed successfully!");
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to complete payment');
+      setError(err instanceof Error ? err.message : "Failed to complete payment");
     } finally {
       setIsProcessing(false);
     }
@@ -173,16 +179,16 @@ export default function OrderDetailPage(): React.JSX.Element {
 
   async function handleCancel() {
     if (!token) return;
-    if (!confirm('Are you sure you want to cancel this order?')) return;
+    if (!confirm("Are you sure you want to cancel this order?")) return;
 
     setIsProcessing(true);
     setError(null);
     try {
       const updated = await cancelOrder(token, orderId);
       setOrder(updated);
-      setSuccess('Order cancelled successfully.');
+      setSuccess("Order cancelled successfully.");
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to cancel order');
+      setError(err instanceof Error ? err.message : "Failed to cancel order");
     } finally {
       setIsProcessing(false);
     }
@@ -195,10 +201,10 @@ export default function OrderDetailPage(): React.JSX.Element {
     try {
       const updated = await releaseFunds(token, orderId);
       setOrder(updated);
-      setSuccess('Funds released successfully! Payment has been sent to the freelancer.');
+      setSuccess("Funds released successfully! Payment has been sent to the freelancer.");
       setShowReleaseModal(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to release funds');
+      setError(err instanceof Error ? err.message : "Failed to release funds");
     } finally {
       setIsProcessing(false);
     }
@@ -211,32 +217,36 @@ export default function OrderDetailPage(): React.JSX.Element {
     try {
       const updated = await markOrderCompleted(token, orderId);
       setOrder(updated);
-      setSuccess('Work marked as completed! The client will be notified to review.');
+      setSuccess("Work marked as completed! The client will be notified to review.");
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to mark order as completed');
+      setError(err instanceof Error ? err.message : "Failed to mark order as completed");
     } finally {
       setIsProcessing(false);
     }
   }
 
-  async function handleOpenDispute() {
+  async function handleOpenDispute(
+    reason: "NOT_DELIVERED" | "QUALITY_ISSUE" | "OTHER",
+    description: string
+  ) {
     if (!token) return;
     setIsProcessing(true);
     setError(null);
     try {
       const payload: OpenDisputePayload = {
         orderId: orderId,
-        openedBy: isBuyer ? 'BUYER' : 'SELLER',
-        reason: disputeReason,
+        openedBy: isBuyer ? "BUYER" : "SELLER",
+        reason,
+        description,
       };
       await openDispute(token, payload);
-      setSuccess('Dispute opened successfully. Our team will review and contact you soon.');
-      setShowDisputeModal(false);
+      setSuccess("Dispute opened successfully. Our team will review and contact you soon.");
       // Refresh order to get updated status
       const updated = await getOrderById(token, orderId);
       setOrder(updated);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to open dispute');
+      setError(err instanceof Error ? err.message : "Failed to open dispute");
+      throw err;
     } finally {
       setIsProcessing(false);
     }
@@ -295,7 +305,9 @@ export default function OrderDetailPage(): React.JSX.Element {
         <div className={cn(NEUMORPHIC_CARD, "text-center py-12")}>
           <Icon path={ICON_PATHS.alertCircle} size="lg" className="text-error mx-auto mb-4" />
           <h2 className="text-xl font-semibold text-text-primary mb-2">Order Not Found</h2>
-          <p className="text-text-secondary mb-6">The order you're looking for doesn't exist or you don't have access.</p>
+          <p className="text-text-secondary mb-6">
+            The order you're looking for doesn't exist or you don't have access.
+          </p>
           <Link href="/app/orders" className={PRIMARY_BUTTON}>
             Back to Orders
           </Link>
@@ -306,14 +318,19 @@ export default function OrderDetailPage(): React.JSX.Element {
 
   const statusConfig = ORDER_STATUS_CONFIG[order.status] || {
     label: order.status,
-    color: 'text-text-secondary',
-    bg: 'bg-text-secondary/10'
+    color: "text-text-secondary",
+    bg: "bg-text-secondary/10",
   };
-  const stepInfo = STEP_LABELS[order.status as keyof typeof STEP_LABELS] || { step: 1, label: order.status };
+  const stepInfo = STEP_LABELS[order.status as keyof typeof STEP_LABELS] || {
+    step: 1,
+    label: order.status,
+  };
   const amount = parseFloat(order.amount);
   const otherUser = isBuyer ? order.seller : order.buyer;
   const canLeaveReview = isBuyer && isOrderComplete && !review;
-  const canRespondToReview = Boolean(review && isSeller && user?.id === review.revieweeId && !review.response);
+  const canRespondToReview = Boolean(
+    review && isSeller && user?.id === review.revieweeId && !review.response
+  );
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
@@ -331,14 +348,20 @@ export default function OrderDetailPage(): React.JSX.Element {
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-text-primary mb-2">{order.title}</h1>
-            <p className="text-text-secondary text-sm">Order #{order.id?.slice(-8) || 'N/A'}</p>
+            <p className="text-text-secondary text-sm">Order #{order.id?.slice(-8) || "N/A"}</p>
           </div>
           <div className="flex items-center gap-4">
             <div className="text-right">
               <p className="text-sm text-text-secondary">Amount</p>
               <p className="text-2xl font-bold text-primary">${amount.toFixed(2)}</p>
             </div>
-            <span className={cn("px-3 py-1 rounded-lg text-sm font-medium whitespace-nowrap", statusConfig.bg, statusConfig.color)}>
+            <span
+              className={cn(
+                "px-3 py-1 rounded-lg text-sm font-medium whitespace-nowrap",
+                statusConfig.bg,
+                statusConfig.color
+              )}
+            >
               {stepInfo.label}
             </span>
           </div>
@@ -402,11 +425,13 @@ export default function OrderDetailPage(): React.JSX.Element {
 
       {/* Notifications */}
       {error && (
-        <div className={cn(
-          "p-4 rounded-xl flex items-start gap-3",
-          NEUMORPHIC_INSET,
-          "border-l-4 border-error"
-        )}>
+        <div
+          className={cn(
+            "p-4 rounded-xl flex items-start gap-3",
+            NEUMORPHIC_INSET,
+            "border-l-4 border-error"
+          )}
+        >
           <div className="w-8 h-8 rounded-full bg-error/10 flex items-center justify-center flex-shrink-0">
             <Icon path={ICON_PATHS.alertCircle} size="sm" className="text-error" />
           </div>
@@ -427,11 +452,13 @@ export default function OrderDetailPage(): React.JSX.Element {
       )}
 
       {success && (
-        <div className={cn(
-          "p-4 rounded-xl flex items-start gap-3",
-          NEUMORPHIC_INSET,
-          "border-l-4 border-success"
-        )}>
+        <div
+          className={cn(
+            "p-4 rounded-xl flex items-start gap-3",
+            NEUMORPHIC_INSET,
+            "border-l-4 border-success"
+          )}
+        >
           <div className="w-8 h-8 rounded-full bg-success/10 flex items-center justify-center flex-shrink-0">
             <Icon path={ICON_PATHS.check} size="sm" className="text-success" />
           </div>
@@ -462,16 +489,16 @@ export default function OrderDetailPage(): React.JSX.Element {
             {otherUser?.avatar ? (
               <img
                 src={otherUser.avatar}
-                alt={otherUser.name || 'User'}
+                alt={otherUser.name || "User"}
                 className="w-12 h-12 rounded-full"
               />
             ) : (
               <div className="w-12 h-12 rounded-full bg-primary text-white flex items-center justify-center font-semibold">
-                {otherUser?.name?.charAt(0) || otherUser?.email?.charAt(0) || '?'}
+                {otherUser?.name?.charAt(0) || otherUser?.email?.charAt(0) || "?"}
               </div>
             )}
             <div>
-              <p className="font-medium text-text-primary">{otherUser?.name || 'Unknown'}</p>
+              <p className="font-medium text-text-primary">{otherUser?.name || "Unknown"}</p>
               <p className="text-sm text-text-secondary">{otherUser?.email}</p>
             </div>
           </div>
@@ -480,7 +507,7 @@ export default function OrderDetailPage(): React.JSX.Element {
         {/* Description */}
         <div className={NEUMORPHIC_CARD}>
           <h2 className="text-lg font-semibold text-text-primary mb-4">Description</h2>
-          <p className="text-text-secondary">{order.description || 'No description provided'}</p>
+          <p className="text-text-secondary">{order.description || "No description provided"}</p>
         </div>
       </div>
 
@@ -493,8 +520,8 @@ export default function OrderDetailPage(): React.JSX.Element {
                 {review
                   ? "Feedback captured for this completed order."
                   : canLeaveReview
-                  ? "Share your experience after order completion."
-                  : "Reviews will appear here after the client submits one."}
+                    ? "Share your experience after order completion."
+                    : "Reviews will appear here after the client submits one."}
               </p>
             </div>
 
@@ -549,10 +576,7 @@ export default function OrderDetailPage(): React.JSX.Element {
               </p>
 
               {review.response ? (
-                <ReviewResponse
-                  response={review.response}
-                  responderName={review.revieweeName}
-                />
+                <ReviewResponse response={review.response} responderName={review.revieweeName} />
               ) : null}
 
               {canRespondToReview ? (
@@ -576,18 +600,16 @@ export default function OrderDetailPage(): React.JSX.Element {
         <div className={NEUMORPHIC_CARD}>
           <h2 className="text-lg font-semibold text-text-primary mb-4">Next Steps</h2>
 
-          {order.status === 'ORDER_CREATED' && (
+          {order.status === "ORDER_CREATED" && (
             <div className="space-y-4">
-              <div className={cn(
-                "p-5 rounded-xl",
-                NEUMORPHIC_INSET
-              )}>
+              <div className={cn("p-5 rounded-xl", NEUMORPHIC_INSET)}>
                 <div className="flex items-start gap-3 mb-4">
                   <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                     <Icon path={ICON_PATHS.infoCircle} size="sm" className="text-primary" />
                   </div>
                   <p className="text-sm text-text-secondary pt-2">
-                    Confirm this order to reserve funds from your balance. The freelancer will be notified to start work.
+                    Confirm this order to reserve funds from your balance. The freelancer will be
+                    notified to start work.
                   </p>
                 </div>
                 <button
@@ -608,25 +630,27 @@ export default function OrderDetailPage(): React.JSX.Element {
                   )}
                 </button>
               </div>
-              <button onClick={handleCancel} disabled={isProcessing} className={cn(DANGER_BUTTON, "w-full justify-center")}>
+              <button
+                onClick={handleCancel}
+                disabled={isProcessing}
+                className={cn(DANGER_BUTTON, "w-full justify-center")}
+              >
                 <Icon path={ICON_PATHS.close} size="sm" />
                 <span>Cancel Order</span>
               </button>
             </div>
           )}
 
-          {order.status === 'FUNDS_RESERVED' && (
+          {order.status === "FUNDS_RESERVED" && (
             <div className="space-y-4">
-              <div className={cn(
-                "p-5 rounded-xl",
-                NEUMORPHIC_INSET
-              )}>
+              <div className={cn("p-5 rounded-xl", NEUMORPHIC_INSET)}>
                 <div className="flex items-start gap-3 mb-4">
                   <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                     <Icon path={ICON_PATHS.lock} size="sm" className="text-primary" />
                   </div>
                   <p className="text-sm text-text-secondary pt-2">
-                    Start secure payment to lock funds in escrow. This protects both you and the freelancer.
+                    Start secure payment to lock funds in escrow. This protects both you and the
+                    freelancer.
                   </p>
                 </div>
                 <button
@@ -650,34 +674,42 @@ export default function OrderDetailPage(): React.JSX.Element {
             </div>
           )}
 
-          {(order.status === 'ESCROW_CREATING' || order.status === 'ESCROW_FUNDING') && (
-            <div className={cn(
-              "p-5 rounded-xl flex items-center gap-4",
-              "bg-background shadow-[inset_3px_3px_6px_rgba(245,158,11,0.1),inset_-3px_-3px_6px_#ffffff]",
-              "border-l-4 border-warning"
-            )}>
+          {(order.status === "ESCROW_CREATING" || order.status === "ESCROW_FUNDING") && (
+            <div
+              className={cn(
+                "p-5 rounded-xl flex items-center gap-4",
+                "bg-background shadow-[inset_3px_3px_6px_rgba(245,158,11,0.1),inset_-3px_-3px_6px_#ffffff]",
+                "border-l-4 border-warning"
+              )}
+            >
               <div className="w-10 h-10 rounded-full bg-warning/10 flex items-center justify-center flex-shrink-0">
                 <LoadingSpinner size="sm" />
               </div>
               <div>
                 <p className="font-semibold text-text-primary mb-1">Processing Payment...</p>
-                <p className="text-sm text-text-secondary">This may take a few moments. Please wait.</p>
+                <p className="text-sm text-text-secondary">
+                  This may take a few moments. Please wait.
+                </p>
               </div>
             </div>
           )}
 
-          {order.status === 'IN_PROGRESS' && (
+          {order.status === "IN_PROGRESS" && (
             <div className="space-y-4">
-              <div className={cn(
-                "p-4 rounded-xl",
-                NEUMORPHIC_INSET,
-                isWorkCompleted ? "border-l-4 border-warning" : "border-l-4 border-success"
-              )}>
+              <div
+                className={cn(
+                  "p-4 rounded-xl",
+                  NEUMORPHIC_INSET,
+                  isWorkCompleted ? "border-l-4 border-warning" : "border-l-4 border-success"
+                )}
+              >
                 <div className="flex items-start gap-3">
-                  <div className={cn(
-                    "w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0",
-                    isWorkCompleted ? "bg-warning/10" : "bg-success/10"
-                  )}>
+                  <div
+                    className={cn(
+                      "w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0",
+                      isWorkCompleted ? "bg-warning/10" : "bg-success/10"
+                    )}
+                  >
                     <Icon
                       path={isWorkCompleted ? ICON_PATHS.alertCircle : ICON_PATHS.check}
                       size="sm"
@@ -686,13 +718,12 @@ export default function OrderDetailPage(): React.JSX.Element {
                   </div>
                   <div>
                     <p className="font-semibold text-text-primary text-sm">
-                      {isWorkCompleted ? 'Work Completed - Please Review' : 'Payment Secured'}
+                      {isWorkCompleted ? "Work Completed - Please Review" : "Payment Secured"}
                     </p>
                     <p className="text-xs text-text-secondary">
                       {isWorkCompleted
-                        ? 'The freelancer has marked the work as completed. Please review and release funds or open a dispute if needed.'
-                        : 'Funds are safely held in escrow. The freelancer is now working on your order.'
-                      }
+                        ? "The freelancer has marked the work as completed. Please review and release funds or open a dispute if needed."
+                        : "Funds are safely held in escrow. The freelancer is now working on your order."}
                     </p>
                   </div>
                 </div>
@@ -743,12 +774,8 @@ export default function OrderDetailPage(): React.JSX.Element {
         <div className={NEUMORPHIC_CARD}>
           <h2 className="text-lg font-semibold text-text-primary mb-4">Order Status</h2>
 
-          {order.status === 'ORDER_CREATED' && (
-            <div className={cn(
-              "p-5 rounded-xl",
-              NEUMORPHIC_INSET,
-              "border-l-4 border-warning"
-            )}>
+          {order.status === "ORDER_CREATED" && (
+            <div className={cn("p-5 rounded-xl", NEUMORPHIC_INSET, "border-l-4 border-warning")}>
               <div className="flex items-start gap-3">
                 <div className="w-10 h-10 rounded-full bg-warning/10 flex items-center justify-center flex-shrink-0">
                   <Icon path={ICON_PATHS.clock} size="sm" className="text-warning" />
@@ -760,12 +787,8 @@ export default function OrderDetailPage(): React.JSX.Element {
             </div>
           )}
 
-          {order.status === 'FUNDS_RESERVED' && (
-            <div className={cn(
-              "p-5 rounded-xl",
-              NEUMORPHIC_INSET,
-              "border-l-4 border-primary"
-            )}>
+          {order.status === "FUNDS_RESERVED" && (
+            <div className={cn("p-5 rounded-xl", NEUMORPHIC_INSET, "border-l-4 border-primary")}>
               <div className="flex items-start gap-3">
                 <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                   <Icon path={ICON_PATHS.lock} size="sm" className="text-primary" />
@@ -777,18 +800,22 @@ export default function OrderDetailPage(): React.JSX.Element {
             </div>
           )}
 
-          {order.status === 'IN_PROGRESS' && (
+          {order.status === "IN_PROGRESS" && (
             <div className="space-y-4">
-              <div className={cn(
-                "p-4 rounded-xl",
-                NEUMORPHIC_INSET,
-                isWorkCompleted ? "border-l-4 border-success" : "border-l-4 border-primary"
-              )}>
+              <div
+                className={cn(
+                  "p-4 rounded-xl",
+                  NEUMORPHIC_INSET,
+                  isWorkCompleted ? "border-l-4 border-success" : "border-l-4 border-primary"
+                )}
+              >
                 <div className="flex items-start gap-3">
-                  <div className={cn(
-                    "w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0",
-                    isWorkCompleted ? "bg-success/10" : "bg-primary/10"
-                  )}>
+                  <div
+                    className={cn(
+                      "w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0",
+                      isWorkCompleted ? "bg-success/10" : "bg-primary/10"
+                    )}
+                  >
                     <Icon
                       path={isWorkCompleted ? ICON_PATHS.check : ICON_PATHS.briefcase}
                       size="sm"
@@ -797,13 +824,12 @@ export default function OrderDetailPage(): React.JSX.Element {
                   </div>
                   <div>
                     <p className="font-semibold text-text-primary text-sm">
-                      {isWorkCompleted ? 'Waiting for Client Review' : 'Ready to Start'}
+                      {isWorkCompleted ? "Waiting for Client Review" : "Ready to Start"}
                     </p>
                     <p className="text-xs text-text-secondary">
                       {isWorkCompleted
-                        ? 'You have marked the work as completed. Waiting for the client to review and release funds.'
-                        : 'Payment is secured. You can now start working on this order! When finished, mark as completed.'
-                      }
+                        ? "You have marked the work as completed. Waiting for the client to review and release funds."
+                        : "Payment is secured. You can now start working on this order! When finished, mark as completed."}
                     </p>
                   </div>
                 </div>
@@ -884,16 +910,19 @@ export default function OrderDetailPage(): React.JSX.Element {
 
           <div className="space-y-4">
             {/* Status */}
-            <div className={cn(
-              "flex justify-between items-center p-3 rounded-lg",
-              NEUMORPHIC_INSET
-            )}>
+            <div
+              className={cn("flex justify-between items-center p-3 rounded-lg", NEUMORPHIC_INSET)}
+            >
               <span className="text-text-secondary">Status</span>
-              <span className={cn(
-                "px-2 py-1 rounded text-xs font-medium",
-                (order.status === 'CLOSED' || order.escrow.status === 'FUNDED') ? 'bg-success/10 text-success' : 'bg-warning/10 text-warning'
-              )}>
-                {order.status === 'CLOSED' ? 'COMPLETED' : order.escrow.status}
+              <span
+                className={cn(
+                  "px-2 py-1 rounded text-xs font-medium",
+                  order.status === "CLOSED" || order.escrow.status === "FUNDED"
+                    ? "bg-success/10 text-success"
+                    : "bg-warning/10 text-warning"
+                )}
+              >
+                {order.status === "CLOSED" ? "COMPLETED" : order.escrow.status}
               </span>
             </div>
 
@@ -905,10 +934,7 @@ export default function OrderDetailPage(): React.JSX.Element {
                     Smart Contract Address
                   </label>
                   <div className="flex gap-2">
-                    <div className={cn(
-                      "flex-1 p-3 rounded-lg",
-                      NEUMORPHIC_INSET
-                    )}>
+                    <div className={cn("flex-1 p-3 rounded-lg", NEUMORPHIC_INSET)}>
                       <p className="font-mono text-xs text-text-primary break-all">
                         {order.escrow.trustlessContractId}
                       </p>
@@ -916,7 +942,7 @@ export default function OrderDetailPage(): React.JSX.Element {
                     <button
                       onClick={() => {
                         navigator.clipboard.writeText(order.escrow!.trustlessContractId!);
-                        setSuccess('Address copied to clipboard!');
+                        setSuccess("Address copied to clipboard!");
                       }}
                       className={cn(
                         "px-4 py-3 rounded-lg font-medium transition-all",
@@ -951,7 +977,8 @@ export default function OrderDetailPage(): React.JSX.Element {
                 </a>
 
                 <p className="text-xs text-text-secondary text-center">
-                  This link will take you to Stellar's blockchain explorer where you can view the real-time status of your escrow smart contract
+                  This link will take you to Stellar's blockchain explorer where you can view the
+                  real-time status of your escrow smart contract
                 </p>
               </div>
             )}
@@ -970,7 +997,9 @@ export default function OrderDetailPage(): React.JSX.Element {
               <h3 className="text-xl font-bold text-text-primary">Release Funds</h3>
             </div>
             <p className="text-text-secondary mb-6">
-              Are you satisfied with the work? This will release <span className="font-semibold text-primary">${amount.toFixed(2)}</span> to the freelancer. This action cannot be undone.
+              Are you satisfied with the work? This will release{" "}
+              <span className="font-semibold text-primary">${amount.toFixed(2)}</span> to the
+              freelancer. This action cannot be undone.
             </p>
             <div className="flex gap-3">
               <button
@@ -1016,83 +1045,12 @@ export default function OrderDetailPage(): React.JSX.Element {
       )}
 
       {/* Open Dispute Modal */}
-      {showDisputeModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className={cn(NEUMORPHIC_CARD, "max-w-md w-full")}>
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-12 h-12 rounded-full bg-error/10 flex items-center justify-center">
-                <Icon path={ICON_PATHS.flag} size="md" className="text-error" />
-              </div>
-              <h3 className="text-xl font-bold text-text-primary">Open Dispute</h3>
-            </div>
-            <p className="text-text-secondary mb-4">
-              Opening a dispute will pause this order and our support team will mediate the resolution.
-            </p>
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-text-secondary mb-2">
-                Reason for dispute
-              </label>
-              <select
-                value={disputeReason}
-                onChange={(e) =>
-                  setDisputeReason(
-                    e.target.value as "NOT_DELIVERED" | "QUALITY_ISSUE" | "OTHER"
-                  )
-                }
-                className={cn(
-                  "w-full px-4 py-3 rounded-xl",
-                  "bg-background text-text-primary",
-                  "shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]",
-                  "outline-none focus:ring-2 focus:ring-error/20"
-                )}
-              >
-                <option value="QUALITY_ISSUE">Quality Issue</option>
-                <option value="NOT_DELIVERED">Work Not Delivered</option>
-                <option value="OTHER">Other</option>
-              </select>
-            </div>
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowDisputeModal(false)}
-                disabled={isProcessing}
-                className={cn(
-                  "flex-1 px-4 py-2 rounded-lg font-medium transition-all text-sm",
-                  "bg-background text-text-secondary",
-                  "shadow-[3px_3px_6px_#d1d5db,-3px_-3px_6px_#ffffff]",
-                  "hover:shadow-[2px_2px_4px_#d1d5db,-2px_-2px_4px_#ffffff]",
-                  "active:shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]"
-                )}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleOpenDispute}
-                disabled={isProcessing}
-                className={cn(
-                  "flex-1 px-4 py-2 rounded-lg font-medium transition-all text-sm",
-                  "bg-background text-error",
-                  "shadow-[3px_3px_6px_#d1d5db,-3px_-3px_6px_#ffffff]",
-                  "hover:shadow-[2px_2px_4px_#d1d5db,-2px_-2px_4px_#ffffff]",
-                  "active:shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]",
-                  "flex items-center justify-center gap-2"
-                )}
-              >
-                {isProcessing ? (
-                  <>
-                    <LoadingSpinner size="sm" />
-                    <span>Opening...</span>
-                  </>
-                ) : (
-                  <>
-                    <Icon path={ICON_PATHS.flag} size="sm" />
-                    <span>Open</span>
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <OpenDisputeModal
+        isOpen={showDisputeModal}
+        orderTitle={order.title}
+        onClose={() => setShowDisputeModal(false)}
+        onSubmit={handleOpenDispute}
+      />
 
       <LeaveReviewModal
         isOpen={isReviewModalOpen}

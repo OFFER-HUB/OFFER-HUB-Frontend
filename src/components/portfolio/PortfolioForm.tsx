@@ -3,7 +3,9 @@
 import { useState, useRef, KeyboardEvent } from "react";
 import { cn } from "@/lib/cn";
 import { Icon, ICON_PATHS, LoadingSpinner } from "@/components/ui/Icon";
-import { ImageUpload } from "@/components/ui/ImageUpload";
+import { useAuthStore } from "@/stores/auth-store";
+import { ImageUploader } from "@/components/portfolio/ImageUploader";
+import { ImageGallery } from "@/components/portfolio/ImageGallery";
 import {
   NEUMORPHIC_CARD,
   NEUMORPHIC_INPUT,
@@ -20,8 +22,8 @@ import {
   type PortfolioFormData,
   type PortfolioFormErrors,
   type PortfolioCategory,
+  type PortfolioImageEntry,
 } from "@/types/portfolio.types";
-import { MAX_FILE_SIZE } from "@/data/portfolio.data";
 
 // ─── Tip content ──────────────────────────────────────────────────────────────
 
@@ -129,8 +131,8 @@ function PreviewPanel({ data }: PreviewPanelProps) {
       <div className="relative h-40 bg-gray-100">
         {data.images.length > 0 ? (
           <img
-            src={data.images[0]}
-            alt="Preview"
+            src={data.images[0].url}
+            alt={data.images[0].caption || "Preview"}
             className="w-full h-full object-cover"
           />
         ) : (
@@ -270,6 +272,7 @@ export function PortfolioForm({
   onSubmit,
   onCancel,
 }: PortfolioFormProps): React.JSX.Element {
+  const { token } = useAuthStore();
   const [formData, setFormData] = useState<PortfolioFormData>(initialData);
   const [errors, setErrors] = useState<PortfolioFormErrors>({});
   const [showPreview, setShowPreview] = useState(false);
@@ -289,25 +292,34 @@ export function PortfolioForm({
     }
   }
 
-  function handleUpload(files: File[]) {
-    const remaining = MAX_IMAGES_PER_ITEM - formData.images.length;
-    files.slice(0, remaining).forEach((file) => {
-      if (file.size > MAX_FILE_SIZE) return;
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setFormData((prev) => ({
-          ...prev,
-          images: [...prev.images, reader.result as string],
-        }));
-      };
-      reader.readAsDataURL(file);
-    });
+  function handleImagesAdded(entries: PortfolioImageEntry[]) {
+    setFormData((prev) => ({
+      ...prev,
+      images: [...prev.images, ...entries].slice(0, MAX_IMAGES_PER_ITEM),
+    }));
+    if (errors.images) setErrors((e) => ({ ...e, images: undefined }));
   }
 
   function handleRemoveImage(index: number) {
     setFormData((prev) => ({
       ...prev,
       images: prev.images.filter((_, i) => i !== index),
+    }));
+  }
+
+  function handleReorder(fromIndex: number, toIndex: number) {
+    setFormData((prev) => {
+      const next = [...prev.images];
+      const [removed] = next.splice(fromIndex, 1);
+      next.splice(toIndex, 0, removed);
+      return { ...prev, images: next };
+    });
+  }
+
+  function handleCaptionChange(index: number, caption: string) {
+    setFormData((prev) => ({
+      ...prev,
+      images: prev.images.map((im, i) => (i === index ? { ...im, caption } : im)),
     }));
   }
 
@@ -466,38 +478,27 @@ export function PortfolioForm({
           </div>
 
           {/* Images */}
-          <FormField label="Images" hint={`up to ${MAX_IMAGES_PER_ITEM}`} error={errors.images}>
-            <ImageUpload
-              variant="multiple"
-              label={`Upload images (${formData.images.length}/${MAX_IMAGES_PER_ITEM})`}
-              onUpload={handleUpload}
+          <FormField
+            label="Images"
+            hint={`${formData.images.length}/${MAX_IMAGES_PER_ITEM} · drag to reorder`}
+            error={errors.images}
+          >
+            <ImageUploader
+              token={token}
+              maxTotal={MAX_IMAGES_PER_ITEM}
+              currentCount={formData.images.length}
+              onImagesAdded={handleImagesAdded}
               error={errors.images}
+              disabled={isLoading}
             />
-            {formData.images.length > 0 && (
-              <div className="flex flex-wrap gap-2 mt-3">
-                {formData.images.map((img, idx) => (
-                  <div key={idx} className="relative group">
-                    <img
-                      src={img}
-                      alt={`Preview ${idx + 1}`}
-                      className="w-20 h-20 object-cover rounded-lg"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveImage(idx)}
-                      className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-error text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      <Icon path={ICON_PATHS.close} size="sm" />
-                    </button>
-                    {idx === 0 && (
-                      <span className="absolute bottom-0 left-0 right-0 text-center text-[10px] bg-black/50 text-white rounded-b-lg py-0.5">
-                        Cover
-                      </span>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
+            <ImageGallery
+              images={formData.images}
+              onReorder={handleReorder}
+              onRemove={handleRemoveImage}
+              onCaptionChange={handleCaptionChange}
+              disabled={isLoading}
+              className="mt-4"
+            />
           </FormField>
 
           {/* Public toggle */}

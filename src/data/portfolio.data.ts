@@ -3,6 +3,18 @@ import type { PortfolioItem } from "@/types/portfolio.types";
 export const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 export const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/gif", "image/webp"];
 
+/** Returns an error message or null if the file is valid for portfolio images. */
+export function validatePortfolioImageFile(file: File): string | null {
+  if (file.size > MAX_FILE_SIZE) {
+    const mb = (file.size / (1024 * 1024)).toFixed(1);
+    return `Each image must be ${MAX_FILE_SIZE / (1024 * 1024)}MB or smaller (this file is ${mb}MB)`;
+  }
+  if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+    return "Use JPEG, PNG, WebP, or GIF — this file type is not supported";
+  }
+  return null;
+}
+
 export const MOCK_PORTFOLIO_ITEMS: PortfolioItem[] = [
   {
     id: "p-1",
@@ -12,8 +24,14 @@ export const MOCK_PORTFOLIO_ITEMS: PortfolioItem[] = [
     category: "web_development",
     tags: ["React", "TypeScript", "Tailwind CSS", "UX"],
     images: [
-      "https://images.unsplash.com/photo-1661956602116-aa6865609028?w=800&auto=format&fit=crop&q=60",
-      "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&auto=format&fit=crop&q=60",
+      {
+        id: "p-1-a",
+        url: "https://images.unsplash.com/photo-1661956602116-aa6865609028?w=800&auto=format&fit=crop&q=60",
+      },
+      {
+        id: "p-1-b",
+        url: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&auto=format&fit=crop&q=60",
+      },
     ],
     projectUrl: "https://example.com/ecommerce-project",
     startDate: "2023-10-01",
@@ -31,8 +49,14 @@ export const MOCK_PORTFOLIO_ITEMS: PortfolioItem[] = [
     category: "web_development",
     tags: ["Next.js", "Web3.js", "DeFi", "Charts"],
     images: [
-      "https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=800&auto=format&fit=crop&q=60",
-      "https://images.unsplash.com/photo-1642790106117-e829e14a795f?w=800&auto=format&fit=crop&q=60",
+      {
+        id: "p-2-a",
+        url: "https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=800&auto=format&fit=crop&q=60",
+      },
+      {
+        id: "p-2-b",
+        url: "https://images.unsplash.com/photo-1642790106117-e829e14a795f?w=800&auto=format&fit=crop&q=60",
+      },
     ],
     projectUrl: "https://example.com/defi-dashboard",
     repoUrl: "https://github.com/example/defi-dashboard",
@@ -51,7 +75,10 @@ export const MOCK_PORTFOLIO_ITEMS: PortfolioItem[] = [
     category: "ui_ux_design",
     tags: ["Figma", "React Native", "Accessibility", "Finance"],
     images: [
-      "https://images.unsplash.com/photo-1563986768609-322da13575f3?w=800&auto=format&fit=crop&q=60",
+      {
+        id: "p-3-a",
+        url: "https://images.unsplash.com/photo-1563986768609-322da13575f3?w=800&auto=format&fit=crop&q=60",
+      },
     ],
     projectUrl: "https://example.com/banking-app",
     startDate: "2024-01-10",
@@ -69,8 +96,14 @@ export const MOCK_PORTFOLIO_ITEMS: PortfolioItem[] = [
     category: "data_science",
     tags: ["React", "Node.js", "PostgreSQL", "Recharts"],
     images: [
-      "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&auto=format&fit=crop&q=60",
-      "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&auto=format&fit=crop&q=60",
+      {
+        id: "p-4-a",
+        url: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&auto=format&fit=crop&q=60",
+      },
+      {
+        id: "p-4-b",
+        url: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&auto=format&fit=crop&q=60",
+      },
     ],
     repoUrl: "https://github.com/example/saas-analytics",
     startDate: "2023-12-01",
@@ -88,7 +121,10 @@ export const MOCK_PORTFOLIO_ITEMS: PortfolioItem[] = [
     category: "graphic_design",
     tags: ["Branding", "Logo", "Figma", "Illustrator"],
     images: [
-      "https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=800&auto=format&fit=crop&q=60",
+      {
+        id: "p-5-a",
+        url: "https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=800&auto=format&fit=crop&q=60",
+      },
     ],
     startDate: "2024-02-01",
     endDate: "2024-03-15",
