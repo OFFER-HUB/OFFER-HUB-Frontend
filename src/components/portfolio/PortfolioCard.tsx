@@ -43,8 +43,8 @@ export function PortfolioCard({
       <div className="relative h-48 bg-gray-100 shrink-0">
         {item.images.length > 0 ? (
           <img
-            src={item.images[0]}
-            alt={item.title}
+            src={item.images[0].url}
+            alt={item.images[0].caption || item.title}
             className="w-full h-full object-cover"
           />
         ) : (

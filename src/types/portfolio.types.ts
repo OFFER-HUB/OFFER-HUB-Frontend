@@ -27,13 +27,20 @@ export const PORTFOLIO_CATEGORY_LABELS: Record<PortfolioCategory, string> = {
 
 // ─── Core models ──────────────────────────────────────────────────────────────
 
+/** One image in a portfolio project (URL + optional caption / alt text). */
+export interface PortfolioImageEntry {
+  id: string;
+  url: string;
+  caption?: string;
+}
+
 export interface PortfolioItem {
   id: string;
   title: string;
   description: string;
   category: PortfolioCategory;
   tags: string[];
-  images: string[];
+  images: PortfolioImageEntry[];
   /** Live URL of the project */
   projectUrl?: string;
   /** GitHub / source code URL */
@@ -57,7 +64,7 @@ export interface PortfolioFormData {
   description: string;
   category: PortfolioCategory;
   tags: string[];
-  images: string[];
+  images: PortfolioImageEntry[];
   projectUrl: string;
   repoUrl: string;
   startDate: string;
@@ -80,6 +87,7 @@ export interface PortfolioFormErrors {
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 export const MAX_IMAGES_PER_ITEM = 5;
+export const MAX_IMAGE_CAPTION_LENGTH = 160;
 export const MAX_TITLE_LENGTH = 100;
 export const MAX_DESCRIPTION_LENGTH = 600;
 export const MAX_TAGS = 8;
