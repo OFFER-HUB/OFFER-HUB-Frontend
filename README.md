@@ -50,4 +50,4 @@ docs/            # Documentation
 
 ## Tech Stack
 
-Next.js 16 · React 19 · TypeScript 5 · Tailwind CSS 4 · Zod 4 · Auth.js v5 · Zustand · React Query · React Hook Form
+Next.js 16 · React 19 · TypeScript 5 · Tailwind CSS 4 · Zod 4 · Auth.js v5 · Zustand · React Query 
