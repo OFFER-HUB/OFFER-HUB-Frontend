@@ -10,6 +10,7 @@ import { useSidebarStore } from "@/stores/sidebar-store";
 import { useAuthStore } from "@/stores/auth-store";
 
 const ADMIN_NAV_ITEMS = [
+  { href: "/admin/analytics", label: "Analytics", icon: ICON_PATHS.chartBar },
   { href: "/admin/users", label: "Users", icon: ICON_PATHS.users },
   { href: "/admin/disputes", label: "Disputes", icon: ICON_PATHS.flag },
 ];

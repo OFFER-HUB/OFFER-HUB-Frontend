@@ -5,6 +5,21 @@ export async function POST(request: NextRequest) {
   try {
     const { email, password } = await request.json();
 
+    // MOCK ADMIN LOGIN: For development, allow admin login with admin@offerhub.com
+    if (email === "admin@offerhub.com" && password === "admin123") {
+      return NextResponse.json({
+        user: {
+          id: "admin-1",
+          email: "admin@offerhub.com",
+          username: "admin",
+          type: "ADMIN",
+          balance: { available: "0", reserved: "0" },
+          wallet: null,
+        },
+        token: "mock-admin-token",
+      });
+    }
+
     // Call API login endpoint
     const response = await fetch(`${API_URL}/auth/login`, {
       method: "POST",
