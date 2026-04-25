@@ -1,16 +1,55 @@
-import { create } from "zustand";
-import type { Conversation, ChatMessage, SSEConnectionStatus } from "@/types/chat.types";
+import type { ChatMessage, Conversation, SSEConnectionStatus } from "@/types/chat.types";
 import {
+  sendMessage as apiSendMessage,
   getConversations,
   getMessages,
-  sendMessage as apiSendMessage,
   markMessagesAsRead,
 } from "@/lib/api/chat";
+
+import { create } from "zustand";
 
 const READ_BATCH_DEBOUNCE_MS = 350;
 
 const readBatchTimers: Record<string, ReturnType<typeof setTimeout> | undefined> = {};
 const readBatchLastMessageId: Record<string, string | undefined> = {};
+
+function parseRelativeLastMessageTime (value: string): number {
+  const normalized = value.trim().toLowerCase();
+  const now = Date.now();
+
+  if (normalized === "just now") return now;
+  if (normalized === "yesterday") return now - 24 * 60 * 60 * 1000;
+
+  const relative = normalized.match(/^(\d+)\s*(m|h|d)\s*ago$/);
+  if (relative) {
+    const amount = Number(relative[1]);
+    const unit = relative[2];
+    const multiplier = unit === "m"
+      ? 60 * 1000
+      : unit === "h"
+        ? 60 * 60 * 1000
+        : 24 * 60 * 60 * 1000;
+    return now - amount * multiplier;
+  }
+
+  const absolute = Date.parse(value);
+  return Number.isNaN(absolute) ? 0 : absolute;
+}
+
+function getConversationActivityTimestamp (conversation: Conversation): number {
+  if (conversation.lastMessageAt) {
+    const parsed = Date.parse(conversation.lastMessageAt);
+    if (!Number.isNaN(parsed)) return parsed;
+  }
+
+  return parseRelativeLastMessageTime(conversation.lastMessageTime);
+}
+
+function sortConversationsByRecent (conversations: Conversation[]): Conversation[] {
+  return [...conversations].sort(
+    (a, b) => getConversationActivityTimestamp(b) - getConversationActivityTimestamp(a)
+  );
+}
 
 interface ChatState {
   // Conversations
@@ -78,7 +117,7 @@ export const useChatStore = create<ChatState>()((set, get) => ({
     const res = await getConversations();
     if (res.ok && res.data) {
       set({
-        conversations: res.data.conversations,
+        conversations: sortConversationsByRecent(res.data.conversations),
         conversationsHasMore: res.data.hasMore,
         conversationsCursor: res.data.nextCursor,
       });
@@ -94,7 +133,7 @@ export const useChatStore = create<ChatState>()((set, get) => ({
     const res = await getConversations(conversationsCursor);
     if (res.ok && res.data) {
       set({
-        conversations: [...conversations, ...res.data.conversations],
+        conversations: sortConversationsByRecent([...conversations, ...res.data.conversations]),
         conversationsHasMore: res.data.hasMore,
         conversationsCursor: res.data.nextCursor,
       });
@@ -287,17 +326,22 @@ export const useChatStore = create<ChatState>()((set, get) => ({
   },
 
   updateConversationLastMessage: (conversationId, message) => {
-    set((state) => ({
-      conversations: state.conversations.map((c) =>
+    set((state) => {
+      const updated = state.conversations.map((c) =>
         c.id === conversationId
           ? {
-              ...c,
-              lastMessage: message.content,
-              lastMessageTime: message.timestamp,
-            }
+            ...c,
+            lastMessage: message.content,
+            lastMessageTime: message.timestamp,
+            lastMessageAt: new Date().toISOString(),
+          }
           : c
-      ),
-    }));
+      );
+
+      return {
+        conversations: sortConversationsByRecent(updated),
+      };
+    });
   },
 
   incrementUnread: (conversationId) => {

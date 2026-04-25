@@ -22,6 +22,7 @@ export interface Conversation {
   participant: ChatUser;
   lastMessage: string;
   lastMessageTime: string;
+  lastMessageAt?: string;
   unreadCount: number;
   isTyping?: boolean;
 }

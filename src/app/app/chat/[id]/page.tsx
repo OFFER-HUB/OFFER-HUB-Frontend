@@ -1,23 +1,24 @@
 "use client";
 
-import { useEffect, useState, useRef, useCallback } from "react";
+import { ICON_PATHS, Icon } from "@/components/ui/Icon";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { cn } from "@/lib/cn";
-import { Icon, ICON_PATHS } from "@/components/ui/Icon";
-import { ConversationList } from "@/components/chat/ConversationList";
+
 import { ChatHeader } from "@/components/chat/ChatHeader";
+import { ChatInfoPanel } from "@/components/chat/ChatInfoPanel";
+import { ConnectionStatus } from "@/components/chat/ConnectionStatus";
+import { ConversationList } from "@/components/chat/ConversationList";
+import { MOCK_SHARED_FILES } from "@/data/chat.data";
 import { MessageBubble } from "@/components/chat/MessageBubble";
 import { MessageInput } from "@/components/chat/MessageInput";
-import { ChatInfoPanel } from "@/components/chat/ChatInfoPanel";
 import { TypingIndicator } from "@/components/chat/TypingIndicator";
-import { ConnectionStatus } from "@/components/chat/ConnectionStatus";
-import { MOCK_SHARED_FILES } from "@/data/chat.data";
-import { useSidebarStore } from "@/stores/sidebar-store";
-import { useAuthStore } from "@/stores/auth-store";
-import { useChatStore } from "@/stores/chat-store";
-import { useChatSSE } from "@/hooks/use-chat-sse";
-import { useMarkAsRead } from "@/hooks/use-mark-as-read";
+import { cn } from "@/lib/cn";
 import { sendTypingStatus } from "@/lib/api/chat";
+import { useAuthStore } from "@/stores/auth-store";
+import { useChatSSE } from "@/hooks/use-chat-sse";
+import { useChatStore } from "@/stores/chat-store";
+import { useMarkAsRead } from "@/hooks/use-mark-as-read";
+import { useSidebarStore } from "@/stores/sidebar-store";
 
 export default function ChatThreadPage(): React.JSX.Element {
   const params = useParams();
@@ -40,12 +41,7 @@ export default function ChatThreadPage(): React.JSX.Element {
   const typingUsers = useChatStore((s) => s.typingUsers[chatId] ?? new Set<string>());
   const connectionStatus = useChatStore((s) => s.connectionStatus[chatId] ?? "disconnected");
 
-  const {
-    fetchConversations,
-    fetchMessages,
-    fetchMoreMessages,
-    sendMessage,
-  } = useChatStore();
+  const { fetchConversations, fetchMessages, fetchMoreMessages, sendMessage } = useChatStore();
 
   const activeConversation = conversations.find((c) => c.id === chatId);
 
@@ -133,12 +129,10 @@ export default function ChatThreadPage(): React.JSX.Element {
           >
             <Icon path={ICON_PATHS.chat} size="xl" className="text-primary" />
           </div>
-          <h2 className="text-lg font-bold text-text-primary mb-2">
-            Conversation not found
-          </h2>
+          <h2 className="text-lg font-bold text-text-primary mb-2">Conversation not found</h2>
           <button
             type="button"
-            onClick={() => router.push("/app/chat")}
+            onClick={() => router.push("/app/messages")}
             className={cn(
               "px-5 py-2.5 rounded-xl cursor-pointer",
               "bg-primary text-white text-sm font-medium",
@@ -169,13 +163,13 @@ export default function ChatThreadPage(): React.JSX.Element {
       {/* Conversation list sidebar */}
       <div
         className={cn(
-          "flex-shrink-0 bg-white rounded-2xl overflow-hidden",
+          "shrink-0 bg-white rounded-2xl overflow-hidden",
           "shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff]",
           "transition-all duration-300 ease-in-out",
           "hidden lg:block",
-          conversationsCollapsed ? "lg:w-[80px]" : "lg:w-[340px]",
+          conversationsCollapsed ? "lg:w-20" : "lg:w-85",
           showConversations &&
-            "fixed inset-y-0 left-0 z-50 w-[340px] m-0 rounded-none block lg:relative lg:rounded-2xl"
+            "fixed inset-y-0 left-0 z-50 w-85 m-0 rounded-none block lg:relative lg:rounded-2xl"
         )}
       >
         <ConversationList
@@ -204,7 +198,7 @@ export default function ChatThreadPage(): React.JSX.Element {
               />
             )}
           </div>
-          <ConnectionStatus status={connectionStatus} className="mr-4 flex-shrink-0" />
+          <ConnectionStatus status={connectionStatus} className="mr-4 shrink-0" />
         </div>
 
         {/* Load older messages */}
@@ -229,12 +223,7 @@ export default function ChatThreadPage(): React.JSX.Element {
         )}
 
         {/* Message list */}
-        <div
-          className={cn(
-            "flex-1 overflow-y-auto p-4 sm:p-6 min-h-0",
-            "bg-background"
-          )}
-        >
+        <div className={cn("flex-1 overflow-y-auto p-4 sm:p-6 min-h-0", "bg-background")}>
           <div className="flex items-center justify-center mb-6">
             <span className="px-3 py-1 text-xs text-text-secondary bg-white rounded-full shadow-[2px_2px_4px_#d1d5db,-2px_-2px_4px_#ffffff]">
               Today
@@ -253,28 +242,23 @@ export default function ChatThreadPage(): React.JSX.Element {
               </div>
             ))}
 
-            {isParticipantTyping && participant && (
-              <TypingIndicator name={participant.name} />
-            )}
+            {isParticipantTyping && participant && <TypingIndicator name={participant.name} />}
 
             <div ref={messagesEndRef} />
           </div>
         </div>
 
-        <MessageInput
-          onSendMessage={handleSendMessage}
-          onTypingChange={handleTypingChange}
-        />
+        <MessageInput onSendMessage={handleSendMessage} onTypingChange={handleTypingChange} />
       </div>
 
       {/* Info panel */}
       <div
         className={cn(
-          "flex-shrink-0 bg-white rounded-2xl overflow-hidden",
+          "shrink-0 bg-white rounded-2xl overflow-hidden",
           "shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff]",
           "transition-all duration-300 ease-in-out",
           "hidden xl:block",
-          showInfo ? "xl:w-[280px]" : "xl:w-0 xl:opacity-0"
+          showInfo ? "xl:w-70" : "xl:w-0 xl:opacity-0"
         )}
       >
         {participant && (
