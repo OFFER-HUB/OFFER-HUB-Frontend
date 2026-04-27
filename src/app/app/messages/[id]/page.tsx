@@ -19,7 +19,9 @@ import { useChatSSE } from "@/hooks/use-chat-sse";
 import { useMarkAsRead } from "@/hooks/use-mark-as-read";
 import { sendTypingStatus } from "@/lib/api/chat";
 
-export default function ChatThreadPage(): React.JSX.Element {
+import { useInView } from "@/hooks/useInView";
+
+export default function MessagesThreadPage(): React.JSX.Element {
   const params = useParams();
   const router = useRouter();
   const { setCollapsed: setSidebarCollapsed } = useSidebarStore();
@@ -48,6 +50,18 @@ export default function ChatThreadPage(): React.JSX.Element {
   } = useChatStore();
 
   const activeConversation = conversations.find((c) => c.id === chatId);
+
+  // ── Infinite scroll setup ────────────────────────────────────────────────
+  const { ref: loadMoreRef, isInView: isLoadMoreInView } = useInView({
+    threshold: 0.5,
+    triggerOnce: false,
+  });
+
+  useEffect(() => {
+    if (isLoadMoreInView && hasMoreMessages && !isLoadingMessages) {
+      fetchMoreMessages(chatId);
+    }
+  }, [isLoadMoreInView, hasMoreMessages, isLoadingMessages, fetchMoreMessages, chatId]);
 
   // ── SSE subscription ─────────────────────────────────────────────────────
   useChatSSE({ conversationId: chatId });
@@ -138,7 +152,7 @@ export default function ChatThreadPage(): React.JSX.Element {
           </h2>
           <button
             type="button"
-            onClick={() => router.push("/app/chat")}
+            onClick={() => router.push("/app/messages")}
             className={cn(
               "px-5 py-2.5 rounded-xl cursor-pointer",
               "bg-primary text-white text-sm font-medium",
@@ -207,24 +221,13 @@ export default function ChatThreadPage(): React.JSX.Element {
           <ConnectionStatus status={connectionStatus} className="mr-4 flex-shrink-0" />
         </div>
 
-        {/* Load older messages */}
+        {/* Load older messages trigger */}
         {hasMoreMessages && (
-          <div className="flex justify-center py-2 border-b border-border-light">
-            <button
-              type="button"
-              onClick={() => fetchMoreMessages(chatId)}
-              disabled={isLoadingMessages}
-              className={cn(
-                "px-4 py-1.5 rounded-lg text-xs font-medium cursor-pointer",
-                "text-primary bg-background",
-                "shadow-[2px_2px_4px_#d1d5db,-2px_-2px_4px_#ffffff]",
-                "hover:shadow-[3px_3px_6px_#d1d5db,-3px_-3px_6px_#ffffff]",
-                "transition-all duration-200",
-                isLoadingMessages && "opacity-50 cursor-not-allowed"
-              )}
-            >
-              {isLoadingMessages ? "Loading…" : "Load older messages"}
-            </button>
+          <div ref={loadMoreRef} className="flex justify-center py-4">
+            <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-background shadow-inner">
+              <LoadingSpinner className="w-4 h-4 text-primary" />
+              <span className="text-xs text-text-secondary font-medium">Loading history…</span>
+            </div>
           </div>
         )}
 

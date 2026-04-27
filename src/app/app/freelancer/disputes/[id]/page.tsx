@@ -401,7 +401,7 @@ export default function FreelancerDisputeDetailPage(): React.JSX.Element {
                 </h2>
                 <div className="space-y-3">
                   <Link
-                    href={`/app/chat?dispute=${dispute.id}`}
+                    href={`/app/messages?dispute=${dispute.id}`}
                     className={cn(
                       "flex items-center gap-3 w-full px-4 py-3 rounded-xl",
                       "bg-background text-text-primary",

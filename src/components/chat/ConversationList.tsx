@@ -27,7 +27,7 @@ export function ConversationList({ isCollapsed = false, onToggleCollapse }: Conv
   });
 
   function isActiveConversation(id: string): boolean {
-    return pathname === `/app/chat/${id}`;
+    return pathname === `/app/messages/${id}`;
   }
 
   // Collapsed view - just avatars with expand button
@@ -61,7 +61,7 @@ export function ConversationList({ isCollapsed = false, onToggleCollapse }: Conv
           {conversations.slice(0, 10).map((conv) => (
             <Link
               key={conv.id}
-              href={`/app/chat/${conv.id}`}
+              href={`/app/messages/${conv.id}`}
               className="relative flex justify-center group"
               title={conv.participant.name}
             >
@@ -173,7 +173,7 @@ export function ConversationList({ isCollapsed = false, onToggleCollapse }: Conv
             {filteredConversations.map((conv) => (
               <Link
                 key={conv.id}
-                href={`/app/chat/${conv.id}`}
+                href={`/app/messages/${conv.id}`}
                 className={cn(
                   "flex items-center gap-3 p-3 rounded-xl",
                   "transition-all duration-200",

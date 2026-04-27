@@ -38,7 +38,7 @@ const FREELANCER_NAV_ITEMS: NavigationItem[] = [
   { href: "/app/orders", label: "Orders", icon: ICON_PATHS.shoppingCart },
   { href: "/app/freelancer/services", label: "My Services", icon: ICON_PATHS.briefcase },
   { href: "/app/freelancer/disputes", label: "Disputes", icon: ICON_PATHS.flag },
-  { href: "/app/chat", label: "Messages", icon: ICON_PATHS.chat },
+  { href: "/app/messages", label: "Messages", icon: ICON_PATHS.chat },
   { href: "/app/profile", label: "Profile", icon: ICON_PATHS.user },
   { href: "/app/freelancer/portfolio", label: "Portfolio", icon: ICON_PATHS.image },
 ];
@@ -51,7 +51,7 @@ const CLIENT_NAV_ITEMS: NavigationItem[] = [
   { href: "/app/client/offers/new", label: "Create Offer", icon: ICON_PATHS.plus },
   { href: "/app/client/purchases", label: "My Purchases", icon: ICON_PATHS.currency },
   { href: "/app/disputes", label: "Disputes", icon: ICON_PATHS.flag },
-  { href: "/app/chat", label: "Messages", icon: ICON_PATHS.chat },
+  { href: "/app/messages", label: "Messages", icon: ICON_PATHS.chat },
   { href: "/app/profile", label: "Profile", icon: ICON_PATHS.user },
 ];
 

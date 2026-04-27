@@ -7,7 +7,7 @@ import { Icon, ICON_PATHS } from "@/components/ui/Icon";
 const TYPING_STOP_DELAY_MS = 2_000;
 
 interface MessageInputProps {
-  onSendMessage: (content: string) => void;
+  onSendMessage: (content: string) => Promise<void>;
   onTypingChange?: (isTyping: boolean) => void;
   disabled?: boolean;
 }
@@ -18,6 +18,7 @@ export function MessageInput({
   disabled = false,
 }: MessageInputProps) {
   const [message, setMessage] = useState("");
+  const [isSending, setIsSending] = useState(false);
   const isTypingRef = useRef(false);
   const typingStopTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -50,18 +51,26 @@ export function MessageInput({
     [onTypingChange, notifyTypingStop]
   );
 
-  function handleSubmit(e: FormEvent<HTMLFormElement>): void {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>): Promise<void> {
     e.preventDefault();
     const trimmedMessage = message.trim();
-    if (!trimmedMessage || disabled) return;
+    if (!trimmedMessage || disabled || isSending) return;
 
     if (typingStopTimerRef.current !== null) {
       clearTimeout(typingStopTimerRef.current);
       typingStopTimerRef.current = null;
     }
     notifyTypingStop();
-    onSendMessage(trimmedMessage);
-    setMessage("");
+    
+    setIsSending(true);
+    try {
+      await onSendMessage(trimmedMessage);
+      setMessage("");
+    } catch (error) {
+      // Error is handled in the store and displayed in the bubble
+    } finally {
+      setIsSending(false);
+    }
   }
 
   return (
@@ -86,11 +95,11 @@ export function MessageInput({
           value={message}
           onChange={(e) => handleChange(e.target.value)}
           placeholder="Type your message..."
-          disabled={disabled}
+          disabled={disabled || isSending}
           className={cn(
             "flex-1 bg-transparent text-sm text-text-primary",
             "placeholder:text-text-secondary/60 outline-none",
-            disabled && "cursor-not-allowed opacity-50"
+            (disabled || isSending) && "cursor-not-allowed opacity-50"
           )}
         />
       </div>
@@ -98,11 +107,11 @@ export function MessageInput({
       {/* Send button */}
       <button
         type="submit"
-        disabled={!message.trim() || disabled}
+        disabled={!message.trim() || disabled || isSending}
         className={cn(
-          "p-2.5 rounded-xl cursor-pointer",
+          "p-2.5 rounded-xl cursor-pointer min-w-[44px] flex items-center justify-center",
           "transition-all duration-200",
-          message.trim() && !disabled
+          message.trim() && !disabled && !isSending
             ? cn(
                 "bg-primary text-white",
                 "shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]",
@@ -117,7 +126,11 @@ export function MessageInput({
         )}
         title="Send message"
       >
-        <Icon path={ICON_PATHS.send} size="md" />
+        {isSending ? (
+          <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+        ) : (
+          <Icon path={ICON_PATHS.send} size="md" />
+        )}
       </button>
     </form>
   );

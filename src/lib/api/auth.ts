@@ -43,3 +43,45 @@ export async function changePassword(
   const result = await response.json();
   return result.data || result;
 }
+
+/**
+ * Resend the email verification link to the authenticated user.
+ */
+export async function sendVerification(token: string): Promise<{ message: string }> {
+  const response = await fetch(`${API_URL}/auth/verify-email/resend`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error?.message || "Failed to resend verification email");
+  }
+
+  const result = await response.json();
+  return result.data || result;
+}
+
+/**
+ * Verify the user's email using a token.
+ */
+export async function verifyEmail(verificationToken: string): Promise<{ message: string }> {
+  const response = await fetch(`${API_URL}/auth/verify-email`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ token: verificationToken }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error?.message || "Verification failed or token expired");
+  }
+
+  const result = await response.json();
+  return result.data || result;
+}

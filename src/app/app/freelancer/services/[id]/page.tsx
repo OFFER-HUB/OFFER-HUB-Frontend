@@ -111,7 +111,7 @@ function OrderCard({ order, onRateClient }: OrderCardProps): React.JSX.Element {
             ))}
 
           <Link
-            href={`/app/chat/${getChatIdByOrderId(order.id)}`}
+            href={`/app/messages/${getChatIdByOrderId(order.id)}`}
             className={cn(
               "p-2 rounded-lg",
               "text-text-secondary hover:text-primary hover:bg-primary/10",

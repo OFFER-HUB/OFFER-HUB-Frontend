@@ -37,6 +37,7 @@ interface ChatState {
   fetchMessages: (conversationId: string) => Promise<void>;
   fetchMoreMessages: (conversationId: string) => Promise<void>;
   sendMessage: (conversationId: string, content: string) => Promise<void>;
+  retryMessage: (conversationId: string, tempId: string) => Promise<void>;
   markAsRead: (conversationId: string, lastReadMessageId?: string) => Promise<void>;
   queueMarkAsRead: (conversationId: string, lastReadMessageId?: string) => void;
 
@@ -167,10 +168,112 @@ export const useChatStore = create<ChatState>()((set, get) => ({
   },
 
   sendMessage: async (conversationId: string, content: string) => {
-    const res = await apiSendMessage(conversationId, content);
-    if (res.ok && res.data) {
-      get().appendMessage(conversationId, res.data);
-      get().updateConversationLastMessage(conversationId, res.data);
+    const tempId = `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const currentUserId = (get() as any).user?.id || ""; // Need to get user ID from auth store usually, but let's assume we can get it or use empty
+
+    const optimisticMessage: ChatMessage = {
+      id: tempId,
+      senderId: currentUserId,
+      content,
+      timestamp: new Date().toISOString(),
+      isRead: false,
+      status: "sending",
+    };
+
+    get().appendMessage(conversationId, optimisticMessage);
+
+    try {
+      const res = await apiSendMessage(conversationId, content);
+      if (res.ok && res.data) {
+        // Replace temp message with actual one
+        set((state) => {
+          const messages = [...(state.messagesByConversation[conversationId] || [])];
+          const index = messages.findIndex((m) => m.id === tempId);
+          if (index !== -1) {
+            messages[index] = res.data!;
+          }
+          return {
+            messagesByConversation: {
+              ...state.messagesByConversation,
+              [conversationId]: messages,
+            },
+          };
+        });
+        get().updateConversationLastMessage(conversationId, res.data);
+      } else {
+        throw new Error("Failed to send message");
+      }
+    } catch (error) {
+      set((state) => {
+        const messages = [...(state.messagesByConversation[conversationId] || [])];
+        const index = messages.findIndex((m) => m.id === tempId);
+        if (index !== -1) {
+          messages[index] = { ...messages[index], status: "error" };
+        }
+        return {
+          messagesByConversation: {
+            ...state.messagesByConversation,
+            [conversationId]: messages,
+          },
+        };
+      });
+    }
+  },
+
+  retryMessage: async (conversationId: string, tempId: string) => {
+    const messages = get().messagesByConversation[conversationId] || [];
+    const message = messages.find((m) => m.id === tempId);
+    if (!message || message.status !== "error") return;
+
+    // Update status to sending
+    set((state) => {
+      const updatedMessages = [...(state.messagesByConversation[conversationId] || [])];
+      const index = updatedMessages.findIndex((m) => m.id === tempId);
+      if (index !== -1) {
+        updatedMessages[index] = { ...updatedMessages[index], status: "sending" };
+      }
+      return {
+        messagesByConversation: {
+          ...state.messagesByConversation,
+          [conversationId]: updatedMessages,
+        },
+      };
+    });
+
+    try {
+      const res = await apiSendMessage(conversationId, message.content);
+      if (res.ok && res.data) {
+        set((state) => {
+          const updatedMessages = [...(state.messagesByConversation[conversationId] || [])];
+          const index = updatedMessages.findIndex((m) => m.id === tempId);
+          if (index !== -1) {
+            updatedMessages[index] = res.data!;
+          }
+          return {
+            messagesByConversation: {
+              ...state.messagesByConversation,
+              [conversationId]: updatedMessages,
+            },
+          };
+        });
+        get().updateConversationLastMessage(conversationId, res.data);
+      } else {
+        throw new Error("Failed to send message");
+      }
+    } catch (error) {
+      set((state) => {
+        const updatedMessages = [...(state.messagesByConversation[conversationId] || [])];
+        const index = updatedMessages.findIndex((m) => m.id === tempId);
+        if (index !== -1) {
+          updatedMessages[index] = { ...updatedMessages[index], status: "error" };
+        }
+        return {
+          messagesByConversation: {
+            ...state.messagesByConversation,
+            [conversationId]: updatedMessages,
+          },
+        };
+      });
     }
   },
 

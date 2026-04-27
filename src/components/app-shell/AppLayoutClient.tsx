@@ -4,6 +4,7 @@ import { useState } from "react";
 import { cn } from "@/lib/cn";
 import { AppHeader, AppSidebar } from "@/components/app-shell";
 import { OnboardingTour } from "@/components/onboarding";
+import { EmailVerificationBanner } from "@/components/auth/EmailVerificationBanner";
 
 interface AppLayoutClientProps {
   children: React.ReactNode;
@@ -35,12 +36,13 @@ export function AppLayoutClient({ children }: AppLayoutClientProps): React.JSX.E
         <main
           id="main-content"
           className={cn(
-            "flex-1 p-4 lg:p-6 min-h-0 min-w-0",
+            "flex-1 p-4 lg:p-6 min-h-0 min-w-0 flex flex-col gap-6 overflow-y-auto",
             "app-main-content"
           )}
           role="main"
           aria-label="Main content"
         >
+          <EmailVerificationBanner />
           {children}
         </main>
       </div>

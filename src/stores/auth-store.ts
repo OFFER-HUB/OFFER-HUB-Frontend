@@ -20,6 +20,7 @@ export interface User {
   type?: "BUYER" | "SELLER" | "BOTH" | "ADMIN";
   balance?: UserBalance;
   wallet?: UserWallet;
+  emailVerified?: boolean;
 }
 
 interface AuthState {

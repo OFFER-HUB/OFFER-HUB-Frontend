@@ -33,7 +33,7 @@ export function FreelancerCard({ freelancer }: FreelancerCardProps) {
     }
 
     setShowToast(true);
-    router.push(`/app/chat/${freelancer.id}`);
+    router.push(`/app/messages/${freelancer.id}`);
   }
 
   return (

@@ -17,7 +17,7 @@ export function PopularOfferCard({ offer, onClick }: PopularOfferCardProps) {
   function handleApply(e: React.MouseEvent): void {
     e.stopPropagation();
     const chatId = getChatIdByOfferId(offer.id);
-    router.push(`/app/chat/${chatId}?offer=${offer.id}`);
+    router.push(`/app/messages/${chatId}?offer=${offer.id}`);
   }
 
   return (
