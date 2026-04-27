@@ -169,7 +169,7 @@ export const useChatStore = create<ChatState>()((set, get) => ({
 
   sendMessage: async (conversationId: string, content: string) => {
     const tempId = `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    const currentUserId = (get() as any).user?.id || ""; // Need to get user ID from auth store usually, but let's assume we can get it or use empty
+    const currentUserId = (get() as any).user?.id || ""; // Note: Ideally we'd use a typed store here
 
     const optimisticMessage: ChatMessage = {
       id: tempId,
@@ -203,7 +203,7 @@ export const useChatStore = create<ChatState>()((set, get) => ({
       } else {
         throw new Error("Failed to send message");
       }
-    } catch (error) {
+    } catch (_error) {
       set((state) => {
         const messages = [...(state.messagesByConversation[conversationId] || [])];
         const index = messages.findIndex((m) => m.id === tempId);
@@ -260,7 +260,7 @@ export const useChatStore = create<ChatState>()((set, get) => ({
       } else {
         throw new Error("Failed to send message");
       }
-    } catch (error) {
+    } catch (_error) {
       set((state) => {
         const updatedMessages = [...(state.messagesByConversation[conversationId] || [])];
         const index = updatedMessages.findIndex((m) => m.id === tempId);

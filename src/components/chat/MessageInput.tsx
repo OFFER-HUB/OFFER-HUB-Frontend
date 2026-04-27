@@ -66,7 +66,7 @@ export function MessageInput({
     try {
       await onSendMessage(trimmedMessage);
       setMessage("");
-    } catch (error) {
+    } catch (_error) {
       // Error is handled in the store and displayed in the bubble
     } finally {
       setIsSending(false);
