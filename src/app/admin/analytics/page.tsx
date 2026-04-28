@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useAuthStore } from "@/stores/auth-store";
 import { getAdminAnalytics } from "@/lib/api/admin-analytics";
 import type { AdminAnalyticsData, DateRange } from "@/types/admin-analytics.types";
@@ -24,19 +24,9 @@ export default function AdminAnalyticsPage(): React.JSX.Element {
     end: new Date().toISOString().split('T')[0],
   });
 
-  // Check admin access
-  if (!user || user.type !== "ADMIN") {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <ErrorState
-          title="Access Denied"
-          message="You don't have permission to access this page."
-        />
-      </div>
-    );
-  }
+  const isUnauthorized = !user || user.type !== "ADMIN";
 
-  const fetchAnalytics = async () => {
+  const fetchAnalytics = useCallback(async () => {
     if (!token) return;
 
     try {
@@ -49,11 +39,24 @@ export default function AdminAnalyticsPage(): React.JSX.Element {
     } finally {
       setLoading(false);
     }
-  };
+  }, [token, dateRange]);
 
   useEffect(() => {
+    if (!token || isUnauthorized) return;
     fetchAnalytics();
-  }, [token, dateRange]);
+  }, [token, isUnauthorized, fetchAnalytics]);
+
+  if (isUnauthorized) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <ErrorState
+          title="Access Denied"
+          message="You don't have permission to access this page."
+        />
+      </div>
+    );
+  }
+
 
   if (loading) {
     return (
