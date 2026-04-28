@@ -1,9 +1,8 @@
 import { ICON_PATHS } from "@/components/ui/Icon";
-import type {
-  FreelancerStatCard,
-  FreelancerActivity,
-  FreelancerActivityType,
-} from "@/types/freelancer-dashboard.types";
+import type { FreelancerActivity } from "@/lib/api/freelancer";
+import type { FreelancerStatCard } from "@/types/freelancer-dashboard.types";
+
+export type FreelancerActivityType = FreelancerActivity["type"];
 
 export const FREELANCER_STATS: FreelancerStatCard[] = [
   {
@@ -276,9 +275,15 @@ export const FREELANCER_ACTIVITY: FreelancerActivity[] = [
 ];
 
 export const ACTIVITY_ICONS: Record<FreelancerActivityType, string> = {
-  service_created: ICON_PATHS.plus,
-  proposal_accepted: ICON_PATHS.check,
-  message: ICON_PATHS.chat,
+  order_created: ICON_PATHS.briefcase,
+  order_completed: ICON_PATHS.check,
   payment_received: ICON_PATHS.currency,
+  withdrawal_completed: ICON_PATHS.document,
+  topup_completed: ICON_PATHS.plus,
   review_received: ICON_PATHS.star,
+  service_updated: ICON_PATHS.edit,
+  proposal_accepted: ICON_PATHS.check,
+  proposal_sent: ICON_PATHS.send,
+  message: ICON_PATHS.chat,
+  service_created: ICON_PATHS.plus,
 };

@@ -21,26 +21,27 @@ function LoginContent() {
   const setRedirectAfterLogin = useAuthStore((state) => state.setRedirectAfterLogin);
   const mode = useModeStore((state) => state.mode);
   const [isLoading, setIsLoading] = useState(false);
-  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  const [showSuccessMessage, setShowSuccessMessage] = useState(() => searchParams.get("registered") === "true");
   const [formData, setFormData] = useState<LoginFormData>({
     email: "",
     password: "",
   });
   const [errors, setErrors] = useState<AuthFormErrors>({});
-  const [redirectPath, setRedirectPath] = useState<string | null>(null);
+  const [redirectPath, setRedirectPath] = useState(() => searchParams.get("redirect"));
 
   useEffect(() => {
-    if (searchParams.get("registered") === "true") {
-      setShowSuccessMessage(true);
-      setTimeout(() => setShowSuccessMessage(false), 5000);
+    if (showSuccessMessage) {
+      const timer = setTimeout(() => setShowSuccessMessage(false), 5000);
+      return () => clearTimeout(timer);
     }
-    // Capture redirect parameter
-    const redirect = searchParams.get("redirect");
-    if (redirect) {
-      setRedirectPath(redirect);
-      setRedirectAfterLogin(redirect);
+  }, [showSuccessMessage]);
+
+  useEffect(() => {
+    // Sync redirect to store if present
+    if (redirectPath) {
+      setRedirectAfterLogin(redirectPath);
     }
-  }, [searchParams, setRedirectAfterLogin]);
+  }, [redirectPath, setRedirectAfterLogin]);
 
   const validateForm = (): boolean => {
     const newErrors: AuthFormErrors = {};

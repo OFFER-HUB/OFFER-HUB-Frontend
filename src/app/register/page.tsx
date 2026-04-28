@@ -16,7 +16,6 @@ import { useModeStore } from "@/stores/mode-store";
 import type { RegisterFormData, AuthFormErrors } from "@/types/auth.types";
 
 export default function RegisterPage() {
-  const router = useRouter();
   const login = useAuthStore((state) => state.login);
   const mode = useModeStore((state) => state.mode);
   const [isLoading, setIsLoading] = useState(false);

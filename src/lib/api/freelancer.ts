@@ -14,7 +14,18 @@ export interface FreelancerStats {
 
 export interface FreelancerActivity {
   id: string;
-  type: 'order_created' | 'order_completed' | 'payment_received' | 'withdrawal_completed' | 'topup_completed';
+  type:
+    | "order_created"
+    | "order_completed"
+    | "payment_received"
+    | "withdrawal_completed"
+    | "topup_completed"
+    | "review_received"
+    | "service_updated"
+    | "proposal_accepted"
+    | "proposal_sent"
+    | "message"
+    | "service_created";
   title: string;
   description: string;
   createdAt: string;

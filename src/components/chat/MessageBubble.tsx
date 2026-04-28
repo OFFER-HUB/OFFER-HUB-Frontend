@@ -80,7 +80,7 @@ export function MessageBubble({ message, isOwn, showAvatar = true, participantAv
               className="absolute -left-10 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white shadow-md text-error hover:scale-110 transition-transform cursor-pointer"
               title="Retry sending"
             >
-              <Icon path={ICON_PATHS.refresh} size="xs" />
+              <Icon path={ICON_PATHS.refresh} size="sm" />
             </button>
           )}
         </div>

@@ -10,7 +10,7 @@ import type { MapUser } from "@/components/community-map";
  * Set to true to use mock data for development/testing
  * Set to false to fetch from the real API
  */
-const USE_MOCK_DATA = false; // Use real data
+const _USE_MOCK_DATA = false; // Use real data
 
 export default function OurCommunityPage() {
   const [users, setUsers] = useState<MapUser[]>([]);

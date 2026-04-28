@@ -5,7 +5,7 @@ import pluginReactHooks from "eslint-plugin-react-hooks";
 
 export default tseslint.config(
   {
-    ignores: [".next/**", "node_modules/**"],
+    ignores: [".next/**", "node_modules/**", "scripts/**"],
   },
   {
     files: ["**/*.{ts,tsx}"],

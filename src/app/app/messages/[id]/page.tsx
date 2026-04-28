@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { cn } from "@/lib/cn";
-import { Icon, ICON_PATHS } from "@/components/ui/Icon";
+import { Icon, ICON_PATHS, LoadingSpinner } from "@/components/ui/Icon";
 import { ConversationList } from "@/components/chat/ConversationList";
 import { ChatHeader } from "@/components/chat/ChatHeader";
 import { MessageBubble } from "@/components/chat/MessageBubble";

@@ -55,6 +55,12 @@ function ActivityItem({ activity }: { activity: FreelancerActivity }): React.JSX
     payment_received: ICON_PATHS.currency,
     withdrawal_completed: ICON_PATHS.document,
     topup_completed: ICON_PATHS.plus,
+    review_received: ICON_PATHS.star,
+    service_updated: ICON_PATHS.edit,
+    proposal_accepted: ICON_PATHS.check,
+    proposal_sent: ICON_PATHS.send,
+    message: ICON_PATHS.chat,
+    service_created: ICON_PATHS.plus,
   };
 
   return (

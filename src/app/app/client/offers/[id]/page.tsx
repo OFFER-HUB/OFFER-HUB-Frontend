@@ -29,7 +29,7 @@ import { ApplicationCard } from "@/components/offers/ApplicationCard";
 import type { Application } from "@/types/application.types";
 import { isOfferEligibleForDispute } from "@/data/dispute.data";
 import { getRatingByOfferId, addRating } from "@/data/rating.data";
-import type { Applicant, ClientOfferDetail, OfferStatus } from "@/types/client-offer.types";
+import type { ClientOfferDetail, OfferStatus } from "@/types/client-offer.types";
 import type { FreelancerRating } from "@/types/rating.types";
 
 function formatDate(dateString: string): string {

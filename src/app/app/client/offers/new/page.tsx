@@ -53,7 +53,6 @@ export default function CreateOfferPage(): React.JSX.Element {
   const [formData, setFormData] = useState<OfferFormData>(INITIAL_FORM_DATA);
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [attachmentError, setAttachmentError] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setMode("client");
@@ -156,7 +155,6 @@ export default function CreateOfferPage(): React.JSX.Element {
   }
 
   const today = new Date().toISOString().split("T")[0];
-  const canAddMoreFiles = attachments.length < MAX_ATTACHMENTS;
 
   return (
     <div className="space-y-6">

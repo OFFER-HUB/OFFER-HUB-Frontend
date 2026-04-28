@@ -23,7 +23,7 @@ function NewDisputeForm(): React.JSX.Element {
   const { setMode } = useModeStore();
   const token = useAuthStore((state) => state.token);
 
-  const [selectedOffer, setSelectedOffer] = useState("");
+  const [selectedOffer, setSelectedOffer] = useState(() => searchParams.get("offerId") || "");
   const [selectedReason, setSelectedReason] = useState<DisputeReason | "">("");
   const [description, setDescription] = useState("");
   const [evidenceItems, setEvidenceItems] = useState<EvidenceUploadItem[]>([]);
@@ -35,11 +35,7 @@ function NewDisputeForm(): React.JSX.Element {
 
   useEffect(() => {
     setMode("client");
-    const offerParam = searchParams.get("offerId");
-    if (offerParam) {
-      setSelectedOffer(offerParam);
-    }
-  }, [setMode, searchParams]);
+  }, [setMode]);
 
   function validateForm(): boolean {
     const newErrors: Record<string, string> = {};

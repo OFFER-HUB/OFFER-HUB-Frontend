@@ -8,8 +8,11 @@ interface ReadReceiptProps {
 }
 
 function getMessageStatus(message: ChatMessage): "sent" | "delivered" | "read" {
-  if (message.status) return message.status;
-  return message.isRead ? "read" : "sent";
+  if (message.status === "read" || (message.isRead && message.status !== "error" && message.status !== "sending")) {
+    return "read";
+  }
+  if (message.status === "delivered") return "delivered";
+  return "sent";
 }
 
 function getHoverLabel(message: ChatMessage, status: "sent" | "delivered" | "read"): string {

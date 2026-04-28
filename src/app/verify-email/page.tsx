@@ -8,6 +8,7 @@ import { cn } from "@/lib/cn";
 import { Icon, ICON_PATHS, LoadingSpinner } from "@/components/ui/Icon";
 import { NEUMORPHIC_CARD, PRIMARY_BUTTON } from "@/lib/styles";
 import { useAuthStore } from "@/stores/auth-store";
+import { Toast } from "@/components/ui/Toast";
 
 function VerifyEmailContent() {
   const searchParams = useSearchParams();
@@ -19,12 +20,14 @@ function VerifyEmailContent() {
 
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
   const [message, setMessage] = useState("");
+  const [showToast, setShowToast] = useState(false);
 
   useEffect(() => {
     async function performVerification() {
       if (!token) {
         setStatus("error");
         setMessage("Invalid or missing verification token.");
+        setShowToast(true);
         return;
       }
 
@@ -32,6 +35,7 @@ function VerifyEmailContent() {
         const result = await verifyEmail(token);
         setStatus("success");
         setMessage(result.message || "Email verified successfully!");
+        setShowToast(true);
 
         // Update local state if user is logged in
         if (currentUser && currentToken) {
@@ -45,6 +49,7 @@ function VerifyEmailContent() {
       } catch (error) {
         setStatus("error");
         setMessage(error instanceof Error ? error.message : "Verification failed. The link may be expired.");
+        setShowToast(true);
       }
     }
 
@@ -104,6 +109,14 @@ function VerifyEmailContent() {
           </p>
         )}
       </div>
+
+      {showToast && (
+        <Toast
+          message={message}
+          type={status === "success" ? "success" : "error"}
+          onClose={() => setShowToast(false)}
+        />
+      )}
     </div>
   );
 }
