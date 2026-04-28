@@ -91,8 +91,8 @@ function DisputesContent(): React.JSX.Element {
       setDisputes((prev) => [...prev, ...result.data]);
       setHasMore(result.hasMore);
       setPage(nextPage);
-    } catch {
-      // silently ignore; user can retry by clicking Load More again
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load more disputes");
     } finally {
       setIsLoadingMore(false);
     }
