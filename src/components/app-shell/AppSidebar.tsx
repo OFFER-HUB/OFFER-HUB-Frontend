@@ -8,6 +8,7 @@ import { Icon, ICON_PATHS } from "@/components/ui/Icon";
 import { useModeStore, getNavigationItems, type UserMode } from "@/stores/mode-store";
 import { useSidebarStore } from "@/stores/sidebar-store";
 import { useAuthStore } from "@/stores/auth-store";
+import { useChatStore } from "@/stores/chat-store";
 
 const ADMIN_NAV_ITEMS = [
   { href: "/admin/analytics", label: "Analytics", icon: ICON_PATHS.chartBar },
@@ -25,7 +26,8 @@ const MODE_TOGGLE_BASE = cn(
   "transition-all duration-200 cursor-pointer"
 );
 
-const MODE_TOGGLE_ACTIVE = "bg-primary text-white shadow-[2px_2px_4px_#d1d5db,-2px_-2px_4px_#ffffff]";
+const MODE_TOGGLE_ACTIVE =
+  "bg-primary text-white shadow-[2px_2px_4px_#d1d5db,-2px_-2px_4px_#ffffff]";
 const MODE_TOGGLE_INACTIVE = "text-text-secondary hover:text-text-primary";
 
 const NAV_LINK_BASE = cn(
@@ -38,8 +40,7 @@ const NAV_LINK_COLLAPSED = cn(
   "transition-all duration-200"
 );
 
-const NAV_LINK_ACTIVE =
-  "bg-primary text-white shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]";
+const NAV_LINK_ACTIVE = "bg-primary text-white shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]";
 const NAV_LINK_INACTIVE =
   "text-text-secondary hover:bg-background hover:text-text-primary hover:shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]";
 
@@ -63,6 +64,8 @@ export function AppSidebar(_props: AppSidebarProps): React.JSX.Element {
   const { mode, setMode } = useModeStore();
   const { isCollapsed, toggleCollapsed } = useSidebarStore();
   const { user } = useAuthStore();
+  const conversations = useChatStore((s) => s.conversations);
+  const fetchConversations = useChatStore((s) => s.fetchConversations);
   const [hydrated, setHydrated] = useState(false);
   const isAdmin = user?.type === "ADMIN";
 
@@ -70,7 +73,17 @@ export function AppSidebar(_props: AppSidebarProps): React.JSX.Element {
     setHydrated(true);
   }, []);
 
+  useEffect(() => {
+    if (conversations.length === 0) {
+      void fetchConversations();
+    }
+  }, [conversations.length, fetchConversations]);
+
   const navItems = getNavigationItems(mode);
+  const totalUnreadMessages = conversations.reduce(
+    (total, conversation) => total + conversation.unreadCount,
+    0
+  );
 
   function isActiveLink(href: string): boolean {
     if (pathname === href) return true;
@@ -102,7 +115,7 @@ export function AppSidebar(_props: AppSidebarProps): React.JSX.Element {
         "m-6 mr-0",
         "bg-white rounded-2xl",
         "shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff]",
-        "flex-shrink-0",
+        "shrink-0",
         "flex flex-col",
         "transition-all duration-300 ease-in-out",
         "hidden lg:flex",
@@ -122,10 +135,7 @@ export function AppSidebar(_props: AppSidebarProps): React.JSX.Element {
           )}
           title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
-          <Icon
-            path={isCollapsed ? ICON_PATHS.chevronRight : ICON_PATHS.chevronLeft}
-            size="sm"
-          />
+          <Icon path={isCollapsed ? ICON_PATHS.chevronRight : ICON_PATHS.chevronLeft} size="sm" />
         </button>
       </div>
 
@@ -189,25 +199,22 @@ export function AppSidebar(_props: AppSidebarProps): React.JSX.Element {
       )}
 
       {/* Navigation */}
-      <nav className={cn(
-        "flex-1 space-y-2 overflow-y-auto",
-        isCollapsed ? "p-2" : "p-4 pt-2"
-      )}>
+      <nav className={cn("flex-1 space-y-2 overflow-y-auto", isCollapsed ? "p-2" : "p-4 pt-2")}>
         {navItems.map((item) => {
           // Generate data-tour attribute based on route
           const tourId = item.href.includes("services")
             ? "nav-services"
             : item.href.includes("orders")
-            ? "nav-orders"
-            : item.href.includes("profile")
-            ? "nav-profile"
-            : item.href.includes("marketplace")
-            ? "nav-marketplace"
-            : item.href.includes("dashboard")
-            ? "nav-dashboard"
-            : item.href.includes("analytics")
-            ? "nav-analytics"
-            : undefined;
+              ? "nav-orders"
+              : item.href.includes("profile")
+                ? "nav-profile"
+                : item.href.includes("marketplace")
+                  ? "nav-marketplace"
+                  : item.href.includes("dashboard")
+                    ? "nav-dashboard"
+                    : item.href.includes("analytics")
+                      ? "nav-analytics"
+                      : undefined;
 
           return (
             <Link
@@ -219,6 +226,17 @@ export function AppSidebar(_props: AppSidebarProps): React.JSX.Element {
             >
               <Icon path={item.icon} size="md" />
               {!isCollapsed && <span className="font-medium">{item.label}</span>}
+              {!isCollapsed && item.href === "/app/messages" && totalUnreadMessages > 0 && (
+                <span
+                  className={cn(
+                    "ml-auto min-w-5 h-5 px-1.5",
+                    "rounded-full bg-primary text-white",
+                    "text-[10px] font-bold flex items-center justify-center"
+                  )}
+                >
+                  {totalUnreadMessages > 99 ? "99+" : totalUnreadMessages}
+                </span>
+              )}
             </Link>
           );
         })}
