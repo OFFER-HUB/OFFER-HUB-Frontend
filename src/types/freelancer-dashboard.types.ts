@@ -17,3 +17,19 @@ export interface DashboardStats {
   earningsTrend: number | null;
   ratingTrend: number | null;
 }
+
+export type FreelancerActivityType =
+  | "payment_received"
+  | "review_received"
+  | "proposal_accepted"
+  | "message"
+  | "service_created";
+
+export interface FreelancerActivity {
+  id: string;
+  type: FreelancerActivityType;
+  title: string;
+  description: string;
+  time: string;
+  createdAt: string;
+}
