@@ -1,12 +1,18 @@
+"use client";
+
+import { useState } from "react";
 import Image from "next/image";
 import { cn } from "@/lib/cn";
 import { NEUMORPHIC_CARD } from "@/lib/styles";
 import { ReviewResponse } from "@/components/rating/ReviewResponse";
+import { ReviewResponseForm } from "./ReviewResponseForm";
 import type { PublicFreelancerReview } from "@/types/public-freelancer.types";
 
 interface ReviewCardProps {
   review: PublicFreelancerReview;
   freelancerDisplayName: string;
+  isOwnProfile?: boolean;
+  onResponseSubmit?: (reviewId: string, content: string) => Promise<void>;
 }
 
 function initials(name: string): string {
@@ -32,12 +38,34 @@ function Stars({ rating }: { rating: number }): React.JSX.Element {
   );
 }
 
-export function ReviewCard({ review, freelancerDisplayName }: ReviewCardProps): React.JSX.Element {
+export function ReviewCard({ 
+  review, 
+  freelancerDisplayName, 
+  isOwnProfile = false, 
+  onResponseSubmit 
+}: ReviewCardProps): React.JSX.Element {
+  const [showResponseForm, setShowResponseForm] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const dateLabel = new Date(review.createdAt).toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
     year: "numeric",
   });
+
+  async function handleResponseSubmit(content: string): Promise<void> {
+    if (!onResponseSubmit) return;
+    
+    setIsSubmitting(true);
+    try {
+      await onResponseSubmit(review.id, content);
+      setShowResponseForm(false);
+    } catch (error) {
+      console.error('Failed to submit response:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
 
   return (
     <article className={cn(NEUMORPHIC_CARD, "space-y-3")}>
@@ -85,6 +113,14 @@ export function ReviewCard({ review, freelancerDisplayName }: ReviewCardProps): 
       ) : null}
       {review.response ? (
         <ReviewResponse response={review.response} responderName={freelancerDisplayName} />
+      ) : isOwnProfile && onResponseSubmit ? (
+        <ReviewResponseForm
+          isOpen={showResponseForm}
+          onClose={() => setShowResponseForm(!showResponseForm)}
+          onSubmit={handleResponseSubmit}
+          reviewId={review.id}
+          isSubmitting={isSubmitting}
+        />
       ) : null}
     </article>
   );

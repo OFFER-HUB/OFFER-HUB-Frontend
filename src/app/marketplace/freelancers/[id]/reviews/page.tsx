@@ -2,17 +2,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { Navbar } from "@/components/landing/Navbar";
-import { Icon, ICON_PATHS } from "@/components/ui/Icon";
-import { EmptyState } from "@/components/ui/EmptyState";
-import {
-  FreelancerReviewsControls,
-  ReviewHighlights,
-  ReviewList,
-  ReviewRatingStats,
-  parseReviewsSearchParams,
-} from "@/components/marketplace/freelancer-reviews";
+import { ReviewsPageClient } from "./ReviewsPageClient";
 import { getPublicFreelancerSummary, getPublicFreelancerReviews } from "@/lib/api/freelancer-public";
 import { generatePageMetadata, getBreadcrumbSchema, SITE_CONFIG } from "@/lib/seo";
+import { parseReviewsSearchParams } from "@/components/marketplace/freelancer-reviews";
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -117,110 +110,16 @@ export default async function PublicFreelancerReviewsPage({
       <JsonLd data={breadcrumbJson} />
       {personJson ? <JsonLd data={personJson} /> : null}
       <Navbar />
-      <div className="min-h-screen bg-background">
-        <div className="container mx-auto px-4 py-8 max-w-4xl">
-          <nav className="text-sm text-text-secondary mb-6 flex flex-wrap items-center gap-2" aria-label="Breadcrumb">
-            <Link href="/marketplace" className="hover:text-primary">
-              Marketplace
-            </Link>
-            <span aria-hidden>/</span>
-            <Link href={profileHref} className="hover:text-primary truncate max-w-[12rem] sm:max-w-none">
-              {summary.displayName}
-            </Link>
-            <span aria-hidden>/</span>
-            <span className="text-text-primary font-medium">Reviews</span>
-          </nav>
-
-          <Link
-            href={profileHref}
-            className="inline-flex items-center gap-2 mb-6 text-text-secondary hover:text-text-primary transition-colors text-sm font-medium"
-          >
-            <Icon path={ICON_PATHS.chevronLeft} size="sm" />
-            Back to profile
-          </Link>
-
-          <header className="mb-8">
-            <h1 className="text-3xl font-bold text-text-primary">
-              Reviews for {summary.displayName}
-            </h1>
-            <p className="text-text-secondary mt-2">
-              Transparent feedback from clients who worked with this freelancer.
-            </p>
-          </header>
-
-          {loadError ? (
-            <EmptyState
-              variant="card"
-              icon={ICON_PATHS.alertCircle}
-              title="Something went wrong"
-              message={loadError}
-              linkHref={profileHref}
-              linkText="Back to profile"
-            />
-          ) : (
-            <>
-              <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_280px] lg:items-start">
-                <div className="space-y-8 order-2 lg:order-1">
-                  <FreelancerReviewsControls
-                    freelancerId={id}
-                    currentSort={sort}
-                    currentStars={stars}
-                    page={reviewsResult.page}
-                    pageSize={reviewsResult.pageSize}
-                    totalItems={reviewsResult.totalItems}
-                    totalPages={reviewsResult.totalPages}
-                    placement="top"
-                  />
-
-                  {showHighlights ? (
-                    <ReviewHighlights reviews={reviewsResult.reviews} />
-                  ) : null}
-
-                  {reviewsResult.reviews.length === 0 ? (
-                    <EmptyState
-                      variant="card"
-                      icon={ICON_PATHS.chat}
-                      title={stars ? "No reviews for this filter" : "No reviews yet"}
-                      message={
-                        stars
-                          ? "Try clearing the star filter or check back later."
-                          : "When clients leave feedback, it will show up here."
-                      }
-                      linkHref={stars ? `/marketplace/freelancers/${id}/reviews` : "/marketplace/services"}
-                      linkText={stars ? "Show all reviews" : "Browse services"}
-                    />
-                  ) : (
-                    <ReviewList reviews={reviewsResult.reviews} freelancerDisplayName={summary.displayName} />
-                  )}
-
-                  {reviewsResult.totalPages > 0 ? (
-                    <FreelancerReviewsControls
-                      freelancerId={id}
-                      currentSort={sort}
-                      currentStars={stars}
-                      page={reviewsResult.page}
-                      pageSize={reviewsResult.pageSize}
-                      totalItems={reviewsResult.totalItems}
-                      totalPages={reviewsResult.totalPages}
-                      placement="bottom"
-                    />
-                  ) : null}
-                </div>
-
-                <aside className="order-1 lg:order-2 lg:sticky lg:top-24">
-                  <ReviewRatingStats
-                    freelancerId={id}
-                    stats={reviewsResult.stats}
-                    selectedStars={stars}
-                    sort={sort}
-                    pageSize={pageSize}
-                  />
-                </aside>
-              </div>
-            </>
-          )}
-        </div>
-      </div>
+      <ReviewsPageClient
+        summary={summary}
+        reviewsResult={reviewsResult}
+        loadError={loadError}
+        sort={sort}
+        stars={stars}
+        page={page}
+        pageSize={pageSize}
+        profileHref={profileHref}
+      />
     </>
   );
 }
