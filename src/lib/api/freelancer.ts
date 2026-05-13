@@ -38,9 +38,9 @@ export async function getFreelancerStats(token: string): Promise<FreelancerStats
 }
 
 export async function getDashboardStats(token: string): Promise<DashboardStats> {
-  const response = await fetch(`${API_BASE_URL}/freelancer/dashboard/stats`, {
+  const response = await fetch(`${API_BASE_URL}/dashboard/freelancer`, {
     headers: {
-      'Authorization': `Bearer ${token}`,
+      Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
     },
   });
@@ -49,8 +49,20 @@ export async function getDashboardStats(token: string): Promise<DashboardStats> 
     throw new Error('Failed to fetch dashboard stats');
   }
 
-  const data = await response.json();
-  return data.data;
+  const body = await response.json();
+  const { stats, comparison } = body.data;
+
+  return {
+    activeApplications: stats.activeApplications,
+    activeOrders: stats.ordersInProgress,
+    totalEarnings: stats.earningsThisMonth,
+    rating: stats.averageRating !== null ? parseFloat(stats.averageRating) : null,
+    ratingCount: 0,
+    activeApplicationsTrend: null,
+    activeOrdersTrend: null,
+    earningsTrend: comparison?.earnings?.changePercent ?? null,
+    ratingTrend: null,
+  };
 }
 
 export async function getFreelancerActivities(token: string): Promise<FreelancerActivity[]> {
