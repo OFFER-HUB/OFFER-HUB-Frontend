@@ -38,7 +38,7 @@ export async function getFreelancerStats(token: string): Promise<FreelancerStats
 }
 
 export async function getDashboardStats(token: string): Promise<DashboardStats> {
-  const response = await fetch(`${API_BASE_URL}/dashboard/freelancer`, {
+  const response = await fetch(`${API_BASE_URL}/freelancer/dashboard/stats`, {
     headers: {
       Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',

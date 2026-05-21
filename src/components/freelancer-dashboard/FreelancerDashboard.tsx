@@ -455,11 +455,7 @@ export function FreelancerDashboard(): React.JSX.Element {
 
         {/* Profile Completeness */}
         <div className="lg:col-span-1">
-          <ProfileCompleteness
-            user={user}
-            stats={stats}
-            isLoading={isLoadingStats}
-          />
+          <ProfileCompleteness />
         </div>
       </div>
 
