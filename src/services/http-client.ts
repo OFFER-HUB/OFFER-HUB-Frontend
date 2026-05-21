@@ -9,6 +9,7 @@ import type { ApiResponse, ResponseCode } from "@/types/api-response.types";
 import type { RequestOptions } from "@/types/http.types";
 import { HttpError } from "@/types/http.types";
 import { API_URL } from "@/config/api";
+import { useAuthStore } from "@/stores/auth-store";
 
 const API_BASE_URL = API_URL;
 
@@ -71,11 +72,15 @@ async function request<T>(
   const controller = new AbortController();
   const timeoutId = timeout ? setTimeout(() => controller.abort(), timeout) : null;
 
+  const token = useAuthStore.getState().token;
+  const authHeader: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
+
   try {
     const response = await fetch(url, {
       method,
       headers: {
         ...DEFAULT_HEADERS,
+        ...authHeader,
         ...headers,
       },
       body: body ? JSON.stringify(body) : undefined,

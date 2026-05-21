@@ -172,7 +172,7 @@ export function ProfileCompleteness(): React.JSX.Element | null {
             Complete the following sections to reach 100% and unlock the All-Star badge.
           </p>
           <div className="space-y-3">
-            {data.missingFields.slice(0, 3).map((item, index) => (
+            {(data.missingFields ?? []).slice(0, 3).map((item, index) => (
               <div
                 key={index}
                 className={cn(
@@ -198,10 +198,10 @@ export function ProfileCompleteness(): React.JSX.Element | null {
               </div>
             ))}
           </div>
-          {data.missingFields.length > 3 && (
+          {(data.missingFields?.length ?? 0) > 3 && (
             <p className="text-xs text-text-secondary text-center mt-3 font-medium">
-              And {data.missingFields.length - 3} more{" "}
-              {data.missingFields.length - 3 === 1 ? "item" : "items"}
+              And {(data.missingFields?.length ?? 0) - 3} more{" "}
+              {(data.missingFields?.length ?? 0) - 3 === 1 ? "item" : "items"}
             </p>
           )}
         </div>

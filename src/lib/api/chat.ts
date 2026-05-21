@@ -8,7 +8,7 @@ import type {
   MessagesResponse,
 } from "@/types/chat.types";
 
-const BASE = "/chat/conversations";
+const BASE = `${API_URL}/conversations`;
 
 interface MarkConversationReadPayload {
   lastReadMessageId?: string;
@@ -95,7 +95,7 @@ export async function markMessagesAsRead(
  * parameter because EventSource does not support custom headers.
  */
 export function getChatSSEUrl(conversationId: string, token: string): string {
-  return `${API_URL}/chat/conversations/${conversationId}/events?token=${encodeURIComponent(token)}`;
+  return `${API_URL}/conversations/${conversationId}/stream?token=${encodeURIComponent(token)}`;
 }
 
 /**

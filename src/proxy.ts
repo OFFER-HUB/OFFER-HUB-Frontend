@@ -5,7 +5,7 @@ import { COOKIE_CONFIG } from "@/lib/cookies";
 const AUTH_ROUTES = ["/login", "/register"];
 const PRIVATE_ROUTE_PREFIX = "/app";
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   // DISABLED: Middleware auth check disabled because we moved to localStorage
   // localStorage is not available in middleware (server-side)
   // Pages handle authentication client-side instead

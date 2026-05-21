@@ -299,3 +299,64 @@ export async function getPublicFreelancerReviews(
     totalPages,
   };
 }
+
+// ─── Public Portfolio ─────────────────────────────────────────────────────────
+
+export interface PublicPortfolioImage {
+  id: string;
+  url: string;
+  order: number;
+}
+
+export interface PublicPortfolioProject {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  tags: string[];
+  projectUrl?: string | null;
+  startDate?: string | null;
+  endDate?: string | null;
+  order: number;
+  createdAt: string;
+  images: PublicPortfolioImage[];
+}
+
+export interface PublicPortfolioFreelancer {
+  id: string;
+  professionalTitle: string | null;
+  bio: string | null;
+  avatarUrl: string | null;
+  location: string | null;
+}
+
+export interface PublicPortfolioResult {
+  freelancer: PublicPortfolioFreelancer;
+  projects: PublicPortfolioProject[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
+export async function getPublicFreelancerPortfolio(
+  freelancerId: string,
+  page = 1,
+): Promise<PublicPortfolioResult | null> {
+  try {
+    const response = await fetch(
+      `${API_URL}/marketplace/freelancers/${freelancerId}/portfolio?page=${page}&limit=20`,
+      { next: { revalidate: 300 } },
+    );
+
+    if (response.status === 404) return null;
+    if (!response.ok) return null;
+
+    const json = await response.json();
+    return unwrapData<PublicPortfolioResult>(json);
+  } catch {
+    return null;
+  }
+}

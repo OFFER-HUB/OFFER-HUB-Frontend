@@ -133,6 +133,17 @@ export default async function PublicFreelancerProfilePage({ params }: PageProps)
                   >
                     View services
                   </Link>
+                  <Link
+                    href={`/marketplace/freelancers/${id}/portfolio`}
+                    className={cn(
+                      "inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold",
+                      "bg-white text-text-secondary border border-border-light",
+                      "shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]",
+                      "hover:shadow-[2px_2px_4px_#d1d5db,-2px_-2px_4px_#ffffff]"
+                    )}
+                  >
+                    Portfolio
+                  </Link>
                 </div>
               </div>
             </div>

@@ -93,7 +93,7 @@ export interface ProfileCompletenessData {
  * Get the profile completeness status for the authenticated user
  */
 export async function getProfileCompleteness(token: string): Promise<ProfileCompletenessData> {
-  const response = await fetch(`${API_URL}/users/profile/completeness`, {
+  const response = await fetch(`${API_URL}/users/me/completeness`, {
     headers: {
       Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",

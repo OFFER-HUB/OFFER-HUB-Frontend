@@ -7,7 +7,7 @@ import { useAuthStore } from "@/stores/auth-store";
 import type { Step, CallBackProps } from "react-joyride";
 
 // Dynamic import to avoid SSR issues
-const Joyride = dynamic(() => import("react-joyride"), { ssr: false });
+const Joyride = dynamic(() => import("react-joyride").then((m) => m.Joyride), { ssr: false });
 
 // Tour steps for the main dashboard
 const dashboardSteps: Step[] = [
