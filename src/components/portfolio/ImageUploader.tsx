@@ -220,10 +220,10 @@ export function ImageUploader({
         </div>
       )}
 
-      {error && (
+      {localError && (
         <p className="text-sm text-error flex items-start gap-1.5">
           <Icon path={ICON_PATHS.alertCircle} size="sm" className="shrink-0 mt-0.5" />
-          {error}
+          {localError}
         </p>
       )}
     </div>
