@@ -69,60 +69,9 @@ export function ProfileCompleteness(): React.JSX.Element | null {
   const strokeDashoffset = circumference - (animatedPercentage / 100) * circumference;
 
   if (data.isComplete || data.percentage >= 100) {
-    if (isCollapsed) {
-      return (
-        <div
-          className={cn(
-            NEUMORPHIC_CARD,
-            "py-3 px-4 flex flex-row items-center justify-between cursor-pointer group"
-          )}
-          onClick={() => setIsCollapsed(false)}
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-success/10 flex items-center justify-center">
-              <Icon path={ICON_PATHS.check} size="md" className="text-success" />
-            </div>
-            <div>
-              <p className="font-semibold text-text-primary">Profile 100% Complete!</p>
-              <p className="text-xs text-text-secondary">You have earned the All-Star badge.</p>
-            </div>
-          </div>
-          <Icon
-            path={ICON_PATHS.chevronDown}
-            size="sm"
-            className="text-text-secondary group-hover:text-primary transition-colors"
-          />
-        </div>
-      );
-    }
-
-    return (
-      <div className={cn(NEUMORPHIC_CARD, "relative overflow-hidden")}>
-        <button
-          onClick={() => setIsCollapsed(true)}
-          className="absolute top-4 right-4 text-text-secondary hover:text-text-primary"
-        >
-          <Icon path={ICON_PATHS.arrowUp} size="sm" />
-        </button>
-        <div className="flex flex-col items-center py-6 text-center">
-          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-success/20 to-success/5 flex items-center justify-center mb-4 relative before:absolute before:inset-0 before:bg-success/20 before:animate-ping before:rounded-full before:-z-10 shadow-[4px_4px_10px_#d1d5db,-4px_-4px_10px_#ffffff]">
-            <Icon path={ICON_PATHS.shield} size="xl" className="text-success scale-125" />
-          </div>
-          <h2 className="text-xl font-bold text-text-primary mb-2">Congratulations! 🎉</h2>
-          <p className="text-sm text-text-secondary max-w-[250px] mx-auto">
-            Your profile is 100% complete. You now have the All-Star badge, which helps you stand
-            out on the marketplace.
-          </p>
-          <Link
-            href="/app/profile"
-            className={cn(PRIMARY_BUTTON, "mt-6 text-sm px-6 py-2 rounded-xl")}
-          >
-            View Public Profile
-          </Link>
-        </div>
-      </div>
-    );
+    return null;
   }
+
 
   return (
     <div className={NEUMORPHIC_CARD}>

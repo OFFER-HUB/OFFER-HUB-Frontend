@@ -71,7 +71,7 @@ export default function OAuthCallbackPage() {
         setState({ type: "success" });
 
         // Redirect to dashboard or saved path
-        const destination = redirectAfterLogin || "/app/dashboard";
+        const destination = redirectAfterLogin || "/app/dashboard"; // /app/dashboard redirects based on mode
         setRedirectAfterLogin(null);
         router.push(destination);
       } catch (error) {

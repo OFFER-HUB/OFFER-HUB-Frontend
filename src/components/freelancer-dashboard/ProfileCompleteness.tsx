@@ -46,7 +46,7 @@ export function ProfileCompleteness({
   user,
   stats,
   isLoading,
-}: ProfileCompletenessProps): React.JSX.Element {
+}: ProfileCompletenessProps): React.JSX.Element | null {
   const items = getItems(user, stats);
   const completedCount = items.filter((i) => i.completed).length;
   const percentage = Math.round((completedCount / items.length) * 100);
@@ -73,6 +73,8 @@ export function ProfileCompleteness({
     );
   }
 
+  if (isComplete) return null;
+
   return (
     <div className={cn(NEUMORPHIC_CARD, "animate-fade-in-up")}>
       {/* Header */}
@@ -89,29 +91,16 @@ export function ProfileCompleteness({
         />
       </div>
 
-      {/* Complete state */}
-      {isComplete ? (
-        <div className="flex items-center gap-3 py-2">
-          <div className="w-8 h-8 rounded-full bg-success/20 flex items-center justify-center flex-shrink-0">
-            <Icon path={ICON_PATHS.check} size="sm" className="text-success" />
+      <div className="space-y-3">
+        {incompleteItems.map((item) => (
+          <div key={item.label} className="flex items-center gap-3">
+            <div className="w-5 h-5 rounded-full bg-gray-200 flex-shrink-0" />
+            <Link href={item.href} className="text-sm text-primary hover:underline">
+              {item.label}
+            </Link>
           </div>
-          <p className="text-sm font-semibold text-success">Your profile is complete!</p>
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {incompleteItems.map((item) => (
-            <div key={item.label} className="flex items-center gap-3">
-              <div className="w-5 h-5 rounded-full bg-gray-200 flex-shrink-0" />
-              <Link
-                href={item.href}
-                className="text-sm text-primary hover:underline"
-              >
-                {item.label}
-              </Link>
-            </div>
-          ))}
-        </div>
-      )}
+        ))}
+      </div>
     </div>
   );
 }

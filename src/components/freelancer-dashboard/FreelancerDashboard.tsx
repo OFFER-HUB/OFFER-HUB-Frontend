@@ -14,6 +14,7 @@ import {
   getFreelancerActivities,
   type FreelancerActivity,
 } from "@/lib/api/freelancer";
+import { getWalletBalance, type WalletBalanceSummary } from "@/lib/api/wallet";
 import type { DashboardStats } from "@/types/freelancer-dashboard.types";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { StatsCard } from "./StatsCard";
@@ -84,6 +85,7 @@ export function FreelancerDashboard(): React.JSX.Element {
 
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [activities, setActivities] = useState<FreelancerActivity[]>([]);
+  const [walletBalance, setWalletBalance] = useState<WalletBalanceSummary | null>(null);
   const [isLoadingStats, setIsLoadingStats] = useState(true);
   const [isLoadingActivities, setIsLoadingActivities] = useState(true);
 
@@ -122,13 +124,15 @@ export function FreelancerDashboard(): React.JSX.Element {
           } satisfies DashboardStats;
         });
 
-        const [statsData, activitiesData] = await Promise.all([
+        const [statsData, activitiesData, balanceData] = await Promise.all([
           statsPromise,
           getFreelancerActivities(token),
+          getWalletBalance(token).catch(() => null),
         ]);
 
         setStats(statsData);
         setActivities(activitiesData);
+        setWalletBalance(balanceData);
       } catch (err) {
         console.error("Failed to fetch freelancer dashboard data:", err);
       } finally {
@@ -202,9 +206,79 @@ export function FreelancerDashboard(): React.JSX.Element {
           <p className="text-text-secondary mt-2 text-lg">
             Manage your services and grow your freelance business
           </p>
-          {user?.wallet?.publicKey && (
-            <div className="mt-4 inline-block">
+          {user?.wallet?.publicKey ? (
+            <div className="mt-4 flex flex-wrap items-center gap-3">
               <WalletAddress address={user.wallet.publicKey} />
+              {walletBalance && (
+                <Link
+                  href="/app/wallet"
+                  className={cn(
+                    "inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl",
+                    "bg-white",
+                    "shadow-[2px_2px_4px_#d1d5db,-2px_-2px_4px_#ffffff]",
+                    "hover:shadow-[inset_1px_1px_2px_#d1d5db,inset_-1px_-1px_2px_#ffffff]",
+                    "active:shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]",
+                    "transition-all duration-200",
+                    "group"
+                  )}
+                  title="View wallet"
+                >
+                  <div className="w-5 h-5 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <Icon
+                      path={ICON_PATHS.currency}
+                      size="sm"
+                      className="text-primary group-hover:scale-110 transition-transform duration-300"
+                    />
+                  </div>
+                  <div className="flex flex-col items-start leading-none pr-1">
+                    <span className="text-[9px] uppercase font-bold tracking-wider text-text-secondary">
+                      Balance
+                    </span>
+                    <span className="text-xs font-bold text-text-primary mt-0.5 group-hover:text-primary transition-colors">
+                      {new Intl.NumberFormat("en-US", {
+                        style: "currency",
+                        currency: walletBalance.currency,
+                      }).format(parseFloat(walletBalance.availableBalance))}
+                    </span>
+                  </div>
+                  <Icon
+                    path={ICON_PATHS.chevronRight}
+                    size="sm"
+                    className="text-text-secondary/50 group-hover:text-primary transition-colors group-hover:translate-x-0.5 transition-transform"
+                  />
+                </Link>
+              )}
+            </div>
+          ) : (
+            <div className="mt-4 inline-block">
+              <Link
+                href="/app/wallet"
+                className={cn(
+                  "inline-flex items-center gap-2 px-3 py-2 rounded-xl",
+                  "bg-white",
+                  "shadow-[2px_2px_4px_#d1d5db,-2px_-2px_4px_#ffffff]",
+                  "hover:shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]",
+                  "active:shadow-[inset_3px_3px_6px_#d1d5db,inset_-3px_-3px_6px_#ffffff]",
+                  "transition-all duration-200",
+                  "group"
+                )}
+              >
+                <div className="w-5 h-5 rounded-lg bg-red-500/10 flex items-center justify-center flex-shrink-0">
+                  <Icon
+                    path={ICON_PATHS.alertCircle}
+                    size="sm"
+                    className="text-red-500"
+                  />
+                </div>
+                <span className="text-sm font-medium text-text-secondary group-hover:text-red-500 transition-colors">
+                  No wallet connected
+                </span>
+                <Icon
+                  path={ICON_PATHS.chevronRight}
+                  size="sm"
+                  className="text-text-secondary/60 group-hover:text-red-500 transition-colors group-hover:translate-x-0.5 transition-transform"
+                />
+              </Link>
             </div>
           )}
         </div>
@@ -272,6 +346,7 @@ export function FreelancerDashboard(): React.JSX.Element {
           accentColor="bg-primary"
           trend={stats?.activeApplicationsTrend}
           isLoading={isLoadingStats}
+          subtitle="Pending proposals sent"
         />
         <StatsCard
           label="Active Orders"
@@ -280,6 +355,7 @@ export function FreelancerDashboard(): React.JSX.Element {
           accentColor="bg-secondary"
           trend={stats?.activeOrdersTrend}
           isLoading={isLoadingStats}
+          subtitle="In progress"
         />
         <StatsCard
           label="Total Earnings"
@@ -288,6 +364,7 @@ export function FreelancerDashboard(): React.JSX.Element {
           accentColor="bg-success"
           trend={stats?.earningsTrend}
           isLoading={isLoadingStats}
+          subtitle="From released orders"
         />
         <StatsCard
           label="My Rating"
@@ -296,6 +373,7 @@ export function FreelancerDashboard(): React.JSX.Element {
           accentColor="bg-accent"
           trend={stats?.ratingTrend}
           isLoading={isLoadingStats}
+          subtitle="Avg. from reviews"
         />
       </div>
 

@@ -222,7 +222,8 @@ export default function WalletPage(): React.JSX.Element {
             "shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff]"
           )}
         >
-          <p className="text-sm font-medium text-text-secondary mb-1">Earnings (this month)</p>
+          <p className="text-sm font-medium text-text-secondary">Earned this month</p>
+          <p className="text-xs text-text-secondary mb-2">From completed orders</p>
           <p className="text-2xl font-bold text-text-primary">
             {new Intl.NumberFormat("en-US", {
               style: "currency",
@@ -248,7 +249,8 @@ export default function WalletPage(): React.JSX.Element {
             "shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff]"
           )}
         >
-          <p className="text-sm font-medium text-text-secondary mb-1">Spending (this month)</p>
+          <p className="text-sm font-medium text-text-secondary">Withdrawn this month</p>
+          <p className="text-xs text-text-secondary mb-2">Completed withdrawals</p>
           <p className="text-2xl font-bold text-text-primary">
             {new Intl.NumberFormat("en-US", {
               style: "currency",

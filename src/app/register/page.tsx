@@ -161,12 +161,8 @@ export default function RegisterPage() {
 
       setIsLoading(false);
 
-      // Redirect to the appropriate dashboard based on mode
-      const defaultDashboard = mode === "freelancer"
-        ? "/app/freelancer/dashboard"
-        : mode === "client"
-        ? "/app/client/dashboard"
-        : "/app/dashboard";
+      const defaultDashboard =
+        mode === "client" ? "/app/client/dashboard" : "/app/freelancer/dashboard";
 
       // Redirect to dashboard after success animation
       setTimeout(() => {

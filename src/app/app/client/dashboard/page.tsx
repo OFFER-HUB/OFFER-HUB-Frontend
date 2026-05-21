@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
+import { ClientDashboardSkeleton } from "@/components/client-dashboard/ClientDashboardSkeleton";
 import Link from "next/link";
 import { useAuthStore } from "@/stores/auth-store";
 import { useModeStore } from "@/stores/mode-store";
@@ -15,6 +16,7 @@ import {
   type ClientActivity,
 } from "@/lib/api/client";
 import { getMyOffers, type Offer } from "@/lib/api/offers";
+import { getWalletBalance, type WalletBalanceSummary } from "@/lib/api/wallet";
 import { ApplicationsToReview } from "@/components/client-dashboard/ApplicationsToReview";
 import { RecommendedFreelancers } from "@/components/client-dashboard/RecommendedFreelancers";
 import { ProfileCompleteness } from "@/components/profile/ProfileCompleteness";
@@ -53,12 +55,14 @@ function StatCard({
   iconPath,
   color,
   isPositive,
+  subtitle,
 }: {
   label: string;
   value: string | number;
   iconPath: string;
   color: string;
   isPositive?: boolean;
+  subtitle?: string;
 }): React.JSX.Element {
   const numericValue =
     typeof value === "string" ? parseFloat(value.replace(/[^0-9.]/g, "")) : value;
@@ -100,6 +104,9 @@ function StatCard({
               </span>
             )}
           </div>
+          {subtitle && (
+            <p className="text-xs text-text-secondary mt-0.5">{subtitle}</p>
+          )}
         </div>
       </div>
     </div>
@@ -191,6 +198,7 @@ export default function ClientDashboardPage(): React.JSX.Element {
   const [stats, setStats] = useState<ClientStats | null>(null);
   const [activities, setActivities] = useState<ClientActivity[]>([]);
   const [offers, setOffers] = useState<Offer[]>([]);
+  const [walletBalance, setWalletBalance] = useState<WalletBalanceSummary | null>(null);
   const [isLoadingStats, setIsLoadingStats] = useState(true);
   const [isLoadingActivities, setIsLoadingActivities] = useState(true);
   const [isLoadingOffers, setIsLoadingOffers] = useState(true);
@@ -216,14 +224,16 @@ export default function ClientDashboardPage(): React.JSX.Element {
       setIsLoadingOffers(true);
 
       try {
-        const [statsData, activitiesData, offersData] = await Promise.all([
+        const [statsData, activitiesData, offersData, balanceData] = await Promise.all([
           getClientStats(token),
           getClientActivities(token),
           getMyOffers(token),
+          getWalletBalance(token).catch(() => null),
         ]);
         setStats(statsData);
         setActivities(activitiesData);
         setOffers(offersData);
+        setWalletBalance(balanceData);
       } catch (err) {
         console.error("Failed to fetch client dashboard data:", err);
       } finally {
@@ -266,7 +276,7 @@ export default function ClientDashboardPage(): React.JSX.Element {
     };
   }, [mounted, fetchData]);
 
-  if (!mounted) return <div className="min-h-screen bg-background" />;
+  if (!mounted) return <ClientDashboardSkeleton />;
 
   return (
     <div className="space-y-8 pb-10">
@@ -294,9 +304,79 @@ export default function ClientDashboardPage(): React.JSX.Element {
           <p className="text-text-secondary mt-2 text-lg">
             Find talented freelancers and manage your projects effectively
           </p>
-          {user?.wallet?.publicKey && (
-            <div className="mt-4 inline-block">
+          {user?.wallet?.publicKey ? (
+            <div className="mt-4 flex flex-wrap items-center gap-3">
               <WalletAddress address={user.wallet.publicKey} />
+              {walletBalance && (
+                <Link
+                  href="/app/wallet"
+                  className={cn(
+                    "inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl",
+                    "bg-white",
+                    "shadow-[2px_2px_4px_#d1d5db,-2px_-2px_4px_#ffffff]",
+                    "hover:shadow-[inset_1px_1px_2px_#d1d5db,inset_-1px_-1px_2px_#ffffff]",
+                    "active:shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]",
+                    "transition-all duration-200",
+                    "group"
+                  )}
+                  title="View wallet"
+                >
+                  <div className="w-5 h-5 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <Icon
+                      path={ICON_PATHS.currency}
+                      size="sm"
+                      className="text-primary group-hover:scale-110 transition-transform duration-300"
+                    />
+                  </div>
+                  <div className="flex flex-col items-start leading-none pr-1">
+                    <span className="text-[9px] uppercase font-bold tracking-wider text-text-secondary">
+                      Balance
+                    </span>
+                    <span className="text-xs font-bold text-text-primary mt-0.5 group-hover:text-primary transition-colors">
+                      {new Intl.NumberFormat("en-US", {
+                        style: "currency",
+                        currency: walletBalance.currency,
+                      }).format(parseFloat(walletBalance.availableBalance))}
+                    </span>
+                  </div>
+                  <Icon
+                    path={ICON_PATHS.chevronRight}
+                    size="sm"
+                    className="text-text-secondary/50 group-hover:text-primary transition-colors group-hover:translate-x-0.5 transition-transform"
+                  />
+                </Link>
+              )}
+            </div>
+          ) : (
+            <div className="mt-4 inline-block">
+              <Link
+                href="/app/wallet"
+                className={cn(
+                  "inline-flex items-center gap-2 px-3 py-2 rounded-xl",
+                  "bg-white",
+                  "shadow-[2px_2px_4px_#d1d5db,-2px_-2px_4px_#ffffff]",
+                  "hover:shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]",
+                  "active:shadow-[inset_3px_3px_6px_#d1d5db,inset_-3px_-3px_6px_#ffffff]",
+                  "transition-all duration-200",
+                  "group"
+                )}
+              >
+                <div className="w-5 h-5 rounded-lg bg-red-500/10 flex items-center justify-center flex-shrink-0">
+                  <Icon
+                    path={ICON_PATHS.alertCircle}
+                    size="sm"
+                    className="text-red-500"
+                  />
+                </div>
+                <span className="text-sm font-medium text-text-secondary group-hover:text-red-500 transition-colors">
+                  No wallet connected
+                </span>
+                <Icon
+                  path={ICON_PATHS.chevronRight}
+                  size="sm"
+                  className="text-text-secondary/60 group-hover:text-red-500 transition-colors group-hover:translate-x-0.5 transition-transform"
+                />
+              </Link>
             </div>
           )}
         </div>
@@ -375,18 +455,21 @@ export default function ClientDashboardPage(): React.JSX.Element {
               value={stats?.activeOffers ?? 0}
               iconPath={ICON_PATHS.document}
               color="bg-primary"
+              subtitle="Awaiting freelancers"
             />
             <StatCard
               label="Active Orders"
               value={stats?.activeOrders ?? 0}
               iconPath={ICON_PATHS.briefcase}
               color="bg-secondary"
+              subtitle="In progress"
             />
             <StatCard
               label="Services Purchased"
               value={stats?.servicesPurchased ?? 0}
               iconPath={ICON_PATHS.check}
               color="bg-accent"
+              subtitle="Unique services hired"
             />
             <StatCard
               label="Budget Spent"
@@ -394,6 +477,7 @@ export default function ClientDashboardPage(): React.JSX.Element {
               iconPath={ICON_PATHS.currency}
               color="bg-success"
               isPositive={false}
+              subtitle="All-time total orders"
             />
           </>
         )}
