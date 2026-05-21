@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { useOnboardingStore } from "@/stores/onboarding-store";
 import { useAuthStore } from "@/stores/auth-store";
-import type { Step, CallBackProps } from "react-joyride";
+import type { Step, EventData } from "react-joyride";
 
 // Dynamic import to avoid SSR issues
 const Joyride = dynamic(() => import("react-joyride").then((m) => m.Joyride), { ssr: false });
@@ -22,7 +22,7 @@ const dashboardSteps: Step[] = [
       </div>
     ),
     placement: "center",
-    disableBeacon: true,
+    skipBeacon: true,
   },
   {
     target: '[data-tour="mode-switcher"]',
@@ -156,7 +156,7 @@ export function OnboardingTour({ steps = dashboardSteps, run }: OnboardingTourPr
     setKey((k) => k + 1); // force full unmount/remount to clean up overlay
   };
 
-  const handleJoyrideCallback = (data: CallBackProps) => {
+  const handleJoyrideCallback = (data: EventData) => {
     const { status, action } = data;
 
     // Any of these mean "stop the tour now"
@@ -164,7 +164,6 @@ export function OnboardingTour({ steps = dashboardSteps, run }: OnboardingTourPr
       status === "finished" ||
       status === "skipped" ||
       status === "paused" ||
-      status === "error" ||
       action === "close" ||
       action === "skip" ||
       action === "reset"
@@ -183,21 +182,21 @@ export function OnboardingTour({ steps = dashboardSteps, run }: OnboardingTourPr
       steps={steps}
       run
       continuous
-      showProgress
-      showSkipButton
-      disableScrolling
-      disableOverlayClose={false}
-      callback={handleJoyrideCallback}
+      onEvent={handleJoyrideCallback}
+      options={{
+        primaryColor: "#10B981",
+        backgroundColor: "#F3F4F6",
+        textColor: "#1F2937",
+        arrowColor: "#F3F4F6",
+        overlayColor: "rgba(0, 0, 0, 0.4)",
+        zIndex: 10000,
+        spotlightRadius: 12,
+        showProgress: true,
+        buttons: ["back", "close", "primary", "skip"],
+        skipScroll: true,
+        overlayClickAction: "close",
+      }}
       styles={{
-        options: {
-          primaryColor: "#10B981",
-          backgroundColor: "#F3F4F6",
-          textColor: "#1F2937",
-          arrowColor: "#F3F4F6",
-          overlayColor: "rgba(0, 0, 0, 0.4)",
-          zIndex: 10000,
-          spotlightRadius: 12,
-        },
         tooltip: {
           borderRadius: 16,
           padding: 24,
@@ -218,7 +217,7 @@ export function OnboardingTour({ steps = dashboardSteps, run }: OnboardingTourPr
         tooltipFooter: {
           marginTop: 16,
         },
-        buttonNext: {
+        buttonPrimary: {
           backgroundColor: "#F3F4F6",
           color: "#10B981",
           borderRadius: 12,
