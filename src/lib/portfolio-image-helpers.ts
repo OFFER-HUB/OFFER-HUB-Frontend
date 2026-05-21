@@ -2,6 +2,19 @@ import {
   MAX_IMAGE_CAPTION_LENGTH,
   type PortfolioImageEntry,
 } from "@/types/portfolio.types";
+import { BACKEND_URL } from "@/config/api";
+
+/**
+ * Resolves a potentially-relative image URL to a full URL.
+ * Paths like `/uploads/portfolio/...` are prefixed with the backend URL.
+ */
+function resolveImageUrl(url: string): string {
+  if (url.startsWith("http://") || url.startsWith("https://") || url.startsWith("data:")) {
+    return url;
+  }
+  // Relative path from backend — prepend backend URL
+  return `${BACKEND_URL}${url}`;
+}
 
 export function newPortfolioImageId(): string {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
@@ -20,13 +33,13 @@ export function normalizePortfolioImages(raw: unknown): PortfolioImageEntry[] {
     if (typeof item === "string" && item.trim()) {
       out.push({
         id: newPortfolioImageId(),
-        url: item.trim(),
+        url: resolveImageUrl(item.trim()),
       });
       return;
     }
     if (item && typeof item === "object" && "url" in item) {
       const o = item as Record<string, unknown>;
-      const url = typeof o.url === "string" ? o.url.trim() : "";
+      const url = typeof o.url === "string" ? resolveImageUrl(o.url.trim()) : "";
       if (!url) return;
       const cap =
         typeof o.caption === "string"
