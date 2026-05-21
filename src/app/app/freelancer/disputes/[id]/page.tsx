@@ -6,6 +6,10 @@ import Link from "next/link";
 import { cn } from "@/lib/cn";
 import { useModeStore } from "@/stores/mode-store";
 import { Icon, ICON_PATHS } from "@/components/ui/Icon";
+import { LoadingState } from "@/components/ui/LoadingState";
+import { ErrorState } from "@/components/ui/ErrorState";
+import { useAuthStore } from "@/stores/auth-store";
+import { getDisputeById } from "@/lib/api/disputes";
 import { EvidenceList } from "@/components/disputes/EvidenceList";
 import {
   NEUMORPHIC_CARD,
@@ -13,7 +17,6 @@ import {
   ICON_BUTTON,
   PRIMARY_BUTTON,
 } from "@/lib/styles";
-import { getFreelancerDisputeById } from "@/data/dispute.data";
 import {
   DISPUTE_REASON_LABELS,
   DISPUTE_STATUS_LABELS,
@@ -99,19 +102,46 @@ export default function FreelancerDisputeDetailPage(): React.JSX.Element {
   const params = useParams();
   const router = useRouter();
   const { setMode } = useModeStore();
+  const token = useAuthStore((state) => state.token);
+  const userId = useAuthStore((state) => state.user?.id);
+
+  const [mounted, setMounted] = useState(false);
   const [dispute, setDispute] = useState<Dispute | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
   const [newComment, setNewComment] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const disputeId = params.id as string;
 
   useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
     setMode("freelancer");
-    const foundDispute = getFreelancerDisputeById(disputeId);
-    if (foundDispute) {
-      setDispute(foundDispute);
+  }, [setMode]);
+
+  useEffect(() => {
+    if (!mounted) return;
+
+    async function fetchDispute(): Promise<void> {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const data = await getDisputeById(token, disputeId, userId);
+        setDispute(data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to load dispute");
+        setDispute(null);
+      } finally {
+        setIsLoading(false);
+      }
     }
-  }, [setMode, disputeId]);
+
+    fetchDispute();
+  }, [mounted, token, disputeId, refreshKey, userId]);
 
   async function handleSubmitComment(e: React.FormEvent): Promise<void> {
     e.preventDefault();
@@ -138,6 +168,19 @@ export default function FreelancerDisputeDetailPage(): React.JSX.Element {
 
     setNewComment("");
     setIsSubmitting(false);
+  }
+
+  if (isLoading) {
+    return <LoadingState message="Loading dispute..." />;
+  }
+
+  if (error) {
+    return (
+      <ErrorState
+        message={error}
+        onRetry={() => setRefreshKey((k) => k + 1)}
+      />
+    );
   }
 
   if (!dispute) {
