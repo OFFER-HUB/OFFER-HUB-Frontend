@@ -205,6 +205,7 @@ export const MOCK_DISPUTES: Dispute[] = [
   },
 ];
 
+/** Reasons supported by the backend dispute API. */
 export const DISPUTE_REASONS: { value: DisputeReason; label: string; description: string }[] = [
   {
     value: "quality_issues",
@@ -213,23 +214,8 @@ export const DISPUTE_REASONS: { value: DisputeReason; label: string; description
   },
   {
     value: "deadline_missed",
-    label: "Deadline Missed",
+    label: "Not Delivered / Deadline Missed",
     description: "The project was not delivered by the agreed deadline",
-  },
-  {
-    value: "communication_problems",
-    label: "Communication Problems",
-    description: "The freelancer is unresponsive or difficult to communicate with",
-  },
-  {
-    value: "payment_dispute",
-    label: "Payment Dispute",
-    description: "There is a disagreement about payment terms or amounts",
-  },
-  {
-    value: "scope_disagreement",
-    label: "Scope Disagreement",
-    description: "There is a misunderstanding about what was included in the project",
   },
   {
     value: "other",
