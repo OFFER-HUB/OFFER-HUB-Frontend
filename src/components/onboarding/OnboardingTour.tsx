@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { useOnboardingStore } from "@/stores/onboarding-store";
 import { useAuthStore } from "@/stores/auth-store";
-import type { Step, CallBackProps } from "react-joyride";
+import type { Step, EventData } from "react-joyride";
 
 // Dynamic import to avoid SSR issues
 const Joyride = dynamic(() => import("react-joyride").then((m) => m.Joyride), { ssr: false });
@@ -22,7 +22,7 @@ const dashboardSteps: Step[] = [
       </div>
     ),
     placement: "center",
-    disableBeacon: true,
+    skipBeacon: true,
   },
   {
     target: '[data-tour="mode-switcher"]',
@@ -129,6 +129,7 @@ export function OnboardingTour({ steps = dashboardSteps, run }: OnboardingTourPr
   const { isAuthenticated } = useAuthStore();
   const [mounted, setMounted] = useState(false);
   const [shouldRun, setShouldRun] = useState(false);
+  const [key, setKey] = useState(0);
 
   useEffect(() => {
     setMounted(true);
@@ -141,16 +142,19 @@ export function OnboardingTour({ steps = dashboardSteps, run }: OnboardingTourPr
     }
   }, [isAuthenticated, hasCompletedTour]);
 
-  const handleJoyrideCallback = (data: CallBackProps) => {
-    const { status, index, type } = data;
+  const stopTour = () => {
+    completeTour();
+    setShouldRun(false);
+    setKey((k) => k + 1); // force full unmount/remount to clean up overlay
+  };
+
+  const handleJoyrideCallback = (data: EventData) => {
+    const { status, index, type, action } = data;
     const finishedStatuses: string[] = ["finished", "skipped"];
 
-    if (finishedStatuses.includes(status as string)) {
-      completeTour();
-      setShouldRun(false);
-    }
-
-    if (type === "step:after") {
+    if (finishedStatuses.includes(status as string) || action === "close" || action === "skip") {
+      stopTour();
+    } else if (type === "step:after") {
       setTourStep(index + 1);
     }
   };
@@ -162,22 +166,25 @@ export function OnboardingTour({ steps = dashboardSteps, run }: OnboardingTourPr
 
   return (
     <Joyride
+      key={key}
       steps={steps}
       run={isRunning}
       continuous
-      showProgress
-      showSkipButton
-      stepIndex={currentTourStep}
-      callback={handleJoyrideCallback}
+      onEvent={handleJoyrideCallback}
+      options={{
+        primaryColor: "#10B981",
+        backgroundColor: "#F3F4F6",
+        textColor: "#1F2937",
+        arrowColor: "#F3F4F6",
+        overlayColor: "rgba(0, 0, 0, 0.4)",
+        zIndex: 10000,
+        spotlightRadius: 12,
+        showProgress: true,
+        buttons: ["back", "close", "primary", "skip"],
+        skipScroll: true,
+        overlayClickAction: "close",
+      }}
       styles={{
-        options: {
-          primaryColor: "#10B981",
-          backgroundColor: "#F3F4F6",
-          textColor: "#1F2937",
-          arrowColor: "#F3F4F6",
-          overlayColor: "rgba(0, 0, 0, 0.4)",
-          zIndex: 10000,
-        },
         tooltip: {
           borderRadius: 16,
           padding: 24,
@@ -198,7 +205,7 @@ export function OnboardingTour({ steps = dashboardSteps, run }: OnboardingTourPr
         tooltipFooter: {
           marginTop: 16,
         },
-        buttonNext: {
+        buttonPrimary: {
           backgroundColor: "#F3F4F6",
           color: "#10B981",
           borderRadius: 12,
@@ -239,9 +246,6 @@ export function OnboardingTour({ steps = dashboardSteps, run }: OnboardingTourPr
           top: 12,
           right: 12,
         },
-        spotlight: {
-          borderRadius: 12,
-        },
         overlay: {
           backgroundColor: "rgba(0, 0, 0, 0.4)",
         },
@@ -262,17 +266,6 @@ export function OnboardingTour({ steps = dashboardSteps, run }: OnboardingTourPr
         last: "Finish",
         next: "Next",
         skip: "Skip tour",
-      }}
-      floaterProps={{
-        disableAnimation: false,
-        styles: {
-          floater: {
-            filter: "drop-shadow(0 4px 12px rgba(0, 0, 0, 0.1))",
-          },
-          arrow: {
-            color: "#F3F4F6",
-          },
-        },
       }}
     />
   );
