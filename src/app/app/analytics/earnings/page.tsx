@@ -194,7 +194,7 @@ export default function EarningsAnalyticsPage(): React.JSX.Element {
   ];
 
   return (
-    <div className="page-full-height max-w-6xl mx-auto pb-10">
+    <div className="max-w-6xl mx-auto pb-10">
       <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6 mb-6">
         <div>
           <h1 className="text-2xl font-bold text-text-primary">Earnings analytics</h1>

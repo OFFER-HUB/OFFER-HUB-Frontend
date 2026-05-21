@@ -142,7 +142,7 @@ export default function WalletPage(): React.JSX.Element {
   const spendPct = pctVsPrevious(data.monthly.currentMonthSpending, data.monthly.previousMonthSpending);
 
   return (
-    <div className="page-full-height max-w-6xl mx-auto pb-10">
+    <div className="max-w-6xl mx-auto pb-10">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
           <h1 className="text-2xl font-bold text-text-primary">Wallet</h1>
