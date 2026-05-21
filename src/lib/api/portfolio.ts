@@ -8,7 +8,7 @@ const API_BASE_URL = API_URL;
 /**
  * Set to false when real portfolio API endpoints are available on the backend.
  */
-const USE_MOCK = true;
+const USE_MOCK = false;
 
 // ─── In-memory mock store ─────────────────────────────────────────────────────
 const mockStore: PortfolioItem[] = structuredClone(MOCK_PORTFOLIO_ITEMS);

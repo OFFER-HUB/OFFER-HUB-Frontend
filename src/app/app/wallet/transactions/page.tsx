@@ -222,7 +222,7 @@ export default function WalletTransactionsPage(): React.JSX.Element {
   const reservesCount = walletData.transactions.filter((transaction) => transaction.type === "reserve").length;
 
   return (
-    <div className="page-full-height max-w-6xl mx-auto pb-10 space-y-6">
+    <div className="max-w-6xl mx-auto pb-10 space-y-6">
       <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-5">
         <div>
           <div className="flex items-center gap-2 text-sm text-text-secondary mb-2">

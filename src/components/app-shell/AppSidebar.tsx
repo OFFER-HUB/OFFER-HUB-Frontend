@@ -79,7 +79,8 @@ export function AppSidebar(_props: AppSidebarProps): React.JSX.Element {
     }
   }, [conversations.length, fetchConversations]);
 
-  const navItems = getNavigationItems(mode);
+  const currentMode = hydrated ? mode : "freelancer";
+  const navItems = getNavigationItems(currentMode);
   const totalUnreadMessages = conversations.reduce(
     (total, conversation) => total + conversation.unreadCount,
     0
@@ -154,7 +155,7 @@ export function AppSidebar(_props: AppSidebarProps): React.JSX.Element {
                 <button
                   type="button"
                   onClick={() => handleModeChange("freelancer")}
-                  className={getModeToggleStyles(hydrated && mode === "freelancer")}
+                  className={getModeToggleStyles(hydrated && currentMode === "freelancer")}
                   disabled={!hydrated}
                 >
                   Freelancer
@@ -162,7 +163,7 @@ export function AppSidebar(_props: AppSidebarProps): React.JSX.Element {
                 <button
                   type="button"
                   onClick={() => handleModeChange("client")}
-                  className={getModeToggleStyles(hydrated && mode === "client")}
+                  className={getModeToggleStyles(hydrated && currentMode === "client")}
                   disabled={!hydrated}
                 >
                   Client
@@ -176,10 +177,10 @@ export function AppSidebar(_props: AppSidebarProps): React.JSX.Element {
               <span
                 className={cn(
                   "w-2 h-2 rounded-full",
-                  mode === "freelancer" ? "bg-primary" : "bg-secondary"
+                  currentMode === "freelancer" ? "bg-primary" : "bg-secondary"
                 )}
               />
-              <span>{MODE_LABELS[mode]}</span>
+              <span>{MODE_LABELS[currentMode]}</span>
             </div>
           </div>
         </>
@@ -191,9 +192,9 @@ export function AppSidebar(_props: AppSidebarProps): React.JSX.Element {
           <span
             className={cn(
               "w-3 h-3 rounded-full",
-              mode === "freelancer" ? "bg-primary" : "bg-secondary"
+              currentMode === "freelancer" ? "bg-primary" : "bg-secondary"
             )}
-            title={MODE_LABELS[mode]}
+            title={MODE_LABELS[currentMode]}
           />
         </div>
       )}
@@ -214,7 +215,9 @@ export function AppSidebar(_props: AppSidebarProps): React.JSX.Element {
                     ? "nav-dashboard"
                     : item.href.includes("analytics")
                       ? "nav-analytics"
-                      : undefined;
+                      : item.href.includes("wallet")
+                        ? "nav-wallet"
+                        : undefined;
 
           return (
             <Link

@@ -169,6 +169,7 @@ export default function RegisterPage() {
         : "/app/dashboard";
 
       // Redirect to dashboard after success animation
+      localStorage.setItem("show-onboarding-tour", "true");
       setTimeout(() => {
         window.location.href = defaultDashboard;
       }, 1500);
