@@ -38,17 +38,16 @@ const dashboardSteps: Step[] = [
     placement: "bottom",
   },
   {
-    target: '[data-tour="balance-card"]',
+    target: '[data-tour="nav-wallet"]',
     content: (
       <div className="py-1">
-        <h4 className="font-semibold text-text-primary mb-1">Your Balance</h4>
+        <h4 className="font-semibold text-text-primary mb-1">Your Wallet & Balance</h4>
         <p className="text-sm text-text-secondary">
-          View your available funds and reserved amounts.
-          You can add funds or withdraw anytime.
+          Access your wallet to view available funds, reserved amounts, add funds, or request a withdrawal.
         </p>
       </div>
     ),
-    placement: "bottom",
+    placement: "right",
   },
   {
     target: '[data-tour="nav-services"]',
@@ -125,49 +124,69 @@ interface OnboardingTourProps {
 }
 
 export function OnboardingTour({ steps = dashboardSteps, run }: OnboardingTourProps) {
-  const { hasCompletedTour, completeTour, setTourStep, currentTourStep } = useOnboardingStore();
+  const { hasCompletedTour, completeTour } = useOnboardingStore();
   const { isAuthenticated } = useAuthStore();
   const [mounted, setMounted] = useState(false);
   const [shouldRun, setShouldRun] = useState(false);
+  const [key, setKey] = useState(0);
 
   useEffect(() => {
     setMounted(true);
-    // Start tour after a short delay to ensure DOM is ready
-    if (isAuthenticated && !hasCompletedTour) {
-      const timer = setTimeout(() => {
-        setShouldRun(true);
-      }, 1000);
-      return () => clearTimeout(timer);
+    
+    if (typeof window !== "undefined") {
+      const showTourFlag = localStorage.getItem("show-onboarding-tour") === "true";
+      if (showTourFlag) {
+        // Clear the flag immediately so it won't run again on reload
+        localStorage.removeItem("show-onboarding-tour");
+        
+        const timer = setTimeout(() => {
+          setShouldRun(true);
+        }, 1500);
+        return () => clearTimeout(timer);
+      }
     }
-  }, [isAuthenticated, hasCompletedTour]);
+  }, []);
+
+  const stopTour = () => {
+    completeTour();
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("show-onboarding-tour");
+    }
+    setShouldRun(false);
+    setKey((k) => k + 1); // force full unmount/remount to clean up overlay
+  };
 
   const handleJoyrideCallback = (data: CallBackProps) => {
-    const { status, index, type } = data;
-    const finishedStatuses: string[] = ["finished", "skipped"];
+    const { status, action } = data;
 
-    if (finishedStatuses.includes(status as string)) {
-      completeTour();
-      setShouldRun(false);
-    }
-
-    if (type === "step:after") {
-      setTourStep(index + 1);
+    // Any of these mean "stop the tour now"
+    if (
+      status === "finished" ||
+      status === "skipped" ||
+      status === "paused" ||
+      status === "error" ||
+      action === "close" ||
+      action === "skip" ||
+      action === "reset"
+    ) {
+      stopTour();
     }
   };
 
-  if (!mounted || !isAuthenticated) return null;
+  const isRunning = run !== undefined ? run : (shouldRun && isAuthenticated && !hasCompletedTour);
 
-  // Allow manual run override
-  const isRunning = run !== undefined ? run : (shouldRun && !hasCompletedTour);
+  if (!mounted || !isAuthenticated || !isRunning) return null;
 
   return (
     <Joyride
+      key={key}
       steps={steps}
-      run={isRunning}
+      run
       continuous
       showProgress
       showSkipButton
-      stepIndex={currentTourStep}
+      disableScrolling
+      disableOverlayClose={false}
       callback={handleJoyrideCallback}
       styles={{
         options: {
@@ -177,6 +196,7 @@ export function OnboardingTour({ steps = dashboardSteps, run }: OnboardingTourPr
           arrowColor: "#F3F4F6",
           overlayColor: "rgba(0, 0, 0, 0.4)",
           zIndex: 10000,
+          spotlightRadius: 12,
         },
         tooltip: {
           borderRadius: 16,
@@ -239,9 +259,6 @@ export function OnboardingTour({ steps = dashboardSteps, run }: OnboardingTourPr
           top: 12,
           right: 12,
         },
-        spotlight: {
-          borderRadius: 12,
-        },
         overlay: {
           backgroundColor: "rgba(0, 0, 0, 0.4)",
         },
@@ -262,17 +279,6 @@ export function OnboardingTour({ steps = dashboardSteps, run }: OnboardingTourPr
         last: "Finish",
         next: "Next",
         skip: "Skip tour",
-      }}
-      floaterProps={{
-        disableAnimation: false,
-        styles: {
-          floater: {
-            filter: "drop-shadow(0 4px 12px rgba(0, 0, 0, 0.1))",
-          },
-          arrow: {
-            color: "#F3F4F6",
-          },
-        },
       }}
     />
   );

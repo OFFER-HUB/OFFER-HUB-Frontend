@@ -119,6 +119,7 @@ export function AppHeader({ onMenuClick }: AppHeaderProps): React.JSX.Element {
             <Link
               key={link.href}
               href={link.href}
+              data-tour={link.href === "/marketplace" ? "nav-marketplace" : undefined}
               className={cn(
                 "font-medium transition-colors relative",
                 isActiveLink(pathname, link.href)

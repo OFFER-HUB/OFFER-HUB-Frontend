@@ -68,6 +68,10 @@ export default function OAuthCallbackPage() {
         // Clear NextAuth session (we use our own JWT)
         await signOut({ redirect: false });
 
+        if (result.action === "REGISTER") {
+          localStorage.setItem("show-onboarding-tour", "true");
+        }
+
         setState({ type: "success" });
 
         // Redirect to dashboard or saved path
