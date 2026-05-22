@@ -30,14 +30,17 @@ function formatDate(dateString: string): string {
 
 interface DisputeCardProps {
   dispute: Dispute;
+  /** Override detail link (e.g. freelancer routes). */
+  detailHref?: string;
 }
 
-export function DisputeCard({ dispute }: DisputeCardProps): React.JSX.Element {
+export function DisputeCard({ dispute, detailHref }: DisputeCardProps): React.JSX.Element {
   const counterparty = dispute.freelancerName ?? dispute.clientName;
+  const href = detailHref ?? `/app/disputes/${dispute.id}`;
 
   return (
     <Link
-      href={`/app/disputes/${dispute.id}`}
+      href={href}
       className={cn(
         NEUMORPHIC_CARD,
         "block hover:shadow-[8px_8px_16px_#d1d5db,-8px_-8px_16px_#ffffff]",

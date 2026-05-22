@@ -13,7 +13,10 @@ import {
   NEUMORPHIC_INSET,
   ICON_BUTTON,
 } from "@/lib/styles";
-import { DISPUTE_REASONS, MOCK_FREELANCER_ELIGIBLE_SERVICES } from "@/data/dispute.data";
+import { DISPUTE_REASONS } from "@/data/dispute.data";
+import { listOrders, openDispute } from "@/lib/api/orders";
+import { toApiDisputeReason } from "@/lib/disputes/map-dispute";
+import type { Order } from "@/types/order.types";
 import type { DisputeReason } from "@/types/dispute.types";
 import type { EvidenceUploadItem } from "@/components/disputes/EvidenceItem";
 
@@ -22,7 +25,10 @@ function NewDisputeForm(): React.JSX.Element {
   const searchParams = useSearchParams();
   const { setMode } = useModeStore();
   const token = useAuthStore((state) => state.token);
+  const userId = useAuthStore((state) => state.user?.id);
 
+  const [eligibleOrders, setEligibleOrders] = useState<Order[]>([]);
+  const [ordersLoading, setOrdersLoading] = useState(true);
   const [selectedService, setSelectedService] = useState("");
   const [selectedReason, setSelectedReason] = useState<DisputeReason | "">("");
   const [description, setDescription] = useState("");
@@ -35,21 +41,41 @@ function NewDisputeForm(): React.JSX.Element {
 
   useEffect(() => {
     setMode("freelancer");
-    const orderParam = searchParams.get("order");
-    const serviceParam = searchParams.get("service");
-    if (serviceParam) {
-      setSelectedService(serviceParam);
-    } else if (orderParam) {
-      // Map order to service for preselection
-      setSelectedService("service-1");
+    const orderParam = searchParams.get("orderId") ?? searchParams.get("order");
+    if (orderParam) {
+      setSelectedService(orderParam);
     }
   }, [setMode, searchParams]);
+
+  useEffect(() => {
+    if (!token || !userId) {
+      setOrdersLoading(false);
+      return;
+    }
+
+    async function loadOrders(): Promise<void> {
+      setOrdersLoading(true);
+      try {
+        const orders = await listOrders(token, userId, {
+          role: "seller",
+          status: "IN_PROGRESS",
+        });
+        setEligibleOrders(orders);
+      } catch {
+        setEligibleOrders([]);
+      } finally {
+        setOrdersLoading(false);
+      }
+    }
+
+    loadOrders();
+  }, [token, userId]);
 
   function validateForm(): boolean {
     const newErrors: Record<string, string> = {};
 
     if (!selectedService) {
-      newErrors.service = "Please select a service";
+      newErrors.service = "Please select an order";
     }
     if (!selectedReason) {
       newErrors.reason = "Please select a reason";
@@ -66,11 +92,30 @@ function NewDisputeForm(): React.JSX.Element {
 
   async function handleSubmit(e: React.FormEvent): Promise<void> {
     e.preventDefault();
-    if (!validateForm()) return;
+    if (!validateForm() || !token || !selectedReason) return;
 
     setIsSubmitting(true);
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    router.push("/app/freelancer/disputes?created=true");
+    setErrors({});
+
+    const evidenceUrls = evidenceItems
+      .filter((item) => item.status === "uploaded" && item.evidence?.url)
+      .map((item) => item.evidence!.url!);
+
+    try {
+      await openDispute(token, {
+        orderId: selectedService,
+        openedBy: "SELLER",
+        reason: toApiDisputeReason(selectedReason),
+        evidence: evidenceUrls.length > 0 ? evidenceUrls : undefined,
+      });
+      router.push("/app/freelancer/disputes?created=true");
+    } catch (err) {
+      setErrors({
+        submit: err instanceof Error ? err.message : "Failed to submit dispute",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -97,34 +142,46 @@ function NewDisputeForm(): React.JSX.Element {
         <form onSubmit={handleSubmit} className="max-w-3xl mx-auto space-y-6">
           <div className={NEUMORPHIC_CARD}>
             <h2 className="text-lg font-semibold text-text-primary mb-4">
-              Select Service
+              Select Order
             </h2>
             <div className="space-y-3">
-              {MOCK_FREELANCER_ELIGIBLE_SERVICES.map((service) => (
-                <label
-                  key={service.id}
-                  className={cn(
-                    "flex items-center gap-3 p-4 rounded-xl cursor-pointer",
-                    "transition-all duration-200",
-                    selectedService === service.id
-                      ? "bg-primary/10 shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]"
-                      : "bg-background hover:bg-background/80"
-                  )}
-                >
-                  <input
-                    type="radio"
-                    name="service"
-                    value={service.id}
-                    checked={selectedService === service.id}
-                    onChange={(e) => setSelectedService(e.target.value)}
-                    className="w-4 h-4 text-primary accent-primary"
-                  />
-                  <div>
-                    <span className="text-text-primary font-medium">{service.title}</span>
-                    <p className="text-text-secondary text-sm">Client: {service.clientName}</p>
-                  </div>
-                </label>
-              ))}
+              {ordersLoading ? (
+                <p className="text-text-secondary text-sm">Loading eligible orders...</p>
+              ) : eligibleOrders.length === 0 ? (
+                <p className="text-text-secondary text-sm">
+                  No in-progress orders available for dispute.
+                </p>
+              ) : (
+                eligibleOrders.map((order) => (
+                  <label
+                    key={order.id}
+                    className={cn(
+                      "flex items-center gap-3 p-4 rounded-xl cursor-pointer",
+                      "transition-all duration-200",
+                      selectedService === order.id
+                        ? "bg-primary/10 shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]"
+                        : "bg-background hover:bg-background/80"
+                    )}
+                  >
+                    <input
+                      type="radio"
+                      name="service"
+                      value={order.id}
+                      checked={selectedService === order.id}
+                      onChange={(e) => setSelectedService(e.target.value)}
+                      className="w-4 h-4 text-primary accent-primary"
+                    />
+                    <div>
+                      <span className="text-text-primary font-medium">{order.title}</span>
+                      {order.buyer?.email && (
+                        <p className="text-text-secondary text-sm">
+                          Client: {order.buyer.email.split("@")[0]}
+                        </p>
+                      )}
+                    </div>
+                  </label>
+                ))
+              )}
             </div>
             {errors.service && (
               <p className="text-error text-sm mt-2">{errors.service}</p>
@@ -201,6 +258,10 @@ function NewDisputeForm(): React.JSX.Element {
           </div>
 
           <EvidenceUploader token={token} onChange={setEvidenceItems} />
+
+          {errors.submit && (
+            <p className="text-error text-sm text-center">{errors.submit}</p>
+          )}
 
           <div className="flex items-center justify-end gap-4">
             {hasPendingEvidence && (

@@ -28,6 +28,7 @@ function DisputesContent(): React.JSX.Element {
   const searchParams = useSearchParams();
   const { setMode } = useModeStore();
   const token = useAuthStore((state) => state.token);
+  const userId = useAuthStore((state) => state.user?.id);
 
   const [mounted, setMounted] = useState(false);
   const [filter, setFilter] = useState<StatusFilter>("all");
@@ -61,11 +62,15 @@ function DisputesContent(): React.JSX.Element {
       setPage(1);
       setDisputes([]);
       try {
-        const result = await listDisputes(token, {
-          status: filter === "all" ? undefined : filter,
-          page: 1,
-          limit: 10,
-        });
+        const result = await listDisputes(
+          token,
+          {
+            status: filter === "all" ? undefined : filter,
+            page: 1,
+            limit: 10,
+          },
+          userId
+        );
         setDisputes(result.data);
         setHasMore(result.hasMore);
       } catch (err) {
@@ -76,18 +81,22 @@ function DisputesContent(): React.JSX.Element {
     }
 
     fetchDisputes();
-  }, [mounted, token, filter, refreshKey]);
+  }, [mounted, token, filter, refreshKey, userId]);
 
   async function handleLoadMore(): Promise<void> {
     if (isLoadingMore) return;
     const nextPage = page + 1;
     setIsLoadingMore(true);
     try {
-      const result = await listDisputes(token, {
-        status: filter === "all" ? undefined : filter,
-        page: nextPage,
-        limit: 10,
-      });
+      const result = await listDisputes(
+        token,
+        {
+          status: filter === "all" ? undefined : filter,
+          page: nextPage,
+          limit: 10,
+        },
+        userId
+      );
       setDisputes((prev) => [...prev, ...result.data]);
       setHasMore(result.hasMore);
       setPage(nextPage);

@@ -105,6 +105,7 @@ export default function DisputeDetailPage(): React.JSX.Element {
   const router = useRouter();
   const { setMode } = useModeStore();
   const token = useAuthStore((state) => state.token);
+  const userId = useAuthStore((state) => state.user?.id);
 
   const [mounted, setMounted] = useState(false);
   const [dispute, setDispute] = useState<Dispute | null>(null);
@@ -132,7 +133,7 @@ export default function DisputeDetailPage(): React.JSX.Element {
       setIsLoading(true);
       setError(null);
       try {
-        const data = await getDisputeById(token, disputeId);
+        const data = await getDisputeById(token, disputeId, userId);
         setDispute(data);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load dispute");
@@ -142,7 +143,7 @@ export default function DisputeDetailPage(): React.JSX.Element {
     }
 
     fetchDispute();
-  }, [mounted, token, disputeId, refreshKey]);
+  }, [mounted, token, disputeId, refreshKey, userId]);
 
   async function handleSubmitComment(e: React.FormEvent): Promise<void> {
     e.preventDefault();
@@ -172,7 +173,7 @@ export default function DisputeDetailPage(): React.JSX.Element {
     if (!token || !dispute) return;
     setIsCancelling(true);
     try {
-      const updated = await cancelDispute(token, dispute.id);
+      const updated = await cancelDispute(token, dispute.id, userId);
       setDispute(updated);
     } catch (err) {
       console.error("Failed to cancel dispute:", err);
