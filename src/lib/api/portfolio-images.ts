@@ -4,7 +4,7 @@ import { validatePortfolioImageFile } from "@/data/portfolio.data";
 const API_BASE_URL = API_URL;
 
 /** Match portfolio mock flag in `portfolio.ts` until backend is wired. */
-const USE_MOCK = true;
+const USE_MOCK = false;
 
 function simulateDelay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));

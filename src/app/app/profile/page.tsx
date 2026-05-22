@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo, Suspense } from "react";
-import { Country, State } from "country-state-city";
+import { useState, useEffect, Suspense } from "react";
 import { cn } from "@/lib/cn";
 import { useAuthStore } from "@/stores/auth-store";
 import { Icon, ICON_PATHS, LoadingSpinner } from "@/components/ui/Icon";
@@ -12,7 +11,7 @@ import {
   PRIMARY_BUTTON,
 } from "@/lib/styles";
 import { ImageUpload } from "@/components/ui/ImageUpload";
-import { getProfile, updateProfile } from "@/lib/api/profile";
+import { getProfile, updateProfile, type UpdateProfileData } from "@/lib/api/profile";
 import { uploadImage } from "@/lib/api/upload";
 import Link from "next/link";
 import { ConnectedAccounts } from "@/components/profile/ConnectedAccounts";
@@ -20,17 +19,26 @@ import { ConnectedAccounts } from "@/components/profile/ConnectedAccounts";
 interface ProfileFormData {
   firstName: string;
   lastName: string;
-  email: string;
   username: string;
+  dateOfBirth: string;
+  professionalTitle: string;
   bio: string;
+  location: string;
+  timezone: string;
+  phone: string;
 }
 
 interface FormErrors {
   firstName?: string;
   lastName?: string;
-  email?: string;
   username?: string;
+  dateOfBirth?: string;
   bio?: string;
+  professionalTitle?: string;
+  location?: string;
+  timezone?: string;
+  phone?: string;
+  submit?: string;
 }
 
 interface FormInputProps {
@@ -70,41 +78,23 @@ function FormInput({
   );
 }
 
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const MIN_USERNAME_LENGTH = 3;
 const MAX_BIO_LENGTH = 500;
 const SUCCESS_MESSAGE_DURATION = 3000;
 
 const INITIAL_FORM_DATA: ProfileFormData = {
   firstName: "",
   lastName: "",
-  email: "",
   username: "",
+  dateOfBirth: "",
+  professionalTitle: "",
   bio: "",
+  location: "",
+  timezone: "",
+  phone: "",
 };
 
 function validateProfileForm(formData: ProfileFormData): FormErrors {
   const errors: FormErrors = {};
-
-  if (!formData.firstName.trim()) {
-    errors.firstName = "First name is required";
-  }
-
-  if (!formData.lastName.trim()) {
-    errors.lastName = "Last name is required";
-  }
-
-  if (!formData.email.trim()) {
-    errors.email = "Email is required";
-  } else if (!EMAIL_REGEX.test(formData.email)) {
-    errors.email = "Please enter a valid email address";
-  }
-
-  if (!formData.username.trim()) {
-    errors.username = "Username is required";
-  } else if (formData.username.length < MIN_USERNAME_LENGTH) {
-    errors.username = `Username must be at least ${MIN_USERNAME_LENGTH} characters`;
-  }
 
   if (formData.bio.length > MAX_BIO_LENGTH) {
     errors.bio = `Bio must be less than ${MAX_BIO_LENGTH} characters`;
@@ -115,26 +105,16 @@ function validateProfileForm(formData: ProfileFormData): FormErrors {
 
 export default function ProfilePage() {
   const token = useAuthStore((state) => state.token);
+  const user = useAuthStore((state) => state.user);
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(true);
   const [showSuccess, setShowSuccess] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
   const [formData, setFormData] = useState<ProfileFormData>(INITIAL_FORM_DATA);
-  const [selectedCountry, setSelectedCountry] = useState("");
-  const [selectedRegion, setSelectedRegion] = useState("");
-  const [showOnMap, setShowOnMap] = useState(false);
+  const [loadedProfile, setLoadedProfile] = useState<ProfileFormData | null>(null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [isHydrated, setIsHydrated] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
-
-  // Get all countries - simple list without flags
-  const countries = useMemo(() => Country.getAllCountries(), []);
-
-  // Get regions/states for selected country
-  const regions = useMemo(() => {
-    if (!selectedCountry) return [];
-    return State.getStatesOfCountry(selectedCountry);
-  }, [selectedCountry]);
 
   // Wait for Zustand to hydrate from localStorage
   useEffect(() => {
@@ -143,7 +123,6 @@ export default function ProfilePage() {
 
   useEffect(() => {
     async function loadProfile() {
-      // Wait for hydration before checking token
       if (!isHydrated || !token) {
         if (isHydrated) {
           setIsFetching(false);
@@ -153,41 +132,23 @@ export default function ProfilePage() {
 
       try {
         const profile = await getProfile(token);
-
-        setFormData({
+        const data = {
           firstName: profile.firstName || "",
           lastName: profile.lastName || "",
-          email: profile.email || "",
           username: profile.username || "",
+          dateOfBirth: profile.dateOfBirth || "",
+          professionalTitle: profile.professionalTitle || "",
           bio: profile.bio || "",
-        });
+          location: profile.location || "",
+          timezone: profile.timezone || "",
+          phone: profile.phone || "",
+        };
+
+        setFormData(data);
+        setLoadedProfile(data);
 
         // Set avatar URL, but filter out invalid blob URLs from database
-        setAvatarUrl(profile.avatarUrl?.startsWith('blob:') ? null : profile.avatarUrl);
-
-        // Set country from profile
-        if (profile.country) {
-          const country = Country.getAllCountries().find(
-            c => c.name.toLowerCase() === profile.country?.toLowerCase()
-          );
-          if (country) {
-            setSelectedCountry(country.isoCode);
-
-            // Set region from profile after country is set
-            if (profile.region) {
-              const states = State.getStatesOfCountry(country.isoCode);
-              const state = states.find(
-                s => s.name.toLowerCase() === profile.region?.toLowerCase()
-              );
-              if (state) {
-                setSelectedRegion(state.isoCode);
-              }
-            }
-          }
-        }
-
-        // Set showOnMap preference
-        setShowOnMap(profile.showOnMap || false);
+        setAvatarUrl(profile.avatarUrl?.startsWith("blob:") ? null : profile.avatarUrl);
       } catch (error) {
         console.error("Failed to load profile:", error);
       } finally {
@@ -198,7 +159,7 @@ export default function ProfilePage() {
     loadProfile();
   }, [token, isHydrated]);
 
-  function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
+  function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
     if (errors[name as keyof FormErrors]) {
@@ -239,7 +200,7 @@ export default function ProfilePage() {
       URL.revokeObjectURL(previewUrl);
       setAvatarUrl(null);
 
-      setErrors({ firstName: error instanceof Error ? error.message : "Failed to upload image" });
+      setErrors({ submit: error instanceof Error ? error.message : "Failed to upload image" });
     } finally {
       setIsUploadingImage(false);
     }
@@ -256,43 +217,53 @@ export default function ProfilePage() {
     }
 
     if (!token) {
-      setErrors({ firstName: "Authentication token not found. Please log in again." });
+      setErrors({ submit: "Authentication token not found. Please log in again." });
       return;
     }
 
     setIsLoading(true);
 
     try {
-      // Find country name from code
-      const country = countries.find(c => c.isoCode === selectedCountry);
-      const countryName = country?.name || "";
+      const updatedFields: UpdateProfileData = {};
 
-      // Find region name from code
-      const region = regions.find(r => r.isoCode === selectedRegion);
-      const regionName = region?.name || "";
-      const regionCode = selectedCountry && selectedRegion ? `${selectedCountry}-${selectedRegion}` : "";
+      if (formData.firstName !== (loadedProfile?.firstName ?? "")) {
+        updatedFields.firstName = formData.firstName;
+      }
+      if (formData.lastName !== (loadedProfile?.lastName ?? "")) {
+        updatedFields.lastName = formData.lastName;
+      }
+      if (formData.username !== (loadedProfile?.username ?? "")) {
+        updatedFields.username = formData.username;
+      }
+      if (formData.dateOfBirth !== (loadedProfile?.dateOfBirth ?? "")) {
+        updatedFields.dateOfBirth = formData.dateOfBirth || null;
+      }
+      if (formData.professionalTitle !== (loadedProfile?.professionalTitle ?? "")) {
+        updatedFields.professionalTitle = formData.professionalTitle;
+      }
+      if (formData.bio !== (loadedProfile?.bio ?? "")) {
+        updatedFields.bio = formData.bio;
+      }
+      if (formData.location !== (loadedProfile?.location ?? "")) {
+        updatedFields.location = formData.location;
+      }
+      if (formData.timezone !== (loadedProfile?.timezone ?? "")) {
+        updatedFields.timezone = formData.timezone;
+      }
+      if (formData.phone !== (loadedProfile?.phone ?? "")) {
+        updatedFields.phone = formData.phone;
+      }
 
-      // Don't send blob URLs to backend - they're not persistent
-      const avatarToSend = avatarUrl?.startsWith('blob:') ? undefined : avatarUrl || undefined;
-
-      await updateProfile(token, {
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        username: formData.username,
-        bio: formData.bio,
-        country: countryName,
-        countryCode: selectedCountry || undefined,
-        region: regionName || undefined,
-        regionCode: regionCode || undefined,
-        showOnMap,
-        avatarUrl: avatarToSend,
-      });
+      if (Object.keys(updatedFields).length > 0) {
+        await updateProfile(token, updatedFields);
+        setLoadedProfile(formData);
+      }
 
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), SUCCESS_MESSAGE_DURATION);
     } catch (error) {
       console.error("Failed to update profile:", error);
-      setErrors({ firstName: error instanceof Error ? error.message : "Failed to update profile" });
+      setErrors({ submit: error instanceof Error ? error.message : "Failed to update profile" });
     } finally {
       setIsLoading(false);
     }
@@ -324,20 +295,6 @@ export default function ProfilePage() {
             Availability settings
           </Link>
         </div>
-        {showSuccess && (
-          <div
-            className={cn(
-              "px-4 py-2 rounded-xl",
-              "bg-success/10 border border-success/20",
-              "animate-scale-in"
-            )}
-          >
-            <div className="flex items-center gap-2">
-              <Icon path={ICON_PATHS.check} size="sm" className="text-success flex-shrink-0" />
-              <p className="text-sm text-success font-medium">Profile updated!</p>
-            </div>
-          </div>
-        )}
       </div>
 
       <div className={NEUMORPHIC_CARD}>
@@ -349,142 +306,152 @@ export default function ProfilePage() {
             onUpload={handleImageUpload}
           />
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormInput
               label="First Name"
               name="firstName"
               value={formData.firstName}
-              placeholder="John"
+              placeholder="e.g. Jane"
               error={errors.firstName}
               onChange={handleChange}
             />
+
             <FormInput
               label="Last Name"
               name="lastName"
               value={formData.lastName}
-              placeholder="Doe"
+              placeholder="e.g. Doe"
               error={errors.lastName}
               onChange={handleChange}
             />
-            <FormInput
-              label="Username"
-              name="username"
-              value={formData.username}
-              placeholder="johndoe"
-              error={errors.username}
-              onChange={handleChange}
-            />
-            <FormInput
-              label="Email"
-              name="email"
-              type="email"
-              value={formData.email}
-              placeholder="john@example.com"
-              error={errors.email}
-              onChange={handleChange}
-            />
+
             <div>
-              <label className="block text-sm font-medium text-text-primary mb-2">Country</label>
-              <select
-                value={selectedCountry}
-                onChange={(e) => {
-                  setSelectedCountry(e.target.value);
-                  setSelectedRegion(""); // Reset region when country changes
-                }}
-                className={cn(NEUMORPHIC_INPUT, "pr-10")}
-              >
-                <option value="">Select country...</option>
-                {countries.map((country) => (
-                  <option key={country.isoCode} value={country.isoCode}>
-                    {country.flag} {country.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-text-primary mb-2">
-                State / Region
-              </label>
-              <select
-                value={selectedRegion}
-                onChange={(e) => setSelectedRegion(e.target.value)}
-                className={cn(NEUMORPHIC_INPUT, "pr-10")}
-                disabled={!selectedCountry || regions.length === 0}
-              >
-                <option value="">
-                  {!selectedCountry
-                    ? "Select a country first..."
-                    : regions.length === 0
-                    ? "No regions available"
-                    : "Select region..."}
-                </option>
-                {regions.map((region) => (
-                  <option key={region.isoCode} value={region.isoCode}>
-                    {region.name}
-                  </option>
-                ))}
-              </select>
+              <FormInput
+                label="Username"
+                name="username"
+                value={formData.username}
+                placeholder="e.g. jane_dev"
+                error={errors.username}
+                onChange={handleChange}
+              />
+              <p className="mt-1 text-[11px] text-text-secondary pl-1">This is your public handle</p>
             </div>
 
-            <div className="col-span-2">
-              <label className="block text-sm font-medium text-text-primary mb-1">Bio (Optional)</label>
+            <div>
+              <label className="block text-sm font-medium text-text-primary mb-2">Date of Birth</label>
+              <input
+                type="date"
+                name="dateOfBirth"
+                value={formData.dateOfBirth}
+                onChange={handleChange}
+                className={cn(NEUMORPHIC_INPUT, errors.dateOfBirth && INPUT_ERROR_STYLES)}
+              />
+              {errors.dateOfBirth && <p className="mt-1 text-sm text-error">{errors.dateOfBirth}</p>}
+            </div>
+
+            <FormInput
+              label="Professional Title"
+              name="professionalTitle"
+              value={formData.professionalTitle}
+              placeholder="e.g. Full Stack Developer"
+              error={errors.professionalTitle}
+              onChange={handleChange}
+            />
+
+            <div>
+              <label className="block text-sm font-medium text-text-primary mb-2">Email Address</label>
+              <input
+                type="email"
+                value={user?.email || ""}
+                disabled
+                className={cn(
+                  NEUMORPHIC_INPUT,
+                  "opacity-65 cursor-not-allowed bg-gray-50/20 shadow-[inset_1px_1px_2px_#d1d5db,inset_-1px_-1px_2px_#ffffff]"
+                )}
+                placeholder="email@example.com"
+              />
+              <p className="mt-1 text-[11px] text-text-secondary">Email address cannot be changed.</p>
+            </div>
+
+            <FormInput
+              label="Location"
+              name="location"
+              value={formData.location}
+              placeholder="e.g. San José, Costa Rica"
+              error={errors.location}
+              onChange={handleChange}
+            />
+
+            <div>
+              <label className="block text-sm font-medium text-text-primary mb-2">Timezone</label>
+              <select
+                name="timezone"
+                value={formData.timezone}
+                onChange={handleChange}
+                className={cn(NEUMORPHIC_INPUT, "pr-10 appearance-none bg-no-repeat bg-right")}
+                style={{
+                  backgroundImage: `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E")`,
+                  backgroundPosition: "right 0.75rem center",
+                  backgroundSize: "1.25em 1.25em",
+                }}
+              >
+                <option value="">Select timezone...</option>
+                <option value="UTC">UTC</option>
+                <option value="America/New_York">America/New York</option>
+                <option value="America/Chicago">America/Chicago</option>
+                <option value="America/Denver">America/Denver</option>
+                <option value="America/Los_Angeles">America/Los Angeles</option>
+                <option value="America/Bogota">America/Bogota</option>
+                <option value="America/Costa_Rica">America/Costa Rica</option>
+                <option value="America/Mexico_City">America/Mexico City</option>
+                <option value="Europe/London">Europe/London</option>
+                <option value="Europe/Madrid">Europe/Madrid</option>
+                <option value="Asia/Tokyo">Asia/Tokyo</option>
+              </select>
+              {errors.timezone && <p className="mt-1 text-sm text-error">{errors.timezone}</p>}
+            </div>
+
+            <FormInput
+              label="Phone Number"
+              name="phone"
+              type="tel"
+              value={formData.phone}
+              placeholder="e.g. +506 8888-8888"
+              error={errors.phone}
+              onChange={handleChange}
+              className="md:col-span-2"
+            />
+
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-text-primary mb-2">Bio</label>
               <textarea
                 name="bio"
                 value={formData.bio}
                 onChange={handleChange}
-                rows={3}
+                rows={4}
                 className={cn(NEUMORPHIC_INPUT, "resize-none", errors.bio && INPUT_ERROR_STYLES)}
-                placeholder="Tell us about yourself..."
+                placeholder="Tell us about your professional background, skills, and experience..."
               />
               <div className="flex justify-between mt-1">
-                {errors.bio && <p className="text-xs text-error">{errors.bio}</p>}
+                {errors.bio ? (
+                  <p className="text-xs text-error">{errors.bio}</p>
+                ) : (
+                  <p className="text-xs text-text-secondary">
+                    Brief description for your profile (max 500 characters).
+                  </p>
+                )}
                 <p className="text-xs text-text-secondary ml-auto">
-                  {formData.bio.length}/{MAX_BIO_LENGTH}
+                  {formData.bio.length}/500
                 </p>
               </div>
             </div>
           </div>
 
-          {/* Map Visibility Toggle */}
-          <div className={cn(
-            "p-4 rounded-xl",
-            "bg-background/50",
-            "border border-gray-200"
-          )}>
-            <div className="flex items-start gap-4">
-              <div className="flex-1">
-                <label className="block text-sm font-medium text-text-primary mb-1">
-                  Show on Community Map
-                </label>
-                <p className="text-xs text-text-secondary leading-relaxed">
-                  Allow your profile to be displayed on our global community map.
-                  This only shows your country and region — not your exact location.
-                  It helps other users discover freelancers and clients in their area.
-                </p>
-              </div>
-              <button
-                type="button"
-                role="switch"
-                aria-checked={showOnMap}
-                onClick={() => setShowOnMap(!showOnMap)}
-                className={cn(
-                  "relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full",
-                  "transition-colors duration-200 ease-in-out",
-                  "focus:outline-none focus:ring-2 focus:ring-primary/20",
-                  showOnMap ? "bg-primary" : "bg-gray-300"
-                )}
-              >
-                <span
-                  className={cn(
-                    "pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow-lg",
-                    "transform transition duration-200 ease-in-out",
-                    "translate-y-0.5",
-                    showOnMap ? "translate-x-5" : "translate-x-0.5"
-                  )}
-                />
-              </button>
+          {errors.submit && (
+            <div className="p-3 rounded-xl bg-error/10 text-error text-sm">
+              {errors.submit}
             </div>
-          </div>
+          )}
 
           <div className="flex justify-end">
             <button type="submit" disabled={isLoading} className={cn(PRIMARY_BUTTON, "py-2 px-5")}>
@@ -505,6 +472,22 @@ export default function ProfilePage() {
       <Suspense fallback={<div className="p-6 rounded-2xl bg-white shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff] flex items-center justify-center"><LoadingSpinner className="text-primary" /></div>}>
         <ConnectedAccounts />
       </Suspense>
+
+      {/* Floating Success Toast (Top-Center, Fixed & Minimal) */}
+      {showSuccess && (
+        <div className="fixed top-8 left-1/2 -translate-x-1/2 z-50 animate-scale-in">
+          <div
+            className={cn(
+              "px-4 py-2.5 rounded-xl shadow-md",
+              "bg-success/10 border border-success/20 backdrop-blur-md",
+              "flex items-center gap-2"
+            )}
+          >
+            <Icon path={ICON_PATHS.check} size="sm" className="text-success flex-shrink-0 animate-bounce" />
+            <p className="text-sm text-success font-medium">Profile updated!</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -265,6 +265,21 @@ export const MOCK_WALLET_TRANSACTIONS: WalletTransactionsData = {
   ],
 };
 
+export interface WalletBalanceSummary {
+  availableBalance: string;
+  reservedBalance: string;
+  currency: string;
+}
+
+export async function getWalletBalance(token: string): Promise<WalletBalanceSummary> {
+  const response = await fetch(`${API_URL}/wallet`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!response.ok) throw new Error("Failed to load wallet balance");
+  const json = (await response.json()) as { data: WalletBalanceSummary };
+  return json.data;
+}
+
 export async function getWalletDashboard(token: string): Promise<WalletDashboardData> {
   const response = await fetch(`${API_URL}/wallet/dashboard`, {
     headers: {

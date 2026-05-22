@@ -9,6 +9,7 @@ interface StatsCardProps {
   accentColor: string;
   trend?: number | null;
   isLoading?: boolean;
+  subtitle?: string;
 }
 
 export function StatsCard({
@@ -18,6 +19,7 @@ export function StatsCard({
   accentColor,
   trend,
   isLoading,
+  subtitle,
 }: StatsCardProps): React.JSX.Element {
   if (isLoading) {
     return (
@@ -73,6 +75,9 @@ export function StatsCard({
               </span>
             )}
           </div>
+          {subtitle && (
+            <p className="text-xs text-text-secondary mt-0.5">{subtitle}</p>
+          )}
         </div>
       </div>
     </div>

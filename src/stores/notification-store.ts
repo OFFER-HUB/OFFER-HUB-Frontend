@@ -20,6 +20,8 @@ interface NotificationState {
   fetchMore: () => Promise<void>;
   markAsRead: (id: string) => Promise<void>;
   markAllAsRead: () => Promise<void>;
+  pushNotification: (notification: Notification) => void;
+  incrementUnread: () => void;
 }
 
 export const useNotificationStore = create<NotificationState>()((set, get) => ({
@@ -62,7 +64,6 @@ export const useNotificationStore = create<NotificationState>()((set, get) => ({
   },
 
   markAsRead: async (id: string) => {
-    // Optimistic update
     set((state) => ({
       notifications: state.notifications.map((n) =>
         n.id === id ? { ...n, isRead: true } : n
@@ -76,7 +77,6 @@ export const useNotificationStore = create<NotificationState>()((set, get) => ({
   },
 
   markAllAsRead: async () => {
-    // Optimistic update
     set((state) => ({
       notifications: state.notifications.map((n) => ({ ...n, isRead: true })),
       unreadCount: 0,
@@ -85,5 +85,15 @@ export const useNotificationStore = create<NotificationState>()((set, get) => ({
     set({ isMutating: true });
     await markAllNotificationsRead();
     set({ isMutating: false });
+  },
+
+  pushNotification: (notification: Notification) => {
+    set((state) => ({
+      notifications: [notification, ...state.notifications],
+    }));
+  },
+
+  incrementUnread: () => {
+    set((state) => ({ unreadCount: state.unreadCount + 1 }));
   },
 }));

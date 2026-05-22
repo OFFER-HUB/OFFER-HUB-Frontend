@@ -96,6 +96,7 @@ export default function SettingsPage(): React.JSX.Element {
 
   function handleRestartTour(): void {
     resetTour();
+    localStorage.setItem("show-onboarding-tour", "true");
     window.location.href = "/app/freelancer/dashboard";
   }
 

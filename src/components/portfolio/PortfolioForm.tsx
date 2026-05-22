@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, KeyboardEvent } from "react";
+import { useState, useRef, useEffect, KeyboardEvent } from "react";
 import { cn } from "@/lib/cn";
 import { Icon, ICON_PATHS, LoadingSpinner } from "@/components/ui/Icon";
 import { useAuthStore } from "@/stores/auth-store";
@@ -69,6 +69,10 @@ export function validatePortfolioForm(data: PortfolioFormData): PortfolioFormErr
 
   if (data.startDate && data.endDate && data.endDate < data.startDate) {
     errors.endDate = "End date must be after start date";
+  }
+
+  if (!data.images || data.images.length === 0) {
+    errors.images = "At least one image is required";
   }
 
   return errors;
@@ -276,7 +280,11 @@ export function PortfolioForm({
   const [formData, setFormData] = useState<PortfolioFormData>(initialData);
   const [errors, setErrors] = useState<PortfolioFormErrors>({});
   const [showPreview, setShowPreview] = useState(false);
-  const [activeTip] = useState(() => Math.floor(Math.random() * PORTFOLIO_TIPS.length));
+  const [activeTip, setActiveTip] = useState(0);
+
+  useEffect(() => {
+    setActiveTip(Math.floor(Math.random() * PORTFOLIO_TIPS.length));
+  }, []);
 
   function handleChange(
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -480,6 +488,7 @@ export function PortfolioForm({
           {/* Images */}
           <FormField
             label="Images"
+            required
             hint={`${formData.images.length}/${MAX_IMAGES_PER_ITEM} · drag to reorder`}
             error={errors.images}
           >

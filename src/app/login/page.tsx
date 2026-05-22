@@ -106,14 +106,9 @@ function LoginContent() {
 
       setIsLoading(false);
 
-      // Redirect to the appropriate dashboard based on mode
-      const defaultDashboard = mode === "freelancer"
-        ? "/app/freelancer/dashboard"
-        : mode === "client"
-        ? "/app/client/dashboard"
-        : "/app/dashboard";
+      const defaultDashboard =
+        mode === "client" ? "/app/client/dashboard" : "/app/freelancer/dashboard";
 
-      // Use router.push for client-side navigation
       router.push(redirectPath || defaultDashboard);
     } catch (error) {
       console.error("Login error:", error);

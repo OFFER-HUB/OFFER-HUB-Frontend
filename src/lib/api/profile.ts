@@ -1,21 +1,18 @@
 import { API_URL } from "@/config/api";
 
-/**
- * Simple user profile for both clients and freelancers
- */
 export interface UserProfile {
   id: string;
   email: string | null;
   username: string | null;
   firstName: string | null;
   lastName: string | null;
+  dateOfBirth: string | null;
   avatarUrl: string | null;
   bio: string | null;
-  country: string | null;
-  countryCode: string | null;
-  region: string | null;
-  regionCode: string | null;
-  showOnMap: boolean;
+  professionalTitle: string | null;
+  location: string | null;
+  timezone: string | null;
+  phone: string | null;
   type: string;
   status: string;
   createdAt: string;
@@ -26,13 +23,13 @@ export interface UpdateProfileData {
   username?: string;
   firstName?: string;
   lastName?: string;
+  dateOfBirth?: string | null;
   avatarUrl?: string;
   bio?: string;
-  country?: string;
-  countryCode?: string;
-  region?: string;
-  regionCode?: string;
-  showOnMap?: boolean;
+  professionalTitle?: string;
+  location?: string;
+  timezone?: string;
+  phone?: string;
 }
 
 /**
