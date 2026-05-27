@@ -1,6 +1,6 @@
 "use client";
 
-import { X, Pencil, GripVertical } from "lucide-react";
+import { Icon, ICON_PATHS } from "@/components/ui/Icon";
 import type { Skill, SkillLevel } from "@/lib/api/skills-api";
 
 /* ── Level colour map (teal-anchored, using OFFER-HUB palette) ── */
@@ -65,7 +65,7 @@ export function SkillTag({
           className="cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-60 transition-opacity duration-150 flex-shrink-0"
           {...dragHandleProps}
         >
-          <GripVertical size={13} />
+          <Icon path={ICON_PATHS.gripVertical} size="sm" />
         </span>
       )}
 
@@ -89,7 +89,7 @@ export function SkillTag({
           className="opacity-0 group-hover:opacity-70 hover:!opacity-100 transition-opacity duration-150 rounded-full p-0.5 flex-shrink-0"
           style={{ color: style.text }}
         >
-          <Pencil size={11} />
+          <Icon path={ICON_PATHS.edit} size="sm" />
         </button>
       )}
 
@@ -102,7 +102,7 @@ export function SkillTag({
           className="opacity-0 group-hover:opacity-70 hover:!opacity-100 transition-opacity duration-150 rounded-full p-0.5 flex-shrink-0"
           style={{ color: style.text }}
         >
-          <X size={11} />
+          <Icon path={ICON_PATHS.x} size="sm" />
         </button>
       )}
     </div>

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Mail, ArrowLeft, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
+import { Icon, ICON_PATHS, LoadingSpinner } from "@/components/ui/Icon";
 
 /* ── Types ── */
 
@@ -112,7 +112,7 @@ export default function ForgotPasswordPage() {
                     "inset 4px 4px 8px #0a0f1a, inset -4px -4px 8px #1e2a4a",
                 }}
               >
-                <CheckCircle2 size={32} color="#16a34a" />
+                <Icon path={ICON_PATHS.check} size="xl" className="text-green-600" />
               </div>
 
               <div>
@@ -134,7 +134,7 @@ export default function ForgotPasswordPage() {
                 className="flex items-center gap-2 text-sm font-semibold transition-opacity hover:opacity-80"
                 style={{ color: "#149A9B" }}
               >
-                <ArrowLeft size={15} />
+                <Icon path={ICON_PATHS.chevronLeft} size="sm" />
                 Back to login
               </Link>
             </div>
@@ -167,9 +167,10 @@ export default function ForgotPasswordPage() {
                       className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2"
                       aria-hidden="true"
                     >
-                      <Mail
-                        size={16}
-                        color={fieldError ? "#FF0000" : "#6D758F"}
+                      <Icon
+                        path={ICON_PATHS.mail}
+                        size="sm"
+                        className={fieldError ? "text-red-500" : "text-[#6D758F]"}
                       />
                     </span>
 
@@ -212,7 +213,7 @@ export default function ForgotPasswordPage() {
                       className="flex items-center gap-1.5 text-xs"
                       style={{ color: "#FF0000" }}
                     >
-                      <AlertCircle size={12} />
+                      <Icon path={ICON_PATHS.alertCircle} size="sm" />
                       {fieldError}
                     </p>
                   )}
@@ -229,7 +230,7 @@ export default function ForgotPasswordPage() {
                       color: "#FF0000",
                     }}
                   >
-                    <AlertCircle size={16} className="mt-0.5 flex-shrink-0" />
+                    <Icon path={ICON_PATHS.alertCircle} size="sm" className="mt-0.5 flex-shrink-0" />
                     <span>{apiError}</span>
                   </div>
                 )}
@@ -254,7 +255,7 @@ export default function ForgotPasswordPage() {
                 >
                   {pageState === "loading" ? (
                     <span className="flex items-center justify-center gap-2">
-                      <Loader2 size={16} className="animate-spin" />
+                      <LoadingSpinner size="sm" />
                       Sending reset link…
                     </span>
                   ) : pageState === "error" ? (
@@ -272,7 +273,7 @@ export default function ForgotPasswordPage() {
                   className="inline-flex items-center gap-2 text-sm font-semibold transition-opacity hover:opacity-80"
                   style={{ color: "#149A9B" }}
                 >
-                  <ArrowLeft size={14} />
+                  <Icon path={ICON_PATHS.chevronLeft} size="sm" />
                   Back to login
                 </Link>
               </div>
