@@ -1,15 +1,11 @@
 "use client";
 
-import { useDeferredValue, useEffect, useState } from "react";
+import { useCallback, useDeferredValue, useEffect, useState } from "react";
 import Link from "next/link";
 import { useAuthStore } from "@/stores/auth-store";
 import { cn } from "@/lib/cn";
 import { Icon, ICON_PATHS } from "@/components/ui/Icon";
-import {
-  getWalletTransactions,
-  MOCK_WALLET_TRANSACTIONS,
-  type WalletTransactionsData,
-} from "@/lib/api/wallet";
+import { getWalletTransactions, type WalletTransactionsData } from "@/lib/api/wallet";
 import {
   TransactionFilters,
   TransactionHistorySkeleton,
@@ -50,47 +46,55 @@ export default function WalletTransactionsPage(): React.JSX.Element {
   const [data, setData] = useState<WalletTransactionsData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [isDemo, setIsDemo] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [filters, setFilters] = useState<TransactionFiltersValue>(DEFAULT_FILTERS);
   const [currentPage, setCurrentPage] = useState(1);
   const deferredSearch = useDeferredValue(filters.search);
 
-  useEffect(() => {
-    let isMounted = true;
-
-    async function load(): Promise<void> {
-      if (!token) {
-        if (isMounted) {
-          setData(null);
-          setIsLoading(false);
-          setIsRefreshing(false);
-        }
-        return;
-      }
-
-      try {
-        const response = await getWalletTransactions(token);
-        if (!isMounted) return;
-        setData(response);
-        setIsDemo(false);
-      } catch {
-        if (!isMounted) return;
-        setData(MOCK_WALLET_TRANSACTIONS);
-        setIsDemo(true);
-      } finally {
-        if (!isMounted) return;
-        setIsLoading(false);
-        setIsRefreshing(false);
-      }
+  const loadTransactions = useCallback(async (): Promise<void> => {
+    if (!token) {
+      setData(null);
+      setIsLoading(false);
+      setIsRefreshing(false);
+      return;
     }
 
-    setIsLoading(true);
-    void load();
+    setError(null);
+    try {
+      const response = await getWalletTransactions(token, {
+        search: deferredSearch,
+        types: filters.types,
+        startDate: filters.startDate,
+        endDate: filters.endDate,
+        minAmount: filters.minAmount,
+        maxAmount: filters.maxAmount,
+        sortBy: filters.sortBy,
+      });
+      setData(response);
+    } catch (loadError) {
+      const message =
+        loadError instanceof Error ? loadError.message : "Failed to load wallet transactions.";
+      setData(null);
+      setError(message);
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
+    }
+  }, [
+    deferredSearch,
+    filters.endDate,
+    filters.maxAmount,
+    filters.minAmount,
+    filters.sortBy,
+    filters.startDate,
+    filters.types,
+    token,
+  ]);
 
-    return () => {
-      isMounted = false;
-    };
-  }, [token]);
+  useEffect(() => {
+    setIsLoading(true);
+    void loadTransactions();
+  }, [loadTransactions]);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -108,20 +112,7 @@ export default function WalletTransactionsPage(): React.JSX.Element {
     if (!token) return;
     setIsRefreshing(true);
     setIsLoading(true);
-
-    void getWalletTransactions(token)
-      .then((response) => {
-        setData(response);
-        setIsDemo(false);
-      })
-      .catch(() => {
-        setData(MOCK_WALLET_TRANSACTIONS);
-        setIsDemo(true);
-      })
-      .finally(() => {
-        setIsLoading(false);
-        setIsRefreshing(false);
-      });
+    void loadTransactions();
   }
 
   if (!token) {
@@ -146,6 +137,28 @@ export default function WalletTransactionsPage(): React.JSX.Element {
   }
 
   if (isLoading || !data) {
+    if (error) {
+      return (
+        <div className="max-w-lg mx-auto text-center py-16 px-4">
+          <Icon path={ICON_PATHS.document} size="xl" className="mx-auto text-text-secondary mb-4" />
+          <h1 className="text-xl font-bold text-text-primary mb-2">Transaction history unavailable</h1>
+          <p className="text-text-secondary mb-6">{error}</p>
+          <button
+            type="button"
+            onClick={() => refresh()}
+            disabled={isRefreshing}
+            className={cn(
+              "inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium",
+              "bg-white text-text-primary shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]",
+              "disabled:opacity-60"
+            )}
+          >
+            <Icon path={ICON_PATHS.refresh} size="sm" className={cn(isRefreshing && "animate-spin")} />
+            Retry
+          </button>
+        </div>
+      );
+    }
     return <TransactionHistorySkeleton />;
   }
 
@@ -235,7 +248,6 @@ export default function WalletTransactionsPage(): React.JSX.Element {
           <h1 className="text-2xl font-bold text-text-primary">Transaction history</h1>
           <p className="text-sm text-text-secondary mt-1">
             Review credits, debits, and reserved funds across your wallet
-            {isDemo ? " · showing sample data until the API responds" : ""}
           </p>
         </div>
 
