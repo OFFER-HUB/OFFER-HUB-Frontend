@@ -111,3 +111,10 @@ export interface MessagesResponse {
   hasMore: boolean;
   nextCursor?: string;
 }
+
+// ─── Request payloads ───────────────────────────────────────────────────────
+
+export interface CreateConversationPayload {
+  /** ID of the user to start a conversation with. */
+  participantId: string;
+}
