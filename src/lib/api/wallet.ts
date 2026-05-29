@@ -1,4 +1,9 @@
 import { API_URL } from "@/config/api";
+import {
+  getBalanceHistoryAnalytics,
+  getEarningsAnalytics,
+  getSpendingAnalytics,
+} from "@/lib/api/analytics";
 
 export interface WalletBalance {
   currency: string;
@@ -308,7 +313,31 @@ export async function getWalletDashboard(token: string): Promise<WalletDashboard
   }
 
   const json = (await response.json()) as { data: WalletDashboardData };
-  return json.data;
+  const data = json.data;
+
+  // Wallet dashboard still provides balance/withdrawals/transactions while
+  // analytics endpoints provide monthly metrics + history chart.
+  const [earningsRes, spendingRes, historyRes] = await Promise.allSettled([
+    getEarningsAnalytics(token),
+    getSpendingAnalytics(token),
+    getBalanceHistoryAnalytics(token),
+  ]);
+
+  if (earningsRes.status === "fulfilled") {
+    data.monthly.currentMonthEarnings = earningsRes.value.currentMonth;
+    data.monthly.previousMonthEarnings = earningsRes.value.previousMonth;
+  }
+
+  if (spendingRes.status === "fulfilled") {
+    data.monthly.currentMonthSpending = spendingRes.value.currentMonth;
+    data.monthly.previousMonthSpending = spendingRes.value.previousMonth;
+  }
+
+  if (historyRes.status === "fulfilled" && historyRes.value.length > 0) {
+    data.chart = historyRes.value;
+  }
+
+  return data;
 }
 
 export async function createWithdrawalRequest(

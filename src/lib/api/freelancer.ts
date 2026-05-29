@@ -1,7 +1,15 @@
 import { API_URL } from "@/config/api";
+import { getEarningsAnalytics } from "@/lib/api/analytics";
 import type { DashboardStats } from "@/types/freelancer-dashboard.types";
 
 const API_BASE_URL = API_URL;
+
+function formatCurrencyValue(value: unknown): string {
+  if (typeof value === "string" && value.includes("$")) return value;
+  const numeric = typeof value === "number" ? value : Number.parseFloat(String(value ?? 0));
+  const safe = Number.isFinite(numeric) ? numeric : 0;
+  return `$${safe.toFixed(2)}`;
+}
 
 export interface FreelancerStats {
   activeServices: number;
@@ -38,29 +46,42 @@ export async function getFreelancerStats(token: string): Promise<FreelancerStats
 }
 
 export async function getDashboardStats(token: string): Promise<DashboardStats> {
-  const response = await fetch(`${API_BASE_URL}/freelancer/dashboard/stats`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
-  });
+  const [dashboardRes, earningsRes] = await Promise.allSettled([
+    fetch(`${API_BASE_URL}/freelancer/dashboard/stats`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    }),
+    getEarningsAnalytics(token),
+  ]);
 
-  if (!response.ok) {
+  let dashboardData: { stats: Record<string, unknown>; comparison?: Record<string, unknown> } | null = null;
+  if (dashboardRes.status === "fulfilled" && dashboardRes.value.ok) {
+    const body = await dashboardRes.value.json();
+    dashboardData = body.data;
+  }
+
+  if (!dashboardData && earningsRes.status !== "fulfilled") {
     throw new Error('Failed to fetch dashboard stats');
   }
 
-  const body = await response.json();
-  const { stats, comparison } = body.data;
+  const stats = dashboardData?.stats ?? {};
+  const comparison = dashboardData?.comparison as { earnings?: { changePercent?: number | null } } | undefined;
+
+  const earningsFromAnalytics = earningsRes.status === "fulfilled" ? earningsRes.value : null;
 
   return {
-    activeApplications: stats.activeApplications,
-    activeOrders: stats.ordersInProgress,
-    totalEarnings: stats.earningsThisMonth,
-    rating: stats.averageRating !== null ? parseFloat(stats.averageRating) : null,
+    activeApplications: Number(stats.activeApplications ?? 0),
+    activeOrders: Number(stats.ordersInProgress ?? 0),
+    totalEarnings: formatCurrencyValue(
+      earningsFromAnalytics?.currentMonth ?? String(stats.earningsThisMonth ?? "0.00")
+    ),
+    rating: stats.averageRating !== null && stats.averageRating !== undefined ? parseFloat(String(stats.averageRating)) : null,
     ratingCount: 0,
     activeApplicationsTrend: null,
     activeOrdersTrend: null,
-    earningsTrend: comparison?.earnings?.changePercent ?? null,
+    earningsTrend: earningsFromAnalytics?.changePercent ?? comparison?.earnings?.changePercent ?? null,
     ratingTrend: null,
   };
 }
