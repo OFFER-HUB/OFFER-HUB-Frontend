@@ -56,6 +56,14 @@ export interface CreateWithdrawalRequestInput {
   saveDestination?: boolean;
 }
 
+interface WithdrawalApiPayload {
+  amount: string;
+  currency: string;
+  destinationType: string;
+  destinationRef: string;
+  commit: boolean;
+}
+
 export interface WithdrawalRequestData {
   id: string;
   status: "pending" | "processing" | "completed" | "failed";
@@ -307,13 +315,19 @@ export async function createWithdrawalRequest(
   token: string,
   payload: CreateWithdrawalRequestInput
 ): Promise<WithdrawalRequestData> {
-  const response = await fetch(`${API_URL}/wallet/withdrawals`, {
+  const response = await fetch(`${API_URL}/wallet/withdraw`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify(payload),
+    body: JSON.stringify({
+      amount: payload.amount.toFixed(2),
+      currency: "USD",
+      destinationType: "crypto",
+      destinationRef: payload.destination,
+      commit: true,
+    } satisfies WithdrawalApiPayload),
   });
 
   const json = (await response.json().catch(() => null)) as
