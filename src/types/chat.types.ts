@@ -6,6 +6,26 @@ export interface ChatUser {
   title?: string;
 }
 
+export interface MessageAttachment {
+  id: string;
+  name: string;
+  type: string;
+  size: number;
+  url: string;
+  mimeType: string;
+}
+
+export interface FileUploadProgress {
+  fileId: string;
+  fileName: string;
+  fileSize: number;
+  mimeType: string;
+  progress: number;
+  status: "uploading" | "completed" | "error";
+  error?: string;
+  url?: string;
+}
+
 export interface ChatMessage {
   id: string;
   senderId: string;
@@ -15,6 +35,7 @@ export interface ChatMessage {
   status?: "sent" | "delivered" | "read";
   deliveredAt?: string;
   readAt?: string;
+  attachments?: MessageAttachment[];
 }
 
 export interface Conversation {
@@ -117,4 +138,9 @@ export interface MessagesResponse {
 export interface CreateConversationPayload {
   /** ID of the user to start a conversation with. */
   participantId: string;
+}
+
+export interface SendMessagePayload {
+  content: string;
+  attachments?: MessageAttachment[];
 }
