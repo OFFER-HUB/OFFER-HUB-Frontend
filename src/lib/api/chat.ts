@@ -5,6 +5,7 @@ import type {
   ChatMessage,
   Conversation,
   ConversationsResponse,
+  CreateConversationPayload,
   MessagesResponse,
 } from "@/types/chat.types";
 
@@ -23,6 +24,17 @@ export async function getConversations(
   return httpGet<ConversationsResponse>(BASE, {
     params: cursor ? { cursor, limit: "20" } : { limit: "20" },
   });
+}
+
+/**
+ * Create a new conversation with another user.
+ * Returns the newly created conversation, or an existing one if it already
+ * exists between the two participants (backend deduplication).
+ */
+export async function createConversation(
+  payload: CreateConversationPayload
+): Promise<ApiResponse<Conversation>> {
+  return httpPost<Conversation>(BASE, payload);
 }
 
 /**

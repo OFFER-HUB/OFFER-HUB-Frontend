@@ -1,4 +1,9 @@
 import { API_URL } from "@/config/api";
+import {
+  getBalanceHistoryAnalytics,
+  getEarningsAnalytics,
+  getSpendingAnalytics,
+} from "@/lib/api/analytics";
 
 export interface WalletBalance {
   currency: string;
@@ -54,6 +59,14 @@ export interface CreateWithdrawalRequestInput {
   amount: number;
   destination: string;
   saveDestination?: boolean;
+}
+
+interface WithdrawalApiPayload {
+  amount: string;
+  currency: string;
+  destinationType: string;
+  destinationRef: string;
+  commit: boolean;
 }
 
 export interface WithdrawalRequestData {
@@ -158,7 +171,31 @@ export async function getWalletDashboard(token: string): Promise<WalletDashboard
   }
 
   const json = (await response.json()) as { data: WalletDashboardData };
-  return json.data;
+  const data = json.data;
+
+  // Wallet dashboard still provides balance/withdrawals/transactions while
+  // analytics endpoints provide monthly metrics + history chart.
+  const [earningsRes, spendingRes, historyRes] = await Promise.allSettled([
+    getEarningsAnalytics(token),
+    getSpendingAnalytics(token),
+    getBalanceHistoryAnalytics(token),
+  ]);
+
+  if (earningsRes.status === "fulfilled") {
+    data.monthly.currentMonthEarnings = earningsRes.value.currentMonth;
+    data.monthly.previousMonthEarnings = earningsRes.value.previousMonth;
+  }
+
+  if (spendingRes.status === "fulfilled") {
+    data.monthly.currentMonthSpending = spendingRes.value.currentMonth;
+    data.monthly.previousMonthSpending = spendingRes.value.previousMonth;
+  }
+
+  if (historyRes.status === "fulfilled" && historyRes.value.length > 0) {
+    data.chart = historyRes.value;
+  }
+
+  return data;
 }
 
 export async function createWithdrawalRequest(
@@ -167,8 +204,17 @@ export async function createWithdrawalRequest(
 ): Promise<WithdrawalRequestData> {
   const response = await fetch(`${API_URL}/wallet/withdraw`, {
     method: "POST",
-    headers: authHeaders(token),
-    body: JSON.stringify(payload),
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      amount: payload.amount.toFixed(2),
+      currency: "USD",
+      destinationType: "crypto",
+      destinationRef: payload.destination,
+      commit: true,
+    } satisfies WithdrawalApiPayload),
   });
 
   const json = (await response.json().catch(() => null)) as
