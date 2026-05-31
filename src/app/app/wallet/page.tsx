@@ -5,9 +5,10 @@ import Link from "next/link";
 import { useAuthStore } from "@/stores/auth-store";
 import { cn } from "@/lib/cn";
 import { Icon, ICON_PATHS } from "@/components/ui/Icon";
+import { ErrorState } from "@/components/ui/ErrorState";
 import {
   getWalletDashboard,
-  MOCK_WALLET_DASHBOARD,
+
   type WalletDashboardData,
 } from "@/lib/api/wallet";
 import {
@@ -40,7 +41,7 @@ export default function WalletPage(): React.JSX.Element {
   const [data, setData] = useState<WalletDashboardData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [isDemo, setIsDemo] = useState(false);
+
   const [error, setError] = useState<string | null>(null);
   const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
   const [withdrawSuccess, setWithdrawSuccess] = useState<string | null>(null);
@@ -55,11 +56,11 @@ export default function WalletPage(): React.JSX.Element {
     try {
       const res = await getWalletDashboard(token);
       setData(res);
-      setIsDemo(false);
-    } catch {
-      setData(MOCK_WALLET_DASHBOARD);
-      setIsDemo(true);
-      setError(null);
+
+    } catch (err) {
+      setData(null);
+
+      setError(err instanceof Error ? err.message : "Failed to load wallet data");
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
@@ -134,8 +135,30 @@ export default function WalletPage(): React.JSX.Element {
     );
   }
 
-  if (isLoading || !data) {
+  if (isLoading) {
     return <WalletPageSkeleton />;
+  }
+
+  if (error) {
+    return (
+      <ErrorState
+        title="Failed to load wallet"
+        message={error}
+        onRetry={() => refresh()}
+        retryLabel="Retry"
+      />
+    );
+  }
+
+  if (!data) {
+    return (
+      <ErrorState
+        title="No wallet data"
+        message="Unable to load wallet information. Please try again later."
+        onRetry={() => refresh()}
+        retryLabel="Retry"
+      />
+    );
   }
 
   const earnPct = pctVsPrevious(data.monthly.currentMonthEarnings, data.monthly.previousMonthEarnings);
@@ -148,7 +171,7 @@ export default function WalletPage(): React.JSX.Element {
           <h1 className="text-2xl font-bold text-text-primary">Wallet</h1>
           <p className="text-sm text-text-secondary mt-1">
             Overview of your funds on OFFER HUB
-            {isDemo ? " · showing sample data until the API is available" : ""}
+
           </p>
         </div>
         <div className="flex flex-wrap gap-2">

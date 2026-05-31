@@ -3,6 +3,7 @@
 import { cn } from "@/lib/cn";
 import type { ChatMessage } from "@/types/chat.types";
 import { ReadReceipt } from "@/components/chat/ReadReceipt";
+import { MessageAttachment } from "@/components/chat/MessageAttachment";
 
 interface MessageBubbleProps {
   message: ChatMessage;
@@ -12,6 +13,9 @@ interface MessageBubbleProps {
 }
 
 export function MessageBubble({ message, isOwn, showAvatar = true, participantAvatar }: MessageBubbleProps) {
+  const hasContent = message.content.trim().length > 0;
+  const hasAttachments = message.attachments && message.attachments.length > 0;
+
   return (
     <div
       className={cn(
@@ -42,26 +46,50 @@ export function MessageBubble({ message, isOwn, showAvatar = true, participantAv
           isOwn ? "order-1" : "order-2"
         )}
       >
-        <div
-          className={cn(
-            "px-4 py-3 rounded-2xl",
-            isOwn
-              ? cn(
-                  "bg-primary text-white",
-                  "rounded-br-md",
-                  "shadow-[4px_4px_8px_#d1d5db,-2px_-2px_4px_#ffffff]"
-                )
-              : cn(
-                  "bg-white text-text-primary",
-                  "rounded-bl-md",
-                  "shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]"
-                )
-          )}
-        >
-          <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">
-            {message.content}
-          </p>
-        </div>
+        {/* Message content */}
+        {(hasContent || hasAttachments) && (
+          <div
+            className={cn(
+              "px-4 py-3 rounded-2xl",
+              isOwn
+                ? cn(
+                    "bg-primary text-white",
+                    "rounded-br-md",
+                    "shadow-[4px_4px_8px_#d1d5db,-2px_-2px_4px_#ffffff]"
+                  )
+                : cn(
+                    "bg-white text-text-primary",
+                    "rounded-bl-md",
+                    "shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]"
+                  )
+            )}
+          >
+            {/* Text content */}
+            {hasContent && (
+              <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">
+                {message.content}
+              </p>
+            )}
+
+            {/* Attachments */}
+            {hasAttachments && (
+              <div className={cn(
+                "flex flex-col gap-2",
+                hasContent && "mt-3"
+              )}>
+                {message.attachments.map((attachment) => (
+                  <MessageAttachment
+                    key={attachment.id}
+                    attachment={attachment}
+                    isOwn={isOwn}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Timestamp and read receipt */}
         <div
           className={cn(
             "flex items-center gap-1.5 mt-1.5 px-1",
