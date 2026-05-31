@@ -7,14 +7,7 @@ import {
   useCallback,
   useId,
 } from "react";
-import {
-  Plus,
-  Loader2,
-  AlertCircle,
-  CheckCircle2,
-  X,
-  Search,
-} from "lucide-react";
+import { Icon, ICON_PATHS, LoadingSpinner } from "@/components/ui/Icon";
 import { SkillTag, LEVEL_STYLES } from "./SkillTag";
 
 import {
@@ -110,7 +103,7 @@ function EditLevelModal({
             className="rounded-full p-1.5 transition-opacity hover:opacity-70"
             style={{ color: "#6D758F" }}
           >
-            <X size={16} />
+            <Icon path={ICON_PATHS.x} size="sm" />
           </button>
         </div>
 
@@ -155,7 +148,7 @@ function EditLevelModal({
             boxShadow: NEU_RAISED,
           }}
         >
-          {saving ? <Loader2 size={15} className="animate-spin" /> : null}
+          {saving ? <LoadingSpinner size="sm" /> : null}
           {saving ? "Saving…" : "Save Changes"}
         </button>
       </div>
@@ -222,7 +215,7 @@ function DeleteConfirmModal({
             className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white flex items-center justify-center gap-2 transition-opacity disabled:opacity-60"
             style={{ backgroundColor: "#FF000022", border: "1.5px solid #FF000044", color: "#FF0000" }}
           >
-            {deleting ? <Loader2 size={14} className="animate-spin" /> : null}
+            {deleting ? <LoadingSpinner size="sm" /> : null}
             {deleting ? "Removing…" : "Remove"}
           </button>
         </div>
@@ -273,7 +266,7 @@ function SkillAutocomplete({
   return (
     <div ref={wrapperRef} className="relative flex-1 min-w-0">
       <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2">
-        <Search size={15} color="#6D758F" />
+        <Icon path={ICON_PATHS.search} size="sm" />
       </span>
       <input
         id={inputId}
@@ -495,7 +488,7 @@ export function SkillsManager() {
         className="rounded-2xl p-8 flex items-center justify-center gap-3"
         style={{ backgroundColor: "#002333", boxShadow: NEU_RAISED }}
       >
-        <Loader2 size={20} className="animate-spin" style={{ color: "#149A9B" }} />
+        <LoadingSpinner size="sm" className="text-[#149A9B]" />
         <span className="text-sm font-semibold" style={{ color: "#6D758F" }}>
           Loading skills…
         </span>
@@ -509,7 +502,7 @@ export function SkillsManager() {
         className="rounded-2xl p-8 flex flex-col items-center gap-3 text-center"
         style={{ backgroundColor: "#002333", boxShadow: NEU_RAISED }}
       >
-        <AlertCircle size={28} color="#FF0000" />
+        <Icon path={ICON_PATHS.alertCircle} size="lg" className="text-red-500" />
         <p className="text-sm font-semibold" style={{ color: "#B4B9C9" }}>
           {loadError}
         </p>
@@ -607,9 +600,9 @@ export function SkillsManager() {
             }}
           >
             {adding ? (
-              <Loader2 size={14} className="animate-spin" />
+              <LoadingSpinner size="sm" />
             ) : (
-              <Plus size={15} />
+              <Icon path={ICON_PATHS.plus} size="sm" />
             )}
             Add
           </button>
@@ -622,7 +615,7 @@ export function SkillsManager() {
             className="flex items-center gap-1.5 text-xs -mt-2"
             style={{ color: "#FF0000" }}
           >
-            <AlertCircle size={12} />
+            <Icon path={ICON_PATHS.alertCircle} size="sm" />
             {addError}
           </p>
         )}
@@ -733,11 +726,11 @@ export function SkillsManager() {
             color: toast.type === "success" ? "#16a34a" : "#FF0000",
           }}
         >
-          {toast.type === "success" ? (
-            <CheckCircle2 size={15} />
-          ) : (
-            <AlertCircle size={15} />
-          )}
+            {toast.type === "success" ? (
+              <Icon path={ICON_PATHS.check} size="sm" />
+            ) : (
+              <Icon path={ICON_PATHS.alertCircle} size="sm" />
+            )}
           {toast.msg}
         </div>
       )}

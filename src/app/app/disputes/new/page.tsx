@@ -13,7 +13,7 @@ import {
   NEUMORPHIC_INSET,
   ICON_BUTTON,
 } from "@/lib/styles";
-import { DISPUTE_REASONS } from "@/data/dispute.data";
+import { DISPUTE_REASONS } from "@/types/dispute.types";
 import { listOrders, openDispute } from "@/lib/api/orders";
 import { toApiDisputeReason } from "@/lib/disputes/map-dispute";
 import type { Order } from "@/types/order.types";

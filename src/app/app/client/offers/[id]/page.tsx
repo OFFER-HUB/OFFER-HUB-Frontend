@@ -27,7 +27,7 @@ import { getOfferById, deleteOffer, updateOfferStatus, type Offer, type OfferCat
 import { getOfferApplications, updateApplicationStatus } from "@/lib/api/applications";
 import { ApplicationCard } from "@/components/offers/ApplicationCard";
 import type { Application } from "@/types/application.types";
-import { isOfferEligibleForDispute } from "@/data/dispute.data";
+import { isOfferEligibleForDispute } from "@/lib/disputes/helpers";
 import { getRatingByOfferId, addRating } from "@/data/rating.data";
 import type { Applicant, ClientOfferDetail, OfferStatus } from "@/types/client-offer.types";
 import type { FreelancerRating } from "@/types/rating.types";

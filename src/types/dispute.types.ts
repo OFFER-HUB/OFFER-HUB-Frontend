@@ -66,6 +66,24 @@ export interface DisputeFormData {
   evidence: File[];
 }
 
+export const DISPUTE_REASONS: { value: DisputeReason; label: string; description: string }[] = [
+  {
+    value: "quality_issues",
+    label: "Quality Issues",
+    description: "The delivered work does not meet the agreed quality standards",
+  },
+  {
+    value: "deadline_missed",
+    label: "Not Delivered / Deadline Missed",
+    description: "The project was not delivered by the agreed deadline",
+  },
+  {
+    value: "other",
+    label: "Other",
+    description: "Another issue not listed above",
+  },
+];
+
 export const DISPUTE_REASON_LABELS: Record<DisputeReason, string> = {
   quality_issues: "Quality Issues",
   deadline_missed: "Deadline Missed",
