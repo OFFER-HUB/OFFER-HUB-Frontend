@@ -26,13 +26,19 @@ export function AppLayoutClient({ children }: AppLayoutClientProps): React.JSX.E
         <AppHeader onMenuClick={() => setIsSidebarOpen((prev) => !prev)} />
       </div>
 
-      <div className="flex flex-1 min-h-0">
-        <div className="hidden lg:block flex-shrink-0">
-          <AppSidebar
-            isOpen={isSidebarOpen}
-            onClose={() => setIsSidebarOpen(false)}
+      <div className="flex flex-1 min-h-0 relative">
+        {/* Mobile Sidebar Backdrop Overlay */}
+        {isSidebarOpen && (
+          <div
+            className="fixed inset-0 bg-black/50 z-40 lg:hidden backdrop-blur-xs"
+            onClick={() => setIsSidebarOpen(false)}
           />
-        </div>
+        )}
+
+        <AppSidebar
+          isOpen={isSidebarOpen}
+          onClose={() => setIsSidebarOpen(false)}
+        />
 
         <main
           id="main-content"
