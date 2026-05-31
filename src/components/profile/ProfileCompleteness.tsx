@@ -9,11 +9,16 @@ import { getProfileCompleteness, type ProfileCompletenessData } from "@/lib/api/
 import { useAuthStore } from "@/stores/auth-store";
 
 export function ProfileCompleteness(): React.JSX.Element | null {
-  const { token } = useAuthStore();
+  const { token, user } = useAuthStore();
   const [data, setData] = useState<ProfileCompletenessData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [animatedPercentage, setAnimatedPercentage] = useState(0);
+
+  // Only show for freelancers (SELLER) or users with BOTH roles
+  if (user && user.type !== "SELLER" && user.type !== "BOTH") {
+    return null;
+  }
 
   useEffect(() => {
     if (!token) return;

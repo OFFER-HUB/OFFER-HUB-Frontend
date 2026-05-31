@@ -15,6 +15,7 @@ import { getProfile, updateProfile, type UpdateProfileData } from "@/lib/api/pro
 import { uploadImage } from "@/lib/api/upload";
 import Link from "next/link";
 import { ConnectedAccounts } from "@/components/profile/ConnectedAccounts";
+import { ProfileCompleteness } from "@/components/profile/ProfileCompleteness";
 
 interface ProfileFormData {
   firstName: string;
@@ -296,6 +297,11 @@ export default function ProfilePage() {
           </Link>
         </div>
       </div>
+
+      {/* Profile Completeness Widget - Only shown for freelancers */}
+      <Suspense fallback={null}>
+        <ProfileCompleteness />
+      </Suspense>
 
       <div className={NEUMORPHIC_CARD}>
         <form onSubmit={handleSubmit} className="space-y-4">
