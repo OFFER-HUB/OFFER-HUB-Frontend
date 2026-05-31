@@ -6,6 +6,8 @@ import { Icon, ICON_PATHS } from "@/components/ui/Icon";
 import { BACKEND_URL } from "@/config/api";
 import type { MarketplaceOffer } from "@/lib/api/marketplace";
 import { HighlightedText } from "@/components/search/HighlightedText";
+import { FavoriteButton } from "@/components/favorites/FavoriteButton";
+import { useFavoritesStore } from "@/stores/favorites-store";
 
 interface OfferCardProps {
   offer: MarketplaceOffer;
@@ -42,8 +44,19 @@ export function OfferCard({ offer, className, highlightQuery }: OfferCardProps):
   );
   const imageUrl = imageAttachment ? `${BACKEND_URL}${imageAttachment.url}` : null;
 
+  const isFavorited = useFavoritesStore((s) => s.offerIds.includes(offer.id));
+  const toggleOffer = useFavoritesStore((s) => s.toggleOffer);
+
   return (
-    <Link
+    <div className="relative">
+      <FavoriteButton
+        type="offer"
+        id={offer.id}
+        isFavorited={isFavorited}
+        onToggle={() => toggleOffer(offer)}
+        className="absolute top-3 right-3 z-10"
+      />
+      <Link
       href={`/marketplace/offers/${offer.id}`}
       className={cn(
         "block rounded-xl transition-all duration-200 overflow-hidden",
@@ -124,5 +137,6 @@ export function OfferCard({ offer, className, highlightQuery }: OfferCardProps):
       )}
       </div>
     </Link>
+    </div>
   );
 }
