@@ -113,6 +113,12 @@ export default function CreateOfferPage(): React.JSX.Element {
       return;
     }
 
+    const hasImage = attachments.some((a) => a.type === "image");
+    if (!hasImage) {
+      setAttachmentError("At least one image is required to publish an offer");
+      return;
+    }
+
     if (!token) {
       setApiError("You must be logged in to create an offer");
       return;
@@ -264,7 +270,7 @@ export default function CreateOfferPage(): React.JSX.Element {
             <div className={NEUMORPHIC_CARD}>
               <h2 className="text-lg font-semibold text-text-primary mb-4">Attachments</h2>
               <p className="text-sm text-text-secondary mb-4">
-                Add images or documents to help freelancers understand your project better.
+                At least one image is required. You may also attach documents to help freelancers understand your project.
               </p>
 
               <ImageUpload
