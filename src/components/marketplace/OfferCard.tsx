@@ -40,7 +40,11 @@ export function OfferCard({ offer, className, highlightQuery }: OfferCardProps):
   const imageAttachment = offer.attachments?.find((att) =>
     att.mimeType.startsWith("image/")
   );
-  const imageUrl = imageAttachment ? `${BACKEND_URL}${imageAttachment.url}` : null;
+  const imageUrl = imageAttachment
+    ? imageAttachment.url.startsWith("http")
+      ? imageAttachment.url
+      : `${BACKEND_URL}${imageAttachment.url}`
+    : null;
 
   return (
     <Link
