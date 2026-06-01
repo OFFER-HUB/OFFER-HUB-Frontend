@@ -289,7 +289,9 @@ export default function OfferPanelPage(): React.JSX.Element {
                 {offer.apiAttachments.map((attachment) => {
                   const isImage = attachment.mimeType.startsWith("image/");
                   const backendUrl = BACKEND_URL;
-                  const fileUrl = `${backendUrl}${attachment.url}`;
+                  const fileUrl = attachment.url.startsWith("http")
+                    ? attachment.url
+                    : `${backendUrl}${attachment.url}`;
 
                   return (
                     <a
