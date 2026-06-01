@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { API_URL } from "@/config/api";
 import {
   buildSecureCookie,
   buildDeleteCookie,
@@ -19,22 +20,27 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   }
 
   try {
-    // TODO: Replace with actual backend API call
-    // const backendResponse = await fetch(`${process.env.API_URL}/auth/refresh`, {
-    //   method: "POST",
-    //   headers: { "Content-Type": "application/json" },
-    //   body: JSON.stringify({ refreshToken }),
-    // });
-    //
-    // if (!backendResponse.ok) {
-    //   throw new Error("Token refresh failed");
-    // }
-    //
-    // const { token, refreshToken: newRefreshToken } = await backendResponse.json();
+    const backendResponse = await fetch(`${API_URL}/auth/refresh`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refreshToken }),
+    });
 
-    // For now, simulate token refresh (remove in production)
-    const token = `refreshed-token-${Date.now()}`;
-    const newRefreshToken = `new-refresh-token-${Date.now()}`;
+    const backendData = await backendResponse.json();
+
+    if (!backendResponse.ok) {
+      throw new Error(
+        backendData.error?.message || backendData.message || "Token refresh failed"
+      );
+    }
+
+    const data = backendData.data || backendData;
+    const token = data.token;
+    const newRefreshToken = data.refreshToken || refreshToken;
+
+    if (!token) {
+      throw new Error("Backend did not return a refreshed token");
+    }
 
     const response = NextResponse.json({ success: true });
 
