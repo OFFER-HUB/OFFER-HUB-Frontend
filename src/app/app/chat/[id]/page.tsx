@@ -9,9 +9,8 @@ import { ChatInfoPanel } from "@/components/chat/ChatInfoPanel";
 import { ConnectionStatus } from "@/components/chat/ConnectionStatus";
 import { ConversationList } from "@/components/chat/ConversationList";
 import { MOCK_SHARED_FILES } from "@/data/chat.data";
-import { MessageBubble } from "@/components/chat/MessageBubble";
 import { MessageInput } from "@/components/chat/MessageInput";
-import { TypingIndicator } from "@/components/chat/TypingIndicator";
+import { MessageThread } from "@/components/chat/MessageThread";
 import { cn } from "@/lib/cn";
 import { sendTypingStatus } from "@/lib/api/chat";
 import { useAuthStore } from "@/stores/auth-store";
@@ -29,7 +28,6 @@ export default function ChatThreadPage(): React.JSX.Element {
   const [showConversations, setShowConversations] = useState(false);
   const [showInfo, setShowInfo] = useState(true);
   const [conversationsCollapsed, setConversationsCollapsed] = useState(true);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const chatId = params.id as string;
 
@@ -69,11 +67,6 @@ export default function ChatThreadPage(): React.JSX.Element {
     }
   }, [chatId, fetchMessages]);
 
-  // ── Auto-scroll on new messages ──────────────────────────────────────────
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
-
   // ── Handlers ─────────────────────────────────────────────────────────────
   function handleToggleConversations(): void {
     setConversationsCollapsed((prev) => !prev);
@@ -83,17 +76,16 @@ export default function ChatThreadPage(): React.JSX.Element {
     await sendMessage(chatId, content);
   }
 
+  async function handleRetryMessage(tempId: string, content: string): Promise<void> {
+    await sendMessage(chatId, content, tempId);
+  }
+
   const handleTypingChange = useCallback(
     (isTyping: boolean) => {
       sendTypingStatus(chatId, isTyping);
     },
     [chatId]
   );
-
-  function shouldShowAvatar(index: number): boolean {
-    if (index === messages.length - 1) return true;
-    return messages[index].senderId !== messages[index + 1].senderId;
-  }
 
   // ── Loading state (initial fetch) ────────────────────────────────────────
   if (isLoadingMessages && messages.length === 0) {
@@ -201,52 +193,19 @@ export default function ChatThreadPage(): React.JSX.Element {
           <ConnectionStatus status={connectionStatus} className="mr-4 shrink-0" />
         </div>
 
-        {/* Load older messages */}
-        {hasMoreMessages && (
-          <div className="flex justify-center py-2 border-b border-border-light">
-            <button
-              type="button"
-              onClick={() => fetchMoreMessages(chatId)}
-              disabled={isLoadingMessages}
-              className={cn(
-                "px-4 py-1.5 rounded-lg text-xs font-medium cursor-pointer",
-                "text-primary bg-background",
-                "shadow-[2px_2px_4px_#d1d5db,-2px_-2px_4px_#ffffff]",
-                "hover:shadow-[3px_3px_6px_#d1d5db,-3px_-3px_6px_#ffffff]",
-                "transition-all duration-200",
-                isLoadingMessages && "opacity-50 cursor-not-allowed"
-              )}
-            >
-              {isLoadingMessages ? "Loading…" : "Load older messages"}
-            </button>
-          </div>
-        )}
-
-        {/* Message list */}
-        <div className={cn("flex-1 overflow-y-auto p-4 sm:p-6 min-h-0", "bg-background")}>
-          <div className="flex items-center justify-center mb-6">
-            <span className="px-3 py-1 text-xs text-text-secondary bg-white rounded-full shadow-[2px_2px_4px_#d1d5db,-2px_-2px_4px_#ffffff]">
-              Today
-            </span>
-          </div>
-
-          <div className="space-y-4">
-            {messages.map((message, index) => (
-              <div key={message.id} ref={getMessageRef(message)}>
-                <MessageBubble
-                  message={message}
-                  isOwn={message.senderId === currentUserId}
-                  showAvatar={shouldShowAvatar(index)}
-                  participantAvatar={participant?.avatar ?? "?"}
-                />
-              </div>
-            ))}
-
-            {isParticipantTyping && participant && <TypingIndicator name={participant.name} />}
-
-            <div ref={messagesEndRef} />
-          </div>
-        </div>
+        {/* Message history thread */}
+        <MessageThread
+          chatId={chatId}
+          messages={messages}
+          currentUserId={currentUserId}
+          participant={participant}
+          isLoading={isLoadingMessages}
+          hasMore={hasMoreMessages}
+          isTyping={isParticipantTyping}
+          onFetchMore={() => fetchMoreMessages(chatId)}
+          onRetryMessage={handleRetryMessage}
+          getMessageRef={getMessageRef}
+        />
 
         <MessageInput onSendMessage={handleSendMessage} onTypingChange={handleTypingChange} />
       </div>

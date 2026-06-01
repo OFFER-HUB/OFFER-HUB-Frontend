@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback, type FormEvent } from "react";
+import { useState, useRef, useCallback, useEffect, type FormEvent } from "react";
 import { cn } from "@/lib/cn";
 import { Icon, ICON_PATHS } from "@/components/ui/Icon";
 
@@ -18,8 +18,28 @@ export function MessageInput({
   disabled = false,
 }: MessageInputProps) {
   const [message, setMessage] = useState("");
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const isTypingRef = useRef(false);
   const typingStopTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const emojiPickerRef = useRef<HTMLDivElement>(null);
+
+  const POPULAR_EMOJIS = [
+    "😀", "😂", "😍", "👍", "🎉", "🔥", "❤️", "🚀",
+    "🤔", "👏", "🙌", "✨", "💯", "😎", "💡", "😢"
+  ];
+
+  // Close picker on clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target as Node)) {
+        setShowEmojiPicker(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const notifyTypingStop = useCallback(() => {
     if (isTypingRef.current) {
@@ -50,6 +70,11 @@ export function MessageInput({
     [onTypingChange, notifyTypingStop]
   );
 
+  const handleAddEmoji = (emoji: string) => {
+    const newVal = message + emoji;
+    handleChange(newVal);
+  };
+
   function handleSubmit(e: FormEvent<HTMLFormElement>): void {
     e.preventDefault();
     const trimmedMessage = message.trim();
@@ -62,6 +87,7 @@ export function MessageInput({
     notifyTypingStop();
     onSendMessage(trimmedMessage);
     setMessage("");
+    setShowEmojiPicker(false);
   }
 
   return (
@@ -73,14 +99,52 @@ export function MessageInput({
         "bg-white"
       )}
     >
-      {/* Message input */}
+      {/* Message input container */}
       <div
         className={cn(
-          "flex-1 flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl",
+          "flex-1 flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl relative",
           "bg-background",
           "shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]"
         )}
       >
+        {/* Emoji Selector button */}
+        <div ref={emojiPickerRef} className="relative flex items-center">
+          <button
+            type="button"
+            disabled={disabled}
+            onClick={() => setShowEmojiPicker((prev) => !prev)}
+            className={cn(
+              "text-text-secondary hover:text-primary transition-colors p-1 rounded-lg cursor-pointer",
+              showEmojiPicker && "text-primary",
+              disabled && "cursor-not-allowed opacity-50"
+            )}
+            title="Add emoji"
+          >
+            <Icon path={ICON_PATHS.emoji} size="md" />
+          </button>
+
+          {/* Emoji Picker Popup */}
+          {showEmojiPicker && (
+            <div
+              className={cn(
+                "absolute bottom-full left-0 mb-3 p-3 rounded-2xl bg-white border border-border-light z-50 flex flex-wrap gap-2 w-64",
+                "shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff]"
+              )}
+            >
+              {POPULAR_EMOJIS.map((emoji) => (
+                <button
+                  key={emoji}
+                  type="button"
+                  onClick={() => handleAddEmoji(emoji)}
+                  className="text-xl p-1.5 hover:bg-background rounded-lg cursor-pointer transition-all hover:scale-110 active:scale-95"
+                >
+                  {emoji}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
         <input
           type="text"
           value={message}
