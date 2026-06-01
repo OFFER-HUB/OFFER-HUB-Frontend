@@ -43,3 +43,37 @@ export async function changePassword(
   const result = await response.json();
   return result.data || result;
 }
+
+export async function verifyEmail(token: string): Promise<{ message: string }> {
+  const response = await fetch(`${API_URL}/auth/verify-email`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ token }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error?.message || error.message || "Failed to verify email");
+  }
+
+  const result = await response.json();
+  return result.data || result;
+}
+
+export async function sendVerification(token: string): Promise<{ message: string }> {
+  const response = await fetch(`${API_URL}/auth/verify-email/request`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error?.message || error.message || "Failed to send verification email");
+  }
+
+  const result = await response.json();
+  return result.data || result;
+}
