@@ -173,8 +173,17 @@ export async function getWalletDashboard(token: string): Promise<WalletDashboard
   const json = (await response.json()) as { data: WalletDashboardData };
   const data = json.data;
 
-  // Wallet dashboard still provides balance/withdrawals/transactions while
-  // analytics endpoints provide monthly metrics + history chart.
+  // Ensure monthly always exists even if the API omits it
+  if (!data.monthly) {
+    data.monthly = {
+      currentMonthEarnings: "0.00",
+      previousMonthEarnings: "0.00",
+      currentMonthSpending: "0.00",
+      previousMonthSpending: "0.00",
+    };
+  }
+
+  // Enrich with analytics endpoints when available (404 = not yet deployed, skip silently)
   const [earningsRes, spendingRes, historyRes] = await Promise.allSettled([
     getEarningsAnalytics(token),
     getSpendingAnalytics(token),

@@ -1,6 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { Logo } from "@/components/ui";
+import { Icon, ICON_PATHS } from "@/components/ui/Icon";
 import { cn } from "@/lib/cn";
 
 interface AuthLayoutProps {
@@ -11,8 +13,21 @@ export function AuthLayout({ children }: AuthLayoutProps) {
   return (
     <div className="h-screen bg-background relative overflow-hidden">
       {/* Header */}
-      <header className="absolute top-0 left-0 right-0 z-20 p-4 sm:p-6">
-        <Logo size="md" className="hover:opacity-80 transition-opacity cursor-pointer" />
+      <header className="absolute top-0 left-0 right-0 z-20 p-4 sm:p-6 flex items-center justify-between">
+        <Link
+          href="/"
+          className="flex items-center gap-1.5 text-sm text-text-secondary hover:text-text-primary transition-colors group"
+          aria-label="Back to home"
+        >
+          <Icon
+            path={ICON_PATHS.chevronLeft}
+            size="sm"
+            className="group-hover:-translate-x-0.5 transition-transform"
+          />
+          <span className="hidden sm:inline">Back</span>
+        </Link>
+        <Logo size="md" className="hover:opacity-80 transition-opacity cursor-pointer absolute left-1/2 -translate-x-1/2" />
+        <div className="w-16" />
       </header>
 
       {/* Wave Background */}

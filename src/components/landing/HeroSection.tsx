@@ -1,9 +1,20 @@
 "use client";
 
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { AnimatedSection, Button, Container, Input } from "@/components/ui";
 import { HeroShowcase } from "./HeroShowcase";
 
 export function HeroSection() {
+  const [email, setEmail] = useState("");
+  const router = useRouter();
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) return;
+    router.push(`/register?email=${encodeURIComponent(email)}`);
+  };
+
   return (
     <section className="pt-16 lg:pt-24 pb-[18rem] lg:pb-[26rem] bg-background">
       <Container>
@@ -27,14 +38,18 @@ export function HeroSection() {
 
             {/* CTA Form */}
             <AnimatedSection animation="fade-up" delay={300} duration={800}>
-              <div className="flex flex-col sm:flex-row gap-3 max-w-md">
+              <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 max-w-md">
                 <div className="flex-1">
                   <Input
                     type="email"
                     placeholder="Your business email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
                   />
                 </div>
                 <Button
+                  type="submit"
                   variant="primary"
                   size="md"
                   icon={
@@ -55,7 +70,7 @@ export function HeroSection() {
                 >
                   Get Started
                 </Button>
-              </div>
+              </form>
             </AnimatedSection>
           </div>
 

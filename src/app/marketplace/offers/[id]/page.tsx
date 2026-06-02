@@ -204,7 +204,9 @@ export default function OfferDetailPage(): React.JSX.Element {
                 <h2 className="text-xl font-bold text-text-primary mb-4">Attachments</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {offer.attachments.map((attachment) => {
-                    const fileUrl = `${backendUrl}${attachment.url}`;
+                    const fileUrl = attachment.url.startsWith("http")
+                      ? attachment.url
+                      : `${backendUrl}${attachment.url}`;
                     const isImage = attachment.mimeType.startsWith("image/");
 
                     return (
