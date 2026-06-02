@@ -23,7 +23,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { X, Mail, Loader2, CheckCircle2 } from "lucide-react";
+import { Icon, ICON_PATHS, LoadingSpinner } from "@/components/ui/Icon";
 import { cn } from "@/lib/cn";
 
 export interface EmailVerificationBannerProps {
@@ -153,7 +153,7 @@ export function EmailVerificationBanner({
                     aria-hidden="true"
                     className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-amber-600"
                 >
-                    <Mail className="h-5 w-5" />
+                    <Icon path={ICON_PATHS.mail} size="md" />
                 </span>
                 <div className="min-w-0">
                     <p className="font-semibold text-text-primary">
@@ -177,17 +177,14 @@ export function EmailVerificationBanner({
                 >
                     {resending ? (
                         <>
-                            <Loader2
-                                className="h-4 w-4 animate-spin"
-                                aria-hidden="true"
-                            />
+                            <LoadingSpinner size="sm" />
                             Sending…
                         </>
                     ) : resendSuccess && cooldownRemaining > 0 ? (
                         <>
-                            <CheckCircle2
-                                className="h-4 w-4"
-                                aria-hidden="true"
+                            <Icon
+                                path={ICON_PATHS.check}
+                                size="sm"
                             />
                             Sent · retry in {cooldownRemaining}s
                         </>
@@ -195,7 +192,7 @@ export function EmailVerificationBanner({
                         <>Retry in {cooldownRemaining}s</>
                     ) : (
                         <>
-                            <Mail className="h-4 w-4" aria-hidden="true" />
+                            <Icon path={ICON_PATHS.mail} size="sm" />
                             Resend email
                         </>
                     )}
@@ -207,7 +204,7 @@ export function EmailVerificationBanner({
                     data-testid="email-verification-banner-dismiss"
                     className="inline-flex h-9 w-9 items-center justify-center rounded-xl text-text-secondary transition-colors hover:bg-background hover:text-text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/60"
                 >
-                    <X className="h-4 w-4" aria-hidden="true" />
+                    <Icon path={ICON_PATHS.x} size="sm" />
                 </button>
             </div>
         </div>
