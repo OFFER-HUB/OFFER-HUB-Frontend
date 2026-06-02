@@ -15,6 +15,7 @@ export interface PublicFreelancerSummary {
   averageRating: number | null;
   totalReviews: number;
   bio?: string | null;
+  skills?: string[];
 }
 
 /** Single review on the public reviews page. */
