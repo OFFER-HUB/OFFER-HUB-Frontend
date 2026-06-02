@@ -507,7 +507,7 @@ export default function OrderDetailPage(): React.JSX.Element {
         {/* Description */}
         <div className={NEUMORPHIC_CARD}>
           <h2 className="text-lg font-semibold text-text-primary mb-4">Description</h2>
-          <p className="text-text-secondary">{order.description || "No description provided"}</p>
+          <p className="text-text-secondary break-words">{order.description || "No description provided"}</p>
         </div>
       </div>
 

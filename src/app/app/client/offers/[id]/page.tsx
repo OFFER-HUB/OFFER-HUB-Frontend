@@ -277,7 +277,7 @@ export default function OfferPanelPage(): React.JSX.Element {
         <div className="lg:col-span-2 space-y-6">
           <div className={NEUMORPHIC_CARD}>
             <h2 className="text-lg font-semibold text-text-primary mb-4">Description</h2>
-            <p className="text-text-secondary whitespace-pre-line">{offer.description}</p>
+            <p className="text-text-secondary whitespace-pre-line break-words">{offer.description}</p>
           </div>
 
           {offer.apiAttachments && offer.apiAttachments.length > 0 && (

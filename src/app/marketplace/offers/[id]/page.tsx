@@ -190,7 +190,7 @@ export default function OfferDetailPage(): React.JSX.Element {
               )}
             >
               <h2 className="text-xl font-bold text-text-primary mb-4">Description</h2>
-              <p className="text-text-secondary whitespace-pre-wrap leading-relaxed">{offer.description}</p>
+              <p className="text-text-secondary whitespace-pre-wrap leading-relaxed break-words">{offer.description}</p>
             </div>
 
             {/* Attachments */}
