@@ -26,6 +26,7 @@ const MOCK_SUMMARY: Record<string, PublicFreelancerSummary> = {
     averageRating: 4.7,
     totalReviews: 24,
     bio: "Full-stack developer focused on clear communication and fast delivery.",
+    skills: ["React", "Node.js", "TypeScript", "AWS"],
   },
 };
 
@@ -165,8 +166,19 @@ export async function getPublicFreelancerSummary(freelancerId: string): Promise<
     }
 
     const json = await response.json();
-    const data = unwrapData<PublicFreelancerSummary>(json);
-    return data;
+    const data = unwrapData<any>(json);
+    if (!data) return null;
+    
+    return {
+      id: data.id,
+      displayName: data.displayName,
+      avatarUrl: data.avatarUrl,
+      showcaseServiceId: data.showcaseServiceId,
+      averageRating: data.averageRating,
+      totalReviews: data.totalReviews,
+      bio: data.bio,
+      skills: data.skills?.map((s: any) => typeof s === 'string' ? s : s.name) || [],
+    } as PublicFreelancerSummary;
   } catch {
     return null;
   }

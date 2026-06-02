@@ -136,7 +136,7 @@ export default function SettingsPage(): React.JSX.Element {
             )}
           >
             <div className="flex items-center gap-2">
-              <Icon path={ICON_PATHS.check} size="sm" className="text-success flex-shrink-0" />
+              <Icon path={ICON_PATHS.check} size="sm" className="text-success shrink-0" />
               <p className="text-sm text-success font-medium">Settings saved!</p>
             </div>
           </div>
@@ -179,6 +179,26 @@ export default function SettingsPage(): React.JSX.Element {
               <h2 className="text-lg font-semibold text-text-primary">Security</h2>
               <p className="mt-1 text-sm text-text-secondary">
                 Change your password and review account access protections.
+              </p>
+            </div>
+          </div>
+        </Link>
+
+        <Link
+          href="/app/settings/sessions"
+          className={cn(
+            NEUMORPHIC_CARD,
+            "transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[8px_8px_16px_#d1d5db,-8px_-8px_16px_#ffffff]"
+          )}
+        >
+          <div className="flex items-start gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <Icon path={ICON_PATHS.desktop} size="md" />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-text-primary">Sessions</h2>
+              <p className="mt-1 text-sm text-text-secondary">
+                View and manage your active login sessions across all devices.
               </p>
             </div>
           </div>

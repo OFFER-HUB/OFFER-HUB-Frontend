@@ -8,7 +8,9 @@ interface ReadReceiptProps {
 }
 
 function getMessageStatus(message: ChatMessage): "sent" | "delivered" | "read" {
-  if (message.status) return message.status;
+  if (message.status === "delivered" || message.status === "read" || message.status === "sent") {
+    return message.status;
+  }
   return message.isRead ? "read" : "sent";
 }
 

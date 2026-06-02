@@ -7,6 +7,7 @@ import {
 } from "@/lib/api/chat";
 
 import { create } from "zustand";
+import { useAuthStore } from "@/stores/auth-store";
 
 const READ_BATCH_DEBOUNCE_MS = 350;
 
@@ -75,7 +76,7 @@ interface ChatState {
   fetchMoreConversations: () => Promise<void>;
   fetchMessages: (conversationId: string) => Promise<void>;
   fetchMoreMessages: (conversationId: string) => Promise<void>;
-  sendMessage: (conversationId: string, content: string) => Promise<void>;
+  sendMessage: (conversationId: string, content: string, tempId?: string) => Promise<void>;
   markAsRead: (conversationId: string, lastReadMessageId?: string) => Promise<void>;
   queueMarkAsRead: (conversationId: string, lastReadMessageId?: string) => void;
 
@@ -205,11 +206,76 @@ export const useChatStore = create<ChatState>()((set, get) => ({
     }));
   },
 
-  sendMessage: async (conversationId: string, content: string) => {
+  sendMessage: async (conversationId: string, content: string, tempId?: string) => {
+    const currentUserId = useAuthStore.getState().user?.id ?? "me";
+    const messageId = tempId || `temp_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+
+    // Create the temporary message
+    const tempMessage: ChatMessage = {
+      id: messageId,
+      senderId: currentUserId,
+      content,
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      isRead: false,
+      status: "sending",
+    };
+
+    // Append (or update if retrying) the message in the store
+    if (!tempId) {
+      get().appendMessage(conversationId, tempMessage);
+    } else {
+      // Retrying, so set status back to "sending"
+      set((state) => {
+        const existing = state.messagesByConversation[conversationId] ?? [];
+        return {
+          messagesByConversation: {
+            ...state.messagesByConversation,
+            [conversationId]: existing.map((m) =>
+              m.id === tempId ? { ...m, status: "sending" } : m
+            ),
+          },
+        };
+      });
+    }
+
     const res = await apiSendMessage(conversationId, content);
+
     if (res.ok && res.data) {
-      get().appendMessage(conversationId, res.data);
+      // Replace the temporary message with the real one
+      set((state) => {
+        const existing = state.messagesByConversation[conversationId] ?? [];
+        const index = existing.findIndex((m) => m.id === messageId);
+        if (index >= 0) {
+          const updated = [...existing];
+          updated[index] = res.data!;
+          return {
+            messagesByConversation: {
+              ...state.messagesByConversation,
+              [conversationId]: updated,
+            },
+          };
+        }
+        return {
+          messagesByConversation: {
+            ...state.messagesByConversation,
+            [conversationId]: [...existing, res.data!],
+          },
+        };
+      });
       get().updateConversationLastMessage(conversationId, res.data);
+    } else {
+      // Mark as error
+      set((state) => {
+        const existing = state.messagesByConversation[conversationId] ?? [];
+        return {
+          messagesByConversation: {
+            ...state.messagesByConversation,
+            [conversationId]: existing.map((m) =>
+              m.id === messageId ? { ...m, status: "error" } : m
+            ),
+          },
+        };
+      });
     }
   },
 

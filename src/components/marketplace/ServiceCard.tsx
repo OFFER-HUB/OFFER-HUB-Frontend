@@ -5,6 +5,8 @@ import { cn } from "@/lib/cn";
 import { Icon, ICON_PATHS } from "@/components/ui/Icon";
 import type { MarketplaceService } from "@/lib/api/marketplace";
 import { HighlightedText } from "@/components/search/HighlightedText";
+import { FavoriteButton } from "@/components/favorites/FavoriteButton";
+import { useFavoritesStore } from "@/stores/favorites-store";
 
 interface ServiceCardProps {
   service: MarketplaceService;
@@ -51,8 +53,19 @@ export function ServiceCard({ service, className, highlightQuery }: ServiceCardP
 
   const location = service.user?.country || "Remote";
 
+  const isFavorited = useFavoritesStore((s) => s.serviceIds.includes(service.id));
+  const toggleService = useFavoritesStore((s) => s.toggleService);
+
   return (
-    <Link
+    <div className="relative">
+      <FavoriteButton
+        type="service"
+        id={service.id}
+        isFavorited={isFavorited}
+        onToggle={() => toggleService(service)}
+        className="absolute top-3 right-3 z-10"
+      />
+      <Link
       href={`/marketplace/services/${service.id}`}
       className={cn(
         "group flex flex-col h-full rounded-3xl transition-all duration-300 overflow-hidden",
@@ -208,5 +221,6 @@ export function ServiceCard({ service, className, highlightQuery }: ServiceCardP
         </div>
       </div>
     </Link>
+    </div>
   );
 }

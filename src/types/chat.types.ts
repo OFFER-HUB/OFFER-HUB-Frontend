@@ -12,7 +12,7 @@ export interface ChatMessage {
   content: string;
   timestamp: string;
   isRead: boolean;
-  status?: "sent" | "delivered" | "read";
+  status?: "sending" | "sent" | "delivered" | "read" | "error";
   deliveredAt?: string;
   readAt?: string;
 }

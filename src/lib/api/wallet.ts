@@ -162,7 +162,7 @@ export async function getWalletBalance(token: string): Promise<WalletBalanceSumm
 }
 
 export async function getWalletDashboard(token: string): Promise<WalletDashboardData> {
-  const response = await fetch(`${API_URL}/wallet`, {
+  const response = await fetch(`${API_URL}/wallet/dashboard`, {
     headers: authHeaders(token),
   });
 

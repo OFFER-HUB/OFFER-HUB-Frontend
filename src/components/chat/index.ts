@@ -5,3 +5,4 @@ export { MessageInput } from "./MessageInput";
 export { ChatInfoPanel } from "./ChatInfoPanel";
 export { TypingIndicator } from "./TypingIndicator";
 export { ConnectionStatus } from "./ConnectionStatus";
+export { MessageThread } from "./MessageThread";
