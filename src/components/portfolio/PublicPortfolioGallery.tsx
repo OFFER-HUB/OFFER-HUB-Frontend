@@ -187,7 +187,7 @@ function Lightbox({
             <button
               type="button"
               onClick={() => {
-                const shareUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/marketplace/freelancers/portfolio/${project.id}`;
+                const shareUrl = typeof window !== "undefined" ? window.location.href : "";
                 if (typeof navigator !== "undefined" && navigator.share) {
                   navigator.share({
                     title: project.title,
