@@ -1,9 +1,4 @@
 import { API_URL } from "@/config/api";
-import {
-  getBalanceHistoryAnalytics,
-  getEarningsAnalytics,
-  getSpendingAnalytics,
-} from "@/lib/api/analytics";
 
 export interface WalletBalance {
   currency: string;
@@ -181,27 +176,6 @@ export async function getWalletDashboard(token: string): Promise<WalletDashboard
       currentMonthSpending: "0.00",
       previousMonthSpending: "0.00",
     };
-  }
-
-  // Enrich with analytics endpoints when available (404 = not yet deployed, skip silently)
-  const [earningsRes, spendingRes, historyRes] = await Promise.allSettled([
-    getEarningsAnalytics(token),
-    getSpendingAnalytics(token),
-    getBalanceHistoryAnalytics(token),
-  ]);
-
-  if (earningsRes.status === "fulfilled") {
-    data.monthly.currentMonthEarnings = earningsRes.value.currentMonth;
-    data.monthly.previousMonthEarnings = earningsRes.value.previousMonth;
-  }
-
-  if (spendingRes.status === "fulfilled") {
-    data.monthly.currentMonthSpending = spendingRes.value.currentMonth;
-    data.monthly.previousMonthSpending = spendingRes.value.previousMonth;
-  }
-
-  if (historyRes.status === "fulfilled" && historyRes.value.length > 0) {
-    data.chart = historyRes.value;
   }
 
   return data;
