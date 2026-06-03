@@ -26,10 +26,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 
   const name = result.freelancer.professionalTitle ?? "Freelancer";
+  const image = result.projects[0]?.images[0]?.url;
   return generatePageMetadata({
     title: `${name} — Portfolio`,
     description: `Browse ${name}'s work samples and projects on OFFER HUB.`,
     path: `/marketplace/freelancers/${id}/portfolio`,
+    image: image ? { url: image, alt: `${name}'s portfolio` } : undefined,
   });
 }
 

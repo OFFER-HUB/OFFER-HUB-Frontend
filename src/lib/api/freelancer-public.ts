@@ -327,6 +327,7 @@ export interface PublicPortfolioProject {
   category: string;
   tags: string[];
   projectUrl?: string | null;
+  repoUrl?: string | null;
   startDate?: string | null;
   endDate?: string | null;
   order: number;
