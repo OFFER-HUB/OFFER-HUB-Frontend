@@ -207,7 +207,9 @@ export function AppHeader({ onMenuClick }: AppHeaderProps): React.JSX.Element {
               <div className={cn(DROPDOWN_MENU, "-right-1 top-[calc(100%+0.75rem)]")}>
                 <div className="px-5 py-4 mb-2 border-b border-background">
                   <p className="text-sm font-bold text-text-primary truncate">
-                    {user.username}
+                    {(user.firstName && user.lastName)
+                      ? `${user.firstName} ${user.lastName}`
+                      : user.firstName || user.username}
                   </p>
                   <p className="text-xs text-text-secondary truncate mt-0.5">
                     {user.email}
