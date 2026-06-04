@@ -58,7 +58,7 @@ function getNavLinkStyles(isActive: boolean, isCollapsed: boolean): string {
   return cn(base, isActive ? NAV_LINK_ACTIVE : NAV_LINK_INACTIVE);
 }
 
-export function AppSidebar(_props: AppSidebarProps): React.JSX.Element {
+export function AppSidebar({ isOpen, onClose }: AppSidebarProps): React.JSX.Element {
   const pathname = usePathname();
   const router = useRouter();
   const { mode, setMode } = useModeStore();
@@ -101,6 +101,7 @@ export function AppSidebar(_props: AppSidebarProps): React.JSX.Element {
 
   function handleModeChange(newMode: UserMode): void {
     setMode(newMode);
+    onClose();
 
     // Redirect to the appropriate dashboard based on mode
     if (newMode === "freelancer") {
@@ -113,18 +114,35 @@ export function AppSidebar(_props: AppSidebarProps): React.JSX.Element {
   return (
     <aside
       className={cn(
-        "m-6 mr-0",
-        "bg-white rounded-2xl",
-        "shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff]",
+        "bg-white",
         "shrink-0",
         "flex flex-col",
         "transition-all duration-300 ease-in-out",
-        "hidden lg:flex",
-        isCollapsed ? "w-20" : "w-64"
+        // Desktop styles:
+        "lg:m-6 lg:mr-0 lg:rounded-2xl lg:shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff] lg:flex lg:static lg:z-0",
+        isCollapsed ? "lg:w-20" : "lg:w-64",
+        // Mobile styles:
+        "fixed inset-y-0 left-0 z-50 w-64 rounded-none m-0 shadow-2xl",
+        isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
       )}
     >
-      {/* Collapse Toggle Button */}
-      <div className={cn("p-3", isCollapsed ? "flex justify-center" : "flex justify-end")}>
+      {/* Collapse/Close Toggle Button */}
+      <div className={cn("p-3 flex", isCollapsed ? "lg:justify-center" : "justify-end")}>
+        <button
+          type="button"
+          onClick={onClose}
+          className={cn(
+            "p-2 rounded-lg cursor-pointer",
+            "text-text-secondary hover:text-text-primary",
+            "hover:bg-background",
+            "transition-all duration-200",
+            "lg:hidden"
+          )}
+          title="Close sidebar"
+        >
+          <Icon path={ICON_PATHS.close} size="sm" />
+        </button>
+
         <button
           type="button"
           onClick={toggleCollapsed}
@@ -132,7 +150,8 @@ export function AppSidebar(_props: AppSidebarProps): React.JSX.Element {
             "p-2 rounded-lg cursor-pointer",
             "text-text-secondary hover:text-text-primary",
             "hover:bg-background",
-            "transition-all duration-200"
+            "transition-all duration-200",
+            "hidden lg:block"
           )}
           title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
@@ -226,6 +245,7 @@ export function AppSidebar(_props: AppSidebarProps): React.JSX.Element {
               className={getNavLinkStyles(isActiveLink(item.href), isCollapsed)}
               title={isCollapsed ? item.label : undefined}
               data-tour={tourId}
+              onClick={onClose}
             >
               <Icon path={item.icon} size="md" />
               {!isCollapsed && <span className="font-medium">{item.label}</span>}
@@ -261,6 +281,7 @@ export function AppSidebar(_props: AppSidebarProps): React.JSX.Element {
                 href={item.href}
                 className={getNavLinkStyles(isActiveLink(item.href), isCollapsed)}
                 title={isCollapsed ? item.label : undefined}
+                onClick={onClose}
               >
                 <Icon path={item.icon} size="md" />
                 {!isCollapsed && <span className="font-medium">{item.label}</span>}

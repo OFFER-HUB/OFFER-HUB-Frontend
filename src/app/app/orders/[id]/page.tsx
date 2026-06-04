@@ -268,7 +268,7 @@ export default function OrderDetailPage(): React.JSX.Element {
       rating,
       comment,
       revieweeId: reviewee.id,
-      revieweeName: reviewee.name || reviewee.email || "Freelancer",
+      revieweeName: reviewee.name || reviewee.username || reviewee.email || "Freelancer",
       reviewerId: user.id,
       reviewerName: user.username || user.email,
       orderTitle: order.title,
@@ -494,11 +494,11 @@ export default function OrderDetailPage(): React.JSX.Element {
               />
             ) : (
               <div className="w-12 h-12 rounded-full bg-primary text-white flex items-center justify-center font-semibold">
-                {otherUser?.name?.charAt(0) || otherUser?.email?.charAt(0) || "?"}
+                {(otherUser?.name || otherUser?.username)?.charAt(0) || otherUser?.email?.charAt(0) || "?"}
               </div>
             )}
             <div>
-              <p className="font-medium text-text-primary">{otherUser?.name || "Unknown"}</p>
+              <p className="font-medium text-text-primary">{otherUser?.name || otherUser?.username || otherUser?.email?.split("@")[0] || "Unknown"}</p>
               <p className="text-sm text-text-secondary">{otherUser?.email}</p>
             </div>
           </div>
@@ -507,7 +507,7 @@ export default function OrderDetailPage(): React.JSX.Element {
         {/* Description */}
         <div className={NEUMORPHIC_CARD}>
           <h2 className="text-lg font-semibold text-text-primary mb-4">Description</h2>
-          <p className="text-text-secondary">{order.description || "No description provided"}</p>
+          <p className="text-text-secondary break-words">{order.description || "No description provided"}</p>
         </div>
       </div>
 
@@ -1054,7 +1054,7 @@ export default function OrderDetailPage(): React.JSX.Element {
 
       <LeaveReviewModal
         isOpen={isReviewModalOpen}
-        revieweeName={order.seller?.name || order.seller?.email || "the freelancer"}
+        revieweeName={order.seller?.name || order.seller?.username || order.seller?.email || "the freelancer"}
         orderTitle={order.title}
         serviceTitle={order.service?.title}
         onClose={() => {

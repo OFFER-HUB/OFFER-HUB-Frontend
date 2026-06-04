@@ -1,17 +1,27 @@
-import { ReviewCard } from "./ReviewCard";
 import type { PublicFreelancerReview } from "@/types/public-freelancer.types";
+
+import { ReviewCard } from "./ReviewCard";
 
 interface ReviewListProps {
   reviews: PublicFreelancerReview[];
   freelancerDisplayName: string;
+  freelancerId: string;
 }
 
-export function ReviewList({ reviews, freelancerDisplayName }: ReviewListProps): React.JSX.Element {
+export function ReviewList({
+  reviews,
+  freelancerDisplayName,
+  freelancerId,
+}: ReviewListProps): React.JSX.Element {
   return (
-    <ul className="space-y-4 list-none p-0 m-0" aria-label="Reviews">
+    <ul className="m-0 list-none space-y-4 p-0" aria-label="Reviews">
       {reviews.map((review) => (
         <li key={review.id}>
-          <ReviewCard review={review} freelancerDisplayName={freelancerDisplayName} />
+          <ReviewCard
+            review={review}
+            freelancerDisplayName={freelancerDisplayName}
+            freelancerId={freelancerId}
+          />
         </li>
       ))}
     </ul>

@@ -1,9 +1,4 @@
 import { API_URL } from "@/config/api";
-import {
-  getBalanceHistoryAnalytics,
-  getEarningsAnalytics,
-  getSpendingAnalytics,
-} from "@/lib/api/analytics";
 
 export interface WalletBalance {
   currency: string;
@@ -88,57 +83,99 @@ export interface WalletBalanceSummary {
   currency: string;
 }
 
+export interface WalletTransactionFilters {
+  search?: string;
+  types?: WalletTransactionType[];
+  startDate?: string;
+  endDate?: string;
+  minAmount?: string;
+  maxAmount?: string;
+  sortBy?: "date-desc" | "date-asc" | "amount-desc" | "amount-asc";
+}
+
+type ApiErrorResponse = {
+  message?: string;
+  title?: string;
+  error?: { message?: string };
+};
+
+async function parseApiError(response: Response, fallback: string): Promise<Error> {
+  const json = (await response.json().catch(() => null)) as ApiErrorResponse | null;
+  return new Error(json?.error?.message ?? json?.message ?? json?.title ?? fallback);
+}
+
+function authHeaders(token: string): HeadersInit {
+  return {
+    Authorization: `Bearer ${token}`,
+    "Content-Type": "application/json",
+  };
+}
+
+function hasWalletDashboardShape(data: unknown): data is WalletDashboardData {
+  return Boolean(
+    data &&
+      typeof data === "object" &&
+      "balance" in data &&
+      "monthly" in data &&
+      "withdrawals" in data &&
+      "chart" in data &&
+      "recentTransactions" in data
+  );
+}
+
+function buildTransactionsUrl(filters: WalletTransactionFilters = {}): string {
+  const params = new URLSearchParams();
+
+  if (filters.search?.trim()) params.set("search", filters.search.trim());
+  if (filters.types && filters.types.length > 0) params.set("types", filters.types.join(","));
+  if (filters.startDate) params.set("startDate", filters.startDate);
+  if (filters.endDate) params.set("endDate", filters.endDate);
+  if (filters.minAmount) params.set("minAmount", filters.minAmount);
+  if (filters.maxAmount) params.set("maxAmount", filters.maxAmount);
+  if (filters.sortBy) params.set("sortBy", filters.sortBy);
+
+  const query = params.toString();
+  return `${API_URL}/wallet/transactions${query ? `?${query}` : ""}`;
+}
+
 export async function getWalletBalance(token: string): Promise<WalletBalanceSummary> {
   const response = await fetch(`${API_URL}/wallet`, {
-    headers: { Authorization: `Bearer ${token}` },
+    headers: authHeaders(token),
   });
-  if (!response.ok) throw new Error("Failed to load wallet balance");
-  const json = (await response.json()) as { data: WalletBalanceSummary };
+  if (!response.ok) throw await parseApiError(response, "Failed to load wallet balance");
+  const json = (await response.json()) as { data: WalletBalanceSummary | WalletDashboardData };
+
+  if (hasWalletDashboardShape(json.data)) {
+    return {
+      availableBalance: json.data.balance.available,
+      reservedBalance: json.data.balance.reserved,
+      currency: json.data.balance.currency,
+    };
+  }
+
   return json.data;
 }
 
 export async function getWalletDashboard(token: string): Promise<WalletDashboardData> {
   const response = await fetch(`${API_URL}/wallet/dashboard`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
+    headers: authHeaders(token),
   });
 
   if (!response.ok) {
-    let message = "Failed to load wallet";
-    try {
-      const err = (await response.json()) as { error?: { message?: string } };
-      if (err?.error?.message) message = err.error.message;
-    } catch {
-      /* ignore */
-    }
-    throw new Error(message);
+    throw await parseApiError(response, "Failed to load wallet");
   }
 
   const json = (await response.json()) as { data: WalletDashboardData };
   const data = json.data;
 
-  // Wallet dashboard still provides balance/withdrawals/transactions while
-  // analytics endpoints provide monthly metrics + history chart.
-  const [earningsRes, spendingRes, historyRes] = await Promise.allSettled([
-    getEarningsAnalytics(token),
-    getSpendingAnalytics(token),
-    getBalanceHistoryAnalytics(token),
-  ]);
-
-  if (earningsRes.status === "fulfilled") {
-    data.monthly.currentMonthEarnings = earningsRes.value.currentMonth;
-    data.monthly.previousMonthEarnings = earningsRes.value.previousMonth;
-  }
-
-  if (spendingRes.status === "fulfilled") {
-    data.monthly.currentMonthSpending = spendingRes.value.currentMonth;
-    data.monthly.previousMonthSpending = spendingRes.value.previousMonth;
-  }
-
-  if (historyRes.status === "fulfilled" && historyRes.value.length > 0) {
-    data.chart = historyRes.value;
+  // Ensure monthly always exists even if the API omits it
+  if (!data.monthly) {
+    data.monthly = {
+      currentMonthEarnings: "0.00",
+      previousMonthEarnings: "0.00",
+      currentMonthSpending: "0.00",
+      previousMonthSpending: "0.00",
+    };
   }
 
   return data;
@@ -188,23 +225,16 @@ export async function createWithdrawalRequest(
   throw new Error("Withdrawal request was created, but no response data was returned.");
 }
 
-export async function getWalletTransactions(token: string): Promise<WalletTransactionsData> {
-  const response = await fetch(`${API_URL}/wallet/transactions`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
+export async function getWalletTransactions(
+  token: string,
+  filters: WalletTransactionFilters = {}
+): Promise<WalletTransactionsData> {
+  const response = await fetch(buildTransactionsUrl(filters), {
+    headers: authHeaders(token),
   });
 
   if (!response.ok) {
-    let message = "Failed to load wallet transactions";
-    try {
-      const err = (await response.json()) as { error?: { message?: string } };
-      if (err?.error?.message) message = err.error.message;
-    } catch {
-      /* ignore */
-    }
-    throw new Error(message);
+    throw await parseApiError(response, "Failed to load wallet transactions");
   }
 
   const json = (await response.json()) as

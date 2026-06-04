@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { AvailabilitySettings } from "@/components/profile/AvailabilitySettings";
-import { SkillsManager } from "@/components/profile/SkillsManager";
+import { SkillsInput } from "@/components/profile/SkillsInput";
 import { Icon, ICON_PATHS } from "@/components/ui/Icon";
 
 export default function ProfileEditPage(): React.JSX.Element {
@@ -31,7 +31,7 @@ export default function ProfileEditPage(): React.JSX.Element {
         >
           Skills &amp; Expertise
         </h2>
-        <SkillsManager />
+        <SkillsInput />
       </section>
     </div>
   );

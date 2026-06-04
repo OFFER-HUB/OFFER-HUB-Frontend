@@ -30,12 +30,14 @@ export interface Order {
     id: string;
     email: string;
     name?: string;
+    username?: string;
     avatar?: string;
   };
   seller?: {
     id: string;
     email: string;
     name?: string;
+    username?: string;
     avatar?: string;
   };
   service?: {

@@ -27,9 +27,11 @@ import {
   type SkillLevel,
 } from "@/lib/api/skills-api";
 
+import { useAuthStore } from "@/stores/auth-store";
+
 /* ── Constants ── */
 
-const MAX_SKILLS = 20;
+const MAX_SKILLS = 15;
 
 const SKILL_LEVELS: SkillLevel[] = ["Beginner", "Intermediate", "Expert"];
 
@@ -136,7 +138,7 @@ function EditLevelModal({
                 }}
               >
                 <span
-                  className="w-2.5 h-2.5 rounded-full flex-shrink-0 transition-colors"
+                  className="w-2.5 h-2.5 rounded-full shrink-0 transition-colors"
                   style={{ backgroundColor: isSelected ? style.text : "#B4B9C940" }}
                 />
                 {level}
@@ -339,7 +341,8 @@ function SkillAutocomplete({
 
 /* ── SkillsManager ── */
 
-export function SkillsManager() {
+export function SkillsInput() {
+  const { token } = useAuthStore();
   const [skills, setSkills] = useState<Skill[]>([]);
   const [loadState, setLoadState] = useState<"loading" | "error" | "ready">("loading");
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -374,7 +377,8 @@ export function SkillsManager() {
 
   /* ── Load on mount ── */
   useEffect(() => {
-    fetchSkills()
+    if (!token) return;
+    fetchSkills(token)
       .then((data: unknown[]) => {
         setSkills((data as Skill[]).sort((a, b) => a.order - b.order)); 
         setLoadState("ready");
@@ -383,7 +387,7 @@ export function SkillsManager() {
         setLoadError(typeof err.message === "string" ? err.message : "Failed to load skills.");
         setLoadState("error");
       });
-  }, []);
+  }, [token]);
 
   const existingNames = new Set(skills.map((s) => s.name.toLowerCase()));
   const atLimit = skills.length >= MAX_SKILLS;
@@ -407,7 +411,7 @@ export function SkillsManager() {
     setAdding(true);
     setAddError(null);
     try {
-      const newSkill = await addSkill({
+      const newSkill = await addSkill(token ?? "", {
         name,
         level: selectedLevel,
         order: skills.length,
@@ -428,7 +432,7 @@ export function SkillsManager() {
     if (!editTarget) return;
     setModalSaving(true);
     try {
-      const updated = await updateSkill(editTarget.id, { level });
+      const updated = await updateSkill(token ?? "", editTarget.id, { level });
       setSkills((prev) =>
         prev.map((s) => (s.id === updated.id ? updated : s))
       );
@@ -447,7 +451,7 @@ export function SkillsManager() {
     if (!deleteTarget) return;
     setModalSaving(true);
     try {
-      await deleteSkill(deleteTarget.id);
+      await deleteSkill(token ?? "", deleteTarget.id);
       setSkills((prev) => prev.filter((s) => s.id !== deleteTarget.id));
       showToast("success", `"${deleteTarget.name}" removed.`);
       setDeleteTarget(null);
@@ -481,7 +485,7 @@ export function SkillsManager() {
     dragIndex.current = null;
     dragOverIndex.current = null;
     try {
-      await reorderSkills(skills.map((s) => s.id));
+      await reorderSkills(token ?? "", skills.map((s) => s.id));
     } catch {
       showToast("error", "Failed to save new order.");
     }
@@ -572,7 +576,7 @@ export function SkillsManager() {
           />
 
           {/* Level selector */}
-          <div className="flex gap-1.5 flex-shrink-0">
+          <div className="flex gap-1.5 shrink-0">
             {SKILL_LEVELS.map((level) => {
               const s = LEVEL_STYLES[level as keyof typeof LEVEL_STYLES];
               const isActive = selectedLevel === level;
@@ -600,7 +604,7 @@ export function SkillsManager() {
             type="button"
             disabled={adding || atLimit || !inputValue.trim()}
             onClick={() => handleAdd()}
-            className="flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-bold text-white transition-all duration-200 flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-bold text-white transition-all duration-200 shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
             style={{
               background: "linear-gradient(to right, #002333, #15949C)",
               boxShadow: NEU_RAISED,

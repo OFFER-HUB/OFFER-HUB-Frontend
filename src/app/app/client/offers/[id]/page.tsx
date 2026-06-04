@@ -277,7 +277,7 @@ export default function OfferPanelPage(): React.JSX.Element {
         <div className="lg:col-span-2 space-y-6">
           <div className={NEUMORPHIC_CARD}>
             <h2 className="text-lg font-semibold text-text-primary mb-4">Description</h2>
-            <p className="text-text-secondary whitespace-pre-line">{offer.description}</p>
+            <p className="text-text-secondary whitespace-pre-line break-words">{offer.description}</p>
           </div>
 
           {offer.apiAttachments && offer.apiAttachments.length > 0 && (
@@ -289,7 +289,9 @@ export default function OfferPanelPage(): React.JSX.Element {
                 {offer.apiAttachments.map((attachment) => {
                   const isImage = attachment.mimeType.startsWith("image/");
                   const backendUrl = BACKEND_URL;
-                  const fileUrl = `${backendUrl}${attachment.url}`;
+                  const fileUrl = attachment.url.startsWith("http")
+                    ? attachment.url
+                    : `${backendUrl}${attachment.url}`;
 
                   return (
                     <a

@@ -1,7 +1,9 @@
+import { API_URL } from "@/config/api";
+
 /**
  * skills-api.ts
  * API client functions for freelancer skill CRUD operations.
- * All functions call /api/profile/skills and handle errors uniformly.
+ * All functions call API_URL/users/me/skills and handle errors uniformly.
  */
 
 export type SkillLevel = "Beginner" | "Intermediate" | "Expert";
@@ -30,22 +32,28 @@ async function handleResponse<T>(res: Response): Promise<T> {
 }
 
 /** Fetch all skills for the authenticated user's profile */
-export async function fetchSkills(): Promise<Skill[]> {
-  const res = await fetch("/api/profile/skills", {
+export async function fetchSkills(token: string): Promise<Skill[]> {
+  const res = await fetch(`${API_URL}/users/me/skills`, {
     method: "GET",
-    credentials: "include",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
   });
   return handleResponse<Skill[]>(res);
 }
 
 /** Add a new skill */
 export async function addSkill(
+  token: string,
   payload: Pick<Skill, "name" | "level" | "order">
 ): Promise<Skill> {
-  const res = await fetch("/api/profile/skills", {
+  const res = await fetch(`${API_URL}/users/me/skills`, {
     method: "POST",
-    credentials: "include",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
     body: JSON.stringify(payload),
   });
   return handleResponse<Skill>(res);
@@ -53,23 +61,28 @@ export async function addSkill(
 
 /** Update an existing skill's level or order */
 export async function updateSkill(
+  token: string,
   id: string,
   payload: Partial<Pick<Skill, "level" | "order">>
 ): Promise<Skill> {
-  const res = await fetch(`/api/profile/skills/${id}`, {
+  const res = await fetch(`${API_URL}/users/me/skills/${id}`, {
     method: "PATCH",
-    credentials: "include",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
     body: JSON.stringify(payload),
   });
   return handleResponse<Skill>(res);
 }
 
 /** Delete a skill */
-export async function deleteSkill(id: string): Promise<void> {
-  const res = await fetch(`/api/profile/skills/${id}`, {
+export async function deleteSkill(token: string, id: string): Promise<void> {
+  const res = await fetch(`${API_URL}/users/me/skills/${id}`, {
     method: "DELETE",
-    credentials: "include",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
   });
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
@@ -81,11 +94,13 @@ export async function deleteSkill(id: string): Promise<void> {
 }
 
 /** Reorder skills — sends the full ordered id array */
-export async function reorderSkills(orderedIds: string[]): Promise<void> {
-  const res = await fetch("/api/profile/skills/reorder", {
+export async function reorderSkills(token: string, orderedIds: string[]): Promise<void> {
+  const res = await fetch(`${API_URL}/users/me/skills/reorder`, {
     method: "PUT",
-    credentials: "include",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
     body: JSON.stringify({ orderedIds }),
   });
   if (!res.ok) {

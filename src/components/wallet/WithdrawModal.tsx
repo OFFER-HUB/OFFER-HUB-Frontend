@@ -25,7 +25,6 @@ export interface WithdrawModalProps {
   feePercent?: number;
   fixedFee?: number;
   estimatedArrival?: string;
-  isDemo?: boolean;
 }
 
 function formatCurrency(value: number, currency: string): string {
@@ -40,28 +39,6 @@ function parseAmount(value: string): number {
   return Number.isNaN(n) ? 0 : n;
 }
 
-function buildDemoResult(
-  payload: CreateWithdrawalRequestInput,
-  currency: string,
-  feePercent: number,
-  fixedFee: number,
-  estimatedArrival: string
-): WithdrawalRequestData {
-  const fee = fixedFee + payload.amount * (feePercent / 100);
-  return {
-    id: `wd_demo_${Date.now()}`,
-    status: "pending",
-    amount: payload.amount.toFixed(2),
-    fee: fee.toFixed(2),
-    totalDeducted: (payload.amount + fee).toFixed(2),
-    currency,
-    destination: payload.destination,
-    estimatedArrival,
-    createdAt: new Date().toISOString(),
-    message: "Withdrawal request created successfully.",
-  };
-}
-
 export function WithdrawModal({
   isOpen,
   token,
@@ -73,7 +50,6 @@ export function WithdrawModal({
   feePercent = 1.5,
   fixedFee = 0.5,
   estimatedArrival = "Within 24 hours",
-  isDemo = false,
 }: WithdrawModalProps): React.JSX.Element | null {
   const [pendingValues, setPendingValues] = useState<WithdrawFormValues | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -171,13 +147,7 @@ export function WithdrawModal({
     setIsSubmitting(true);
     setSubmitError(null);
     try {
-      const response = isDemo
-        ? await new Promise<WithdrawalRequestData>((resolve) => {
-            window.setTimeout(() => {
-              resolve(buildDemoResult(payload, currency, feePercent, fixedFee, estimatedArrival));
-            }, 800);
-          })
-        : await createWithdrawalRequest(token, payload);
+      const response = await createWithdrawalRequest(token, payload);
 
       if (pendingValues.saveDestination) {
         window.localStorage.setItem(PREFERRED_DESTINATION_KEY, pendingValues.destination);

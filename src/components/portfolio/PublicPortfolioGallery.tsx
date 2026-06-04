@@ -170,6 +170,40 @@ function Lightbox({
                 View live project
               </a>
             )}
+            {project.repoUrl && (
+              <a
+                href={project.repoUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 text-sm text-text-secondary hover:text-primary hover:underline font-medium"
+              >
+                <Icon path={ICON_PATHS.link} size="sm" />
+                View repository
+              </a>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2 mt-4 pt-4 border-t border-border-light">
+            <button
+              type="button"
+              onClick={() => {
+                const shareUrl = typeof window !== "undefined" ? window.location.href : "";
+                if (typeof navigator !== "undefined" && navigator.share) {
+                  navigator.share({
+                    title: project.title,
+                    text: project.description,
+                    url: shareUrl,
+                  });
+                } else {
+                  navigator.clipboard?.writeText(shareUrl);
+                }
+              }}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-text-secondary hover:text-primary hover:bg-background transition-colors"
+              aria-label="Share project"
+            >
+              <Icon path={ICON_PATHS.share} size="sm" />
+              Share
+            </button>
           </div>
 
           {totalProjects > 1 && (
@@ -323,6 +357,17 @@ export function PublicPortfolioGallery({ projects }: PublicPortfolioGalleryProps
                   >
                     <Icon path={ICON_PATHS.externalLink} size="sm" />
                     Live
+                  </a>
+                )}
+                {project.repoUrl && (
+                  <a
+                    href={project.repoUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-xs text-text-secondary hover:text-primary hover:underline"
+                  >
+                    <Icon path={ICON_PATHS.link} size="sm" />
+                    Repo
                   </a>
                 )}
               </div>

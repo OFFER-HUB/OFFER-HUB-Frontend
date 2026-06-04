@@ -15,6 +15,7 @@ import {
 } from "@/lib/styles";
 
 const PUBLIC_NAV_LINKS = [
+  { href: "/stats", label: "Stats" },
   { href: "/faq", label: "FAQ" },
   { href: "/help", label: "Help" },
 ];
@@ -78,7 +79,7 @@ export function Navbar(): React.JSX.Element {
     setIsMobileMenuOpen(false);
   }
 
-  const navLinks = isAuthenticated
+  const navLinks = mounted && isAuthenticated
     ? [{ href: "/app/dashboard", label: "Dashboard" }, ...PUBLIC_NAV_LINKS]
     : PUBLIC_NAV_LINKS;
 
@@ -251,7 +252,7 @@ export function Navbar(): React.JSX.Element {
         <div
           className={cn(
             "lg:hidden overflow-hidden transition-all duration-300",
-            isMobileMenuOpen ? "max-h-96 pb-4" : "max-h-0"
+            isMobileMenuOpen ? "max-h-[600px] pb-4" : "max-h-0"
           )}
         >
           <div className="flex flex-col gap-4">

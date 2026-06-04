@@ -8,7 +8,9 @@ import type { Freelancer } from "@/types/marketplace.types";
 import { cn } from "@/lib/cn";
 import { useAuthStore } from "@/stores/auth-store";
 import { useModeStore } from "@/stores/mode-store";
+import { useFavoritesStore } from "@/stores/favorites-store";
 import { Toast } from "@/components/ui/Toast";
+import { FavoriteButton } from "@/components/favorites/FavoriteButton";
 
 interface FreelancerCardProps {
   freelancer: Freelancer;
@@ -19,6 +21,8 @@ export function FreelancerCard({ freelancer }: FreelancerCardProps) {
   const { isAuthenticated } = useAuthStore();
   const { mode } = useModeStore();
   const [showToast, setShowToast] = useState(false);
+  const isFavorited = useFavoritesStore((s) => s.freelancerIds.includes(freelancer.id));
+  const toggleFreelancer = useFavoritesStore((s) => s.toggleFreelancer);
 
   const isClient = isAuthenticated && mode === "client";
 
@@ -40,13 +44,21 @@ export function FreelancerCard({ freelancer }: FreelancerCardProps) {
     <>
       <div
         className={cn(
-          "p-6 rounded-3xl bg-white h-full",
+          "relative p-6 rounded-3xl bg-white h-full",
           "shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff]",
           "hover:shadow-[8px_8px_16px_#d1d5db,-8px_-8px_16px_#ffffff]",
           "hover:scale-[1.02] transition-all duration-300",
           "flex flex-col"
         )}
       >
+        <FavoriteButton
+          type="freelancer"
+          id={freelancer.id}
+          isFavorited={isFavorited}
+          onToggle={() => toggleFreelancer(freelancer)}
+          className="absolute top-3 right-3 z-10"
+        />
+
         {/* Header with Avatar */}
         <div className="flex items-start gap-4 mb-5">
           <div className="relative flex-shrink-0">

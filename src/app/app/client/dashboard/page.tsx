@@ -299,7 +299,7 @@ export default function ClientDashboardPage(): React.JSX.Element {
       <div className="flex items-start justify-between gap-4 animate-fade-in-up">
         <div>
           <h1 className="text-3xl font-extrabold text-text-primary tracking-tight">
-            Welcome back, <span className="text-primary">{user?.username ?? "Client"}</span>!
+            Welcome back, <span className="text-primary">{user ? ((user.firstName && user.lastName) ? `${user.firstName} ${user.lastName}` : (user.firstName || user.username || "Client")) : "Client"}</span>!
           </h1>
           <p className="text-text-secondary mt-2 text-lg">
             Find talented freelancers and manage your projects effectively
