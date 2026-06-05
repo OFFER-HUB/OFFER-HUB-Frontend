@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback, type FormEvent } from "react";
+import { useState, useRef, useCallback, useEffect, type FormEvent } from "react";
 import { cn } from "@/lib/cn";
 import { Icon, ICON_PATHS } from "@/components/ui/Icon";
 import { AttachmentButton } from "@/components/chat/AttachmentButton";
@@ -22,12 +22,28 @@ export function MessageInput({
   disabled = false,
 }: MessageInputProps) {
   const [message, setMessage] = useState("");
-  const [uploadProgress, setUploadProgress] = useState<FileUploadProgress[]>([]);
-  const [isDraggingOver, setIsDraggingOver] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const isTypingRef = useRef(false);
   const typingStopTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const abortControllerRef = useRef<AbortController | null>(null);
-  const dropZoneRef = useRef<HTMLDivElement>(null);
+  const emojiPickerRef = useRef<HTMLDivElement>(null);
+
+  const POPULAR_EMOJIS = [
+    "😀", "😂", "😍", "👍", "🎉", "🔥", "❤️", "🚀",
+    "🤔", "👏", "🙌", "✨", "💯", "😎", "💡", "😢"
+  ];
+
+  // Close picker on clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target as Node)) {
+        setShowEmojiPicker(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const notifyTypingStop = useCallback(() => {
     if (isTypingRef.current) {
@@ -58,137 +74,10 @@ export function MessageInput({
     [onTypingChange, notifyTypingStop]
   );
 
-  const handleFilesSelected = useCallback(async (files: File[]) => {
-    const validFiles: File[] = [];
-    
-    // Validate files
-    for (const file of files) {
-      const error = validateChatAttachment(file);
-      if (error) {
-        alert(error);
-        return;
-      }
-      validFiles.push(file);
-    }
-
-    // Create upload progress entries
-    const newUploads: FileUploadProgress[] = validFiles.map((file) => ({
-      fileId: Math.random().toString(36).substring(7),
-      fileName: file.name,
-      fileSize: file.size,
-      mimeType: file.type,
-      progress: 0,
-      status: "uploading",
-    }));
-
-    setUploadProgress((prev) => [...prev, ...newUploads]);
-
-    // Upload files
-    for (let i = 0; i < validFiles.length; i++) {
-      const file = validFiles[i];
-      const uploadId = newUploads[i].fileId;
-      
-      abortControllerRef.current = new AbortController();
-
-      try {
-        await uploadChatAttachment(
-          file,
-          "", // Token should be passed from auth context
-          (progress) => {
-            setUploadProgress((prev) =>
-              prev.map((upload) =>
-                upload.fileId === uploadId
-                  ? { ...upload, progress }
-                  : upload
-              )
-            );
-          }
-        );
-
-        // Mark as completed
-        setUploadProgress((prev) =>
-          prev.map((upload) =>
-            upload.fileId === uploadId
-              ? { ...upload, status: "completed" as const, progress: 100 }
-              : upload
-          )
-        );
-      } catch (error) {
-        // Mark as error
-        setUploadProgress((prev) =>
-          prev.map((upload) =>
-            upload.fileId === uploadId
-              ? { 
-                  ...upload, 
-                  status: "error" as const, 
-                  error: error instanceof Error ? error.message : "Upload failed" 
-                }
-              : upload
-          )
-        );
-      }
-    }
-  }, []);
-
-  const handleCancelUpload = useCallback((fileId: string) => {
-    abortControllerRef.current?.abort();
-    setUploadProgress((prev) => prev.filter((upload) => upload.fileId !== fileId));
-  }, []);
-
-  const handleRetryUpload = useCallback(async (fileId: string) => {
-    const upload = uploadProgress.find((u) => u.fileId === fileId);
-    if (!upload) return;
-
-    setUploadProgress((prev) =>
-      prev.map((u) =>
-        u.fileId === fileId
-          ? { ...u, status: "uploading" as const, progress: 0 }
-          : u
-      )
-    );
-
-    // Find the file and retry upload
-    // This is a simplified version - in production you'd need to track the actual File object
-    // For now, we'll just simulate retry
-    setTimeout(() => {
-      setUploadProgress((prev) =>
-        prev.map((u) =>
-          u.fileId === fileId
-            ? { ...u, status: "completed" as const, progress: 100 }
-            : u
-        )
-      );
-    }, 1000);
-  }, [uploadProgress]);
-
-  // Drag and drop handlers
-  const handleDragEnter = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDraggingOver(true);
-  }, []);
-
-  const handleDragLeave = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDraggingOver(false);
-  }, []);
-
-  const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-  }, []);
-
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDraggingOver(false);
-
-    const files = Array.from(e.dataTransfer.files);
-    if (files.length > 0) {
-      handleFilesSelected(files);
-    }
-  }, [handleFilesSelected]);
+  const handleAddEmoji = (emoji: string) => {
+    const newVal = message + emoji;
+    handleChange(newVal);
+  };
 
   function handleSubmit(e: FormEvent<HTMLFormElement>): void {
     e.preventDefault();
@@ -213,7 +102,7 @@ export function MessageInput({
     notifyTypingStop();
     onSendMessage(trimmedMessage, completedAttachments);
     setMessage("");
-    setUploadProgress([]);
+    setShowEmojiPicker(false);
   }
 
   const hasAttachments = uploadProgress.length > 0;
@@ -231,41 +120,57 @@ export function MessageInput({
         isDraggingOver && "bg-primary/5"
       )}
     >
-      {/* Drag overlay */}
-      {isDraggingOver && (
-        <div className="absolute inset-0 flex items-center justify-center bg-primary/10 z-10 pointer-events-none">
-          <div className="flex flex-col items-center gap-2">
-            <Icon path={ICON_PATHS.upload} size="xl" className="text-primary" />
-            <p className="text-sm font-medium text-primary">Drop files to attach</p>
-          </div>
-        </div>
-      )}
-
-      {/* Attachment previews */}
-      {hasAttachments && (
-        <div className="flex flex-wrap gap-2 px-4 sm:px-6 pt-3">
-          {uploadProgress.map((upload) => (
-            <AttachmentPreview
-              key={upload.fileId}
-              uploadProgress={upload}
-              onCancel={() => handleCancelUpload(upload.fileId)}
-              onRetry={() => handleRetryUpload(upload.fileId)}
-              className="relative"
-            />
-          ))}
-        </div>
-      )}
-
-      <form
-        onSubmit={handleSubmit}
+      {/* Message input container */}
+      <div
         className={cn(
-          "flex items-center gap-2 sm:gap-3 px-4 sm:px-6 py-3 sm:py-4",
-          !hasAttachments && ""
+          "flex-1 flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl relative",
+          "bg-background",
+          "shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]"
         )}
       >
-        {/* Attachment button */}
-        <AttachmentButton
-          onFilesSelected={handleFilesSelected}
+        {/* Emoji Selector button */}
+        <div ref={emojiPickerRef} className="relative flex items-center">
+          <button
+            type="button"
+            disabled={disabled}
+            onClick={() => setShowEmojiPicker((prev) => !prev)}
+            className={cn(
+              "text-text-secondary hover:text-primary transition-colors p-1 rounded-lg cursor-pointer",
+              showEmojiPicker && "text-primary",
+              disabled && "cursor-not-allowed opacity-50"
+            )}
+            title="Add emoji"
+          >
+            <Icon path={ICON_PATHS.emoji} size="md" />
+          </button>
+
+          {/* Emoji Picker Popup */}
+          {showEmojiPicker && (
+            <div
+              className={cn(
+                "absolute bottom-full left-0 mb-3 p-3 rounded-2xl bg-white border border-border-light z-50 flex flex-wrap gap-2 w-64",
+                "shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff]"
+              )}
+            >
+              {POPULAR_EMOJIS.map((emoji) => (
+                <button
+                  key={emoji}
+                  type="button"
+                  onClick={() => handleAddEmoji(emoji)}
+                  className="text-xl p-1.5 hover:bg-background rounded-lg cursor-pointer transition-all hover:scale-110 active:scale-95"
+                >
+                  {emoji}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <input
+          type="text"
+          value={message}
+          onChange={(e) => handleChange(e.target.value)}
+          placeholder="Type your message..."
           disabled={disabled}
           accept="image/*,video/*,application/pdf,.doc,.docx,.txt"
           multiple={true}

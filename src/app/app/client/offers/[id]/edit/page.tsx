@@ -395,7 +395,9 @@ export default function EditOfferPage(): React.JSX.Element {
                   <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
                     {existingAttachments.map((attachment) => {
                       const isImage = attachment.mimeType.startsWith("image/");
-                      const fileUrl = `${backendUrl}${attachment.url}`;
+                      const fileUrl = attachment.url.startsWith("http")
+                        ? attachment.url
+                        : `${backendUrl}${attachment.url}`;
                       const isDeleting = deletingAttachmentId === attachment.id;
 
                       return (

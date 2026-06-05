@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
   AuthLayout,
@@ -15,8 +15,9 @@ import { useAuthStore } from "@/stores/auth-store";
 import { useModeStore } from "@/stores/mode-store";
 import type { RegisterFormData, AuthFormErrors } from "@/types/auth.types";
 
-export default function RegisterPage() {
+function RegisterContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const login = useAuthStore((state) => state.login);
   const mode = useModeStore((state) => state.mode);
   const [isLoading, setIsLoading] = useState(false);
@@ -29,6 +30,13 @@ export default function RegisterPage() {
     confirmPassword: "",
   });
   const [errors, setErrors] = useState<AuthFormErrors>({});
+
+  useEffect(() => {
+    const emailParam = searchParams.get("email");
+    if (emailParam) {
+      setFormData((prev) => ({ ...prev, email: emailParam }));
+    }
+  }, [searchParams]);
 
   const validateForm = (): boolean => {
     const newErrors: AuthFormErrors = {};
@@ -343,5 +351,13 @@ export default function RegisterPage() {
         </Link>
       </p>
     </AuthLayout>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={<AuthLayout><div className="flex items-center justify-center py-8"><div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div></AuthLayout>}>
+      <RegisterContent />
+    </Suspense>
   );
 }

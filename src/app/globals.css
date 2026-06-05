@@ -202,6 +202,15 @@ html:has(.app-no-scroll) body {
 }
 
 /* Custom animations */
+@keyframes shimmer {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 100% 50%;
+  }
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -399,6 +408,11 @@ html:has(.app-no-scroll) body {
 
 .animate-slide-up {
   animation: slideUp 0.4s ease-out forwards;
+}
+
+.animate-shimmer {
+  background-size: 200% 200%;
+  animation: shimmer 4s ease-in-out infinite alternate;
 }
 
 /* 404 Page - Lamp animations */

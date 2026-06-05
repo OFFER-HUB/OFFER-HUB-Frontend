@@ -10,11 +10,18 @@ interface MessageBubbleProps {
   isOwn: boolean;
   showAvatar?: boolean;
   participantAvatar?: string;
+  onRetry?: (messageId: string, content: string) => void;
 }
 
-export function MessageBubble({ message, isOwn, showAvatar = true, participantAvatar }: MessageBubbleProps) {
-  const hasContent = message.content.trim().length > 0;
-  const hasAttachments = message.attachments && message.attachments.length > 0;
+export function MessageBubble({
+  message,
+  isOwn,
+  showAvatar = true,
+  participantAvatar,
+  onRetry,
+}: MessageBubbleProps) {
+  const isSending = message.status === "sending";
+  const isError = message.status === "error";
 
   return (
     <div
@@ -46,58 +53,63 @@ export function MessageBubble({ message, isOwn, showAvatar = true, participantAv
           isOwn ? "order-1" : "order-2"
         )}
       >
-        {/* Message content */}
-        {(hasContent || hasAttachments) && (
-          <div
-            className={cn(
-              "px-4 py-3 rounded-2xl",
-              isOwn
-                ? cn(
-                    "bg-primary text-white",
-                    "rounded-br-md",
-                    "shadow-[4px_4px_8px_#d1d5db,-2px_-2px_4px_#ffffff]"
-                  )
-                : cn(
-                    "bg-white text-text-primary",
-                    "rounded-bl-md",
-                    "shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]"
-                  )
-            )}
-          >
-            {/* Text content */}
-            {hasContent && (
-              <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">
-                {message.content}
-              </p>
-            )}
+        <div
+          className={cn(
+            "px-4 py-3 rounded-2xl relative",
+            isOwn
+              ? cn(
+                  isSending
+                    ? "bg-primary/75 text-white/90 animate-pulse-soft"
+                    : isError
+                    ? "bg-error/10 border border-error/20 text-error"
+                    : "bg-primary text-white",
+                  "rounded-br-md",
+                  "shadow-[4px_4px_8px_#d1d5db,-2px_-2px_4px_#ffffff]"
+                )
+              : cn(
+                  "bg-white text-text-primary",
+                  "rounded-bl-md",
+                  "shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]"
+                )
+          )}
+        >
+          <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">
+            {message.content}
+          </p>
 
-            {/* Attachments */}
-            {hasAttachments && (
-              <div className={cn(
-                "flex flex-col gap-2",
-                hasContent && "mt-3"
-              )}>
-                {message.attachments.map((attachment) => (
-                  <MessageAttachment
-                    key={attachment.id}
-                    attachment={attachment}
-                    isOwn={isOwn}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Timestamp and read receipt */}
+          {isOwn && isSending && (
+            <div className="absolute right-2 bottom-1 flex items-center gap-0.5 opacity-80 scale-75 origin-bottom-right">
+              <span className="w-1.5 h-1.5 rounded-full bg-white animate-bounce" style={{ animationDelay: "-0.3s" }}></span>
+              <span className="w-1.5 h-1.5 rounded-full bg-white animate-bounce" style={{ animationDelay: "-0.15s" }}></span>
+              <span className="w-1.5 h-1.5 rounded-full bg-white animate-bounce"></span>
+            </div>
+          )}
+        </div>
         <div
           className={cn(
             "flex items-center gap-1.5 mt-1.5 px-1",
             isOwn ? "justify-end" : "justify-start"
           )}
         >
-          <span className="text-[10px] text-text-secondary">{message.timestamp}</span>
-          {isOwn && <ReadReceipt message={message} />}
+          {isError ? (
+            <div className="flex items-center gap-2 text-error text-[10px] font-semibold">
+              <span>Failed to send</span>
+              {onRetry && (
+                <button
+                  type="button"
+                  onClick={() => onRetry(message.id, message.content)}
+                  className="underline cursor-pointer hover:text-error-hover transition-colors"
+                >
+                  Retry
+                </button>
+              )}
+            </div>
+          ) : (
+            <>
+              <span className="text-[10px] text-text-secondary">{message.timestamp}</span>
+              {isOwn && !isSending && <ReadReceipt message={message} />}
+            </>
+          )}
         </div>
       </div>
     </div>
