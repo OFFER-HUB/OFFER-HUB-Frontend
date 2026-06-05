@@ -25,7 +25,6 @@ export interface WithdrawModalProps {
   feePercent?: number;
   fixedFee?: number;
   estimatedArrival?: string;
-  isDemo?: boolean;
 }
 
 function formatCurrency(value: number, currency: string): string {
@@ -40,28 +39,6 @@ function parseAmount(value: string): number {
   return Number.isNaN(n) ? 0 : n;
 }
 
-function buildDemoResult(
-  payload: CreateWithdrawalRequestInput,
-  currency: string,
-  feePercent: number,
-  fixedFee: number,
-  estimatedArrival: string
-): WithdrawalRequestData {
-  const fee = fixedFee + payload.amount * (feePercent / 100);
-  return {
-    id: `wd_demo_${Date.now()}`,
-    status: "pending",
-    amount: payload.amount.toFixed(2),
-    fee: fee.toFixed(2),
-    totalDeducted: (payload.amount + fee).toFixed(2),
-    currency,
-    destination: payload.destination,
-    estimatedArrival,
-    createdAt: new Date().toISOString(),
-    message: "Withdrawal request created successfully.",
-  };
-}
-
 export function WithdrawModal({
   isOpen,
   token,
@@ -73,7 +50,6 @@ export function WithdrawModal({
   feePercent = 1.5,
   fixedFee = 0.5,
   estimatedArrival = "Within 24 hours",
-  isDemo = false,
 }: WithdrawModalProps): React.JSX.Element | null {
   const [pendingValues, setPendingValues] = useState<WithdrawFormValues | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -101,16 +77,60 @@ export function WithdrawModal({
   }, [isOpen, isSubmitting, onClose]);
 
   const confirmationMessage = useMemo(() => {
-    if (!pendingValues) return "";
+    if (!pendingValues) return null;
     const amount = parseAmount(pendingValues.amount);
     const fee = fixedFee + amount * (feePercent / 100);
     const total = amount + fee;
-    return [
-      `You are requesting ${formatCurrency(amount, currency)} to ${pendingValues.destination}.`,
-      `Fee: ${formatCurrency(fee, currency)} (${feePercent}% + ${formatCurrency(fixedFee, currency)}).`,
-      `Total deduction: ${formatCurrency(total, currency)}.`,
-      `Estimated arrival: ${estimatedArrival}.`,
-    ].join(" ");
+    const dest = pendingValues.destination;
+    return (
+      <div className="w-full text-left space-y-4">
+        <div className="text-sm text-text-secondary text-center mb-2">
+          Please review the withdrawal details carefully before confirming.
+        </div>
+        
+        <div className="rounded-2xl border border-border bg-background p-4 space-y-3 shadow-inner">
+          <div className="flex justify-between items-center pb-2 border-b border-border/50">
+            <span className="text-text-secondary font-medium">Withdraw amount</span>
+            <span className="text-lg font-bold text-text-primary">
+              {formatCurrency(amount, currency)}
+            </span>
+          </div>
+
+          <div className="flex justify-between items-start py-1">
+            <span className="text-text-secondary font-medium">Destination</span>
+            <span className="text-right font-mono text-xs text-text-primary break-all max-w-[70%] bg-primary/5 px-2.5 py-1 rounded-lg border border-primary/10">
+              {dest}
+            </span>
+          </div>
+
+          <div className="flex justify-between items-center py-1">
+            <span className="text-text-secondary font-medium">Withdrawal fee</span>
+            <span className="text-text-primary font-medium">
+              {formatCurrency(fee, currency)}
+            </span>
+          </div>
+
+          <div className="flex justify-between items-center py-1">
+            <span className="text-text-secondary font-medium">Estimated arrival</span>
+            <span className="text-text-primary font-medium">{estimatedArrival}</span>
+          </div>
+
+          <div className="flex justify-between items-center pt-2 border-t border-border/50">
+            <span className="text-text-secondary font-semibold">Total deducted</span>
+            <span className="text-lg font-extrabold text-primary">
+              {formatCurrency(total, currency)}
+            </span>
+          </div>
+        </div>
+
+        <div className="p-3 rounded-xl bg-warning/10 border border-warning/20 text-xs text-warning flex items-start gap-2">
+          <span className="mt-0.5 select-none font-bold">⚠️</span>
+          <span>
+            Withdrawals sent to the wrong address cannot be reversed. Ensure the destination address supports USD settlements.
+          </span>
+        </div>
+      </div>
+    );
   }, [currency, estimatedArrival, feePercent, fixedFee, pendingValues]);
 
   if (!isOpen) return null;
@@ -127,13 +147,7 @@ export function WithdrawModal({
     setIsSubmitting(true);
     setSubmitError(null);
     try {
-      const response = isDemo
-        ? await new Promise<WithdrawalRequestData>((resolve) => {
-            window.setTimeout(() => {
-              resolve(buildDemoResult(payload, currency, feePercent, fixedFee, estimatedArrival));
-            }, 800);
-          })
-        : await createWithdrawalRequest(token, payload);
+      const response = await createWithdrawalRequest(token, payload);
 
       if (pendingValues.saveDestination) {
         window.localStorage.setItem(PREFERRED_DESTINATION_KEY, pendingValues.destination);

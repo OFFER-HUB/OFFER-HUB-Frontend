@@ -46,5 +46,8 @@ src/**/*.js.map
 # Vercel
 .vercel
 
+# Generated AI prompt artifacts
+.github/prompts
+
 # Claude
 .claude

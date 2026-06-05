@@ -1,19 +1,25 @@
 import Image from "next/image";
+
+import { ReviewResponse } from "@/components/rating/ReviewResponse";
 import { cn } from "@/lib/cn";
 import { NEUMORPHIC_CARD } from "@/lib/styles";
-import { ReviewResponse } from "@/components/rating/ReviewResponse";
 import type { PublicFreelancerReview } from "@/types/public-freelancer.types";
+
+import { FreelancerReviewsActions } from "./FreelancerReviewsActions";
 
 interface ReviewCardProps {
   review: PublicFreelancerReview;
   freelancerDisplayName: string;
+  freelancerId: string;
 }
 
 function initials(name: string): string {
   const parts = name.trim().split(/\s+/);
+
   if (parts.length >= 2) {
     return `${parts[0].charAt(0)}${parts[parts.length - 1].charAt(0)}`.toUpperCase();
   }
+
   return name.charAt(0).toUpperCase() || "?";
 }
 
@@ -23,7 +29,10 @@ function Stars({ rating }: { rating: number }): React.JSX.Element {
       {[1, 2, 3, 4, 5].map((i) => (
         <span
           key={i}
-          className={cn("text-sm leading-none", i <= rating ? "text-amber-500" : "text-text-secondary/25")}
+          className={cn(
+            "text-sm leading-none",
+            i <= rating ? "text-amber-500" : "text-text-secondary/25"
+          )}
         >
           ★
         </span>
@@ -32,7 +41,11 @@ function Stars({ rating }: { rating: number }): React.JSX.Element {
   );
 }
 
-export function ReviewCard({ review, freelancerDisplayName }: ReviewCardProps): React.JSX.Element {
+export function ReviewCard({
+  review,
+  freelancerDisplayName,
+  freelancerId,
+}: ReviewCardProps): React.JSX.Element {
   const dateLabel = new Date(review.createdAt).toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
@@ -44,7 +57,7 @@ export function ReviewCard({ review, freelancerDisplayName }: ReviewCardProps): 
       <div className="flex gap-4">
         <div
           className={cn(
-            "relative shrink-0 w-12 h-12 rounded-2xl overflow-hidden",
+            "relative h-12 w-12 shrink-0 overflow-hidden rounded-2xl",
             "shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]"
           )}
         >
@@ -54,38 +67,47 @@ export function ReviewCard({ review, freelancerDisplayName }: ReviewCardProps): 
               alt=""
               width={48}
               height={48}
-              className="w-full h-full object-cover"
+              className="h-full w-full object-cover"
               unoptimized
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-background text-primary font-bold text-sm">
+            <div className="flex h-full w-full items-center justify-center bg-background text-sm font-bold text-primary">
               {initials(review.reviewerName)}
             </div>
           )}
         </div>
+
         <div className="min-w-0 flex-1">
-          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-1">
+          <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <p className="font-semibold text-text-primary">{review.reviewerName}</p>
-              {review.serviceTitle && (
-                <p className="text-xs text-text-secondary mt-0.5">Service: {review.serviceTitle}</p>
-              )}
+              {review.serviceTitle ? (
+                <p className="mt-0.5 text-xs text-text-secondary">Service: {review.serviceTitle}</p>
+              ) : null}
             </div>
-            <time dateTime={review.createdAt} className="text-sm text-text-secondary shrink-0">
+
+            <time dateTime={review.createdAt} className="shrink-0 text-sm text-text-secondary">
               {dateLabel}
             </time>
           </div>
+
           <div className="mt-2">
             <Stars rating={review.rating} />
           </div>
         </div>
       </div>
+
       {review.comment ? (
-        <p className="text-sm leading-relaxed text-text-secondary whitespace-pre-wrap">{review.comment}</p>
+        <p className="whitespace-pre-wrap text-sm leading-relaxed text-text-secondary">
+          {review.comment}
+        </p>
       ) : null}
+
       {review.response ? (
         <ReviewResponse response={review.response} responderName={freelancerDisplayName} />
       ) : null}
+
+      <FreelancerReviewsActions review={review} freelancerId={freelancerId} />
     </article>
   );
 }

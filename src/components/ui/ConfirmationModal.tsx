@@ -10,7 +10,7 @@ export interface ConfirmationModalProps {
   onClose: () => void;
   onConfirm: () => void | Promise<void>;
   title: string;
-  message: string;
+  message: React.ReactNode;
   confirmText?: string;
   cancelText?: string;
   variant?: "danger" | "warning" | "info";
@@ -125,9 +125,9 @@ export function ConfirmationModal({
           <h2 id={titleId} className="text-lg font-bold text-text-primary mb-2">
             {title}
           </h2>
-          <p id={descId} className="text-sm text-text-secondary mb-6">
+          <div id={descId} className="text-sm text-text-secondary mb-6 break-all [overflow-wrap:anywhere] w-full">
             {message}
-          </p>
+          </div>
 
           <div className="w-full flex gap-3">
             <button

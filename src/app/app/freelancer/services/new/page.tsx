@@ -160,6 +160,40 @@ export default function CreateServicePage(): React.JSX.Element {
         </div>
       </div>
 
+      <div className={cn(NEUMORPHIC_CARD, "p-5 border-l-4 border-primary")}>
+        <div className="flex flex-col md:flex-row md:items-center gap-6">
+          <div className="flex-1 space-y-2">
+            <div className="flex items-center gap-2 text-primary">
+              <Icon path={ICON_PATHS.infoCircle} size="md" className="text-primary shrink-0" />
+              <h2 className="text-base font-bold text-text-primary">What is a Service?</h2>
+            </div>
+            <p className="text-xs text-text-secondary leading-relaxed max-w-xl">
+              A service is something you offer to clients. Clients browse the marketplace and can hire you directly based on your service listing. Set your price, describe what you deliver, and start getting hired.
+            </p>
+          </div>
+          <div className="w-full md:w-auto shrink-0 border-t md:border-t-0 md:border-l border-border-light/80 pt-4 md:pt-0 md:pl-6 space-y-2">
+            <div className="flex items-center gap-2.5 text-xs text-text-secondary">
+              <Icon path={ICON_PATHS.briefcase} size="sm" className="text-primary shrink-0" />
+              <span>
+                <strong className="text-text-primary">Define what you deliver</strong> — title, description, category, and price
+              </span>
+            </div>
+            <div className="flex items-center gap-2.5 text-xs text-text-secondary">
+              <Icon path={ICON_PATHS.search} size="sm" className="text-primary shrink-0" />
+              <span>
+                <strong className="text-text-primary">Clients discover</strong> your service in the marketplace
+              </span>
+            </div>
+            <div className="flex items-center gap-2.5 text-xs text-text-secondary">
+              <Icon path={ICON_PATHS.check} size="sm" className="text-primary shrink-0" />
+              <span>
+                <strong className="text-text-primary">Get hired directly</strong> without waiting for applications
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className={NEUMORPHIC_CARD}>
         <form onSubmit={handleSubmit} className="space-y-5">
           <FormField label="Service Title" required error={errors.title}>

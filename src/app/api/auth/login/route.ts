@@ -31,7 +31,9 @@ export async function POST (request: NextRequest) {
       user: {
         id: user.id,
         email: user.email,
-        username: user.email.split("@")[0],
+        username: user.username ?? user.email.split("@")[0],
+        firstName: user.firstName ?? null,
+        lastName: user.lastName ?? null,
         type: user.type,
         balance: user.balance,
         wallet: user.wallet,

@@ -5,11 +5,7 @@ import Link from "next/link";
 import { useAuthStore } from "@/stores/auth-store";
 import { cn } from "@/lib/cn";
 import { Icon, ICON_PATHS } from "@/components/ui/Icon";
-import {
-  getWalletDashboard,
-  MOCK_WALLET_DASHBOARD,
-  type WalletDashboardData,
-} from "@/lib/api/wallet";
+import { getWalletDashboard, type WalletDashboardData } from "@/lib/api/wallet";
 import {
   BalanceCard,
   BalanceChart,
@@ -40,7 +36,6 @@ export default function WalletPage(): React.JSX.Element {
   const [data, setData] = useState<WalletDashboardData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [isDemo, setIsDemo] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
   const [withdrawSuccess, setWithdrawSuccess] = useState<string | null>(null);
@@ -55,11 +50,10 @@ export default function WalletPage(): React.JSX.Element {
     try {
       const res = await getWalletDashboard(token);
       setData(res);
-      setIsDemo(false);
-    } catch {
-      setData(MOCK_WALLET_DASHBOARD);
-      setIsDemo(true);
-      setError(null);
+    } catch (loadError) {
+      const message = loadError instanceof Error ? loadError.message : "Failed to load wallet.";
+      setData(null);
+      setError(message);
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
@@ -135,6 +129,28 @@ export default function WalletPage(): React.JSX.Element {
   }
 
   if (isLoading || !data) {
+    if (error) {
+      return (
+        <div className="max-w-lg mx-auto text-center py-16 px-4">
+          <Icon path={ICON_PATHS.creditCard} size="xl" className="mx-auto text-text-secondary mb-4" />
+          <h1 className="text-xl font-bold text-text-primary mb-2">Wallet unavailable</h1>
+          <p className="text-text-secondary mb-6">{error}</p>
+          <button
+            type="button"
+            onClick={() => refresh()}
+            disabled={isRefreshing}
+            className={cn(
+              "inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium",
+              "bg-white text-text-primary shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]",
+              "disabled:opacity-60"
+            )}
+          >
+            <Icon path={ICON_PATHS.refresh} size="sm" className={cn(isRefreshing && "animate-spin")} />
+            Retry
+          </button>
+        </div>
+      );
+    }
     return <WalletPageSkeleton />;
   }
 
@@ -148,7 +164,6 @@ export default function WalletPage(): React.JSX.Element {
           <h1 className="text-2xl font-bold text-text-primary">Wallet</h1>
           <p className="text-sm text-text-secondary mt-1">
             Overview of your funds on OFFER HUB
-            {isDemo ? " · showing sample data until the API is available" : ""}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -309,7 +324,6 @@ export default function WalletPage(): React.JSX.Element {
         token={token}
         availableBalance={parseMoney(data.balance.available)}
         currency={data.balance.currency}
-        isDemo={isDemo}
         onClose={() => setIsWithdrawOpen(false)}
         onSuccess={(result) => {
           setWithdrawSuccess(

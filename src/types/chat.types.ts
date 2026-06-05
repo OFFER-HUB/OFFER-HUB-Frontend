@@ -12,7 +12,7 @@ export interface ChatMessage {
   content: string;
   timestamp: string;
   isRead: boolean;
-  status?: "sent" | "delivered" | "read";
+  status?: "sending" | "sent" | "delivered" | "read" | "error";
   deliveredAt?: string;
   readAt?: string;
 }
@@ -110,4 +110,11 @@ export interface MessagesResponse {
   messages: ChatMessage[];
   hasMore: boolean;
   nextCursor?: string;
+}
+
+// ─── Request payloads ───────────────────────────────────────────────────────
+
+export interface CreateConversationPayload {
+  /** ID of the user to start a conversation with. */
+  participantId: string;
 }

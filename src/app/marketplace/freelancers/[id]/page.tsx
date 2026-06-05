@@ -112,6 +112,22 @@ export default async function PublicFreelancerProfilePage({ params }: PageProps)
                 {summary.bio ? (
                   <p className="text-text-secondary leading-relaxed mb-6">{summary.bio}</p>
                 ) : null}
+                {summary.skills && summary.skills.length > 0 && (
+                  <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mb-8">
+                    {summary.skills.map((skill) => (
+                      <span
+                        key={skill}
+                        className={cn(
+                          "px-3 py-1.5 text-xs font-medium text-text-secondary rounded-xl",
+                          "shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]",
+                          "bg-background"
+                        )}
+                      >
+                        {skill}
+                      </span>
+                    ))}
+                  </div>
+                )}
                 <div className="flex flex-col xs:flex-row gap-3 justify-center sm:justify-start">
                   <Link
                     href={`/marketplace/freelancers/${id}/reviews`}

@@ -190,7 +190,11 @@ export default async function PublicFreelancerReviewsPage({
                       linkText={stars ? "Show all reviews" : "Browse services"}
                     />
                   ) : (
-                    <ReviewList reviews={reviewsResult.reviews} freelancerDisplayName={summary.displayName} />
+                    <ReviewList
+  reviews={reviewsResult.reviews}
+  freelancerDisplayName={summary.displayName}
+  freelancerId={id}
+/>
                   )}
 
                   {reviewsResult.totalPages > 0 ? (

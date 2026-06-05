@@ -99,7 +99,8 @@ export function AppHeader({ onMenuClick }: AppHeaderProps): React.JSX.Element {
         "shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)]"
       )}
     >
-      <div className="flex items-center gap-4">
+      {/* Left: menu toggle + logo */}
+      <div className="flex items-center gap-4 flex-1">
         <button
           onClick={onMenuClick}
           className={cn(
@@ -113,30 +114,32 @@ export function AppHeader({ onMenuClick }: AppHeaderProps): React.JSX.Element {
         </button>
 
         <Logo size="md" />
-
-        <nav className="hidden lg:flex items-center gap-6 ml-8">
-          {NAV_LINKS.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              data-tour={link.href === "/marketplace" ? "nav-marketplace" : undefined}
-              className={cn(
-                "font-medium transition-colors relative",
-                isActiveLink(pathname, link.href)
-                  ? "text-primary"
-                  : "text-text-secondary hover:text-text-primary"
-              )}
-            >
-              {link.label}
-              {isActiveLink(pathname, link.href) && (
-                <span className="absolute -bottom-1 left-0 right-0 h-0.5 bg-primary rounded-full" />
-              )}
-            </Link>
-          ))}
-        </nav>
       </div>
 
-      <div className="flex items-center gap-3">
+      {/* Center: nav (always centered regardless of sidebar state) */}
+      <nav className="hidden lg:flex items-center gap-6">
+        {NAV_LINKS.map((link) => (
+          <Link
+            key={link.href}
+            href={link.href}
+            data-tour={link.href === "/marketplace" ? "nav-marketplace" : undefined}
+            className={cn(
+              "font-medium transition-colors relative",
+              isActiveLink(pathname, link.href)
+                ? "text-primary"
+                : "text-text-secondary hover:text-text-primary"
+            )}
+          >
+            {link.label}
+            {isActiveLink(pathname, link.href) && (
+              <span className="absolute -bottom-1 left-0 right-0 h-0.5 bg-primary rounded-full" />
+            )}
+          </Link>
+        ))}
+      </nav>
+
+      {/* Right: notifications + avatar */}
+      <div className="flex items-center gap-3 flex-1 justify-end">
         {/* Notification Bell */}
         <div ref={notifRef} className="relative">
           <button
@@ -204,7 +207,9 @@ export function AppHeader({ onMenuClick }: AppHeaderProps): React.JSX.Element {
               <div className={cn(DROPDOWN_MENU, "-right-1 top-[calc(100%+0.75rem)]")}>
                 <div className="px-5 py-4 mb-2 border-b border-background">
                   <p className="text-sm font-bold text-text-primary truncate">
-                    {user.username}
+                    {(user.firstName && user.lastName)
+                      ? `${user.firstName} ${user.lastName}`
+                      : user.firstName || user.username}
                   </p>
                   <p className="text-xs text-text-secondary truncate mt-0.5">
                     {user.email}
