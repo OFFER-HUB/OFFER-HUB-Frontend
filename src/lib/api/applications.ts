@@ -11,7 +11,7 @@ export async function applyToOffer(
   offerId: string,
   payload: CreateApplicationPayload
 ): Promise<Application> {
-  const response = await fetch(`${API_BASE_URL}/offers/${offerId}/applications`, {
+  const response = await fetch(`${API_BASE_URL}/applications/offers/${offerId}`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -70,7 +70,7 @@ export async function getOfferApplications(
   if (filters?.limit) params.append('limit', filters.limit.toString());
   if (filters?.cursor) params.append('cursor', filters.cursor);
 
-  const response = await fetch(`${API_BASE_URL}/offers/${offerId}/applications?${params}`, {
+  const response = await fetch(`${API_BASE_URL}/applications/offers/${offerId}?${params}`, {
     headers: {
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json',
