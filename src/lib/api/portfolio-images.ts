@@ -3,13 +3,6 @@ import { validatePortfolioImageFile } from "@/data/portfolio.data";
 
 const API_BASE_URL = API_URL;
 
-/** Match portfolio mock flag in `portfolio.ts` until backend is wired. */
-const USE_MOCK = false;
-
-function simulateDelay(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
 function parseUploadPayload(data: unknown): { url: string } {
   if (data && typeof data === "object" && "data" in data) {
     const inner = (data as { data: unknown }).data;
@@ -24,7 +17,7 @@ function parseUploadPayload(data: unknown): { url: string } {
 }
 
 /**
- * Upload a single portfolio image. Mock mode returns a data URL after simulated progress.
+ * Upload a single portfolio image to the backend, reporting upload progress.
  */
 export async function uploadPortfolioImage(
   token: string | null,
@@ -33,24 +26,6 @@ export async function uploadPortfolioImage(
 ): Promise<{ url: string }> {
   const validationError = validatePortfolioImageFile(file);
   if (validationError) throw new Error(validationError);
-
-  if (USE_MOCK) {
-    for (let step = 0; step <= 10; step++) {
-      await simulateDelay(45);
-      onProgress?.(step * 10);
-    }
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const url = reader.result;
-        if (typeof url === "string") resolve({ url });
-        else reject(new Error("Upload failed — could not read image"));
-      };
-      reader.onerror = () =>
-        reject(new Error("Upload failed — could not read image"));
-      reader.readAsDataURL(file);
-    });
-  }
 
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
@@ -94,17 +69,11 @@ export async function uploadPortfolioImage(
 
 /**
  * Optional: delete an image on the server by URL (e.g. after replacing assets).
- * Mock is a no-op.
  */
 export async function deletePortfolioImage(
   token: string | null,
   imageUrl: string
 ): Promise<void> {
-  if (USE_MOCK) {
-    await simulateDelay(100);
-    return;
-  }
-
   const response = await fetch(`${API_BASE_URL}/portfolio/images`, {
     method: "DELETE",
     headers: {
