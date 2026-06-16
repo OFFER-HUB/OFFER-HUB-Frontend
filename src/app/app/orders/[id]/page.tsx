@@ -112,6 +112,7 @@ export default function OrderDetailPage(): React.JSX.Element {
       } catch (err) {
         if (!isMounted) return;
         console.error("Failed to fetch review:", err);
+        setError(err instanceof Error ? err.message : "Failed to load review");
       } finally {
         if (isMounted) setIsReviewLoading(false);
       }
@@ -494,11 +495,18 @@ export default function OrderDetailPage(): React.JSX.Element {
               />
             ) : (
               <div className="w-12 h-12 rounded-full bg-primary text-white flex items-center justify-center font-semibold">
-                {(otherUser?.name || otherUser?.username)?.charAt(0) || otherUser?.email?.charAt(0) || "?"}
+                {(otherUser?.name || otherUser?.username)?.charAt(0) ||
+                  otherUser?.email?.charAt(0) ||
+                  "?"}
               </div>
             )}
             <div>
-              <p className="font-medium text-text-primary">{otherUser?.name || otherUser?.username || otherUser?.email?.split("@")[0] || "Unknown"}</p>
+              <p className="font-medium text-text-primary">
+                {otherUser?.name ||
+                  otherUser?.username ||
+                  otherUser?.email?.split("@")[0] ||
+                  "Unknown"}
+              </p>
               <p className="text-sm text-text-secondary">{otherUser?.email}</p>
             </div>
           </div>
@@ -507,7 +515,9 @@ export default function OrderDetailPage(): React.JSX.Element {
         {/* Description */}
         <div className={NEUMORPHIC_CARD}>
           <h2 className="text-lg font-semibold text-text-primary mb-4">Description</h2>
-          <p className="text-text-secondary break-words">{order.description || "No description provided"}</p>
+          <p className="text-text-secondary break-words">
+            {order.description || "No description provided"}
+          </p>
         </div>
       </div>
 
@@ -1054,7 +1064,9 @@ export default function OrderDetailPage(): React.JSX.Element {
 
       <LeaveReviewModal
         isOpen={isReviewModalOpen}
-        revieweeName={order.seller?.name || order.seller?.username || order.seller?.email || "the freelancer"}
+        revieweeName={
+          order.seller?.name || order.seller?.username || order.seller?.email || "the freelancer"
+        }
         orderTitle={order.title}
         serviceTitle={order.service?.title}
         onClose={() => {
