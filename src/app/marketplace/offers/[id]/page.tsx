@@ -11,7 +11,6 @@ import { Icon, ICON_PATHS, LoadingSpinner } from "@/components/ui/Icon";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Navbar } from "@/components/landing/Navbar";
 import { cn } from "@/lib/cn";
-import { BACKEND_URL } from "@/config/api";
 
 const CATEGORY_MAP: Record<string, string> = {
   WEB_DEVELOPMENT: "Web Development",
@@ -109,7 +108,6 @@ export default function OfferDetailPage(): React.JSX.Element {
     );
   }
 
-  const backendUrl = BACKEND_URL;
   const budget = parseFloat(offer.budget);
   const deadline = new Date(offer.deadline).toLocaleDateString("en-US", {
     month: "long",
@@ -124,6 +122,10 @@ export default function OfferDetailPage(): React.JSX.Element {
   });
   // Extract display name from email
   const userName = offer.user?.email?.split("@")[0] || "Anonymous";
+
+  // Only use absolute Cloudinary URLs — /uploads/... paths are broken (ephemeral Railway disk)
+  const validAttachments =
+    offer.attachments?.filter((att) => att.url.startsWith("https://")) ?? [];
 
   return (
     <>
@@ -194,7 +196,7 @@ export default function OfferDetailPage(): React.JSX.Element {
             </div>
 
             {/* Attachments */}
-            {offer.attachments && offer.attachments.length > 0 && (
+            {validAttachments.length > 0 && (
               <div
                 className={cn(
                   "p-6 rounded-3xl bg-white",
@@ -203,10 +205,8 @@ export default function OfferDetailPage(): React.JSX.Element {
               >
                 <h2 className="text-xl font-bold text-text-primary mb-4">Attachments</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {offer.attachments.map((attachment) => {
-                    const fileUrl = attachment.url.startsWith("http")
-                      ? attachment.url
-                      : `${backendUrl}${attachment.url}`;
+                  {validAttachments.map((attachment) => {
+                    const fileUrl = attachment.url;
                     const isImage = attachment.mimeType.startsWith("image/");
 
                     return (
