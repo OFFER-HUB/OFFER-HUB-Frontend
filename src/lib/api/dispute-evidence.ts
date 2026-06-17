@@ -1,8 +1,6 @@
 import { API_URL } from "@/config/api";
 import type { DisputeEvidence } from "@/types/dispute.types";
 
-const USE_MOCKS = process.env.NEXT_PUBLIC_USE_MOCKS === "true";
-
 export const DISPUTE_EVIDENCE_MAX_FILES = 5;
 export const DISPUTE_EVIDENCE_MAX_SIZE = 10 * 1024 * 1024;
 export const DISPUTE_EVIDENCE_ALLOWED_TYPES = [
@@ -48,30 +46,6 @@ export async function uploadDisputeEvidence(
   file: File,
   options: UploadOptions = {}
 ): Promise<DisputeEvidence> {
-  if (USE_MOCKS) {
-    await new Promise<void>((resolve) => {
-      let progress = 0;
-      const timer = window.setInterval(() => {
-        progress += 10;
-        options.onProgress?.(Math.min(progress, 100));
-        if (progress >= 100) {
-          window.clearInterval(timer);
-          resolve();
-        }
-      }, 70);
-    });
-
-    return {
-      id: `mock-ev-${Date.now()}`,
-      name: file.name,
-      type: file.type,
-      size: file.size,
-      uploadedAt: new Date().toISOString(),
-      description: options.description,
-      url: URL.createObjectURL(file),
-    };
-  }
-
   return await new Promise<DisputeEvidence>((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     const formData = new FormData();
@@ -123,10 +97,6 @@ export async function listDisputeEvidence(
   token: string | null,
   disputeId: string
 ): Promise<DisputeEvidence[]> {
-  if (USE_MOCKS) {
-    return [];
-  }
-
   const response = await fetch(`${API_URL}/disputes/${disputeId}/evidence`, {
     headers: { Authorization: `Bearer ${token ?? ""}` },
   });
@@ -145,10 +115,6 @@ export async function deleteDisputeEvidence(
   disputeId: string,
   evidenceId: string
 ): Promise<void> {
-  if (USE_MOCKS) {
-    return;
-  }
-
   const response = await fetch(`${API_URL}/disputes/${disputeId}/evidence/${evidenceId}`, {
     method: "DELETE",
     headers: { Authorization: `Bearer ${token ?? ""}` },
