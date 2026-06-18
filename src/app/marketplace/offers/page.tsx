@@ -169,7 +169,19 @@ export default function BrowseOffersPage(): React.JSX.Element {
             ) : offers.length === 0 ? (
               <EmptyState
                 icon={ICON_PATHS.briefcase}
-                message="No offers found. Try adjusting your filters or search terms"
+                title="No offers found"
+                message="Try adjusting your filters or search terms"
+                variant="card"
+                actionLabel="Clear filters"
+                onAction={() => {
+                  setSearchInput("");
+                  setSearchText("");
+                  setFilters({
+                    category: "",
+                    minBudget: 0,
+                    maxBudget: 10000,
+                  });
+                }}
               />
             ) : (
               <>

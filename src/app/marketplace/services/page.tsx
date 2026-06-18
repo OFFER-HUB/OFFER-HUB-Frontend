@@ -169,7 +169,19 @@ export default function BrowseServicesPage(): React.JSX.Element {
               ) : services.length === 0 ? (
                 <EmptyState
                   icon={ICON_PATHS.briefcase}
-                  message="No services found. Try adjusting your filters or search terms"
+                  title="No services found"
+                  message="Try adjusting your filters or search terms"
+                  variant="card"
+                  actionLabel="Clear filters"
+                  onAction={() => {
+                    setSearchInput("");
+                    setSearchText("");
+                    setFilters({
+                      category: "",
+                      minBudget: 0,
+                      maxBudget: 10000,
+                    });
+                  }}
                 />
               ) : (
                 <>
