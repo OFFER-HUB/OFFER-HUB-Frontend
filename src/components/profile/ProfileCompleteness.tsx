@@ -8,16 +8,23 @@ import { NEUMORPHIC_CARD, NEUMORPHIC_INSET } from "@/lib/styles";
 import { getProfileCompleteness, type ProfileCompletenessData } from "@/lib/api/profile";
 import { useAuthStore } from "@/stores/auth-store";
 
-export function ProfileCompleteness(): React.JSX.Element | null {
-  const { token } = useAuthStore();
+interface ProfileCompletenessProps {
+  refreshKey?: number;
+}
+
+export function ProfileCompleteness({ refreshKey }: ProfileCompletenessProps): React.JSX.Element | null {
+  const { token, user } = useAuthStore();
   const [data, setData] = useState<ProfileCompletenessData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [animatedPercentage, setAnimatedPercentage] = useState(0);
 
+  const isFreelancer = user?.type === "SELLER" || user?.type === "BOTH";
+
   useEffect(() => {
-    if (!token) return;
+    if (!token || !isFreelancer) return;
 
     let isMounted = true;
+    setIsLoading(true);
     async function fetchCompleteness() {
       try {
         const result = await getProfileCompleteness(token!);
@@ -38,7 +45,7 @@ export function ProfileCompleteness(): React.JSX.Element | null {
     return () => {
       isMounted = false;
     };
-  }, [token]);
+  }, [token, isFreelancer, refreshKey]);
 
   useEffect(() => {
     if (data?.percentage !== undefined) {
@@ -49,6 +56,8 @@ export function ProfileCompleteness(): React.JSX.Element | null {
       return () => clearTimeout(timeout);
     }
   }, [data?.percentage]);
+
+  if (!isFreelancer) return null;
 
   if (isLoading) {
     return (
