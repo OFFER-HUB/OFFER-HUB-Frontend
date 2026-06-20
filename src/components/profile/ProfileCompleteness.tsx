@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { cn } from "@/lib/cn";
 import { Icon, ICON_PATHS, LoadingSpinner } from "@/components/ui/Icon";
-import { NEUMORPHIC_CARD, NEUMORPHIC_INSET, PRIMARY_BUTTON } from "@/lib/styles";
+import { NEUMORPHIC_CARD, NEUMORPHIC_INSET } from "@/lib/styles";
 import { getProfileCompleteness, type ProfileCompletenessData } from "@/lib/api/profile";
 import { useAuthStore } from "@/stores/auth-store";
 
@@ -12,7 +12,6 @@ export function ProfileCompleteness(): React.JSX.Element | null {
   const { token } = useAuthStore();
   const [data, setData] = useState<ProfileCompletenessData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isCollapsed, setIsCollapsed] = useState(false);
   const [animatedPercentage, setAnimatedPercentage] = useState(0);
 
   useEffect(() => {
@@ -24,9 +23,6 @@ export function ProfileCompleteness(): React.JSX.Element | null {
         const result = await getProfileCompleteness(token!);
         if (isMounted) {
           setData(result);
-          if (result.percentage >= 100) {
-            setIsCollapsed(true);
-          }
         }
       } catch (error) {
         console.error("Failed to fetch profile completeness", error);
@@ -121,9 +117,9 @@ export function ProfileCompleteness(): React.JSX.Element | null {
             Complete the following sections to reach 100% and unlock the All-Star badge.
           </p>
           <div className="space-y-3">
-            {(data.missingFields ?? []).slice(0, 3).map((item, index) => (
+            {(data.missingFields ?? []).slice(0, 3).map((item) => (
               <div
-                key={index}
+                key={item.field}
                 className={cn(
                   "flex items-center justify-between p-3 rounded-xl transition-all hover:bg-black/5",
                   NEUMORPHIC_INSET

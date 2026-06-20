@@ -86,6 +86,69 @@ export interface ProfileCompletenessData {
   isComplete: boolean;
 }
 
+interface ProfileCompletenessApiResponse {
+  percentage: number;
+  completed?: string[];
+  missing: string[];
+  suggestions?: string[];
+}
+
+const PROFILE_COMPLETENESS_FIELD_MAP: Record<string, { label: string; href: string }> = {
+  avatar: { label: "Profile Photo", href: "/app/profile" },
+  firstName: { label: "First Name", href: "/app/profile" },
+  lastName: { label: "Last Name", href: "/app/profile" },
+  username: { label: "Username", href: "/app/profile" },
+  bio: { label: "Bio", href: "/app/profile" },
+  contact: { label: "Phone Number", href: "/app/profile" },
+  title: { label: "Professional Title", href: "/app/profile" },
+  location: { label: "Location", href: "/app/profile" },
+};
+
+function toCompletenessPercentage(value: unknown): number {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return Math.min(100, Math.max(0, value));
+  }
+  if (typeof value === "string") {
+    const parsed = Number.parseFloat(value);
+    if (Number.isFinite(parsed)) {
+      return Math.min(100, Math.max(0, parsed));
+    }
+  }
+  return 0;
+}
+
+function formatMissingFieldLabel(field: string): string {
+  return field
+    .replace(/([A-Z])/g, " $1")
+    .replace(/[_-]/g, " ")
+    .trim()
+    .replace(/^\w/, (char) => char.toUpperCase());
+}
+
+function mapMissingField(field: string): ProfileCompletenessData["missingFields"][number] {
+  const config = PROFILE_COMPLETENESS_FIELD_MAP[field];
+
+  return {
+    field,
+    label: config?.label ?? formatMissingFieldLabel(field),
+    href: config?.href ?? "/app/profile",
+  };
+}
+
+function normalizeProfileCompleteness(payload: unknown): ProfileCompletenessData {
+  const raw = (payload && typeof payload === "object" ? payload : {}) as Partial<
+    ProfileCompletenessApiResponse
+  >;
+  const percentage = toCompletenessPercentage(raw.percentage);
+  const missing = Array.isArray(raw.missing) ? raw.missing.filter((field) => typeof field === "string") : [];
+
+  return {
+    percentage,
+    missingFields: missing.map(mapMissingField),
+    isComplete: percentage >= 100,
+  };
+}
+
 /**
  * Get the profile completeness status for the authenticated user
  */
@@ -102,5 +165,5 @@ export async function getProfileCompleteness(token: string): Promise<ProfileComp
   }
 
   const data = await response.json();
-  return data.data;
+  return normalizeProfileCompleteness(data.data);
 }
