@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { ErrorState } from "@/components/ui/ErrorState";
 import { Icon, ICON_PATHS } from "@/components/ui/Icon";
 import { getEmptyProfileViewsAnalytics } from "@/data/profile-views.data";
 import { cn } from "@/lib/cn";
@@ -84,37 +85,33 @@ export function ProfileViewsCard({ token }: ProfileViewsCardProps): React.JSX.El
     getEmptyProfileViewsAnalytics()
   );
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    let isMounted = true;
-
-    async function loadAnalytics(): Promise<void> {
-      if (!token) {
-        if (isMounted) {
-          setAnalytics(getEmptyProfileViewsAnalytics());
-          setIsLoading(false);
-        }
-        return;
-      }
-
-      try {
-        const data = await getProfileViewsAnalytics(token);
-        if (isMounted) {
-          setAnalytics(data);
-        }
-      } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
-      }
+  const loadAnalytics = useCallback(async (): Promise<void> => {
+    if (!token) {
+      setAnalytics(getEmptyProfileViewsAnalytics());
+      setError(null);
+      setIsLoading(false);
+      return;
     }
 
-    void loadAnalytics();
+    setIsLoading(true);
+    setError(null);
 
-    return () => {
-      isMounted = false;
-    };
+    try {
+      const data = await getProfileViewsAnalytics(token);
+      setAnalytics(data);
+    } catch (err) {
+      setAnalytics(getEmptyProfileViewsAnalytics());
+      setError(err instanceof Error ? err.message : "Failed to load profile views analytics");
+    } finally {
+      setIsLoading(false);
+    }
   }, [token]);
+
+  useEffect(() => {
+    void loadAnalytics();
+  }, [loadAnalytics]);
 
   const summaryCards = useMemo(
     () => [
@@ -139,6 +136,25 @@ export function ProfileViewsCard({ token }: ProfileViewsCardProps): React.JSX.El
 
   if (isLoading) {
     return <ProfileViewsSkeleton />;
+  }
+
+  if (error) {
+    return (
+      <div className={NEUMORPHIC_CARD}>
+        <div className="mb-6">
+          <h2 className="text-xl font-bold text-text-primary">Profile views</h2>
+          <p className="mt-1 text-sm text-text-secondary">
+            See how often clients are discovering your profile over time.
+          </p>
+        </div>
+        <ErrorState
+          variant="card"
+          title="Failed to load profile views"
+          message={error}
+          onRetry={() => void loadAnalytics()}
+        />
+      </div>
+    );
   }
 
   if (analytics.points.length === 0) {
