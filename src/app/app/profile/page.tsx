@@ -15,6 +15,7 @@ import { getProfile, updateProfile, type UpdateProfileData } from "@/lib/api/pro
 import { uploadImage } from "@/lib/api/upload";
 import Link from "next/link";
 import { ConnectedAccounts } from "@/components/profile/ConnectedAccounts";
+import { ProfileCompleteness } from "@/components/profile/ProfileCompleteness";
 
 interface ProfileFormData {
   firstName: string;
@@ -115,6 +116,7 @@ export default function ProfilePage() {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [isHydrated, setIsHydrated] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [completenessKey, setCompletenessKey] = useState(0);
 
   // Wait for Zustand to hydrate from localStorage
   useEffect(() => {
@@ -193,6 +195,7 @@ export default function ProfilePage() {
       });
 
       console.log("Avatar URL saved to profile");
+      setCompletenessKey((k) => k + 1);
     } catch (error) {
       console.error("Failed to upload image:", error);
 
@@ -260,6 +263,7 @@ export default function ProfilePage() {
       }
 
       setShowSuccess(true);
+      setCompletenessKey((k) => k + 1);
       setTimeout(() => setShowSuccess(false), SUCCESS_MESSAGE_DURATION);
     } catch (error) {
       console.error("Failed to update profile:", error);
@@ -296,6 +300,8 @@ export default function ProfilePage() {
           </Link>
         </div>
       </div>
+
+      <ProfileCompleteness refreshKey={completenessKey} />
 
       <div className={NEUMORPHIC_CARD}>
         <form onSubmit={handleSubmit} className="space-y-4">
