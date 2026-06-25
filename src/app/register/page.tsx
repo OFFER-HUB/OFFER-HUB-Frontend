@@ -105,14 +105,19 @@ function RegisterContent() {
         if (data.error?.code) {
           // ConflictException with error codes
           if (data.error.code === "EMAIL_REGISTERED_VIA_OAUTH") {
-            const providers = data.error.providers as string[] || [];
-            const providerNames = providers.map((p: string) => p.charAt(0).toUpperCase() + p.slice(1)).join(" or ");
+            const providers = (data.error.providers as string[]) || [];
+            const providerNames = providers
+              .map((p: string) => p.charAt(0).toUpperCase() + p.slice(1))
+              .join(" or ");
             newErrors.email = `This email is registered via ${providerNames}. Please use the ${providerNames} button above to sign in.`;
           } else if (data.error.code === "EMAIL_ALREADY_EXISTS") {
             newErrors.email = data.error.message || "This email is already registered";
           } else if (data.error.code === "USERNAME_TAKEN") {
             newErrors.username = data.error.message || "This username is already taken";
-          } else if (data.error.code === "VALIDATION_ERROR" && data.error.details?.validationErrors) {
+          } else if (
+            data.error.code === "VALIDATION_ERROR" &&
+            data.error.details?.validationErrors
+          ) {
             // Validation errors from class-validator
             const validationErrors = data.error.details.validationErrors as string[];
             validationErrors.forEach((msg: string) => {
@@ -156,7 +161,7 @@ function RegisterContent() {
 
         if (loginResponse.ok) {
           const loginData = await loginResponse.json();
-          login(loginData.user, loginData.token);
+          login(loginData.user, loginData.token, loginData.refreshToken ?? null);
 
           // Wait for Zustand persist to write cookie before redirecting
           await new Promise((resolve) => setTimeout(resolve, 100));
@@ -210,18 +215,36 @@ function RegisterContent() {
             <div className="absolute inset-0 rounded-full bg-success/20 animate-ping" />
           </div>
 
-          <h2 className="text-xl font-bold text-text-primary mt-6 opacity-0 animate-fade-in-up" style={{ animationDelay: "0.3s", animationFillMode: "forwards" }}>
+          <h2
+            className="text-xl font-bold text-text-primary mt-6 opacity-0 animate-fade-in-up"
+            style={{ animationDelay: "0.3s", animationFillMode: "forwards" }}
+          >
             Account Created!
           </h2>
-          <p className="text-sm text-text-secondary mt-2 text-center opacity-0 animate-fade-in-up" style={{ animationDelay: "0.5s", animationFillMode: "forwards" }}>
+          <p
+            className="text-sm text-text-secondary mt-2 text-center opacity-0 animate-fade-in-up"
+            style={{ animationDelay: "0.5s", animationFillMode: "forwards" }}
+          >
             Redirecting you to dashboard...
           </p>
 
           {/* Loading dots */}
-          <div className="flex gap-1 mt-4 opacity-0 animate-fade-in-up" style={{ animationDelay: "0.7s", animationFillMode: "forwards" }}>
-            <div className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: "0s" }} />
-            <div className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: "0.15s" }} />
-            <div className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: "0.3s" }} />
+          <div
+            className="flex gap-1 mt-4 opacity-0 animate-fade-in-up"
+            style={{ animationDelay: "0.7s", animationFillMode: "forwards" }}
+          >
+            <div
+              className="w-2 h-2 rounded-full bg-primary animate-bounce"
+              style={{ animationDelay: "0s" }}
+            />
+            <div
+              className="w-2 h-2 rounded-full bg-primary animate-bounce"
+              style={{ animationDelay: "0.15s" }}
+            />
+            <div
+              className="w-2 h-2 rounded-full bg-primary animate-bounce"
+              style={{ animationDelay: "0.3s" }}
+            />
           </div>
         </div>
       </AuthLayout>
@@ -231,28 +254,36 @@ function RegisterContent() {
   return (
     <AuthLayout>
       {/* Header */}
-      <div className="text-center mb-4 opacity-0 animate-fade-in-up" style={{ animationFillMode: "forwards" }}>
-        <h1 className="text-2xl font-bold text-text-primary mb-1">
-          Create an account
-        </h1>
-        <p className="text-sm text-text-secondary">
-          Join OfferHub and start your journey
-        </p>
+      <div
+        className="text-center mb-4 opacity-0 animate-fade-in-up"
+        style={{ animationFillMode: "forwards" }}
+      >
+        <h1 className="text-2xl font-bold text-text-primary mb-1">Create an account</h1>
+        <p className="text-sm text-text-secondary">Join OfferHub and start your journey</p>
       </div>
 
       {/* Social Auth */}
-      <div className="opacity-0 animate-fade-in-up" style={{ animationDelay: "0.1s", animationFillMode: "forwards" }}>
+      <div
+        className="opacity-0 animate-fade-in-up"
+        style={{ animationDelay: "0.1s", animationFillMode: "forwards" }}
+      >
         <SocialAuthButtons />
       </div>
 
       {/* Divider */}
-      <div className="opacity-0 animate-fade-in-up" style={{ animationDelay: "0.15s", animationFillMode: "forwards" }}>
+      <div
+        className="opacity-0 animate-fade-in-up"
+        style={{ animationDelay: "0.15s", animationFillMode: "forwards" }}
+      >
         <AuthDivider />
       </div>
 
       {/* Form */}
       <form onSubmit={handleSubmit} className="space-y-3">
-        <div className="opacity-0 animate-fade-in-up" style={{ animationDelay: "0.2s", animationFillMode: "forwards" }}>
+        <div
+          className="opacity-0 animate-fade-in-up"
+          style={{ animationDelay: "0.2s", animationFillMode: "forwards" }}
+        >
           <AuthInput
             label="Email"
             type="email"
@@ -265,7 +296,10 @@ function RegisterContent() {
           />
         </div>
 
-        <div className="opacity-0 animate-fade-in-up" style={{ animationDelay: "0.25s", animationFillMode: "forwards" }}>
+        <div
+          className="opacity-0 animate-fade-in-up"
+          style={{ animationDelay: "0.25s", animationFillMode: "forwards" }}
+        >
           <AuthInput
             label="Username"
             type="text"
@@ -278,7 +312,10 @@ function RegisterContent() {
           />
         </div>
 
-        <div className="opacity-0 animate-fade-in-up" style={{ animationDelay: "0.3s", animationFillMode: "forwards" }}>
+        <div
+          className="opacity-0 animate-fade-in-up"
+          style={{ animationDelay: "0.3s", animationFillMode: "forwards" }}
+        >
           <AuthInput
             label="Password"
             type="password"
@@ -297,7 +334,10 @@ function RegisterContent() {
           />
         </div>
 
-        <div className="opacity-0 animate-fade-in-up" style={{ animationDelay: "0.35s", animationFillMode: "forwards" }}>
+        <div
+          className="opacity-0 animate-fade-in-up"
+          style={{ animationDelay: "0.35s", animationFillMode: "forwards" }}
+        >
           <AuthInput
             label="Confirm password"
             type="password"
@@ -311,7 +351,10 @@ function RegisterContent() {
         </div>
 
         {/* Submit Button */}
-        <div className="opacity-0 animate-fade-in-up" style={{ animationDelay: "0.4s", animationFillMode: "forwards" }}>
+        <div
+          className="opacity-0 animate-fade-in-up"
+          style={{ animationDelay: "0.4s", animationFillMode: "forwards" }}
+        >
           <button
             type="submit"
             disabled={isLoading}
@@ -328,8 +371,19 @@ function RegisterContent() {
             {isLoading ? (
               <span className="flex items-center justify-center gap-2">
                 <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  />
                 </svg>
                 Creating account...
               </span>
@@ -341,7 +395,10 @@ function RegisterContent() {
       </form>
 
       {/* Login Link */}
-      <p className="text-center text-sm text-text-secondary mt-4 opacity-0 animate-fade-in-up" style={{ animationDelay: "0.45s", animationFillMode: "forwards" }}>
+      <p
+        className="text-center text-sm text-text-secondary mt-4 opacity-0 animate-fade-in-up"
+        style={{ animationDelay: "0.45s", animationFillMode: "forwards" }}
+      >
         Already have an account?{" "}
         <Link
           href="/login"
@@ -356,7 +413,15 @@ function RegisterContent() {
 
 export default function RegisterPage() {
   return (
-    <Suspense fallback={<AuthLayout><div className="flex items-center justify-center py-8"><div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div></AuthLayout>}>
+    <Suspense
+      fallback={
+        <AuthLayout>
+          <div className="flex items-center justify-center py-8">
+            <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+          </div>
+        </AuthLayout>
+      }
+    >
       <RegisterContent />
     </Suspense>
   );
