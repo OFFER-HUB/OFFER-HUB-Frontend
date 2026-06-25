@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { API_URL } from "@/config/api";
 
-export async function POST (request: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
     const { email, password } = await request.json();
 
@@ -25,7 +25,7 @@ export async function POST (request: NextRequest) {
     }
 
     // Return user data from Orchestrator
-    const { user, token } = data.data;
+    const { user, token, refreshToken } = data.data;
 
     return NextResponse.json({
       user: {
@@ -39,6 +39,9 @@ export async function POST (request: NextRequest) {
         wallet: user.wallet,
       },
       token,
+      // Forward the backend refresh token if present so the client can use it
+      // for the next 401 -> refresh -> retry cycle (see src/services/http-client.ts).
+      refreshToken: refreshToken ?? null,
     });
   } catch (error) {
     console.error("Login error:", error);

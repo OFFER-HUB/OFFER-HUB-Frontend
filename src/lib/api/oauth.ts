@@ -30,6 +30,11 @@ export interface OAuthCallbackResult {
     wallet: { publicKey: string; type: string } | null;
   };
   token: string;
+  /**
+   * Long-lived refresh token if the backend issued one.
+   * Optional because older backend versions may only return an access token.
+   */
+  refreshToken?: string;
 }
 
 /**
@@ -113,8 +118,12 @@ export async function getLinkedAccounts(token: string): Promise<LinkedAccount[]>
 /**
  * Check if email exists in the system
  */
-export async function checkEmailExists(email: string): Promise<{ exists: boolean; hasPassword: boolean }> {
-  const response = await fetch(`${API_URL}/auth/oauth/check-email?email=${encodeURIComponent(email)}`);
+export async function checkEmailExists(
+  email: string
+): Promise<{ exists: boolean; hasPassword: boolean }> {
+  const response = await fetch(
+    `${API_URL}/auth/oauth/check-email?email=${encodeURIComponent(email)}`
+  );
 
   if (!response.ok) {
     throw new Error("Failed to check email");

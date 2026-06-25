@@ -3,12 +3,7 @@
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import {
-  AuthLayout,
-  SocialAuthButtons,
-  AuthInput,
-  AuthDivider,
-} from "@/components/auth";
+import { AuthLayout, SocialAuthButtons, AuthInput, AuthDivider } from "@/components/auth";
 import { cn } from "@/lib/cn";
 import { useAuthStore } from "@/stores/auth-store";
 import { useModeStore } from "@/stores/mode-store";
@@ -89,10 +84,12 @@ function LoginContent() {
       if (!response.ok) {
         // Handle OAuth-only account trying to login with password
         if (data.error?.code === "LOGIN_VIA_OAUTH_REQUIRED") {
-          const providers = data.error.providers as string[] || [];
-          const providerNames = providers.map((p: string) => p.charAt(0).toUpperCase() + p.slice(1)).join(" or ");
+          const providers = (data.error.providers as string[]) || [];
+          const providerNames = providers
+            .map((p: string) => p.charAt(0).toUpperCase() + p.slice(1))
+            .join(" or ");
           setErrors({
-            email: `This account uses ${providerNames} for login. Please use the ${providerNames} button above.`
+            email: `This account uses ${providerNames} for login. Please use the ${providerNames} button above.`,
           });
         } else {
           setErrors({ email: data.error?.message || data.error || "Login failed" });
@@ -102,7 +99,7 @@ function LoginContent() {
       }
 
       // Update auth state with user and token from API
-      login(data.user, data.token);
+      login(data.user, data.token, data.refreshToken ?? null);
 
       setIsLoading(false);
 
@@ -129,8 +126,18 @@ function LoginContent() {
           )}
         >
           <div className="flex items-center gap-2">
-            <svg className="w-5 h-5 text-success flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <svg
+              className="w-5 h-5 text-success flex-shrink-0"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
             </svg>
             <p className="text-sm text-success font-medium">
               Account created successfully! Please sign in.
@@ -140,28 +147,36 @@ function LoginContent() {
       )}
 
       {/* Header */}
-      <div className="text-center mb-4 opacity-0 animate-fade-in-up" style={{ animationFillMode: "forwards" }}>
-        <h1 className="text-2xl font-bold text-text-primary mb-1">
-          Welcome back
-        </h1>
-        <p className="text-sm text-text-secondary">
-          Sign in to your account to continue
-        </p>
+      <div
+        className="text-center mb-4 opacity-0 animate-fade-in-up"
+        style={{ animationFillMode: "forwards" }}
+      >
+        <h1 className="text-2xl font-bold text-text-primary mb-1">Welcome back</h1>
+        <p className="text-sm text-text-secondary">Sign in to your account to continue</p>
       </div>
 
       {/* Social Auth */}
-      <div className="opacity-0 animate-fade-in-up" style={{ animationDelay: "0.1s", animationFillMode: "forwards" }}>
+      <div
+        className="opacity-0 animate-fade-in-up"
+        style={{ animationDelay: "0.1s", animationFillMode: "forwards" }}
+      >
         <SocialAuthButtons />
       </div>
 
       {/* Divider */}
-      <div className="opacity-0 animate-fade-in-up" style={{ animationDelay: "0.15s", animationFillMode: "forwards" }}>
+      <div
+        className="opacity-0 animate-fade-in-up"
+        style={{ animationDelay: "0.15s", animationFillMode: "forwards" }}
+      >
         <AuthDivider />
       </div>
 
       {/* Form */}
       <form onSubmit={handleSubmit} className="space-y-3">
-        <div className="opacity-0 animate-fade-in-up" style={{ animationDelay: "0.2s", animationFillMode: "forwards" }}>
+        <div
+          className="opacity-0 animate-fade-in-up"
+          style={{ animationDelay: "0.2s", animationFillMode: "forwards" }}
+        >
           <AuthInput
             label="Email"
             type="email"
@@ -174,10 +189,11 @@ function LoginContent() {
           />
         </div>
 
-        <div className="opacity-0 animate-fade-in-up" style={{ animationDelay: "0.25s", animationFillMode: "forwards" }}>
-          <label className="block text-sm font-medium text-text-primary mb-2">
-            Password
-          </label>
+        <div
+          className="opacity-0 animate-fade-in-up"
+          style={{ animationDelay: "0.25s", animationFillMode: "forwards" }}
+        >
+          <label className="block text-sm font-medium text-text-primary mb-2">Password</label>
           <AuthInput
             label=""
             type="password"
@@ -199,7 +215,10 @@ function LoginContent() {
         </div>
 
         {/* Submit Button */}
-        <div className="opacity-0 animate-fade-in-up" style={{ animationDelay: "0.3s", animationFillMode: "forwards" }}>
+        <div
+          className="opacity-0 animate-fade-in-up"
+          style={{ animationDelay: "0.3s", animationFillMode: "forwards" }}
+        >
           <button
             type="submit"
             disabled={isLoading}
@@ -216,8 +235,19 @@ function LoginContent() {
             {isLoading ? (
               <span className="flex items-center justify-center gap-2">
                 <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  />
                 </svg>
                 Signing in...
               </span>
@@ -229,7 +259,10 @@ function LoginContent() {
       </form>
 
       {/* Register Link */}
-      <p className="text-center text-sm text-text-secondary mt-4 opacity-0 animate-fade-in-up" style={{ animationDelay: "0.35s", animationFillMode: "forwards" }}>
+      <p
+        className="text-center text-sm text-text-secondary mt-4 opacity-0 animate-fade-in-up"
+        style={{ animationDelay: "0.35s", animationFillMode: "forwards" }}
+      >
         Don&apos;t have an account?{" "}
         <Link
           href="/register"
@@ -240,7 +273,10 @@ function LoginContent() {
       </p>
 
       {/* Back to Landing Link */}
-      <div className="text-center mt-6 opacity-0 animate-fade-in-up" style={{ animationDelay: "0.4s", animationFillMode: "forwards" }}>
+      <div
+        className="text-center mt-6 opacity-0 animate-fade-in-up"
+        style={{ animationDelay: "0.4s", animationFillMode: "forwards" }}
+      >
         <Link
           href="/"
           className="inline-flex items-center gap-2 text-xs font-semibold text-text-secondary hover:text-primary transition-colors group"
@@ -263,7 +299,15 @@ function LoginContent() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<AuthLayout><div className="flex items-center justify-center py-8"><div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div></AuthLayout>}>
+    <Suspense
+      fallback={
+        <AuthLayout>
+          <div className="flex items-center justify-center py-8">
+            <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+          </div>
+        </AuthLayout>
+      }
+    >
       <LoginContent />
     </Suspense>
   );
