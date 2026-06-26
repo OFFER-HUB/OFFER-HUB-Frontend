@@ -20,7 +20,7 @@ export async function deleteAccount(
   token: string,
   payload: DeleteAccountPayload
 ): Promise<void> {
-  const response = await fetch(`${API_URL}/users/me`, {
+  const response = await fetch(`${API_URL}/users/profile`, {
     method: "DELETE",
     headers: {
       Authorization: `Bearer ${token}`,
