@@ -3,6 +3,7 @@
 import { cn } from "@/lib/cn";
 import type { ChatMessage } from "@/types/chat.types";
 import { ReadReceipt } from "@/components/chat/ReadReceipt";
+import { MessageAttachmentList } from "@/components/chat/MessageAttachmentList";
 
 interface MessageBubbleProps {
   message: ChatMessage;
@@ -21,6 +22,8 @@ export function MessageBubble({
 }: MessageBubbleProps) {
   const isSending = message.status === "sending";
   const isError = message.status === "error";
+  const hasAttachments = message.attachments && message.attachments.length > 0;
+  const hasContent = message.content && message.content.trim().length > 0;
 
   return (
     <div
@@ -72,9 +75,20 @@ export function MessageBubble({
                 )
           )}
         >
-          <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">
-            {message.content}
-          </p>
+          {/* Text Content */}
+          {hasContent && (
+            <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">
+              {message.content}
+            </p>
+          )}
+
+          {/* Attachments */}
+          {hasAttachments && (
+            <MessageAttachmentList
+              attachments={message.attachments!}
+              className={cn(hasContent && "mt-2")}
+            />
+          )}
 
           {isOwn && isSending && (
             <div className="absolute right-2 bottom-1 flex items-center gap-0.5 opacity-80 scale-75 origin-bottom-right">

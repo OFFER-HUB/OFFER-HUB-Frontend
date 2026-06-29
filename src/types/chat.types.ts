@@ -1,3 +1,18 @@
+import type { MessageAttachment } from "@/types/attachment.types";
+
+// Update ChatMessage interface to include attachments
+export interface ChatMessage {
+  id: string;
+  senderId: string;
+  content: string;
+  timestamp: string;
+  isRead: boolean;
+  status?: "sending" | "sent" | "delivered" | "read" | "error";
+  deliveredAt?: string;
+  readAt?: string;
+  attachments?: MessageAttachment[];
+}
+
 export interface ChatUser {
   id: string;
   name: string;
