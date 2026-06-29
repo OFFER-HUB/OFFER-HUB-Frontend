@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useAuthStore } from "@/stores/auth-store";
 import { cn } from "@/lib/cn";
 import { Icon, ICON_PATHS } from "@/components/ui/Icon";
+import { ErrorState } from "@/components/ui/ErrorState";
 import { getWalletTransactions, type WalletTransactionsData } from "@/lib/api/wallet";
 import {
   TransactionFilters,
@@ -139,24 +140,12 @@ export default function WalletTransactionsPage(): React.JSX.Element {
   if (isLoading || !data) {
     if (error) {
       return (
-        <div className="max-w-lg mx-auto text-center py-16 px-4">
-          <Icon path={ICON_PATHS.document} size="xl" className="mx-auto text-text-secondary mb-4" />
-          <h1 className="text-xl font-bold text-text-primary mb-2">Transaction history unavailable</h1>
-          <p className="text-text-secondary mb-6">{error}</p>
-          <button
-            type="button"
-            onClick={() => refresh()}
-            disabled={isRefreshing}
-            className={cn(
-              "inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium",
-              "bg-white text-text-primary shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]",
-              "disabled:opacity-60"
-            )}
-          >
-            <Icon path={ICON_PATHS.refresh} size="sm" className={cn(isRefreshing && "animate-spin")} />
-            Retry
-          </button>
-        </div>
+        <ErrorState
+          title="Transaction history unavailable"
+          message={error}
+          onRetry={() => refresh()}
+          retryLabel="Retry"
+        />
       );
     }
     return <TransactionHistorySkeleton />;
