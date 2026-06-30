@@ -158,7 +158,7 @@ export function AppHeader({ onMenuClick }: AppHeaderProps): React.JSX.Element {
               size="md"
               className="text-text-secondary"
             />
-            {true && (
+            {unreadCount > 0 && (
               <span
                 className={cn(
                   "absolute -top-1 -right-1",
