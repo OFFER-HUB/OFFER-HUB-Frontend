@@ -4,7 +4,6 @@ import { useMemo, useState } from "react";
 import { changePassword } from "@/lib/api/auth";
 import { cn } from "@/lib/cn";
 import { getPasswordChecks, getPasswordStrength, isPasswordValid } from "@/lib/validation";
-import { clearAuthTokens } from "@/lib/auth-client";
 import { NEUMORPHIC_CARD, NEUMORPHIC_INPUT, PRIMARY_BUTTON } from "@/lib/styles";
 import { useAuthStore } from "@/stores/auth-store";
 import { FormField } from "@/components/ui/FormField";
@@ -145,7 +144,6 @@ export function ChangePasswordForm(): React.JSX.Element {
   }
 
   async function handleSessionExpiry(): Promise<void> {
-    await clearAuthTokens();
     await logout();
     window.location.href = "/login?redirect=/app/settings/security";
   }

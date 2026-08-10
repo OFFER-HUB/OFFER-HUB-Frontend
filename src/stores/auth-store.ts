@@ -1,6 +1,5 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import { clearAuthTokens } from "@/lib/auth-client";
 import type { WalletConnectionState } from "@/types/wallet.types";
 
 export interface UserBalance {
@@ -83,9 +82,6 @@ export const useAuthStore = create<AuthState>()(
         set({ user, token, isAuthenticated: true });
       },
       logout: async () => {
-        // Clear secure httpOnly token cookies via server API
-        await clearAuthTokens();
-        // Clear client-side auth state
         set({
           user: null,
           token: null,
