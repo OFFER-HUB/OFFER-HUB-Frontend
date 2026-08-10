@@ -105,7 +105,7 @@ function RegisterContent() {
         if (data.error?.code) {
           // ConflictException with error codes
           if (data.error.code === "EMAIL_REGISTERED_VIA_OAUTH") {
-            const providers = data.error.providers as string[] || [];
+            const providers = (data.error.details?.providers as string[]) || [];
             const providerNames = providers.map((p: string) => p.charAt(0).toUpperCase() + p.slice(1)).join(" or ");
             newErrors.email = `This email is registered via ${providerNames}. Please use the ${providerNames} button above to sign in.`;
           } else if (data.error.code === "EMAIL_ALREADY_EXISTS") {

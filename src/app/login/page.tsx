@@ -89,7 +89,7 @@ function LoginContent() {
       if (!response.ok) {
         // Handle OAuth-only account trying to login with password
         if (data.error?.code === "LOGIN_VIA_OAUTH_REQUIRED") {
-          const providers = data.error.providers as string[] || [];
+          const providers = (data.error.details?.providers as string[]) || [];
           const providerNames = providers.map((p: string) => p.charAt(0).toUpperCase() + p.slice(1)).join(" or ");
           setErrors({
             email: `This account uses ${providerNames} for login. Please use the ${providerNames} button above.`

@@ -18,8 +18,16 @@ export async function POST (request: NextRequest) {
     const data = await response.json();
 
     if (!response.ok) {
+      // The API answers with { error: { code, message, details } }. Forward it
+      // untouched so the page can branch on the code (e.g. LOGIN_VIA_OAUTH_REQUIRED)
+      // instead of collapsing every failure into "invalid password".
       return NextResponse.json(
-        { error: data.message || "Invalid email or password" },
+        {
+          error: data.error ?? {
+            code: "UNAUTHORIZED",
+            message: data.message || "Invalid email or password",
+          },
+        },
         { status: response.status }
       );
     }
@@ -31,7 +39,8 @@ export async function POST (request: NextRequest) {
       user: {
         id: user.id,
         email: user.email,
-        username: user.username ?? user.email.split("@")[0],
+        // `email` is nullable on User, so guard the split rather than throwing.
+        username: user.username ?? user.email?.split("@")[0] ?? user.id,
         firstName: user.firstName ?? null,
         lastName: user.lastName ?? null,
         type: user.type,
@@ -43,7 +52,12 @@ export async function POST (request: NextRequest) {
   } catch (error) {
     console.error("Login error:", error);
     return NextResponse.json(
-      { error: "Unable to connect to server. Please try again." },
+      {
+        error: {
+          code: "INTERNAL_ERROR",
+          message: "Unable to connect to server. Please try again.",
+        },
+      },
       { status: 500 }
     );
   }
