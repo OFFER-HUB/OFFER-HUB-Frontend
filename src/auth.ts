@@ -22,6 +22,10 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
         token.oauthEmail = profile.email;
         token.oauthName = profile.name || (profile as Record<string, unknown>).login as string;
         token.oauthAvatarUrl = profile.image || (profile as Record<string, unknown>).avatar_url as string;
+        // The backend re-verifies these against the provider before issuing a JWT,
+        // so the identity above is a claim until it does.
+        token.oauthAccessToken = account.access_token;
+        token.oauthIdToken = account.id_token;
       }
       return token;
     },
@@ -33,6 +37,8 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
         session.oauthEmail = token.oauthEmail as string;
         session.oauthName = token.oauthName as string;
         session.oauthAvatarUrl = token.oauthAvatarUrl as string;
+        session.oauthAccessToken = token.oauthAccessToken as string | undefined;
+        session.oauthIdToken = token.oauthIdToken as string | undefined;
       }
       return session;
     },
@@ -52,5 +58,8 @@ declare module "next-auth" {
     oauthEmail?: string;
     oauthName?: string;
     oauthAvatarUrl?: string;
+    /** Forwarded to the backend so it can verify the identity with the provider. */
+    oauthAccessToken?: string;
+    oauthIdToken?: string;
   }
 }

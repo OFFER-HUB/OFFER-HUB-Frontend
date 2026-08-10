@@ -5,7 +5,7 @@ import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/cn";
 import { useAuthStore } from "@/stores/auth-store";
-import { oauthCallback, type OAuthProvider } from "@/lib/api/oauth";
+import { oauthCallback, OAuthCallbackError, type OAuthProvider } from "@/lib/api/oauth";
 import { LoadingSpinner, Icon, ICON_PATHS } from "@/components/ui/Icon";
 
 type CallbackState =
@@ -13,6 +13,26 @@ type CallbackState =
   | { type: "processing" }
   | { type: "success" }
   | { type: "error"; message: string };
+
+/** Turns a backend error code into wording the user can act on. */
+function describeCallbackError(error: unknown): string {
+  if (error instanceof OAuthCallbackError) {
+    switch (error.code) {
+      case "EMAIL_REGISTERED_WITH_PASSWORD":
+        return "This email is already registered with a password. Sign in with your password, then link this provider from your profile settings.";
+      case "OAUTH_EMAIL_UNVERIFIED":
+        return "Your provider has not verified this email address. Verify it with them and try again.";
+      case "OAUTH_TOKEN_INVALID":
+      case "OAUTH_IDENTITY_MISMATCH":
+        return "We could not confirm your identity with the provider. Please try signing in again.";
+      case "OAUTH_PROVIDER_UNAVAILABLE":
+        return "The provider is unreachable right now. Please try again in a moment.";
+    }
+    return error.message;
+  }
+
+  return error instanceof Error ? error.message : "Failed to authenticate with OAuth";
+}
 
 export default function OAuthCallbackPage() {
   const { data: session, status } = useSession();
@@ -50,6 +70,10 @@ export default function OAuthCallbackPage() {
           email: session.oauthEmail,
           name: session.oauthName,
           avatarUrl: session.oauthAvatarUrl,
+          // Proof of ownership — the backend verifies it with the provider
+          // before it will issue a session token.
+          accessToken: session.oauthAccessToken,
+          idToken: session.oauthIdToken,
         });
 
         // LOGIN or REGISTER success
@@ -58,6 +82,7 @@ export default function OAuthCallbackPage() {
             id: result.user.id,
             email: result.user.email,
             username: result.user.username,
+            avatarUrl: session.oauthAvatarUrl,
             type: result.user.type as "BUYER" | "SELLER" | "BOTH",
             balance: result.user.balance || undefined,
             wallet: result.user.wallet || undefined,
@@ -84,10 +109,7 @@ export default function OAuthCallbackPage() {
         // Clear NextAuth session on error
         await signOut({ redirect: false });
 
-        setState({
-          type: "error",
-          message: error instanceof Error ? error.message : "Failed to authenticate with OAuth",
-        });
+        setState({ type: "error", message: describeCallbackError(error) });
       }
     }
 

@@ -8,6 +8,13 @@ export interface OAuthCallbackData {
   email: string;
   name?: string;
   avatarUrl?: string;
+  /**
+   * Provider-issued proof of ownership. The backend re-checks it against
+   * Google/GitHub before issuing a session token — without one the request is
+   * just an unverified claim and is rejected.
+   */
+  accessToken?: string;
+  idToken?: string;
 }
 
 export interface LinkedAccount {
@@ -32,6 +39,14 @@ export interface OAuthCallbackResult {
   token: string;
 }
 
+/** Error carrying the backend's machine-readable code so callers can branch on it. */
+export class OAuthCallbackError extends Error {
+  constructor(message: string, readonly code?: string) {
+    super(message);
+    this.name = "OAuthCallbackError";
+  }
+}
+
 /**
  * Handle OAuth callback - login or register via OAuth provider
  */
@@ -43,10 +58,10 @@ export async function oauthCallback(data: OAuthCallbackData): Promise<OAuthCallb
   });
 
   if (!response.ok) {
-    const errorData = await response.json();
+    const errorData = await response.json().catch(() => ({}));
     // Extract error message from various possible formats
     const message = errorData.error?.message || errorData.message || "OAuth callback failed";
-    throw new Error(message);
+    throw new OAuthCallbackError(message, errorData.error?.code);
   }
 
   const result = await response.json();
