@@ -76,6 +76,7 @@ const CARD = cn(
 export default function EarningsAnalyticsPage(): React.JSX.Element {
   const { setMode } = useModeStore();
   const token = useAuthStore((s) => s.token);
+  const hasHydrated = useAuthStore((s) => s.hasHydrated);
 
   const initialRange = useMemo(() => getRangeForPreset("12m"), []);
   const [startDate, setStartDate] = useState(initialRange.start);
@@ -142,6 +143,12 @@ export default function EarningsAnalyticsPage(): React.JSX.Element {
     if (!data) return;
     const fname = `offer-hub-earnings-${startDate}-to-${endDate}.csv`;
     downloadEarningsCsv(data, fname);
+  }
+
+  // Before hydration the store is empty even for a signed-in user, so an early
+  // `!token` would flash the sign-in wall on every reload.
+  if (!hasHydrated) {
+    return <EarningsPageSkeleton />;
   }
 
   if (!token) {

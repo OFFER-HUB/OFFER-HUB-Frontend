@@ -37,10 +37,19 @@ interface AuthState extends WalletConnectionState {
   isAuthenticated: boolean;
   isLoading: boolean;
   redirectAfterLogin: string | null;
+  /**
+   * False until the persisted session has been read back from localStorage.
+   *
+   * Until then `token` is null on a page reload even for a signed-in user, so
+   * anything that renders a "please sign in" state must wait for this instead of
+   * treating the empty store as "signed out".
+   */
+  hasHydrated: boolean;
   login: (user: User, token: string) => void;
   logout: () => Promise<void>;
   setLoading: (loading: boolean) => void;
   setRedirectAfterLogin: (path: string | null) => void;
+  setHasHydrated: (value: boolean) => void;
 }
 
 /**
@@ -78,6 +87,7 @@ export const useAuthStore = create<AuthState>()(
       redirectAfterLogin: null,
       walletAddress: null,
       walletConnected: false,
+      hasHydrated: false,
       login: (user, token) => {
         set({ user, token, isAuthenticated: true });
       },
@@ -95,10 +105,16 @@ export const useAuthStore = create<AuthState>()(
       setRedirectAfterLogin: (path) => set({ redirectAfterLogin: path }),
       connectWallet: (address) => set({ walletAddress: address, walletConnected: true }),
       disconnectWallet: () => set({ walletAddress: null, walletConnected: false }),
+      setHasHydrated: (value) => set({ hasHydrated: value }),
     }),
     {
       name: "auth-state",
       storage: createJSONStorage(() => localStorageWrapper),
+      // Read localStorage only once the client is mounted (see AuthProvider).
+      // Hydrating at module load would make the first client render disagree with
+      // the server-rendered HTML, which React resolves by keeping the server's
+      // signed-out markup — the reason sessions appeared to vanish on reload.
+      skipHydration: true,
       // Persist all auth data
       partialize: (state) => ({
         user: state.user,
@@ -107,6 +123,9 @@ export const useAuthStore = create<AuthState>()(
         walletAddress: state.walletAddress,
         walletConnected: state.walletConnected,
       }),
+      onRehydrateStorage: () => (state) => {
+        state?.setHasHydrated(true);
+      },
     }
   )
 );

@@ -43,6 +43,7 @@ function buildExportFilename(): string {
 
 export default function WalletTransactionsPage(): React.JSX.Element {
   const token = useAuthStore((state) => state.token);
+  const hasHydrated = useAuthStore((state) => state.hasHydrated);
   const [data, setData] = useState<WalletTransactionsData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -113,6 +114,12 @@ export default function WalletTransactionsPage(): React.JSX.Element {
     setIsRefreshing(true);
     setIsLoading(true);
     void loadTransactions();
+  }
+
+  // Before hydration the store is empty even for a signed-in user, so an early
+  // `!token` would flash the sign-in wall on every reload.
+  if (!hasHydrated) {
+    return <TransactionHistorySkeleton />;
   }
 
   if (!token) {

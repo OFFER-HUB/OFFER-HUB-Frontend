@@ -80,9 +80,8 @@ export default function EditServicePage({ params }: PageProps): React.JSX.Elemen
   const { id } = use(params);
   const router = useRouter();
   const token = useAuthStore((state) => state.token);
+  const hasHydrated = useAuthStore((state) => state.hasHydrated);
 
-  const [mounted, setMounted] = useState(false);
-  const [hydrated, setHydrated] = useState(false);
   const [service, setService] = useState<Service | null>(null);
   const [isFetchingService, setIsFetchingService] = useState(true);
   const [formData, setFormData] = useState<ServiceFormData>({
@@ -97,16 +96,7 @@ export default function EditServicePage({ params }: PageProps): React.JSX.Elemen
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    useAuthStore.persist.rehydrate();
-
-    setTimeout(() => {
-      setHydrated(true);
-      setMounted(true);
-    }, 100);
-  }, []);
-
-  useEffect(() => {
-    if (!mounted || !hydrated) return;
+    if (!hasHydrated) return;
 
     if (token) {
       getServiceById(token, id)
@@ -129,7 +119,7 @@ export default function EditServicePage({ params }: PageProps): React.JSX.Elemen
     } else {
       setIsFetchingService(false);
     }
-  }, [mounted, hydrated, token, id]);
+  }, [hasHydrated, token, id]);
 
   const detailHref = `/app/freelancer/services/${id}`;
 

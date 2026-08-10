@@ -230,9 +230,8 @@ export default function ServiceDetailsPage({ params }: PageProps): React.JSX.Ele
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = useAuthStore((state) => state.token);
+  const hasHydrated = useAuthStore((state) => state.hasHydrated);
 
-  const [mounted, setMounted] = useState(false);
-  const [hydrated, setHydrated] = useState(false);
   const [service, setService] = useState<Service | null>(null);
   const [isFetchingService, setIsFetchingService] = useState(true);
   const [ratingOrder, setRatingOrder] = useState<ServiceOrder | null>(null);
@@ -247,16 +246,7 @@ export default function ServiceDetailsPage({ params }: PageProps): React.JSX.Ele
   const [isFetchingOrders, setIsFetchingOrders] = useState(true);
 
   useEffect(() => {
-    useAuthStore.persist.rehydrate();
-
-    setTimeout(() => {
-      setHydrated(true);
-      setMounted(true);
-    }, 100);
-  }, []);
-
-  useEffect(() => {
-    if (!mounted || !hydrated) return;
+    if (!hasHydrated) return;
 
     if (token) {
       getServiceById(token, id)
@@ -272,10 +262,10 @@ export default function ServiceDetailsPage({ params }: PageProps): React.JSX.Ele
     } else {
       setIsFetchingService(false);
     }
-  }, [mounted, hydrated, token, id]);
+  }, [hasHydrated, token, id]);
 
   useEffect(() => {
-    if (!mounted || !hydrated) return;
+    if (!hasHydrated) return;
 
     if (token) {
       getServiceOrders(token, id)
@@ -292,7 +282,7 @@ export default function ServiceDetailsPage({ params }: PageProps): React.JSX.Ele
     } else {
       setIsFetchingOrders(false);
     }
-  }, [mounted, hydrated, token, id]);
+  }, [hasHydrated, token, id]);
 
   useEffect(() => {
     if (searchParams.get("updated") === "true") {

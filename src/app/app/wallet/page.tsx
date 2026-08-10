@@ -33,6 +33,7 @@ function formatPct(p: number): string {
 
 export default function WalletPage(): React.JSX.Element {
   const token = useAuthStore((s) => s.token);
+  const hasHydrated = useAuthStore((s) => s.hasHydrated);
   const [data, setData] = useState<WalletDashboardData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -108,6 +109,12 @@ export default function WalletPage(): React.JSX.Element {
       el.removeEventListener("touchend", onEnd);
     };
   }, [refresh, isRefreshing]);
+
+  // Before hydration the store is empty even for a signed-in user, so an early
+  // `!token` would flash the sign-in wall on every reload.
+  if (!hasHydrated) {
+    return <WalletPageSkeleton />;
+  }
 
   if (!token) {
     return (
