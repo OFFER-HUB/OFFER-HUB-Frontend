@@ -17,6 +17,12 @@ const nextConfig = {
         hostname: "avatars.githubusercontent.com",
         pathname: "/**",
       },
+      {
+        // Wallet logos served by Stellar Wallets Kit
+        protocol: "https",
+        hostname: "stellar.creit.tech",
+        pathname: "/wallet-icons/**",
+      },
     ],
   },
 
