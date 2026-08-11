@@ -45,7 +45,8 @@ export function WalletConnectModal({
   onConnected,
 }: WalletConnectModalProps): React.JSX.Element | null {
   const { address, network } = useWalletKit();
-  const setWalletAddress = useAuthStore((state) => state.setWalletAddress);
+  const connectWallet = useAuthStore((state) => state.connectWallet);
+  const disconnectWallet = useAuthStore((state) => state.disconnectWallet);
 
   const [wallets, setWallets] = useState<ISupportedWallet[] | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -119,7 +120,7 @@ export function WalletConnectModal({
       // connected yet, so a first-time connection has to go to the wallet.
       const { address: connected } = await StellarWalletsKit.fetchAddress();
 
-      setWalletAddress(connected);
+      connectWallet(connected);
       onConnected?.(connected);
       onClose();
     } catch (error) {
@@ -133,7 +134,7 @@ export function WalletConnectModal({
 
   async function handleDisconnect() {
     await StellarWalletsKit.disconnect();
-    setWalletAddress(null);
+    disconnectWallet();
   }
 
   const isConnecting = connectingId !== null;

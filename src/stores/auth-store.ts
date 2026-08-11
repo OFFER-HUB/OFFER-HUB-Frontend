@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { clearAuthTokens } from "@/lib/auth-client";
+import type { WalletConnectionState } from "@/types/wallet.types";
 
 export interface UserBalance {
   available: string;
@@ -25,25 +26,22 @@ export interface User {
   isEmailVerified?: boolean;
 }
 
-interface AuthState {
+/**
+ * Auth store state.
+ *
+ * The wallet slice mirrors SWK's own state so the rest of the app can read the
+ * connected address without depending on the Stellar Wallets Kit.
+ */
+interface AuthState extends WalletConnectionState {
   user: User | null;
   token: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   redirectAfterLogin: string | null;
-  /**
-   * Public key of the wallet connected through SWK.
-   *
-   * Mirrors the kit's own state so the rest of the app can read the address
-   * without depending on the Stellar Wallets Kit. Connecting a wallet does not
-   * authenticate the user — that is the challenge-response flow in D1.2.
-   */
-  walletAddress: string | null;
   login: (user: User, token: string) => void;
   logout: () => Promise<void>;
   setLoading: (loading: boolean) => void;
   setRedirectAfterLogin: (path: string | null) => void;
-  setWalletAddress: (address: string | null) => void;
 }
 
 /**
@@ -80,6 +78,7 @@ export const useAuthStore = create<AuthState>()(
       isLoading: false,
       redirectAfterLogin: null,
       walletAddress: null,
+      walletConnected: false,
       login: (user, token) => {
         set({ user, token, isAuthenticated: true });
       },
@@ -93,11 +92,13 @@ export const useAuthStore = create<AuthState>()(
           isAuthenticated: false,
           redirectAfterLogin: null,
           walletAddress: null,
+          walletConnected: false,
         });
       },
       setLoading: (loading) => set({ isLoading: loading }),
       setRedirectAfterLogin: (path) => set({ redirectAfterLogin: path }),
-      setWalletAddress: (address) => set({ walletAddress: address }),
+      connectWallet: (address) => set({ walletAddress: address, walletConnected: true }),
+      disconnectWallet: () => set({ walletAddress: null, walletConnected: false }),
     }),
     {
       name: "auth-state",
@@ -108,6 +109,7 @@ export const useAuthStore = create<AuthState>()(
         token: state.token,
         isAuthenticated: state.isAuthenticated,
         walletAddress: state.walletAddress,
+        walletConnected: state.walletConnected,
       }),
     }
   )
