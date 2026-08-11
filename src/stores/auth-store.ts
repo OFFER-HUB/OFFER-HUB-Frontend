@@ -31,10 +31,19 @@ interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
   redirectAfterLogin: string | null;
+  /**
+   * Public key of the wallet connected through SWK.
+   *
+   * Mirrors the kit's own state so the rest of the app can read the address
+   * without depending on the Stellar Wallets Kit. Connecting a wallet does not
+   * authenticate the user — that is the challenge-response flow in D1.2.
+   */
+  walletAddress: string | null;
   login: (user: User, token: string) => void;
   logout: () => Promise<void>;
   setLoading: (loading: boolean) => void;
   setRedirectAfterLogin: (path: string | null) => void;
+  setWalletAddress: (address: string | null) => void;
 }
 
 /**
@@ -70,6 +79,7 @@ export const useAuthStore = create<AuthState>()(
       isAuthenticated: false,
       isLoading: false,
       redirectAfterLogin: null,
+      walletAddress: null,
       login: (user, token) => {
         set({ user, token, isAuthenticated: true });
       },
@@ -77,10 +87,17 @@ export const useAuthStore = create<AuthState>()(
         // Clear secure httpOnly token cookies via server API
         await clearAuthTokens();
         // Clear client-side auth state
-        set({ user: null, token: null, isAuthenticated: false, redirectAfterLogin: null });
+        set({
+          user: null,
+          token: null,
+          isAuthenticated: false,
+          redirectAfterLogin: null,
+          walletAddress: null,
+        });
       },
       setLoading: (loading) => set({ isLoading: loading }),
       setRedirectAfterLogin: (path) => set({ redirectAfterLogin: path }),
+      setWalletAddress: (address) => set({ walletAddress: address }),
     }),
     {
       name: "auth-state",
@@ -90,6 +107,7 @@ export const useAuthStore = create<AuthState>()(
         user: state.user,
         token: state.token,
         isAuthenticated: state.isAuthenticated,
+        walletAddress: state.walletAddress,
       }),
     }
   )
