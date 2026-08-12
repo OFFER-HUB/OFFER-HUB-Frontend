@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import Image from "next/image";
 import { StellarWalletsKit, type ISupportedWallet } from "@creit.tech/stellar-wallets-kit";
 import { cn } from "@/lib/cn";
@@ -100,7 +101,7 @@ export function WalletConnectModal({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, onClose]);
 
-  if (!isOpen) {
+  if (!isOpen || typeof document === "undefined") {
     return null;
   }
 
@@ -139,7 +140,12 @@ export function WalletConnectModal({
 
   const isConnecting = connectingId !== null;
 
-  return (
+  // Portalled to <body>. The landing Navbar is `backdrop-blur-md`, and an
+  // element with a backdrop-filter becomes the containing block for its
+  // fixed-position descendants — rendered in place from the navbar trigger,
+  // this overlay resolved against the header's 64px box instead of the
+  // viewport and sat clamped to the top of the page.
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <button
         type="button"
@@ -310,6 +316,7 @@ export function WalletConnectModal({
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
