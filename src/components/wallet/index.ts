@@ -5,6 +5,7 @@ export { TransactionFilters } from "./TransactionFilters";
 export { TransactionHistorySkeleton } from "./TransactionHistorySkeleton";
 export { TransactionItem } from "./TransactionItem";
 export { TransactionList } from "./TransactionList";
+export { WalletConnectButton } from "./WalletConnectButton";
 export { WalletConnectModal } from "./WalletConnectModal";
 export { WalletPageSkeleton } from "./WalletPageSkeleton";
 export { WithdrawModal } from "./WithdrawModal";
