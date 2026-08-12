@@ -9,6 +9,7 @@ import { Icon, ICON_PATHS } from "@/components/ui/Icon";
 import { useAuthStore } from "@/stores/auth-store";
 import { useNotificationStore } from "@/stores/notification-store";
 import { NotificationDropdown } from "@/components/notifications";
+import { WalletConnectButton } from "@/components/wallet/WalletConnectButton";
 import {
   ICON_BUTTON,
   USER_AVATAR_BUTTON,
@@ -138,8 +139,13 @@ export function AppHeader({ onMenuClick }: AppHeaderProps): React.JSX.Element {
         ))}
       </nav>
 
-      {/* Right: notifications + avatar */}
+      {/* Right: wallet + notifications + avatar */}
       <div className="flex items-center gap-3 flex-1 justify-end">
+        {/* Wallet connect / connected address. Hidden below `sm` because the
+            logo, menu toggle, bell and avatar already fill a phone-width bar —
+            the landing navbar's mobile menu carries the entry point there. */}
+        <WalletConnectButton className="hidden sm:flex" />
+
         {/* Notification Bell */}
         <div ref={notifRef} className="relative">
           <button

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Container, Logo } from "@/components/ui";
 import { Icon, ICON_PATHS } from "@/components/ui/Icon";
+import { WalletConnectButton } from "@/components/wallet/WalletConnectButton";
 import { cn } from "@/lib/cn";
 import { useAuthStore } from "@/stores/auth-store";
 import {
@@ -191,6 +192,8 @@ export function Navbar(): React.JSX.Element {
           </div>
 
           <div className="hidden lg:flex items-center gap-3">
+            <WalletConnectButton />
+
             {mounted ? (
               isAuthenticated && user ? (
                 <div ref={userMenuRef} className="relative">
@@ -252,7 +255,9 @@ export function Navbar(): React.JSX.Element {
         <div
           className={cn(
             "lg:hidden overflow-hidden transition-all duration-300",
-            isMobileMenuOpen ? "max-h-[600px] pb-4" : "max-h-0"
+            // Raised from 600px: the wallet section adds a full address block and
+            // a disconnect button, which the old ceiling clipped when connected.
+            isMobileMenuOpen ? "max-h-[800px] pb-4" : "max-h-0"
           )}
         >
           <div className="flex flex-col gap-4">
@@ -304,6 +309,8 @@ export function Navbar(): React.JSX.Element {
                 {link.label}
               </Link>
             ))}
+            <WalletConnectButton variant="inline" className="pt-4 border-t border-border-light" />
+
             <div className="flex flex-col gap-3 pt-4 border-t border-border-light">
               {mounted ? (
                 isAuthenticated && user ? (
