@@ -157,3 +157,17 @@ This is a **public repository** used for open-source contributions. Issues label
 - PRs must use `.github/PULL_REQUEST_TEMPLATE.md`
 - Every issue belongs to a milestone (T1, T2, or T3)
 - All internal issues must have the `[Internal]` label
+
+### NEVER push directly to `main`
+
+**Every change must go through a Pull Request — no exceptions.**
+
+This applies even when resolving rebase conflicts on stacked branches. The correct flow when a PR has conflicts:
+
+1. Rebase the branch locally onto `main`
+2. Push the rebased branch to `origin/<branch>` (never to `main`)
+3. Merge via `gh pr merge` or GitHub UI
+
+If `gh pr merge` still fails after rebase, open a new PR from the rebased branch. Do not push to `main` directly under any circumstances.
+
+**Active GitHub account for all operations:** `Josue19-08` (`josuemarin2009@hotmail.com`). Run `gh auth switch --user Josue19-08` before any `gh` command.
