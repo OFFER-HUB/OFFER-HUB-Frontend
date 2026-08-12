@@ -2,10 +2,16 @@
 
 import { useState, useCallback } from "react";
 import { cn } from "@/lib/cn";
+import { StellarIcon } from "@/components/ui/StellarIcon";
 
 interface WalletAddressProps {
   address: string;
   className?: string;
+  /**
+   * Render the complete public key instead of the truncated form, for places
+   * that have to show the address in full — such as the navbar wallet menu.
+   */
+  showFull?: boolean;
 }
 
 function truncateAddress(address: string): string {
@@ -16,6 +22,7 @@ function truncateAddress(address: string): string {
 export function WalletAddress({
   address,
   className,
+  showFull = false,
 }: WalletAddressProps): React.JSX.Element {
   const [copied, setCopied] = useState(false);
 
@@ -42,25 +49,24 @@ export function WalletAddress({
     >
       {/* Stellar logo */}
       <div className="w-5 h-5 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-        <svg
-          viewBox="0 0 24 24"
-          className="w-3 h-3 text-primary"
-          fill="currentColor"
-        >
-          <path d="M12.283 1.999L6.36 4.595a.477.477 0 00-.217.638l.392.786a.477.477 0 00.638.217l8.477-3.718a.477.477 0 00.217-.638l-.392-.786a.477.477 0 00-.638-.217l-2.554 1.122zm6.44 2.831l-8.477 3.718a.477.477 0 00-.217.638l.392.786a.477.477 0 00.638.217l8.477-3.718a.477.477 0 00.217-.638l-.392-.786a.477.477 0 00-.638-.217zm-14.36 4.3l-.392.786a.477.477 0 00.217.638l8.477 3.718a.477.477 0 00.638-.217l.392-.786a.477.477 0 00-.217-.638L4.999 8.913a.477.477 0 00-.638.217zm14.36.9l-8.477 3.718a.477.477 0 00-.217.638l.392.786a.477.477 0 00.638.217l8.477-3.718a.477.477 0 00.217-.638l-.392-.786a.477.477 0 00-.638-.217zm-14.36 4.3l-.392.786a.477.477 0 00.217.638l8.477 3.718a.477.477 0 00.638-.217l.392-.786a.477.477 0 00-.217-.638l-8.477-3.718a.477.477 0 00-.638.217zm14.36.9l-8.477 3.718a.477.477 0 00-.217.638l.392.786a.477.477 0 00.638.217l8.477-3.718a.477.477 0 00.217-.638l-.392-.786a.477.477 0 00-.638-.217z" />
-        </svg>
+        <StellarIcon className="text-primary" />
       </div>
 
       {/* Address */}
-      <span className="font-mono text-sm text-text-primary">
-        {truncateAddress(address)}
+      <span
+        className={cn(
+          "font-mono text-sm text-text-primary",
+          showFull && "min-w-0 break-all"
+        )}
+      >
+        {showFull ? address : truncateAddress(address)}
       </span>
 
       {/* Copy button */}
       <button
         onClick={copyToClipboard}
         className={cn(
-          "p-1.5 rounded-lg",
+          "p-1.5 rounded-lg flex-shrink-0",
           "bg-white",
           "shadow-[2px_2px_4px_#d1d5db,-2px_-2px_4px_#ffffff]",
           "hover:shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]",
