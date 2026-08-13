@@ -9,6 +9,7 @@ import {
   AuthInput,
   AuthDivider,
 } from "@/components/auth";
+import { WalletSignInButton } from "@/components/auth/WalletSignInButton";
 import { cn } from "@/lib/cn";
 import { useAuthStore } from "@/stores/auth-store";
 import { useModeStore } from "@/stores/mode-store";
@@ -67,6 +68,17 @@ function LoginContent() {
     }
   };
 
+  /**
+   * Where a successful sign-in lands, whatever proved the identity.
+   * Shared so wallet auth cannot drift from the email path.
+   */
+  const goToDashboard = () => {
+    const defaultDashboard =
+      mode === "client" ? "/app/client/dashboard" : "/app/freelancer/dashboard";
+
+    router.push(redirectPath || defaultDashboard);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -106,10 +118,7 @@ function LoginContent() {
 
       setIsLoading(false);
 
-      const defaultDashboard =
-        mode === "client" ? "/app/client/dashboard" : "/app/freelancer/dashboard";
-
-      router.push(redirectPath || defaultDashboard);
+      goToDashboard();
     } catch (error) {
       console.error("Login error:", error);
       setErrors({ email: "Connection error. Please try again." });
@@ -152,6 +161,11 @@ function LoginContent() {
       {/* Social Auth */}
       <div className="opacity-0 animate-fade-in-up" style={{ animationDelay: "0.1s", animationFillMode: "forwards" }}>
         <SocialAuthButtons />
+      </div>
+
+      {/* Wallet Auth — D1.2 challenge-response, same session as an email login */}
+      <div className="mt-3 opacity-0 animate-fade-in-up" style={{ animationDelay: "0.12s", animationFillMode: "forwards" }}>
+        <WalletSignInButton disabled={isLoading} onSignedIn={goToDashboard} />
       </div>
 
       {/* Divider */}
