@@ -15,6 +15,13 @@ import { useAuthStore } from "@/stores/auth-store";
 import { useModeStore } from "@/stores/mode-store";
 import type { LoginFormData, AuthFormErrors } from "@/types/auth.types";
 
+type AuthTabId = "email" | "wallet";
+
+const AUTH_TABS: ReadonlyArray<{ id: AuthTabId; label: string }> = [
+  { id: "email", label: "Email / Password" },
+  { id: "wallet", label: "Connect Wallet" },
+];
+
 function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -29,6 +36,26 @@ function LoginContent() {
   });
   const [errors, setErrors] = useState<AuthFormErrors>({});
   const [redirectPath, setRedirectPath] = useState<string | null>(null);
+  // Email stays the default: it is what every existing account uses, and the
+  // wallet path is additive rather than a replacement.
+  const [activeTab, setActiveTab] = useState<AuthTabId>("email");
+
+  /**
+   * Arrow keys move between tabs, as a tablist is expected to behave — only the
+   * selected tab is in the Tab order, so without this the second one would be
+   * unreachable by keyboard.
+   */
+  const handleTabKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+
+    e.preventDefault();
+    const current = AUTH_TABS.findIndex((t) => t.id === activeTab);
+    const delta = e.key === "ArrowRight" ? 1 : -1;
+    const next = AUTH_TABS[(current + delta + AUTH_TABS.length) % AUTH_TABS.length];
+
+    setActiveTab(next.id);
+    document.getElementById(`auth-tab-${next.id}`)?.focus();
+  };
 
   useEffect(() => {
     if (searchParams.get("registered") === "true") {
@@ -158,14 +185,70 @@ function LoginContent() {
         </p>
       </div>
 
+      {/* Method tabs */}
+      <div
+        role="tablist"
+        aria-label="Sign-in method"
+        onKeyDown={handleTabKeyDown}
+        className={cn(
+          "flex gap-2 p-1 rounded-2xl bg-background mb-4",
+          "shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]",
+          "opacity-0 animate-fade-in-up"
+        )}
+        style={{ animationDelay: "0.08s", animationFillMode: "forwards" }}
+      >
+        {AUTH_TABS.map(({ id, label }) => {
+          const active = activeTab === id;
+          return (
+            <button
+              key={id}
+              type="button"
+              role="tab"
+              id={`auth-tab-${id}`}
+              aria-selected={active}
+              aria-controls={`auth-panel-${id}`}
+              // Only the selected tab is reachable by Tab; the arrow keys move
+              // between them, which is how a tablist is meant to behave.
+              tabIndex={active ? 0 : -1}
+              onClick={() => setActiveTab(id)}
+              className={cn(
+                "flex-1 px-3 py-2.5 rounded-xl text-sm font-medium transition-all cursor-pointer",
+                "focus-visible:ring-2 focus-visible:ring-primary/40 outline-none",
+                active
+                  ? "bg-primary text-white shadow-[2px_2px_6px_#d1d5db]"
+                  : "text-text-secondary hover:text-text-primary"
+              )}
+            >
+              {label}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Wallet panel */}
+      <div
+        role="tabpanel"
+        id="auth-panel-wallet"
+        aria-labelledby="auth-tab-wallet"
+        hidden={activeTab !== "wallet"}
+      >
+        <p className="text-sm text-text-secondary text-center mb-3">
+          Connect a Stellar wallet and sign a one-time message to prove it is yours.
+          No password needed.
+        </p>
+        <WalletSignInButton disabled={isLoading} onSignedIn={goToDashboard} />
+      </div>
+
+      {/* Email panel — the pre-existing sign-in experience, unchanged */}
+      <div
+        role="tabpanel"
+        id="auth-panel-email"
+        aria-labelledby="auth-tab-email"
+        hidden={activeTab !== "email"}
+      >
       {/* Social Auth */}
       <div className="opacity-0 animate-fade-in-up" style={{ animationDelay: "0.1s", animationFillMode: "forwards" }}>
         <SocialAuthButtons />
-      </div>
-
-      {/* Wallet Auth — D1.2 challenge-response, same session as an email login */}
-      <div className="mt-3 opacity-0 animate-fade-in-up" style={{ animationDelay: "0.12s", animationFillMode: "forwards" }}>
-        <WalletSignInButton disabled={isLoading} onSignedIn={goToDashboard} />
       </div>
 
       {/* Divider */}
@@ -241,6 +324,7 @@ function LoginContent() {
           </button>
         </div>
       </form>
+      </div>
 
       {/* Register Link */}
       <p className="text-center text-sm text-text-secondary mt-4 opacity-0 animate-fade-in-up" style={{ animationDelay: "0.35s", animationFillMode: "forwards" }}>
