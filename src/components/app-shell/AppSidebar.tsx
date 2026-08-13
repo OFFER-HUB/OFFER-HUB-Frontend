@@ -5,6 +5,9 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/cn";
 import { Icon, ICON_PATHS } from "@/components/ui/Icon";
+// Imported directly rather than through the wallet barrel: that barrel also
+// re-exports BalanceChart, which would pull recharts into the app shell.
+import { WalletConnectButton } from "@/components/wallet/WalletConnectButton";
 import { useModeStore, getNavigationItems, type UserMode } from "@/stores/mode-store";
 import { useSidebarStore } from "@/stores/sidebar-store";
 import { useAuthStore } from "@/stores/auth-store";
@@ -290,6 +293,19 @@ export function AppSidebar({ isOpen, onClose }: AppSidebarProps): React.JSX.Elem
           </>
         )}
       </nav>
+
+      {/*
+        Wallet entry point for narrow viewports only.
+
+        AppHeader carries the same control from `sm` up; below that its bar is
+        already full (menu toggle, wordmark, bell, avatar) and a fifth item
+        overflows it. The drawer is the app shell's equivalent of the landing
+        navbar's mobile menu, so the two surfaces stay consistent and exactly
+        one entry point exists at every width.
+      */}
+      <div className="sm:hidden border-t border-gray-100 p-4">
+        <WalletConnectButton variant="inline" />
+      </div>
     </aside>
   );
 }
