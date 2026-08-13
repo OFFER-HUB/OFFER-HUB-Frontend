@@ -70,24 +70,27 @@ export function WalletSignInButton({
         onClick={handleClick}
         disabled={disabled || isAuthenticating}
         aria-busy={isAuthenticating}
+        // The primary action of its panel, so it mirrors the email tab's submit
+        // button rather than the secondary styling of the OAuth row.
         className={cn(
-          "w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl",
-          "bg-white border border-border-light cursor-pointer",
-          "shadow-[3px_3px_6px_#d1d5db,-3px_-3px_6px_#ffffff]",
-          "hover:shadow-[5px_5px_10px_#d1d5db,-5px_-5px_10px_#ffffff] hover:scale-[1.02]",
-          "active:shadow-[inset_3px_3px_6px_#d1d5db,inset_-3px_-3px_6px_#ffffff] active:scale-[0.98]",
+          "w-full flex items-center justify-center gap-2.5 px-6 py-3 rounded-xl",
+          "bg-primary text-white font-medium cursor-pointer",
+          "shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]",
+          "hover:bg-primary-hover hover:shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff] hover:scale-[1.02]",
+          "active:shadow-[inset_4px_4px_8px_rgba(0,0,0,0.2)] active:scale-[0.98]",
+          "focus-visible:ring-2 focus-visible:ring-primary/40 outline-none",
           "transition-all duration-200",
-          "disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+          "disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100"
         )}
       >
         {isAuthenticating ? (
           <LoadingSpinner size="sm" />
         ) : (
-          <span className="w-5 h-5 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-            <StellarIcon className="text-primary" />
+          <span className="w-5 h-5 rounded-lg bg-white/20 flex items-center justify-center shrink-0">
+            <StellarIcon className="text-white" />
           </span>
         )}
-        <span className="text-sm font-medium text-text-primary">
+        <span className="text-sm">
           {step === "idle" ? "Continue with wallet" : STEP_LABEL[step]}
         </span>
       </button>

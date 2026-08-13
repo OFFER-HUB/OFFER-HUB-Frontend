@@ -10,7 +10,9 @@ import {
   AuthDivider,
 } from "@/components/auth";
 import { WalletSignInButton } from "@/components/auth/WalletSignInButton";
+import { StellarIcon } from "@/components/ui/StellarIcon";
 import { cn } from "@/lib/cn";
+import { NEUMORPHIC_INSET } from "@/lib/styles";
 import { useAuthStore } from "@/stores/auth-store";
 import { useModeStore } from "@/stores/mode-store";
 import type { LoginFormData, AuthFormErrors } from "@/types/auth.types";
@@ -231,12 +233,37 @@ function LoginContent() {
         id="auth-panel-wallet"
         aria-labelledby="auth-tab-wallet"
         hidden={activeTab !== "wallet"}
+        // Roughly the height of the email panel, so switching tabs does not
+        // collapse the card and shove the footer links up the page.
+        className="min-h-[22rem] flex flex-col justify-center"
       >
-        <p className="text-sm text-text-secondary text-center mb-3">
-          Connect a Stellar wallet and sign a one-time message to prove it is yours.
-          No password needed.
+        <div className={cn(NEUMORPHIC_INSET, "rounded-2xl p-6 text-center")}>
+          <span
+            className={cn(
+              "mx-auto mb-4 w-14 h-14 rounded-2xl flex items-center justify-center",
+              "bg-primary text-white",
+              "shadow-[4px_4px_8px_#d1d5db,-2px_-2px_6px_#ffffff]"
+            )}
+          >
+            <StellarIcon className="w-7 h-7" />
+          </span>
+
+          <h2 className="text-base font-semibold text-text-primary mb-1.5">
+            Sign in with your Stellar wallet
+          </h2>
+          <p className="text-sm text-text-secondary leading-relaxed">
+            Approve a one-time signature to prove the wallet is yours. No password,
+            and your keys never leave the wallet.
+          </p>
+        </div>
+
+        <div className="mt-4">
+          <WalletSignInButton disabled={isLoading} onSignedIn={goToDashboard} />
+        </div>
+
+        <p className="text-xs text-text-secondary text-center mt-3">
+          Works with Freighter, Lobstr and xBull
         </p>
-        <WalletSignInButton disabled={isLoading} onSignedIn={goToDashboard} />
       </div>
 
       {/* Email panel — the pre-existing sign-in experience, unchanged */}
