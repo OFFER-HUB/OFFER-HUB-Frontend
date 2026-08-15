@@ -7,6 +7,7 @@ import { LobstrModule } from "@creit.tech/stellar-wallets-kit/modules/lobstr";
 import { xBullModule } from "@creit.tech/stellar-wallets-kit/modules/xbull";
 import { STELLAR_NETWORK, type StellarNetworkName } from "@/config/wallet";
 import type { WalletKitContextValue } from "@/types/wallet.types";
+import { useWalletRehydration } from "@/hooks/use-wallet-rehydration";
 
 const networkPassphraseByName: Record<StellarNetworkName, Networks> = {
   testnet: Networks.TESTNET,
@@ -71,6 +72,15 @@ interface WalletKitProviderProps {
   children: React.ReactNode;
 }
 
+/**
+ * Rendered inside the context so it can call useWalletKit() and run the
+ * SWK ↔ store sync without adding any visible DOM nodes.
+ */
+function WalletRehydrationEffect(): null {
+  useWalletRehydration();
+  return null;
+}
+
 export function WalletKitProvider({ children }: WalletKitProviderProps) {
   const address = useSyncExternalStore(
     subscribeToKitState,
@@ -94,5 +104,10 @@ export function WalletKitProvider({ children }: WalletKitProviderProps) {
     [isReady, address],
   );
 
-  return <WalletKitContext.Provider value={value}>{children}</WalletKitContext.Provider>;
+  return (
+    <WalletKitContext.Provider value={value}>
+      <WalletRehydrationEffect />
+      {children}
+    </WalletKitContext.Provider>
+  );
 }
