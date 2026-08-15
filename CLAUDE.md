@@ -116,8 +116,31 @@ src/
 | Border radius (container) | `rounded-2xl` |
 | Border radius (interactive) | `rounded-xl` |
 
+#### Neumorphism is not optional
+
+**OFFER HUB is a neumorphic UI. Every surface you build must carry elevation — raised or sunken. A flat coloured block is a bug, not a style choice.**
+
+This is the most common way generated UI drifts off-brand: the colours come out right, but everything is painted flat and the page stops looking like the rest of the site. Before calling any frontend work done, look at every surface you added and decide which of these it is:
+
+| Surface | Treatment |
+|---------|-----------|
+| Cards, panels, banners | Raised — `bg-white` + `shadow-[var(--shadow-neumorphic-light)]` |
+| Wells, inputs, read-only fields | Sunken — `bg-background` + `shadow-[var(--shadow-neumorphic-inset-light)]` |
+| Badges, chips, pills, tabs, status tags | Sunken, tighter — `shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]` |
+| Active / selected item | Raised + `bg-primary text-white` — `shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]` |
+| Pressed state | Swap the raised shadow for the inset one |
+| Page background | The one legitimate flat surface — plain `bg-background` |
+
+Rules that follow from this:
+
+- **Never use a solid filled panel** (`bg-secondary`, `bg-primary`) as a large container. The raised/sunken shadow pair only reads against the light `#F1F3F7` background, so a filled block flattens the page. Use a raised white surface and put the colour in the text, the icon, or a small badge instead.
+- **Prefer the CSS variables** (`--shadow-neumorphic-light`, `--shadow-neumorphic-inset-light`) over hardcoded shadows — they are the ones that adapt to dark mode. Use the hardcoded 2px/4px variants only for small elements needing a tighter shadow, matching `AppSidebar.tsx`.
+- **Nest elevation deliberately**: raised chips inside a sunken well read as objects sitting in the recess. Never nest raised inside raised.
+- Reuse `Card` (`variant="neumorphic" | "neumorphic-inset"`) and `Button` from `/components/ui/` rather than rebuilding the shadows by hand.
+
 ### Key Rules
 
+- **Every surface carries elevation — raised or sunken. Never flat.** See the neumorphism section above
 - No `any` — TypeScript strict mode enforced
 - All components must handle loading, error, and empty states (see `docs/ui-states.md`)
 - No hardcoded strings — use constants from `/config/`
