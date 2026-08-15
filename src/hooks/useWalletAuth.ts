@@ -94,23 +94,37 @@ export function useWalletAuth(): UseWalletAuthResult {
       setError(null);
 
       try {
+        // Fetch the address directly from the wallet extension right before
+        // requesting the challenge — the cached `publicKey` may be stale if
+        // the user switched accounts in Freighter since connecting.
         setStep("requesting-challenge");
-        const { challenge } = await requestChallenge(publicKey);
+        const { address: liveAddress } = await StellarWalletsKit.fetchAddress();
+        const challengeKey = liveAddress || publicKey;
+        const { challenge } = await requestChallenge(challengeKey);
 
         setStep("signing");
-        // Blocks on the wallet's own confirmation UI. `address` pins the request
-        // to the key we asked a challenge for, in case the wallet holds several.
-        const { signedMessage } = await StellarWalletsKit.signMessage(challenge, {
-          address: publicKey,
+        // Blocks on the wallet's own confirmation UI.
+        const { signedMessage, signerAddress } = await StellarWalletsKit.signMessage(challenge, {
+          address: challengeKey,
         });
 
-        setStep("verifying");
-        const session = await verifySignature(publicKey, signedMessage, challenge);
+        // The signer address returned by the wallet is authoritative.
+        // If it differs from the challenge key (Freighter ignored the address
+        // hint or the user switched accounts mid-flow), the challenge record
+        // in Redis won't match — surface a clear error instead of a confusing 401.
+        const effectiveKey = signerAddress || challengeKey;
+        if (effectiveKey !== challengeKey) {
+          throw new Error(
+            "Your wallet signed with a different account than the one selected. " +
+            "Please ensure the correct account is active in your wallet and try again."
+          );
+        }
 
-        // Same store transition as an email login, plus the wallet slice so the
-        // navbar and balance card see the address without re-reading the kit.
+        setStep("verifying");
+        const session = await verifySignature(effectiveKey, signedMessage, challenge);
+
         login(session.user, session.token);
-        connectWallet(publicKey);
+        connectWallet(effectiveKey);
 
         setStep("idle");
         return session;
