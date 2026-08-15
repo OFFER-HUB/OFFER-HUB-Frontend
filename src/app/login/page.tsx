@@ -10,9 +10,7 @@ import {
   AuthDivider,
 } from "@/components/auth";
 import { WalletSignInButton } from "@/components/auth/WalletSignInButton";
-import { StellarIcon } from "@/components/ui/StellarIcon";
 import { cn } from "@/lib/cn";
-import { NEUMORPHIC_INSET } from "@/lib/styles";
 import { useAuthStore } from "@/stores/auth-store";
 import { useModeStore } from "@/stores/mode-store";
 import type { LoginFormData, AuthFormErrors } from "@/types/auth.types";
@@ -235,35 +233,14 @@ function LoginContent() {
         hidden={activeTab !== "wallet"}
         // Roughly the height of the email panel, so switching tabs does not
         // collapse the card and shove the footer links up the page.
-        className="min-h-[22rem] flex flex-col justify-center"
+        className="min-h-[22rem] flex flex-col justify-center gap-5"
       >
-        <div className={cn(NEUMORPHIC_INSET, "rounded-2xl p-6 text-center")}>
-          <span
-            className={cn(
-              "mx-auto mb-4 w-14 h-14 rounded-2xl flex items-center justify-center",
-              "bg-primary text-white",
-              "shadow-[4px_4px_8px_#d1d5db,-2px_-2px_6px_#ffffff]"
-            )}
-          >
-            <StellarIcon className="w-7 h-7" />
-          </span>
-
-          <h2 className="text-base font-semibold text-text-primary mb-1.5">
-            Sign in with your Stellar wallet
-          </h2>
-          <p className="text-sm text-text-secondary leading-relaxed">
-            Approve a one-time signature to prove the wallet is yours. No password,
-            and your keys never leave the wallet.
-          </p>
+        <div className="text-center">
+          <h2 className="text-base font-semibold text-text-primary">Choose your wallet</h2>
+          <p className="text-xs text-text-secondary mt-1">Select a wallet to sign in securely</p>
         </div>
 
-        <div className="mt-4">
-          <WalletSignInButton disabled={isLoading} onSignedIn={goToDashboard} />
-        </div>
-
-        <p className="text-xs text-text-secondary text-center mt-3">
-          Works with Freighter, Lobstr and xBull
-        </p>
+        <WalletSignInButton disabled={isLoading} onSignedIn={goToDashboard} />
       </div>
 
       {/* Email panel — the pre-existing sign-in experience, unchanged */}
@@ -364,24 +341,6 @@ function LoginContent() {
         </Link>
       </p>
 
-      {/* Back to Landing Link */}
-      <div className="text-center mt-6 opacity-0 animate-fade-in-up" style={{ animationDelay: "0.4s", animationFillMode: "forwards" }}>
-        <Link
-          href="/"
-          className="inline-flex items-center gap-2 text-xs font-semibold text-text-secondary hover:text-primary transition-colors group"
-        >
-          <svg
-            className="w-3.5 h-3.5 transition-transform group-hover:-translate-x-1"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2.5}
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-          </svg>
-          Back to landing page
-        </Link>
-      </div>
     </AuthLayout>
   );
 }
