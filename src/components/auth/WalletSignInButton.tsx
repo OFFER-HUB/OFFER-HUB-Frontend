@@ -96,32 +96,19 @@ export function WalletSignInButton({
   return (
     <div className={cn("flex flex-col gap-4", className)}>
 
-      {/* Wallet option cards */}
-      <div className="grid grid-cols-3 gap-3">
+      {/* Supported wallets */}
+      <div className="flex items-center justify-center gap-3">
         {WALLETS.map((wallet) => (
-          <button
+          <div
             key={wallet.id}
-            type="button"
-            onClick={handleConnect}
-            disabled={disabled || isAuthenticating}
-            aria-label={`Sign in with ${wallet.name}`}
-            className={cn(
-              "flex flex-col items-center gap-2 p-3 rounded-xl cursor-pointer",
-              "bg-[#F1F3F7]",
-              "shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]",
-              "hover:shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff]",
-              "active:shadow-[inset_3px_3px_6px_#d1d5db,inset_-3px_-3px_6px_#ffffff]",
-              "transition-all duration-150",
-              "disabled:opacity-50 disabled:cursor-not-allowed",
-            )}
+            className="flex items-center gap-1.5"
+            title={wallet.name}
           >
-            <span className="shadow-[2px_2px_5px_#d1d5db,-2px_-2px_5px_#ffffff] rounded-xl">
+            <span className="shadow-[2px_2px_4px_#d1d5db,-2px_-2px_4px_#ffffff] rounded-lg opacity-80">
               {wallet.logo}
             </span>
-            <span className="text-[11px] font-semibold text-text-primary leading-tight">
-              {wallet.name}
-            </span>
-          </button>
+            <span className="text-[11px] text-text-secondary font-medium">{wallet.name}</span>
+          </div>
         ))}
       </div>
 
