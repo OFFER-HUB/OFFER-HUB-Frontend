@@ -1,184 +1,50 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ProfileViewsCard } from "@/components/analytics/ProfileViewsCard";
 import { useAuthStore } from "@/stores/auth-store";
-import { cn } from "@/lib/cn";
-import { NEUMORPHIC_CARD, NEUMORPHIC_BUTTON, NEUMORPHIC_INSET, ICON_CONTAINER } from "@/lib/styles";
-import { Icon, ICON_PATHS } from "@/components/ui/Icon";
-import { WalletAddress } from "@/components/ui/WalletAddress";
-import {
-  getDashboardStats,
-  getFreelancerStats,
-  getFreelancerActivities,
-  type FreelancerActivity,
-} from "@/lib/api/freelancer";
-import { getWalletBalance, type WalletBalanceSummary } from "@/lib/api/wallet";
-import type { DashboardStats } from "@/types/freelancer-dashboard.types";
+import { useFreelancerDashboardData } from "@/hooks/useFreelancerDashboardData";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
+import { cn } from "@/lib/cn";
+import { NEUMORPHIC_CARD } from "@/lib/styles";
+import type { FreelancerActivity } from "@/lib/api/freelancer";
+import { ProfileViewsCard } from "@/components/analytics/ProfileViewsCard";
+import { Icon, ICON_PATHS } from "@/components/ui/Icon";
+import { ActivityFeedItem, ActivityFeedItemSkeleton } from "@/components/ui/ActivityFeedItem";
+import { DashboardWalletHeader } from "@/components/ui/DashboardWalletHeader";
+import { QuickActionButton } from "@/components/ui/QuickActionButton";
 import { StatsCard } from "./StatsCard";
 import { ProfileCompleteness } from "./ProfileCompleteness";
 import { RecommendedOffers } from "./RecommendedOffers";
 
-// ── Sub-components ────────────────────────────────────────────────────────────
+const ACTIVITY_ICON_PATHS: Record<FreelancerActivity["type"], string> = {
+  order_created: ICON_PATHS.briefcase,
+  order_completed: ICON_PATHS.check,
+  payment_received: ICON_PATHS.currency,
+  withdrawal_completed: ICON_PATHS.document,
+  topup_completed: ICON_PATHS.plus,
+};
 
-function QuickAction({
-  href,
-  iconPath,
-  iconColor,
-  title,
-  description,
-}: {
-  href: string;
-  iconPath: string;
-  iconColor: string;
-  title: string;
-  description: string;
-}): React.JSX.Element {
-  return (
-    <Link href={href} className={NEUMORPHIC_BUTTON}>
-      <div className={cn(ICON_CONTAINER, iconColor)}>
-        <Icon path={iconPath} className="text-white" />
-      </div>
-      <div>
-        <h3 className="font-semibold text-text-primary">{title}</h3>
-        <p className="text-sm text-text-secondary">{description}</p>
-      </div>
-    </Link>
-  );
-}
-
-function ActivityItem({ activity }: { activity: FreelancerActivity }): React.JSX.Element {
-  const iconMap: Record<FreelancerActivity["type"], string> = {
-    order_created: ICON_PATHS.briefcase,
-    order_completed: ICON_PATHS.check,
-    payment_received: ICON_PATHS.currency,
-    withdrawal_completed: ICON_PATHS.document,
-    topup_completed: ICON_PATHS.plus,
-  };
-
-  return (
-    <div className={cn("flex items-start gap-4 p-4 rounded-xl", NEUMORPHIC_INSET)}>
-      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-        <Icon
-          path={iconMap[activity.type] ?? ICON_PATHS.check}
-          size="md"
-          className="text-primary"
-        />
-      </div>
-      <div className="flex-1 min-w-0">
-        <p className="font-medium text-text-primary">{activity.title}</p>
-        <p className="text-sm text-text-secondary truncate">{activity.description}</p>
-      </div>
-      <span className="text-xs text-text-secondary whitespace-nowrap">{activity.time}</span>
-    </div>
-  );
-}
-
-// ── Main component ────────────────────────────────────────────────────────────
+const ACTIVITY_SKELETON_COUNT = 5;
 
 export function FreelancerDashboard(): React.JSX.Element {
-  const [mounted, setMounted] = useState(false);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const lastFetchRef = useRef<number>(0);
-
-  const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [activities, setActivities] = useState<FreelancerActivity[]>([]);
-  const [walletBalance, setWalletBalance] = useState<WalletBalanceSummary | null>(null);
-  const [isLoadingStats, setIsLoadingStats] = useState(true);
-  const [isLoadingActivities, setIsLoadingActivities] = useState(true);
-
   const user = useAuthStore((s) => s.user);
   const token = useAuthStore((s) => s.token);
 
-  const fetchData = useCallback(
-    async (force = false) => {
-      if (!token) {
-        setIsLoadingStats(false);
-        setIsLoadingActivities(false);
-        return;
-      }
+  const {
+    stats,
+    activities,
+    walletBalance,
+    isLoading,
+    isRefreshing,
+    isMounted,
+    refetch,
+  } = useFreelancerDashboardData();
 
-      const now = Date.now();
-      if (!force && now - lastFetchRef.current < 2000) return;
-      lastFetchRef.current = now;
+  const { isPulling, pullDistance } = usePullToRefresh(refetch);
 
-      setIsLoadingStats(true);
-      setIsLoadingActivities(true);
+  if (!isMounted) return <div className="min-h-screen bg-background" />;
 
-      try {
-        // Try the richer endpoint first; fall back to existing stats endpoint
-        const statsPromise = getDashboardStats(token).catch(async () => {
-          const legacy = await getFreelancerStats(token);
-          return {
-            activeApplications: legacy.pendingProposals,
-            activeOrders: 0,
-            totalEarnings: legacy.totalEarnings,
-            rating: null,
-            ratingCount: 0,
-            activeApplicationsTrend: null,
-            activeOrdersTrend: null,
-            earningsTrend: null,
-            ratingTrend: null,
-          } satisfies DashboardStats;
-        });
-
-        const [statsData, activitiesData, balanceData] = await Promise.all([
-          statsPromise,
-          getFreelancerActivities(token),
-          getWalletBalance(token).catch(() => null),
-        ]);
-
-        setStats(statsData);
-        setActivities(activitiesData);
-        setWalletBalance(balanceData);
-      } catch (err) {
-        console.error("Failed to fetch freelancer dashboard data:", err);
-      } finally {
-        setIsLoadingStats(false);
-        setIsLoadingActivities(false);
-      }
-    },
-    [token]
-  );
-
-  const handleRefresh = useCallback(async () => {
-    setIsRefreshing(true);
-    await fetchData(true);
-    setIsRefreshing(false);
-  }, [fetchData]);
-
-  const { isPulling, pullDistance } = usePullToRefresh(handleRefresh);
-
-  useEffect(() => {
-    setMounted(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    if (!mounted) return;
-    fetchData(true);
-  }, [mounted, fetchData]);
-
-  useEffect(() => {
-    if (!mounted) return;
-    const onVisible = () => document.visibilityState === "visible" && fetchData();
-    const onFocus = () => fetchData();
-    document.addEventListener("visibilitychange", onVisible);
-    window.addEventListener("focus", onFocus);
-    return () => {
-      document.removeEventListener("visibilitychange", onVisible);
-      window.removeEventListener("focus", onFocus);
-    };
-  }, [mounted, fetchData]);
-
-  if (!mounted) return <div className="min-h-screen bg-background" />;
-
-  const ratingValue =
-    stats?.rating != null
-      ? `${stats.rating.toFixed(1)} ★`
-      : "No ratings";
+  const ratingValue = stats?.rating != null ? `${stats.rating.toFixed(1)} ★` : "No ratings";
 
   return (
     <div className="space-y-8 pb-10">
@@ -206,87 +72,16 @@ export function FreelancerDashboard(): React.JSX.Element {
           <p className="text-text-secondary mt-2 text-lg">
             Manage your services and grow your freelance business
           </p>
-          {user?.wallet?.publicKey ? (
-            <div className="mt-4 flex flex-wrap items-center gap-3">
-              <WalletAddress address={user.wallet.publicKey} />
-              {walletBalance && (
-                <Link
-                  href="/app/wallet"
-                  className={cn(
-                    "inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl",
-                    "bg-white",
-                    "shadow-[2px_2px_4px_#d1d5db,-2px_-2px_4px_#ffffff]",
-                    "hover:shadow-[inset_1px_1px_2px_#d1d5db,inset_-1px_-1px_2px_#ffffff]",
-                    "active:shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]",
-                    "transition-all duration-200",
-                    "group"
-                  )}
-                  title="View wallet"
-                >
-                  <div className="w-5 h-5 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                    <Icon
-                      path={ICON_PATHS.currency}
-                      size="sm"
-                      className="text-primary group-hover:scale-110 transition-transform duration-300"
-                    />
-                  </div>
-                  <div className="flex flex-col items-start leading-none pr-1">
-                    <span className="text-[9px] uppercase font-bold tracking-wider text-text-secondary">
-                      Balance
-                    </span>
-                    <span className="text-xs font-bold text-text-primary mt-0.5 group-hover:text-primary transition-colors">
-                      {new Intl.NumberFormat("en-US", {
-                        style: "currency",
-                        currency: walletBalance.currency,
-                      }).format(parseFloat(walletBalance.availableBalance))}
-                    </span>
-                  </div>
-                  <Icon
-                    path={ICON_PATHS.chevronRight}
-                    size="sm"
-                    className="text-text-secondary/50 group-hover:text-primary transition-colors group-hover:translate-x-0.5 transition-transform"
-                  />
-                </Link>
-              )}
-            </div>
-          ) : (
-            <div className="mt-4 inline-block">
-              <Link
-                href="/app/wallet"
-                className={cn(
-                  "inline-flex items-center gap-2 px-3 py-2 rounded-xl",
-                  "bg-white",
-                  "shadow-[2px_2px_4px_#d1d5db,-2px_-2px_4px_#ffffff]",
-                  "hover:shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]",
-                  "active:shadow-[inset_3px_3px_6px_#d1d5db,inset_-3px_-3px_6px_#ffffff]",
-                  "transition-all duration-200",
-                  "group"
-                )}
-              >
-                <div className="w-5 h-5 rounded-lg bg-red-500/10 flex items-center justify-center flex-shrink-0">
-                  <Icon
-                    path={ICON_PATHS.alertCircle}
-                    size="sm"
-                    className="text-red-500"
-                  />
-                </div>
-                <span className="text-sm font-medium text-text-secondary group-hover:text-red-500 transition-colors">
-                  No wallet connected
-                </span>
-                <Icon
-                  path={ICON_PATHS.chevronRight}
-                  size="sm"
-                  className="text-text-secondary/60 group-hover:text-red-500 transition-colors group-hover:translate-x-0.5 transition-transform"
-                />
-              </Link>
-            </div>
-          )}
+          <DashboardWalletHeader
+            walletAddress={user?.wallet?.publicKey}
+            balance={walletBalance}
+          />
         </div>
 
         {/* Manual refresh button */}
         <button
           type="button"
-          onClick={handleRefresh}
+          onClick={refetch}
           disabled={isRefreshing}
           className={cn(
             "flex-shrink-0 p-2.5 rounded-xl mt-1",
@@ -307,28 +102,28 @@ export function FreelancerDashboard(): React.JSX.Element {
 
       {/* Quick Actions */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 stagger-2 animate-fade-in-up">
-        <QuickAction
+        <QuickActionButton
           href="/app/freelancer/services/new"
           iconPath={ICON_PATHS.plus}
           iconColor="bg-primary/90 shadow-lg shadow-primary/20"
           title="Create Service"
           description="Offer a new service to clients"
         />
-        <QuickAction
+        <QuickActionButton
           href="/marketplace/offers"
           iconPath={ICON_PATHS.search}
           iconColor="bg-accent/90 shadow-lg shadow-accent/20"
           title="Browse Offers"
           description="Find new opportunities"
         />
-        <QuickAction
+        <QuickActionButton
           href="/app/freelancer/applications"
           iconPath={ICON_PATHS.document}
           iconColor="bg-secondary/90 shadow-lg shadow-secondary/20"
           title="My Applications"
           description="Track your proposals"
         />
-        <QuickAction
+        <QuickActionButton
           href="/app/orders"
           iconPath={ICON_PATHS.briefcase}
           iconColor="bg-success/90 shadow-lg shadow-success/20"
@@ -345,7 +140,7 @@ export function FreelancerDashboard(): React.JSX.Element {
           iconPath={ICON_PATHS.document}
           accentColor="bg-primary"
           trend={stats?.activeApplicationsTrend}
-          isLoading={isLoadingStats}
+          isLoading={isLoading}
           subtitle="Pending proposals sent"
         />
         <StatsCard
@@ -354,7 +149,7 @@ export function FreelancerDashboard(): React.JSX.Element {
           iconPath={ICON_PATHS.briefcase}
           accentColor="bg-secondary"
           trend={stats?.activeOrdersTrend}
-          isLoading={isLoadingStats}
+          isLoading={isLoading}
           subtitle="In progress"
         />
         <StatsCard
@@ -363,7 +158,7 @@ export function FreelancerDashboard(): React.JSX.Element {
           iconPath={ICON_PATHS.currency}
           accentColor="bg-success"
           trend={stats?.earningsTrend}
-          isLoading={isLoadingStats}
+          isLoading={isLoading}
           subtitle="From released orders"
         />
         <StatsCard
@@ -372,7 +167,7 @@ export function FreelancerDashboard(): React.JSX.Element {
           iconPath={ICON_PATHS.star}
           accentColor="bg-accent"
           trend={stats?.ratingTrend}
-          isLoading={isLoadingStats}
+          isLoading={isLoading}
           subtitle="Avg. from reviews"
         />
       </div>
@@ -405,22 +200,9 @@ export function FreelancerDashboard(): React.JSX.Element {
           </div>
 
           <div className="grid grid-cols-1 gap-4">
-            {isLoadingActivities ? (
-              Array.from({ length: 5 }).map((_, i) => (
-                <div
-                  key={i}
-                  className={cn(
-                    "flex items-start gap-4 p-4 rounded-xl animate-pulse",
-                    NEUMORPHIC_INSET
-                  )}
-                >
-                  <div className="w-10 h-10 rounded-lg bg-gray-200 flex-shrink-0" />
-                  <div className="flex-1">
-                    <div className="h-5 bg-gray-200 rounded mb-2 w-1/3" />
-                    <div className="h-4 bg-gray-200 rounded w-2/3" />
-                  </div>
-                  <div className="h-4 bg-gray-200 rounded w-16" />
-                </div>
+            {isLoading ? (
+              Array.from({ length: ACTIVITY_SKELETON_COUNT }).map((_, i) => (
+                <ActivityFeedItemSkeleton key={i} />
               ))
             ) : activities.length > 0 ? (
               activities.slice(0, 5).map((activity, idx) => (
@@ -429,7 +211,13 @@ export function FreelancerDashboard(): React.JSX.Element {
                   className="animate-fade-in"
                   style={{ animationDelay: `${0.1 * idx}s` }}
                 >
-                  <ActivityItem activity={activity} />
+                  <ActivityFeedItem
+                    type={activity.type}
+                    title={activity.title}
+                    subtitle={activity.description}
+                    time={activity.time}
+                    iconByType={ACTIVITY_ICON_PATHS}
+                  />
                 </div>
               ))
             ) : (

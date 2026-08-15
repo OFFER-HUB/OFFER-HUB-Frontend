@@ -1,282 +1,61 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
-import { ClientDashboardSkeleton } from "@/components/client-dashboard/ClientDashboardSkeleton";
+import { useEffect } from "react";
 import Link from "next/link";
-import { useAuthStore } from "@/stores/auth-store";
+import { useAuthStore, type User } from "@/stores/auth-store";
 import { useModeStore } from "@/stores/mode-store";
+import { useClientDashboardData } from "@/hooks/useClientDashboardData";
+import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { cn } from "@/lib/cn";
-import { NEUMORPHIC_CARD, NEUMORPHIC_BUTTON, NEUMORPHIC_INSET, ICON_CONTAINER } from "@/lib/styles";
+import { NEUMORPHIC_CARD } from "@/lib/styles";
+import type { ClientActivity } from "@/lib/api/client";
 import { Icon, ICON_PATHS } from "@/components/ui/Icon";
-import { WalletAddress } from "@/components/ui/WalletAddress";
-import {
-  getClientStats,
-  getClientActivities,
-  type ClientStats,
-  type ClientActivity,
-} from "@/lib/api/client";
-import { getMyOffers, type Offer } from "@/lib/api/offers";
-import { getWalletBalance, type WalletBalanceSummary } from "@/lib/api/wallet";
+import { ActivityFeedItem, ActivityFeedItemSkeleton } from "@/components/ui/ActivityFeedItem";
+import { DashboardWalletHeader } from "@/components/ui/DashboardWalletHeader";
+import { QuickActionButton } from "@/components/ui/QuickActionButton";
 import { ApplicationsToReview } from "@/components/client-dashboard/ApplicationsToReview";
+import { ClientDashboardSkeleton } from "@/components/client-dashboard/ClientDashboardSkeleton";
+import { ClientStatCard } from "@/components/client-dashboard/ClientStatCard";
 import { RecommendedFreelancers } from "@/components/client-dashboard/RecommendedFreelancers";
 import { ProfileCompleteness } from "@/components/profile/ProfileCompleteness";
 
-// ── Sub-components ────────────────────────────────────────────────────────────
+const ACTIVITY_ICON_PATHS: Record<ClientActivity["type"], string> = {
+  order_created: ICON_PATHS.briefcase,
+  order_completed: ICON_PATHS.check,
+  topup_completed: ICON_PATHS.currency,
+};
 
-function QuickAction({
-  href,
-  iconPath,
-  iconColor,
-  title,
-  description,
-}: {
-  href: string;
-  iconPath: string;
-  iconColor: string;
-  title: string;
-  description: string;
-}): React.JSX.Element {
-  return (
-    <Link href={href} className={NEUMORPHIC_BUTTON}>
-      <div className={cn(ICON_CONTAINER, iconColor)}>
-        <Icon path={iconPath} className="text-white" />
-      </div>
-      <div>
-        <h3 className="font-semibold text-text-primary">{title}</h3>
-        <p className="text-sm text-text-secondary">{description}</p>
-      </div>
-    </Link>
-  );
+const ACTIVITY_SKELETON_COUNT = 5;
+
+/** Full name when the profile carries one, otherwise whatever identifies the user. */
+function greetingName(user: User | null): string {
+  if (!user) return "Client";
+  if (user.firstName && user.lastName) return `${user.firstName} ${user.lastName}`;
+  return user.firstName || user.username || "Client";
 }
-
-function StatCard({
-  label,
-  value,
-  iconPath,
-  color,
-  isPositive,
-  subtitle,
-}: {
-  label: string;
-  value: string | number;
-  iconPath: string;
-  color: string;
-  isPositive?: boolean;
-  subtitle?: string;
-}): React.JSX.Element {
-  const numericValue =
-    typeof value === "string" ? parseFloat(value.replace(/[^0-9.]/g, "")) : value;
-  const hasValue = numericValue > 0;
-
-  return (
-    <div
-      className={cn(
-        NEUMORPHIC_CARD,
-        "group transition-all duration-300 hover:-translate-y-1",
-        "hover:shadow-[10px_10px_20px_#d1d5db,-10px_-10px_20px_#ffffff]"
-      )}
-    >
-      <div className="flex items-center gap-4">
-        <div
-          className={cn(
-            ICON_CONTAINER,
-            color,
-            "group-hover:scale-110 transition-transform duration-500"
-          )}
-        >
-          <Icon path={iconPath} className="text-white" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-2xl font-bold text-text-primary truncate">{value}</p>
-          <div className="flex items-center gap-1.5 mt-0.5">
-            <p className="text-sm text-text-secondary">{label}</p>
-            {hasValue && (
-              <span
-                className={cn(
-                  "text-[10px] font-semibold flex items-center gap-0.5",
-                  isPositive === false ? "text-error" : "text-success"
-                )}
-              >
-                <Icon
-                  path={isPositive === false ? ICON_PATHS.arrowDown : ICON_PATHS.arrowUp}
-                  size="sm"
-                />
-              </span>
-            )}
-          </div>
-          {subtitle && (
-            <p className="text-xs text-text-secondary mt-0.5">{subtitle}</p>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function ActivityItem({ activity }: { activity: ClientActivity }): React.JSX.Element {
-  const iconMap: Record<ClientActivity["type"], string> = {
-    order_created: ICON_PATHS.briefcase,
-    order_completed: ICON_PATHS.check,
-    topup_completed: ICON_PATHS.currency,
-  };
-
-  return (
-    <div className={cn("flex items-start gap-4 p-4 rounded-xl", NEUMORPHIC_INSET)}>
-      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-        <Icon
-          path={iconMap[activity.type] ?? ICON_PATHS.check}
-          size="md"
-          className="text-primary"
-        />
-      </div>
-      <div className="flex-1 min-w-0">
-        <p className="font-medium text-text-primary">{activity.title}</p>
-        <p className="text-sm text-text-secondary truncate">{activity.description}</p>
-      </div>
-      <span className="text-xs text-text-secondary whitespace-nowrap">{activity.time}</span>
-    </div>
-  );
-}
-
-// ── Pull-to-refresh hook ──────────────────────────────────────────────────────
-
-const PULL_THRESHOLD = 80;
-
-function usePullToRefresh(onRefresh: () => void): {
-  isPulling: boolean;
-  pullDistance: number;
-} {
-  const [isPulling, setIsPulling] = useState(false);
-  const [pullDistance, setPullDistance] = useState(0);
-  const startYRef = useRef(0);
-
-  useEffect(() => {
-    function onTouchStart(e: TouchEvent): void {
-      if (window.scrollY === 0) {
-        startYRef.current = e.touches[0].clientY;
-      }
-    }
-
-    function onTouchMove(e: TouchEvent): void {
-      if (startYRef.current === 0) return;
-      const delta = e.touches[0].clientY - startYRef.current;
-      if (delta > 0) {
-        setPullDistance(Math.min(delta, PULL_THRESHOLD * 1.5));
-        setIsPulling(delta >= PULL_THRESHOLD);
-      }
-    }
-
-    function onTouchEnd(): void {
-      if (isPulling) onRefresh();
-      setIsPulling(false);
-      setPullDistance(0);
-      startYRef.current = 0;
-    }
-
-    document.addEventListener("touchstart", onTouchStart, { passive: true });
-    document.addEventListener("touchmove", onTouchMove, { passive: true });
-    document.addEventListener("touchend", onTouchEnd);
-
-    return () => {
-      document.removeEventListener("touchstart", onTouchStart);
-      document.removeEventListener("touchmove", onTouchMove);
-      document.removeEventListener("touchend", onTouchEnd);
-    };
-  }, [isPulling, onRefresh]);
-
-  return { isPulling, pullDistance };
-}
-
-// ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function ClientDashboardPage(): React.JSX.Element {
   const { setMode } = useModeStore();
-  const [mounted, setMounted] = useState(false);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const lastFetchRef = useRef<number>(0);
-
-  const [stats, setStats] = useState<ClientStats | null>(null);
-  const [activities, setActivities] = useState<ClientActivity[]>([]);
-  const [offers, setOffers] = useState<Offer[]>([]);
-  const [walletBalance, setWalletBalance] = useState<WalletBalanceSummary | null>(null);
-  const [isLoadingStats, setIsLoadingStats] = useState(true);
-  const [isLoadingActivities, setIsLoadingActivities] = useState(true);
-  const [isLoadingOffers, setIsLoadingOffers] = useState(true);
-
   const user = useAuthStore((s) => s.user);
-  const token = useAuthStore((s) => s.token);
 
-  const fetchData = useCallback(
-    async (force = false) => {
-      if (!token) {
-        setIsLoadingStats(false);
-        setIsLoadingActivities(false);
-        setIsLoadingOffers(false);
-        return;
-      }
+  const {
+    stats,
+    activities,
+    offers,
+    walletBalance,
+    isLoading,
+    isRefreshing,
+    isMounted,
+    refetch,
+  } = useClientDashboardData();
 
-      const now = Date.now();
-      if (!force && now - lastFetchRef.current < 2000) return;
-      lastFetchRef.current = now;
-
-      setIsLoadingStats(true);
-      setIsLoadingActivities(true);
-      setIsLoadingOffers(true);
-
-      try {
-        const [statsData, activitiesData, offersData, balanceData] = await Promise.all([
-          getClientStats(token),
-          getClientActivities(token),
-          getMyOffers(token),
-          getWalletBalance(token).catch(() => null),
-        ]);
-        setStats(statsData);
-        setActivities(activitiesData);
-        setOffers(offersData);
-        setWalletBalance(balanceData);
-      } catch (err) {
-        console.error("Failed to fetch client dashboard data:", err);
-      } finally {
-        setIsLoadingStats(false);
-        setIsLoadingActivities(false);
-        setIsLoadingOffers(false);
-      }
-    },
-    [token]
-  );
-
-  const handleRefresh = useCallback(async () => {
-    setIsRefreshing(true);
-    await fetchData(true);
-    setIsRefreshing(false);
-  }, [fetchData]);
-
-  const { isPulling, pullDistance } = usePullToRefresh(handleRefresh);
+  const { isPulling, pullDistance } = usePullToRefresh(refetch);
 
   useEffect(() => {
     setMode("client");
-    setMounted(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [setMode]);
 
-  useEffect(() => {
-    if (!mounted) return;
-    fetchData(true);
-  }, [mounted, fetchData]);
-
-  useEffect(() => {
-    if (!mounted) return;
-    const onVisible = () => document.visibilityState === "visible" && fetchData();
-    const onFocus = () => fetchData();
-    document.addEventListener("visibilitychange", onVisible);
-    window.addEventListener("focus", onFocus);
-    return () => {
-      document.removeEventListener("visibilitychange", onVisible);
-      window.removeEventListener("focus", onFocus);
-    };
-  }, [mounted, fetchData]);
-
-  if (!mounted) return <ClientDashboardSkeleton />;
+  if (!isMounted) return <ClientDashboardSkeleton />;
 
   return (
     <div className="space-y-8 pb-10">
@@ -299,91 +78,20 @@ export default function ClientDashboardPage(): React.JSX.Element {
       <div className="flex items-start justify-between gap-4 animate-fade-in-up">
         <div>
           <h1 className="text-3xl font-extrabold text-text-primary tracking-tight">
-            Welcome back, <span className="text-primary">{user ? ((user.firstName && user.lastName) ? `${user.firstName} ${user.lastName}` : (user.firstName || user.username || "Client")) : "Client"}</span>!
+            Welcome back, <span className="text-primary">{greetingName(user)}</span>!
           </h1>
           <p className="text-text-secondary mt-2 text-lg">
             Find talented freelancers and manage your projects effectively
           </p>
-          {user?.wallet?.publicKey ? (
-            <div className="mt-4 flex flex-wrap items-center gap-3">
-              <WalletAddress address={user.wallet.publicKey} />
-              {walletBalance && (
-                <Link
-                  href="/app/wallet"
-                  className={cn(
-                    "inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl",
-                    "bg-white",
-                    "shadow-[2px_2px_4px_#d1d5db,-2px_-2px_4px_#ffffff]",
-                    "hover:shadow-[inset_1px_1px_2px_#d1d5db,inset_-1px_-1px_2px_#ffffff]",
-                    "active:shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]",
-                    "transition-all duration-200",
-                    "group"
-                  )}
-                  title="View wallet"
-                >
-                  <div className="w-5 h-5 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                    <Icon
-                      path={ICON_PATHS.currency}
-                      size="sm"
-                      className="text-primary group-hover:scale-110 transition-transform duration-300"
-                    />
-                  </div>
-                  <div className="flex flex-col items-start leading-none pr-1">
-                    <span className="text-[9px] uppercase font-bold tracking-wider text-text-secondary">
-                      Balance
-                    </span>
-                    <span className="text-xs font-bold text-text-primary mt-0.5 group-hover:text-primary transition-colors">
-                      {new Intl.NumberFormat("en-US", {
-                        style: "currency",
-                        currency: walletBalance.currency,
-                      }).format(parseFloat(walletBalance.availableBalance))}
-                    </span>
-                  </div>
-                  <Icon
-                    path={ICON_PATHS.chevronRight}
-                    size="sm"
-                    className="text-text-secondary/50 group-hover:text-primary transition-colors group-hover:translate-x-0.5 transition-transform"
-                  />
-                </Link>
-              )}
-            </div>
-          ) : (
-            <div className="mt-4 inline-block">
-              <Link
-                href="/app/wallet"
-                className={cn(
-                  "inline-flex items-center gap-2 px-3 py-2 rounded-xl",
-                  "bg-white",
-                  "shadow-[2px_2px_4px_#d1d5db,-2px_-2px_4px_#ffffff]",
-                  "hover:shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]",
-                  "active:shadow-[inset_3px_3px_6px_#d1d5db,inset_-3px_-3px_6px_#ffffff]",
-                  "transition-all duration-200",
-                  "group"
-                )}
-              >
-                <div className="w-5 h-5 rounded-lg bg-red-500/10 flex items-center justify-center flex-shrink-0">
-                  <Icon
-                    path={ICON_PATHS.alertCircle}
-                    size="sm"
-                    className="text-red-500"
-                  />
-                </div>
-                <span className="text-sm font-medium text-text-secondary group-hover:text-red-500 transition-colors">
-                  No wallet connected
-                </span>
-                <Icon
-                  path={ICON_PATHS.chevronRight}
-                  size="sm"
-                  className="text-text-secondary/60 group-hover:text-red-500 transition-colors group-hover:translate-x-0.5 transition-transform"
-                />
-              </Link>
-            </div>
-          )}
+          <DashboardWalletHeader
+            walletAddress={user?.wallet?.publicKey}
+            balance={walletBalance}
+          />
         </div>
         {/* Manual refresh button */}
         <button
           type="button"
-          onClick={handleRefresh}
+          onClick={refetch}
           disabled={isRefreshing}
           className={cn(
             "flex-shrink-0 p-2.5 rounded-xl mt-1",
@@ -404,28 +112,28 @@ export default function ClientDashboardPage(): React.JSX.Element {
 
       {/* Quick Actions — 4 buttons */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 stagger-2 animate-fade-in-up">
-        <QuickAction
+        <QuickActionButton
           href="/app/client/offers/new"
           iconPath={ICON_PATHS.plus}
           iconColor="bg-primary/90 shadow-lg shadow-primary/20"
           title="Post an Offer"
           description="Find the right freelancer"
         />
-        <QuickAction
+        <QuickActionButton
           href="/marketplace"
           iconPath={ICON_PATHS.search}
           iconColor="bg-accent/90 shadow-lg shadow-accent/20"
           title="Browse Talent"
           description="Explore services & freelancers"
         />
-        <QuickAction
+        <QuickActionButton
           href="/app/client/offers"
           iconPath={ICON_PATHS.briefcase}
           iconColor="bg-secondary/90 shadow-lg shadow-secondary/20"
           title="My Offers"
           description="Manage posted offers"
         />
-        <QuickAction
+        <QuickActionButton
           href="/app/orders"
           iconPath={ICON_PATHS.list}
           iconColor="bg-success/90 shadow-lg shadow-success/20"
@@ -436,51 +144,39 @@ export default function ClientDashboardPage(): React.JSX.Element {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 stagger-3 animate-fade-in-up">
-        {isLoadingStats ? (
-          Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className={cn(NEUMORPHIC_CARD, "animate-pulse")}>
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-gray-200 flex-shrink-0" />
-                <div className="flex-1">
-                  <div className="h-8 bg-gray-200 rounded mb-2" />
-                  <div className="h-4 bg-gray-200 rounded w-2/3" />
-                </div>
-              </div>
-            </div>
-          ))
-        ) : (
-          <>
-            <StatCard
-              label="Active Offers"
-              value={stats?.activeOffers ?? 0}
-              iconPath={ICON_PATHS.document}
-              color="bg-primary"
-              subtitle="Awaiting freelancers"
-            />
-            <StatCard
-              label="Active Orders"
-              value={stats?.activeOrders ?? 0}
-              iconPath={ICON_PATHS.briefcase}
-              color="bg-secondary"
-              subtitle="In progress"
-            />
-            <StatCard
-              label="Services Purchased"
-              value={stats?.servicesPurchased ?? 0}
-              iconPath={ICON_PATHS.check}
-              color="bg-accent"
-              subtitle="Unique services hired"
-            />
-            <StatCard
-              label="Budget Spent"
-              value={stats?.budgetSpent ?? "$0.00"}
-              iconPath={ICON_PATHS.currency}
-              color="bg-success"
-              isPositive={false}
-              subtitle="All-time total orders"
-            />
-          </>
-        )}
+        <ClientStatCard
+          label="Active Offers"
+          value={stats?.activeOffers ?? 0}
+          iconPath={ICON_PATHS.document}
+          color="bg-primary"
+          subtitle="Awaiting freelancers"
+          isLoading={isLoading}
+        />
+        <ClientStatCard
+          label="Active Orders"
+          value={stats?.activeOrders ?? 0}
+          iconPath={ICON_PATHS.briefcase}
+          color="bg-secondary"
+          subtitle="In progress"
+          isLoading={isLoading}
+        />
+        <ClientStatCard
+          label="Services Purchased"
+          value={stats?.servicesPurchased ?? 0}
+          iconPath={ICON_PATHS.check}
+          color="bg-accent"
+          subtitle="Unique services hired"
+          isLoading={isLoading}
+        />
+        <ClientStatCard
+          label="Budget Spent"
+          value={stats?.budgetSpent ?? "$0.00"}
+          iconPath={ICON_PATHS.currency}
+          color="bg-success"
+          isPositive={false}
+          subtitle="All-time total orders"
+          isLoading={isLoading}
+        />
       </div>
 
       <div className="stagger-3 animate-fade-in-up">
@@ -488,7 +184,7 @@ export default function ClientDashboardPage(): React.JSX.Element {
       </div>
 
       {/* Applications Awaiting Review — shown only when there are applicants */}
-      <ApplicationsToReview offers={offers} isLoading={isLoadingOffers} />
+      <ApplicationsToReview offers={offers} isLoading={isLoading} />
 
       {/* Recent Activity */}
       <div className={cn(NEUMORPHIC_CARD, "stagger-4 animate-fade-in-up border border-white/40")}>
@@ -513,22 +209,9 @@ export default function ClientDashboardPage(): React.JSX.Element {
         </div>
 
         <div className="grid grid-cols-1 gap-4">
-          {isLoadingActivities ? (
-            Array.from({ length: 5 }).map((_, i) => (
-              <div
-                key={i}
-                className={cn(
-                  "flex items-start gap-4 p-4 rounded-xl animate-pulse",
-                  NEUMORPHIC_INSET
-                )}
-              >
-                <div className="w-10 h-10 rounded-lg bg-gray-200 flex-shrink-0" />
-                <div className="flex-1">
-                  <div className="h-5 bg-gray-200 rounded mb-2 w-1/3" />
-                  <div className="h-4 bg-gray-200 rounded w-2/3" />
-                </div>
-                <div className="h-4 bg-gray-200 rounded w-16" />
-              </div>
+          {isLoading ? (
+            Array.from({ length: ACTIVITY_SKELETON_COUNT }).map((_, i) => (
+              <ActivityFeedItemSkeleton key={i} />
             ))
           ) : activities.length > 0 ? (
             activities.slice(0, 5).map((activity, idx) => (
@@ -537,7 +220,13 @@ export default function ClientDashboardPage(): React.JSX.Element {
                 className="animate-fade-in"
                 style={{ animationDelay: `${0.1 * idx}s` }}
               >
-                <ActivityItem activity={activity} />
+                <ActivityFeedItem
+                  type={activity.type}
+                  title={activity.title}
+                  subtitle={activity.description}
+                  time={activity.time}
+                  iconByType={ACTIVITY_ICON_PATHS}
+                />
               </div>
             ))
           ) : (
