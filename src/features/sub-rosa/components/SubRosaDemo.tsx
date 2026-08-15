@@ -77,7 +77,13 @@ export function SubRosaDemo(): React.JSX.Element {
     <main className="min-h-screen bg-background px-4 py-10 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto">
         <header className="mb-6">
-          <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold text-secondary bg-secondary/10">
+          <span
+            className={cn(
+              "inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold",
+              "bg-background text-secondary",
+              "shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]"
+            )}
+          >
             <Icon path={ICON_PATHS.lock} size="sm" className="w-3.5 h-3.5" />
             Optional sealed proposals
           </span>

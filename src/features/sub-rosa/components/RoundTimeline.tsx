@@ -32,10 +32,16 @@ export function RoundTimeline({ phase }: RoundTimelineProps): React.JSX.Element 
             <span
               className={cn(
                 "inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-medium",
-                "transition-colors duration-200",
-                isCurrent && "bg-primary text-white",
-                isDone && "bg-primary/10 text-primary",
-                !isDone && !isCurrent && "bg-background text-text-secondary"
+                "transition-all duration-200",
+                // Raised for the step in progress, sunken for everything else:
+                // the elevation carries the state as much as the colour does.
+                isCurrent &&
+                  "bg-primary text-white shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]",
+                isDone &&
+                  "bg-background text-primary shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]",
+                !isDone &&
+                  !isCurrent &&
+                  "bg-background text-text-secondary shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]"
               )}
               aria-current={isCurrent ? "step" : undefined}
             >

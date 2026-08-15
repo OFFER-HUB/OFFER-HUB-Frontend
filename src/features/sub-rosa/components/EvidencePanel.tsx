@@ -52,7 +52,12 @@ export function EvidencePanel({
           <Icon path={ICON_PATHS.shield} size="sm" className="text-text-secondary" />
           <h3 className="text-sm font-bold text-text-primary">Evidence</h3>
         </div>
-        <span className="px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wide bg-secondary text-white">
+        <span
+          className={cn(
+            "px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wide",
+            "bg-secondary text-white shadow-[2px_2px_4px_#d1d5db,-2px_-2px_4px_#ffffff]"
+          )}
+        >
           DEMO
         </span>
       </div>

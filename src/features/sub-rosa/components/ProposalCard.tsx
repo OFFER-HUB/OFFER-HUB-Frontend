@@ -53,7 +53,12 @@ function SealedBody(): React.JSX.Element {
         {PRIVATE_FIELDS.map((field) => (
           <li
             key={field}
-            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white text-xs text-text-secondary"
+            className={cn(
+              "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs text-text-secondary",
+              // Raised chips inside the sunken well — the locked fields read as
+              // objects sitting in the recess rather than painted onto it.
+              "bg-white shadow-[2px_2px_4px_#d1d5db,-2px_-2px_4px_#ffffff]"
+            )}
           >
             <Icon path={ICON_PATHS.lock} size="sm" className="w-3 h-3" />
             {field}
@@ -93,7 +98,8 @@ export function ProposalCard({
         <span
           className={cn(
             "inline-flex items-center gap-1.5 shrink-0 px-2.5 py-1 rounded-full text-xs font-medium",
-            proposal.isRevealed ? "bg-primary/10 text-primary" : "bg-secondary/10 text-secondary"
+            "bg-background shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]",
+            proposal.isRevealed ? "text-primary" : "text-secondary"
           )}
         >
           <Icon

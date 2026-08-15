@@ -47,7 +47,8 @@ export function JobCard({
         <span
           className={cn(
             "inline-flex items-center gap-2 px-3 py-1.5 rounded-full",
-            "text-xs font-semibold text-primary bg-primary/10"
+            "text-xs font-semibold text-primary bg-background",
+            "shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]"
           )}
         >
           <Icon path={ICON_PATHS.lock} size="sm" />
