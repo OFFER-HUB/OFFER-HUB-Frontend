@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { cn } from "@/lib/cn";
 import { LoadingSpinner } from "@/components/ui/Icon";
 import { WalletConnectModal } from "@/components/wallet/WalletConnectModal";
@@ -19,55 +20,10 @@ const STEP_LABEL: Record<Exclude<WalletAuthStep, "idle">, string> = {
   verifying: "Verifying signature…",
 };
 
-// Wallet brand data — logos inlined so there are no external asset deps
 const WALLETS = [
-  {
-    id: "freighter",
-    name: "Freighter",
-    description: "Stellar.org",
-    logo: (
-      <svg viewBox="0 0 40 40" fill="none" className="w-6 h-6" aria-hidden="true">
-        <rect width="40" height="40" rx="10" fill="#5E4EE6" />
-        <path
-          d="M10 20.5h20M10 14.5l12 6-12 6"
-          stroke="#fff"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-    ),
-  },
-  {
-    id: "lobstr",
-    name: "Lobstr",
-    description: "Ultra Stellar",
-    logo: (
-      <svg viewBox="0 0 40 40" fill="none" className="w-6 h-6" aria-hidden="true">
-        <rect width="40" height="40" rx="10" fill="#1A1A2E" />
-        <ellipse cx="20" cy="22" rx="8" ry="10" stroke="#00CFAA" strokeWidth="2" />
-        <path d="M14 16c2-4 10-4 12 0" stroke="#00CFAA" strokeWidth="2" strokeLinecap="round" />
-        <circle cx="20" cy="13" r="2" fill="#00CFAA" />
-      </svg>
-    ),
-  },
-  {
-    id: "xbull",
-    name: "xBull",
-    description: "xBull Wallet",
-    logo: (
-      <svg viewBox="0 0 40 40" fill="none" className="w-6 h-6" aria-hidden="true">
-        <rect width="40" height="40" rx="10" fill="#0D0D0D" />
-        <path
-          d="M12 12l8 8-8 8M20 20h8"
-          stroke="#F5A623"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-    ),
-  },
+  { id: "freighter", name: "Freighter", src: "/wallets/freighter_logo.png" },
+  { id: "lobstr", name: "Lobstr", src: "/wallets/lobstr_logo.png" },
+  { id: "xbull", name: "xBull", src: "/wallets/xbull_logo.png" },
 ] as const;
 
 export function WalletSignInButton({
@@ -94,39 +50,34 @@ export function WalletSignInButton({
   }
 
   return (
-    <div className={cn("flex flex-col gap-4", className)}>
+    <div className={cn("flex flex-col gap-3", className)}>
 
-      {/* Supported wallets */}
-      <div className="flex items-center justify-center gap-3">
+      {/* Supported wallet logos */}
+      <div className="flex items-center justify-center gap-4">
         {WALLETS.map((wallet) => (
-          <div
-            key={wallet.id}
-            className="flex items-center gap-1.5"
-            title={wallet.name}
-          >
-            <span className="shadow-[2px_2px_4px_#d1d5db,-2px_-2px_4px_#ffffff] rounded-lg opacity-80">
-              {wallet.logo}
+          <div key={wallet.id} className="flex flex-col items-center gap-1" title={wallet.name}>
+            <span className="shadow-[2px_2px_4px_#d1d5db,-2px_-2px_4px_#ffffff] rounded-xl p-0.5 bg-white">
+              <Image src={wallet.src} alt={wallet.name} width={36} height={36} className="rounded-lg" />
             </span>
-            <span className="text-[11px] text-text-secondary font-medium">{wallet.name}</span>
+            <span className="text-[10px] text-text-secondary font-medium">{wallet.name}</span>
           </div>
         ))}
       </div>
 
-      {/* Primary CTA */}
+      {/* Primary CTA — matches the email sign-in button style */}
       <button
         type="button"
         onClick={handleConnect}
         disabled={disabled || isAuthenticating}
         aria-busy={isAuthenticating}
         className={cn(
-          "w-full flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-xl",
-          "bg-white text-primary font-semibold text-sm cursor-pointer",
-          "shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff]",
-          "hover:shadow-[8px_8px_16px_#d1d5db,-8px_-8px_16px_#ffffff]",
-          "active:shadow-[inset_4px_4px_8px_#d1d5db,inset_-4px_-4px_8px_#ffffff] active:scale-[0.99]",
-          "focus-visible:ring-2 focus-visible:ring-primary/30 outline-none",
-          "transition-all duration-150",
-          "disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff]",
+          "w-full px-6 py-3 rounded-xl font-medium mt-1 cursor-pointer",
+          "bg-primary text-white",
+          "shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]",
+          "hover:bg-primary-hover hover:shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff] hover:scale-[1.02]",
+          "active:shadow-[inset_4px_4px_8px_rgba(0,0,0,0.2)] active:scale-[0.98]",
+          "disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100",
+          "transition-all duration-200 flex items-center justify-center gap-2",
         )}
       >
         {isAuthenticating ? (
