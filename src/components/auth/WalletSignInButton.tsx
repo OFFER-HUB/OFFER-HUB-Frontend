@@ -119,14 +119,14 @@ export function WalletSignInButton({
         disabled={disabled || isAuthenticating}
         aria-busy={isAuthenticating}
         className={cn(
-          "w-full flex items-center justify-center gap-2.5 px-6 py-3 rounded-xl",
-          "bg-primary text-white font-medium text-sm cursor-pointer",
-          "shadow-[4px_4px_8px_#b8d0d0,-4px_-4px_8px_#ffffff]",
-          "hover:brightness-105 hover:shadow-[6px_6px_12px_#b8d0d0,-6px_-6px_12px_#ffffff] hover:scale-[1.01]",
-          "active:shadow-[inset_3px_3px_6px_rgba(0,0,0,0.15)] active:scale-[0.99]",
-          "focus-visible:ring-2 focus-visible:ring-primary/40 outline-none",
+          "w-full flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-xl",
+          "bg-white text-primary font-semibold text-sm cursor-pointer",
+          "shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff]",
+          "hover:shadow-[8px_8px_16px_#d1d5db,-8px_-8px_16px_#ffffff]",
+          "active:shadow-[inset_4px_4px_8px_#d1d5db,inset_-4px_-4px_8px_#ffffff] active:scale-[0.99]",
+          "focus-visible:ring-2 focus-visible:ring-primary/30 outline-none",
           "transition-all duration-150",
-          "disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100",
+          "disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff]",
         )}
       >
         {isAuthenticating ? (
