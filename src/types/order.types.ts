@@ -14,6 +14,22 @@ export type OrderStatus =
 
 export type OrderSource = 'DIRECT' | 'SERVICE' | 'APPLICATION';
 
+/** Either side of an order, as embedded in the order payload. */
+export interface OrderParticipant {
+  id: string;
+  email: string;
+  name?: string;
+  username?: string;
+  avatar?: string;
+}
+
+/** Soroban escrow backing an order, present once the contract has been created. */
+export interface OrderEscrow {
+  id: string;
+  status: string;
+  trustlessContractId?: string;
+}
+
 export interface Order {
   id: string;
   buyerId: string;
@@ -26,29 +42,13 @@ export interface Order {
   status: OrderStatus;
   createdAt: string;
   updatedAt: string;
-  buyer?: {
-    id: string;
-    email: string;
-    name?: string;
-    username?: string;
-    avatar?: string;
-  };
-  seller?: {
-    id: string;
-    email: string;
-    name?: string;
-    username?: string;
-    avatar?: string;
-  };
+  buyer?: OrderParticipant;
+  seller?: OrderParticipant;
   service?: {
     id: string;
     title: string;
   };
-  escrow?: {
-    id: string;
-    status: string;
-    trustlessContractId?: string;
-  };
+  escrow?: OrderEscrow;
   milestones?: Milestone[];
   metadata?: Record<string, any>;
 }
