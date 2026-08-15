@@ -123,7 +123,7 @@ export function WalletConnectModal({
         aria-describedby="wallet-connect-description"
         className={cn(
           "relative w-full max-w-sm outline-none overflow-hidden",
-          "rounded-2xl bg-[#F3F4F6]",
+          "rounded-2xl bg-white",
           "shadow-[12px_12px_24px_#c8ccd4,-12px_-12px_24px_#ffffff]",
           "animate-scale-in",
         )}
@@ -203,7 +203,7 @@ export function WalletConnectModal({
                   onClick={handleDisconnect}
                   className={cn(
                     "flex-1 px-4 py-2.5 rounded-xl text-sm font-medium",
-                    "text-text-secondary bg-[#F3F4F6]",
+                    "text-text-secondary bg-white",
                     "shadow-[3px_3px_6px_#d1d5db,-3px_-3px_6px_#ffffff]",
                     "hover:text-error active:shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]",
                     "transition-all duration-200 cursor-pointer",
@@ -265,7 +265,7 @@ export function WalletConnectModal({
                           }
                           className={cn(
                             "group w-full flex items-center gap-3.5 px-4 py-3.5 rounded-xl text-left",
-                            "bg-[#F3F4F6] transition-all duration-200 outline-none",
+                            "bg-white transition-all duration-200 outline-none",
                             available
                               ? [
                                   "shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]",
