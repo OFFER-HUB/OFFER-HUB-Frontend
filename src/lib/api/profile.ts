@@ -30,6 +30,7 @@ export interface UpdateProfileData {
   location?: string;
   timezone?: string;
   phone?: string;
+  type?: "BUYER" | "SELLER" | "BOTH";
 }
 
 /**
