@@ -126,6 +126,10 @@ export function useWalletAuth(): UseWalletAuthResult {
         login(session.user, session.token);
         connectWallet(effectiveKey);
 
+        // Wallet-first accounts land with firstName === null. Callers decide
+        // the next route with isNewUser(session.user) so WalletSignInButton
+        // can stay a dumb success callback.
+
         setStep("idle");
         return session;
       } catch (cause) {
