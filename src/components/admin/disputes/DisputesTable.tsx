@@ -5,6 +5,7 @@ import { cn } from "@/lib/cn";
 import { Icon, ICON_PATHS } from "@/components/ui/Icon";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { NEUMORPHIC_CARD, ICON_BUTTON } from "@/lib/styles";
+import { formatDate } from "@/lib/date-formatters";
 import {
   ADMIN_DISPUTE_STATUS_CONFIG,
   ADMIN_DISPUTE_PRIORITY_CONFIG,
@@ -308,14 +309,4 @@ export function DisputesTable({
       </table>
     </div>
   );
-}
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
 }

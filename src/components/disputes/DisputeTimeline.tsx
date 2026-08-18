@@ -1,5 +1,6 @@
 import { cn } from "@/lib/cn";
 import { Icon, ICON_PATHS } from "@/components/ui/Icon";
+import { formatDateTime } from "@/lib/date-formatters";
 import type { DisputeEvent, DisputeEventType } from "@/types/dispute.types";
 
 const EVENT_ICONS: Record<DisputeEventType, string> = {
@@ -9,16 +10,6 @@ const EVENT_ICONS: Record<DisputeEventType, string> = {
   comment_added: ICON_PATHS.chat,
   resolved: ICON_PATHS.check,
 };
-
-function formatDateTime(dateString: string): string {
-  return new Date(dateString).toLocaleString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
 
 interface DisputeTimelineProps {
   events: DisputeEvent[];

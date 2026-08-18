@@ -2,6 +2,7 @@ import Link from "next/link";
 import { cn } from "@/lib/cn";
 import { Icon, ICON_PATHS } from "@/components/ui/Icon";
 import { NEUMORPHIC_CARD, NEUMORPHIC_INSET } from "@/lib/styles";
+import { formatDate } from "@/lib/date-formatters";
 import { DISPUTE_REASON_LABELS, DISPUTE_STATUS_LABELS } from "@/types/dispute.types";
 import type { Dispute, DisputeStatus } from "@/types/dispute.types";
 
@@ -18,14 +19,6 @@ function getStatusColor(status: DisputeStatus): string {
     default:
       return "bg-background text-text-secondary";
   }
-}
-
-function formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
 }
 
 interface DisputeCardProps {

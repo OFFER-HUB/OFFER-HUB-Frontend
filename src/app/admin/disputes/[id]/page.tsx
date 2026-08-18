@@ -1,14 +1,20 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import Link from "next/link";
 import { cn } from "@/lib/cn";
 import { useAuthStore } from "@/stores/auth-store";
-import { Icon, ICON_PATHS, LoadingSpinner } from "@/components/ui/Icon";
+import { useAdminGuard } from "@/hooks/useAdminGuard";
+import { Icon, ICON_PATHS } from "@/components/ui/Icon";
 import { LoadingState } from "@/components/ui/LoadingState";
 import { ErrorState } from "@/components/ui/ErrorState";
+import { Modal } from "@/components/ui/Modal";
 import { DisputeTimeline } from "@/components/disputes/DisputeTimeline";
+import { DisputePartyCard } from "@/components/admin/disputes/DisputePartyCard";
+import { DisputeCommentThread } from "@/components/admin/disputes/DisputeCommentThread";
+import { InternalNotesPanel } from "@/components/admin/disputes/InternalNotesPanel";
+import { DisputeQuickInfoSidebar } from "@/components/admin/disputes/DisputeQuickInfoSidebar";
 import {
   DisputeResolutionForm,
   StatusChangeForm,
@@ -20,6 +26,7 @@ import {
   addInternalNote,
   addAdminComment,
 } from "@/lib/api/admin-disputes";
+import { formatDate, formatDateTime, formatResolutionTime } from "@/lib/date-formatters";
 import {
   NEUMORPHIC_CARD,
   NEUMORPHIC_INSET,
@@ -32,41 +39,7 @@ import {
   type AdminDispute,
   type DisputeResolutionOutcome,
 } from "@/types/admin.types";
-import {
-  DISPUTE_REASON_LABELS,
-  DISPUTE_STATUS_LABELS,
-  type DisputeComment,
-} from "@/types/dispute.types";
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
-}
-
-function formatDateTime(iso: string): string {
-  return new Date(iso).toLocaleString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
-function formatResolutionTime(createdAt: string, resolvedAt: string): string {
-  const ms = new Date(resolvedAt).getTime() - new Date(createdAt).getTime();
-  const days = Math.floor(ms / (1000 * 60 * 60 * 24));
-  const hours = Math.floor((ms % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-  if (days > 0) return `${days}d ${hours}h`;
-  return `${hours}h`;
-}
-
-// ─── Sub-components ───────────────────────────────────────────────────────────
+import { DISPUTE_REASON_LABELS } from "@/types/dispute.types";
 
 const FILLED_PRIMARY_BUTTON = cn(
   "px-5 py-2.5 rounded-xl font-medium cursor-pointer flex items-center gap-2 text-sm",
@@ -77,159 +50,21 @@ const FILLED_PRIMARY_BUTTON = cn(
   "transition-all duration-200"
 );
 
-const COMMENT_ROLE_COLORS: Record<DisputeComment["authorRole"], string> = {
-  client: "bg-primary/10 border-primary/20",
-  freelancer: "bg-secondary/10 border-secondary/20",
-  admin: "bg-warning/10 border-warning/20",
-};
-
-const COMMENT_ROLE_LABELS: Record<DisputeComment["authorRole"], string> = {
-  client: "Buyer",
-  freelancer: "Seller",
-  admin: "Support",
-};
-
-interface InfoRowProps {
-  label: string;
-  children: React.ReactNode;
-}
-
-function InfoRow({ label, children }: InfoRowProps) {
-  return (
-    <div className="flex items-start justify-between gap-2">
-      <span className="text-text-secondary text-sm shrink-0">{label}</span>
-      <span className="text-right">{children}</span>
-    </div>
-  );
-}
-
-interface PartyCardProps {
-  role: "Buyer" | "Seller";
-  party: AdminDispute["buyer"];
-}
-
-function PartyCard({ role, party }: PartyCardProps) {
-  return (
-    <div className={cn("p-4 rounded-xl", NEUMORPHIC_INSET)}>
-      <p className="text-xs font-semibold text-text-secondary uppercase tracking-wider mb-3">
-        {role}
-      </p>
-      <div className="flex items-center gap-3 mb-3">
-        <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs shrink-0">
-          {party.username.slice(0, 2).toUpperCase()}
-        </div>
-        <div className="min-w-0">
-          <p className="font-semibold text-text-primary text-sm truncate">{party.username}</p>
-          <p className="text-xs text-text-secondary truncate">{party.email}</p>
-        </div>
-      </div>
-      <p className="text-xs text-text-secondary mb-2">
-        Total disputes:{" "}
-        <span className="text-text-primary font-medium">{party.totalDisputes}</span>
-      </p>
-      {party.previousDisputes.length > 0 && (
-        <div>
-          <p className="text-xs font-semibold text-text-secondary mb-1.5">Previous disputes</p>
-          <div className="space-y-1.5">
-            {party.previousDisputes.map((pd) => {
-              const cfg = ADMIN_DISPUTE_STATUS_CONFIG[pd.status];
-              return (
-                <div key={pd.id} className="flex items-center justify-between text-xs">
-                  <span className="text-text-secondary truncate max-w-[120px]" title={pd.offerTitle}>
-                    {pd.offerTitle}
-                  </span>
-                  <span className={cn("font-medium px-1.5 py-0.5 rounded", cfg.color, cfg.bg)}>
-                    {DISPUTE_STATUS_LABELS[pd.status]}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-interface ModalProps {
-  isOpen: boolean;
-  title: string;
-  onClose: () => void;
-  children: React.ReactNode;
-}
-
-function Modal({ isOpen, title, onClose, children }: ModalProps) {
-  useEffect(() => {
-    function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") onClose();
-    }
-    if (isOpen) window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [isOpen, onClose]);
-
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
-      <div
-        className={cn(NEUMORPHIC_CARD, "relative w-full max-w-lg animate-scale-in")}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-center justify-between mb-5">
-          <h2 className="text-lg font-bold text-text-primary">{title}</h2>
-          <button
-            type="button"
-            onClick={onClose}
-            className="p-2 rounded-lg text-text-secondary hover:text-text-primary hover:bg-background transition-colors"
-            aria-label="Close"
-          >
-            <Icon path={ICON_PATHS.close} size="md" />
-          </button>
-        </div>
-        {children}
-      </div>
-    </div>
-  );
-}
-
-// ─── Page ─────────────────────────────────────────────────────────────────────
-
 export default function AdminDisputeDetailPage(): React.JSX.Element | null {
   const params = useParams();
-  const router = useRouter();
-  const { user, token, isAuthenticated } = useAuthStore();
+  const { token } = useAuthStore();
+  const isAuthorized = useAdminGuard();
 
-  const [isAuthorized, setIsAuthorized] = useState(false);
   const [dispute, setDispute] = useState<AdminDispute | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
-
-  // ── Form states ──
-  const [adminComment, setAdminComment] = useState("");
-  const [isSubmittingComment, setIsSubmittingComment] = useState(false);
-  const [newNote, setNewNote] = useState("");
-  const [isSubmittingNote, setIsSubmittingNote] = useState(false);
 
   // ── Modal states ──
   const [showResolveModal, setShowResolveModal] = useState(false);
   const [showStatusModal, setShowStatusModal] = useState(false);
 
   const disputeId = params.id as string;
-
-  // ── Admin guard ───────────────────────────────────────────────────────────
-  useEffect(() => {
-    if (!isAuthenticated || user === null) {
-      router.replace("/login");
-      return;
-    }
-    if (user.type !== "ADMIN") {
-      router.replace("/app/client/dashboard");
-      return;
-    }
-    setIsAuthorized(true);
-  }, [user, isAuthenticated, router]);
 
   // ── Fetch ─────────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -276,36 +111,24 @@ export default function AdminDisputeDetailPage(): React.JSX.Element | null {
   );
 
   // ── Add admin comment ─────────────────────────────────────────────────────
-  async function handleSubmitComment(e: React.FormEvent) {
-    e.preventDefault();
-    if (!adminComment.trim() || !token || !dispute) return;
-    setIsSubmittingComment(true);
-    try {
-      const updated = await addAdminComment(token, dispute.id, adminComment.trim());
+  const handleSubmitComment = useCallback(
+    async (content: string) => {
+      if (!token || !dispute) return;
+      const updated = await addAdminComment(token, dispute.id, content);
       setDispute(updated);
-      setAdminComment("");
-    } catch (err) {
-      console.error("Failed to add comment:", err);
-    } finally {
-      setIsSubmittingComment(false);
-    }
-  }
+    },
+    [token, dispute]
+  );
 
   // ── Add internal note ─────────────────────────────────────────────────────
-  async function handleSubmitNote(e: React.FormEvent) {
-    e.preventDefault();
-    if (!newNote.trim() || !token || !dispute) return;
-    setIsSubmittingNote(true);
-    try {
-      const updated = await addInternalNote(token, dispute.id, { content: newNote.trim() });
+  const handleSubmitNote = useCallback(
+    async (content: string) => {
+      if (!token || !dispute) return;
+      const updated = await addInternalNote(token, dispute.id, { content });
       setDispute(updated);
-      setNewNote("");
-    } catch (err) {
-      console.error("Failed to add note:", err);
-    } finally {
-      setIsSubmittingNote(false);
-    }
-  }
+    },
+    [token, dispute]
+  );
 
   // ─────────────────────────────────────────────────────────────────────────
 
@@ -528,66 +351,7 @@ export default function AdminDisputeDetailPage(): React.JSX.Element | null {
             <h2 className="text-lg font-semibold text-text-primary mb-4">
               Discussion ({dispute.comments.length})
             </h2>
-            <div className="space-y-3">
-              {dispute.comments.map((comment) => (
-                <div
-                  key={comment.id}
-                  className={cn("p-4 rounded-xl border", COMMENT_ROLE_COLORS[comment.authorRole])}
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium text-text-primary text-sm">
-                        {comment.author}
-                      </span>
-                      <span className="text-xs px-2 py-0.5 rounded bg-background text-text-secondary">
-                        {COMMENT_ROLE_LABELS[comment.authorRole]}
-                      </span>
-                    </div>
-                    <span className="text-text-secondary text-xs">
-                      {formatDateTime(comment.timestamp)}
-                    </span>
-                  </div>
-                  <p className="text-text-primary text-sm">{comment.content}</p>
-                </div>
-              ))}
-
-              {/* Admin reply form */}
-              <form onSubmit={handleSubmitComment} className="mt-2">
-                <p className="text-xs font-semibold text-text-secondary mb-2">Add Admin Comment</p>
-                <div className={cn("rounded-xl", NEUMORPHIC_INSET)}>
-                  <textarea
-                    value={adminComment}
-                    onChange={(e) => setAdminComment(e.target.value)}
-                    placeholder="Write a message visible to both parties..."
-                    rows={3}
-                    className={cn(
-                      "w-full p-4 bg-transparent resize-none",
-                      "text-text-primary placeholder:text-text-secondary/60",
-                      "outline-none text-sm"
-                    )}
-                  />
-                </div>
-                <div className="flex justify-end mt-2">
-                  <button
-                    type="submit"
-                    disabled={isSubmittingComment || !adminComment.trim()}
-                    className={FILLED_PRIMARY_BUTTON}
-                  >
-                    {isSubmittingComment ? (
-                      <>
-                        <LoadingSpinner size="sm" className="text-white" />
-                        Sending...
-                      </>
-                    ) : (
-                      <>
-                        <Icon path={ICON_PATHS.send} size="sm" />
-                        Send Comment
-                      </>
-                    )}
-                  </button>
-                </div>
-              </form>
-            </div>
+            <DisputeCommentThread comments={dispute.comments} onSubmit={handleSubmitComment} />
           </div>
 
           {/* Internal Notes */}
@@ -601,71 +365,7 @@ export default function AdminDisputeDetailPage(): React.JSX.Element | null {
                 Admin only
               </span>
             </div>
-
-            <div className="space-y-3">
-              {dispute.internalNotes.length === 0 && (
-                <p className="text-sm text-text-secondary text-center py-3">
-                  No internal notes yet.
-                </p>
-              )}
-              {dispute.internalNotes.map((note) => (
-                <div
-                  key={note.id}
-                  className="p-4 rounded-xl bg-warning/5 border border-warning/20"
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-text-primary">
-                      {note.adminUsername}
-                    </span>
-                    <span className="text-xs text-text-secondary">
-                      {formatDateTime(note.createdAt)}
-                    </span>
-                  </div>
-                  <p className="text-sm text-text-primary">{note.content}</p>
-                </div>
-              ))}
-
-              {/* Add note form */}
-              <form onSubmit={handleSubmitNote} className="mt-2">
-                <div className={cn("rounded-xl", NEUMORPHIC_INSET)}>
-                  <textarea
-                    value={newNote}
-                    onChange={(e) => setNewNote(e.target.value)}
-                    placeholder="Add a private internal note (not visible to users)..."
-                    rows={3}
-                    className={cn(
-                      "w-full p-4 bg-transparent resize-none",
-                      "text-text-primary placeholder:text-text-secondary/60",
-                      "outline-none text-sm"
-                    )}
-                  />
-                </div>
-                <div className="flex justify-end mt-2">
-                  <button
-                    type="submit"
-                    disabled={isSubmittingNote || !newNote.trim()}
-                    className={cn(
-                      "px-4 py-2 rounded-xl font-medium text-sm flex items-center gap-2",
-                      "bg-warning text-white",
-                      "shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]",
-                      "hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
-                    )}
-                  >
-                    {isSubmittingNote ? (
-                      <>
-                        <LoadingSpinner size="sm" className="text-white" />
-                        Adding...
-                      </>
-                    ) : (
-                      <>
-                        <Icon path={ICON_PATHS.lock} size="sm" />
-                        Add Note
-                      </>
-                    )}
-                  </button>
-                </div>
-              </form>
-            </div>
+            <InternalNotesPanel notes={dispute.internalNotes} onSubmit={handleSubmitNote} />
           </div>
         </div>
 
@@ -674,111 +374,21 @@ export default function AdminDisputeDetailPage(): React.JSX.Element | null {
           {/* Quick info */}
           <div className={NEUMORPHIC_CARD}>
             <h2 className="text-lg font-semibold text-text-primary mb-4">Quick Info</h2>
-            <div className="space-y-3">
-              <InfoRow label="Status">
-                <span
-                  className={cn(
-                    "text-xs font-semibold px-2 py-0.5 rounded-full",
-                    statusCfg.color,
-                    statusCfg.bg
-                  )}
-                >
-                  {statusCfg.label}
-                </span>
-              </InfoRow>
-              <InfoRow label="Priority">
-                <span
-                  className={cn(
-                    "text-xs font-semibold px-2 py-0.5 rounded-full",
-                    priorityCfg.color,
-                    priorityCfg.bg
-                  )}
-                >
-                  {priorityCfg.label}
-                </span>
-              </InfoRow>
-              <InfoRow label="Amount">
-                <span className="text-sm font-semibold text-text-primary">
-                  ${dispute.amount.toLocaleString("en-US", { minimumFractionDigits: 2 })}
-                </span>
-              </InfoRow>
-              <InfoRow label="Opened">
-                <span className="text-sm text-text-primary">{formatDate(dispute.createdAt)}</span>
-              </InfoRow>
-              <InfoRow label="Last Updated">
-                <span className="text-sm text-text-primary">{formatDate(dispute.updatedAt)}</span>
-              </InfoRow>
-              <InfoRow label="Age">
-                <span
-                  className={cn(
-                    "text-sm font-medium",
-                    ageDays >= 7 ? "text-error" : ageDays >= 3 ? "text-warning" : "text-text-primary"
-                  )}
-                >
-                  {ageDays} day{ageDays !== 1 ? "s" : ""}
-                </span>
-              </InfoRow>
-              <InfoRow label="Evidence">
-                <span className="text-sm text-text-primary">{dispute.evidence.length} files</span>
-              </InfoRow>
-              <InfoRow label="Comments">
-                <span className="text-sm text-text-primary">{dispute.comments.length}</span>
-              </InfoRow>
-              {dispute.resolvedAt && (
-                <InfoRow label="Resolution Time">
-                  <span className="text-sm font-medium text-success">
-                    {formatResolutionTime(dispute.createdAt, dispute.resolvedAt)}
-                  </span>
-                </InfoRow>
-              )}
-              {dispute.resolutionOutcome && (
-                <InfoRow label="Outcome">
-                  <span
-                    className={cn(
-                      "text-xs font-semibold",
-                      ADMIN_DISPUTE_OUTCOME_CONFIG[dispute.resolutionOutcome].color
-                    )}
-                  >
-                    {ADMIN_DISPUTE_OUTCOME_CONFIG[dispute.resolutionOutcome].label}
-                  </span>
-                </InfoRow>
-              )}
-
-              {/* Action buttons */}
-              {isResolvable && (
-                <div className="pt-3 border-t border-border-light space-y-2">
-                  <button
-                    type="button"
-                    onClick={() => setShowStatusModal(true)}
-                    className={cn(
-                      "w-full px-4 py-2.5 rounded-xl font-medium text-sm flex items-center justify-center gap-2",
-                      "bg-white shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]",
-                      "hover:shadow-[2px_2px_4px_#d1d5db,-2px_-2px_4px_#ffffff]",
-                      "text-primary transition-all duration-200"
-                    )}
-                  >
-                    <Icon path={ICON_PATHS.refresh} size="sm" />
-                    Change Status
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setShowResolveModal(true)}
-                    className={cn(FILLED_PRIMARY_BUTTON, "w-full justify-center")}
-                  >
-                    <Icon path={ICON_PATHS.check} size="sm" />
-                    Resolve Dispute
-                  </button>
-                </div>
-              )}
-            </div>
+            <DisputeQuickInfoSidebar
+              dispute={dispute}
+              isResolvable={isResolvable}
+              ageDays={ageDays}
+              onChangeStatus={() => setShowStatusModal(true)}
+              onResolve={() => setShowResolveModal(true)}
+            />
           </div>
 
           {/* Parties */}
           <div className={NEUMORPHIC_CARD}>
             <h2 className="text-lg font-semibold text-text-primary mb-4">Parties</h2>
             <div className="space-y-3">
-              <PartyCard role="Buyer" party={dispute.buyer} />
-              <PartyCard role="Seller" party={dispute.seller} />
+              <DisputePartyCard role="Buyer" party={dispute.buyer} />
+              <DisputePartyCard role="Seller" party={dispute.seller} />
             </div>
           </div>
 

@@ -4,9 +4,11 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/cn";
 import { useAuthStore } from "@/stores/auth-store";
+import { useAdminGuard } from "@/hooks/useAdminGuard";
 import { Icon, ICON_PATHS } from "@/components/ui/Icon";
 import { LoadingState } from "@/components/ui/LoadingState";
 import { Pagination } from "@/components/ui/Pagination";
+import { Modal } from "@/components/ui/Modal";
 import { DisputesFilters } from "@/components/admin/disputes/DisputesFilters";
 import { DisputesTable } from "@/components/admin/disputes/DisputesTable";
 import {
@@ -53,50 +55,6 @@ const PRIORITY_ORDER: Record<AdminDispute["priority"], number> = {
   low: 1,
 };
 
-// ─── Inline modal wrapper ─────────────────────────────────────────────────────
-
-interface ModalProps {
-  isOpen: boolean;
-  title: string;
-  onClose: () => void;
-  children: React.ReactNode;
-}
-
-function Modal({ isOpen, title, onClose, children }: ModalProps) {
-  useEffect(() => {
-    function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") onClose();
-    }
-    if (isOpen) window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [isOpen, onClose]);
-
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
-      <div
-        className={cn(NEUMORPHIC_CARD, "relative w-full max-w-lg animate-scale-in")}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-center justify-between mb-5">
-          <h2 className="text-lg font-bold text-text-primary">{title}</h2>
-          <button
-            type="button"
-            onClick={onClose}
-            className="p-2 rounded-lg text-text-secondary hover:text-text-primary hover:bg-background transition-colors"
-            aria-label="Close"
-          >
-            <Icon path={ICON_PATHS.close} size="md" />
-          </button>
-        </div>
-        {children}
-      </div>
-    </div>
-  );
-}
-
 // ─── Stats Card ───────────────────────────────────────────────────────────────
 
 interface StatsCardProps {
@@ -121,9 +79,8 @@ function StatsCard({ label, value, color, bg }: StatsCardProps) {
 
 export default function AdminDisputesPage(): React.JSX.Element | null {
   const router = useRouter();
-  const { user, token, isAuthenticated } = useAuthStore();
-
-  const [isAuthorized, setIsAuthorized] = useState(false);
+  const { token } = useAuthStore();
+  const isAuthorized = useAdminGuard();
 
   // ── Data ──
   const [disputes, setDisputes] = useState<AdminDispute[]>([]);
@@ -141,19 +98,6 @@ export default function AdminDisputesPage(): React.JSX.Element | null {
   // ── Modals ──
   const [resolveTarget, setResolveTarget] = useState<AdminDispute | null>(null);
   const [statusTarget, setStatusTarget] = useState<AdminDispute | null>(null);
-
-  // ── Admin guard ───────────────────────────────────────────────────────────
-  useEffect(() => {
-    if (!isAuthenticated || user === null) {
-      router.replace("/login");
-      return;
-    }
-    if (user.type !== "ADMIN") {
-      router.replace("/app/client/dashboard");
-      return;
-    }
-    setIsAuthorized(true);
-  }, [user, isAuthenticated, router]);
 
   // ── Fetch ─────────────────────────────────────────────────────────────────
   useEffect(() => {

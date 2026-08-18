@@ -4,6 +4,7 @@ import { cn } from "@/lib/cn";
 import { Icon, ICON_PATHS } from "@/components/ui/Icon";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { NEUMORPHIC_CARD, ICON_BUTTON } from "@/lib/styles";
+import { formatDate } from "@/lib/date-formatters";
 import {
   ADMIN_USER_STATUS_CONFIG,
   ADMIN_USER_ROLE_LABELS,
@@ -312,14 +313,4 @@ export function UsersTable({
       </table>
     </div>
   );
-}
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
 }
