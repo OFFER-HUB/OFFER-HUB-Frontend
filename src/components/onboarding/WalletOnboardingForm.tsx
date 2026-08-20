@@ -32,18 +32,9 @@ function toUserType(value: string): User["type"] {
 }
 
 function StepIndicator({ current, total }: { current: number; total: number }) {
-  const visible = total >= 2;
   return (
-    <div
-      className="flex items-center justify-center gap-2 mb-6 h-10 overflow-hidden"
-      style={{
-        opacity: visible ? 1 : 0,
-        transform: visible ? "translateY(0)" : "translateY(-6px)",
-        transition: "opacity 300ms ease, transform 300ms ease",
-        pointerEvents: visible ? "auto" : "none",
-      }}
-    >
-      {Array.from({ length: total }, (_, i) => {
+    <div className="flex items-center justify-center gap-2 mb-6 h-10">
+      {total < 2 ? null : Array.from({ length: total }, (_, i) => {
         const s = i + 1;
         const done = s < current;
         const active = s === current;
@@ -251,23 +242,13 @@ export function WalletOnboardingForm() {
             autoComplete="username"
           />
 
-          {/* Role selector — sliding pill */}
+          {/* Role selector */}
           <div>
             <p className="text-sm font-medium text-text-primary mb-2">I want to</p>
             <div className={cn(
-              "relative flex p-1 rounded-xl bg-[#F3F4F6]",
+              "flex p-1 gap-1 rounded-xl bg-[#F3F4F6]",
               "shadow-[inset_3px_3px_6px_#d1d5db,inset_-3px_-3px_6px_#ffffff]",
             )}>
-              {/* Sliding pill */}
-              <span
-                aria-hidden="true"
-                className="absolute top-1 bottom-1 rounded-lg bg-[#F3F4F6] shadow-[3px_3px_6px_#d1d5db,-3px_-3px_6px_#ffffff] pointer-events-none"
-                style={{
-                  width: `calc(${100 / ROLE_OPTIONS.length}% - 0.25rem)`,
-                  left: `calc(${ROLE_OPTIONS.findIndex((o) => o.id === step1.type)} * ${100 / ROLE_OPTIONS.length}% + 0.25rem)`,
-                  transition: "left 250ms cubic-bezier(0.4, 0, 0.2, 1)",
-                }}
-              />
               {ROLE_OPTIONS.map((opt) => {
                 const active = step1.type === opt.id;
                 return (
@@ -276,10 +257,15 @@ export function WalletOnboardingForm() {
                     type="button"
                     onClick={() => handleRoleSelect(opt.id)}
                     className={cn(
-                      "relative flex-1 py-2 px-2 rounded-lg text-xs font-semibold z-10",
-                      "outline-none transition-colors duration-200 cursor-pointer",
+                      "flex-1 py-2 px-2 rounded-lg text-xs font-semibold",
+                      "outline-none transition-all duration-200 cursor-pointer",
                       "focus-visible:ring-2 focus-visible:ring-primary/40",
-                      active ? "text-primary" : "text-text-secondary hover:text-text-primary",
+                      active
+                        ? [
+                            "bg-[#F3F4F6] text-primary",
+                            "shadow-[inset_3px_3px_6px_#c5c9d0,inset_-2px_-2px_5px_#ffffff]",
+                          ]
+                        : "text-text-secondary hover:text-text-primary",
                     )}
                   >
                     {opt.label}
