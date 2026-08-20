@@ -19,10 +19,40 @@ const ROLE_OPTIONS: ReadonlyArray<{
   id: OnboardingAccountType;
   label: string;
   hint: string;
+  icon: React.ReactNode;
 }> = [
-  { id: "BUYER",  label: "Client",     hint: "I need to hire"    },
-  { id: "SELLER", label: "Freelancer", hint: "I offer services"  },
-  { id: "BOTH",   label: "Both",       hint: "I do both"         },
+  {
+    id: "BUYER",
+    label: "Client",
+    hint: "I need to hire",
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="w-6 h-6">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M20 7H4a2 2 0 00-2 2v6a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M16 11h2M8 11H6" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v4M8 3l1 4M16 3l-1 4" />
+      </svg>
+    ),
+  },
+  {
+    id: "SELLER",
+    label: "Freelancer",
+    hint: "I offer services",
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="w-6 h-6">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23-.693L5 14.5m14.8.8l1.402 1.402c1 1 .03 2.798-1.442 2.798H4.24c-1.472 0-2.441-1.798-1.441-2.798L4.8 15.3" />
+      </svg>
+    ),
+  },
+  {
+    id: "BOTH",
+    label: "Both",
+    hint: "I do both",
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="w-6 h-6">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />
+      </svg>
+    ),
+  },
 ];
 
 type Step1Errors = Partial<Record<keyof OnboardingStep1Values, string>>;
@@ -251,12 +281,7 @@ export function WalletOnboardingForm() {
           {/* Role selector */}
           <div>
             <p className="text-sm font-medium text-text-primary mb-2">I want to</p>
-            <div
-              className={cn(
-                "grid grid-cols-3 gap-2 p-1 rounded-2xl bg-[#F3F4F6]",
-                "shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]",
-              )}
-            >
+            <div className="grid grid-cols-3 gap-3">
               {ROLE_OPTIONS.map((opt) => {
                 const active = step1.type === opt.id;
                 return (
@@ -265,16 +290,45 @@ export function WalletOnboardingForm() {
                     type="button"
                     onClick={() => handleRoleSelect(opt.id)}
                     className={cn(
-                      "flex flex-col items-center justify-center rounded-xl px-2 py-2.5 cursor-pointer",
-                      "transition-all duration-200 outline-none",
+                      "relative flex flex-col items-center gap-2 px-2 py-4 rounded-2xl cursor-pointer",
+                      "outline-none transition-all duration-200",
                       "focus-visible:ring-2 focus-visible:ring-primary/40",
                       active
-                        ? "bg-primary text-white shadow-[2px_2px_6px_#d1d5db]"
-                        : "text-text-secondary hover:text-text-primary",
+                        ? [
+                            "bg-gradient-to-b from-[#149A9B] to-[#0d7a7b] text-white",
+                            "shadow-[4px_4px_10px_#b8c0cc,-2px_-2px_6px_#ffffff]",
+                          ]
+                        : [
+                            "bg-[#F3F4F6] text-text-secondary",
+                            "shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]",
+                            "hover:shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff] hover:-translate-y-0.5",
+                            "active:shadow-[inset_3px_3px_6px_#d1d5db,inset_-3px_-3px_6px_#ffffff] active:translate-y-0",
+                          ],
                     )}
                   >
-                    <span className="text-sm font-medium">{opt.label}</span>
-                    <span className={cn("text-[10px]", active ? "text-white/80" : "text-text-secondary")}>
+                    {/* Active check */}
+                    {active && (
+                      <span className="absolute top-2 right-2 w-4 h-4 rounded-full bg-white/25 flex items-center justify-center">
+                        <svg viewBox="0 0 12 12" fill="currentColor" className="w-2.5 h-2.5 text-white">
+                          <path fillRule="evenodd" d="M10.22 2.97a.75.75 0 011.06 1.06l-6 6a.75.75 0 01-1.06 0l-3-3a.75.75 0 011.06-1.06L4.75 8.44l5.47-5.47z" clipRule="evenodd" />
+                        </svg>
+                      </span>
+                    )}
+
+                    {/* Icon */}
+                    <span className={cn(
+                      "w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-200",
+                      active
+                        ? "bg-white/15"
+                        : "bg-[#F3F4F6] shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]",
+                    )}>
+                      {opt.icon}
+                    </span>
+
+                    <span className={cn("text-xs font-semibold leading-tight text-center", active ? "text-white" : "text-text-primary")}>
+                      {opt.label}
+                    </span>
+                    <span className={cn("text-[10px] leading-tight text-center", active ? "text-white/70" : "text-text-secondary")}>
                       {opt.hint}
                     </span>
                   </button>
