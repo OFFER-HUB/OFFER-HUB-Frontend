@@ -277,10 +277,12 @@ export function WalletOnboardingForm() {
             )}>
               <span
                 aria-hidden="true"
-                className="absolute top-1 bottom-1 rounded-lg bg-primary pointer-events-none"
+                className="absolute rounded-lg bg-primary pointer-events-none"
                 style={{
-                  width: `calc(${100 / ROLE_OPTIONS.length}% - 0.25rem)`,
-                  left: `calc(${ROLE_OPTIONS.findIndex((o) => o.id === step1.type)} * ${100 / ROLE_OPTIONS.length}% + 0.25rem)`,
+                  top: "4px",
+                  bottom: "4px",
+                  width: "calc((100% - 8px) / 3)",
+                  left: `calc(4px + ${ROLE_OPTIONS.findIndex((o) => o.id === step1.type)} * (100% - 8px) / 3)`,
                   transition: "left 220ms cubic-bezier(0.4, 0, 0.2, 1)",
                 }}
               />
