@@ -53,6 +53,17 @@ export async function getProfile(token: string): Promise<UserProfile> {
   return data.data;
 }
 
+export class ProfileApiError extends Error {
+  constructor(
+    message: string,
+    public readonly code: string,
+    public readonly status: number,
+  ) {
+    super(message);
+    this.name = "ProfileApiError";
+  }
+}
+
 /**
  * Update the profile of the authenticated user
  */
@@ -70,8 +81,10 @@ export async function updateProfile(
   });
 
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error?.message || "Failed to update profile");
+    const body = await response.json().catch(() => ({}));
+    const message = body?.error?.message ?? body?.message ?? "Something went wrong. Please try again.";
+    const code = body?.error?.code ?? "UNKNOWN_ERROR";
+    throw new ProfileApiError(message, code, response.status);
   }
 
   const data = await response.json();

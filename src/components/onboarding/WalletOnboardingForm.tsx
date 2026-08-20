@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { AuthLayout } from "@/components/auth/AuthLayout";
 import { AuthInput } from "@/components/auth/AuthInput";
 import { cn } from "@/lib/cn";
-import { updateProfile } from "@/lib/api/profile";
+import { updateProfile, ProfileApiError } from "@/lib/api/profile";
 import { useAuthStore, type User } from "@/stores/auth-store";
 import {
   onboardingStep1Schema,
@@ -163,7 +163,7 @@ export function WalletOnboardingForm() {
 
   async function submitAll() {
     if (!token) {
-      setSubmitError("Authentication token not found. Please log in again.");
+      setSubmitError("Your session has expired. Please connect your wallet again.");
       return;
     }
 
@@ -196,7 +196,23 @@ export function WalletOnboardingForm() {
 
       router.push("/app");
     } catch (error) {
-      setSubmitError(error instanceof Error ? error.message : "Failed to update profile");
+      if (error instanceof ProfileApiError) {
+        const code = error.code;
+        if (code === "USERNAME_TAKEN") {
+          setStep(1);
+          setStep1Errors({ username: error.message });
+        } else if (code === "EMAIL_ALREADY_EXISTS") {
+          setStep(1);
+          setStep1Errors({ email: error.message });
+        } else if (code === "VALIDATION_ERROR" && error.message.toLowerCase().includes("phone")) {
+          setStep(1);
+          setStep1Errors({ phone: error.message });
+        } else {
+          setSubmitError(error.message);
+        }
+      } else {
+        setSubmitError("Something went wrong. Please check your connection and try again.");
+      }
     } finally {
       setIsSubmitting(false);
     }
