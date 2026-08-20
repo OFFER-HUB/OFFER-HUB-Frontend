@@ -15,42 +15,10 @@ import {
   type OnboardingStep2Values,
 } from "@/types/onboarding.types";
 
-const ROLE_OPTIONS: ReadonlyArray<{
-  id: OnboardingAccountType;
-  label: string;
-  hint: string;
-  icon: React.ReactNode;
-}> = [
-  {
-    id: "BUYER",
-    label: "Client",
-    hint: "I need to hire",
-    icon: (
-      <svg viewBox="0 0 16 16" fill="currentColor" className="w-3.5 h-3.5">
-        <path d="M6 3a3 3 0 110 6 3 3 0 010-6zM1 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1H1z"/>
-      </svg>
-    ),
-  },
-  {
-    id: "SELLER",
-    label: "Freelancer",
-    hint: "I offer services",
-    icon: (
-      <svg viewBox="0 0 16 16" fill="currentColor" className="w-3.5 h-3.5">
-        <path d="M11.5 2h-7A1.5 1.5 0 003 3.5v9A1.5 1.5 0 004.5 14h7a1.5 1.5 0 001.5-1.5v-9A1.5 1.5 0 0011.5 2zM5 5.5a.5.5 0 01.5-.5h5a.5.5 0 010 1h-5a.5.5 0 01-.5-.5zm0 2a.5.5 0 01.5-.5h5a.5.5 0 010 1h-5a.5.5 0 01-.5-.5zm0 2a.5.5 0 01.5-.5h3a.5.5 0 010 1h-3a.5.5 0 01-.5-.5z"/>
-      </svg>
-    ),
-  },
-  {
-    id: "BOTH",
-    label: "Both",
-    hint: "I do both",
-    icon: (
-      <svg viewBox="0 0 16 16" fill="currentColor" className="w-3.5 h-3.5">
-        <path fillRule="evenodd" d="M1 8a7 7 0 1114 0A7 7 0 011 8zm7-4.5a.5.5 0 01.5.5v3.793l2.146-2.147a.5.5 0 01.708.708l-3 3a.5.5 0 01-.708 0l-3-3a.5.5 0 11.708-.708L7.5 7.793V4a.5.5 0 01.5-.5z" clipRule="evenodd"/>
-      </svg>
-    ),
-  },
+const ROLE_OPTIONS: ReadonlyArray<{ id: OnboardingAccountType; label: string }> = [
+  { id: "BUYER",  label: "Client"     },
+  { id: "SELLER", label: "Freelancer" },
+  { id: "BOTH",   label: "Both"       },
 ];
 
 type Step1Errors = Partial<Record<keyof OnboardingStep1Values, string>>;
@@ -65,28 +33,26 @@ function toUserType(value: string): User["type"] {
 
 function StepIndicator({ current, total }: { current: number; total: number }) {
   return (
-    <div className="flex items-center justify-center gap-2 mb-6">
-      {Array.from({ length: total }, (_, i) => {
-        const step = i + 1;
-        const done = step < current;
-        const active = step === current;
+    <div className="flex items-center justify-center gap-2 mb-6 h-10">
+      {total < 2 ? null : Array.from({ length: total }, (_, i) => {
+        const s = i + 1;
+        const done = s < current;
+        const active = s === current;
         return (
-          <div key={step} className="flex items-center gap-2">
-            <div
-              className={cn(
-                "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300",
-                active && "bg-primary text-white shadow-[3px_3px_6px_#d1d5db,-3px_-3px_6px_#ffffff]",
-                done && "bg-primary/20 text-primary",
-                !active && !done && "bg-[#F3F4F6] text-text-secondary shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]",
-              )}
-            >
+          <div key={s} className="flex items-center gap-2">
+            <div className={cn(
+              "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300",
+              active && "bg-primary text-white shadow-[3px_3px_6px_#d1d5db,-3px_-3px_6px_#ffffff]",
+              done && "bg-primary/20 text-primary",
+              !active && !done && "bg-[#F3F4F6] text-text-secondary shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]",
+            )}>
               {done ? (
                 <svg viewBox="0 0 16 16" fill="currentColor" className="w-4 h-4">
                   <path fillRule="evenodd" d="M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z" clipRule="evenodd" />
                 </svg>
-              ) : step}
+              ) : s}
             </div>
-            {step < total && (
+            {s < total && (
               <div className={cn("w-8 h-0.5 rounded-full transition-all duration-300", done ? "bg-primary/40" : "bg-gray-200")} />
             )}
           </div>
@@ -238,7 +204,7 @@ export function WalletOnboardingForm() {
         </p>
       </div>
 
-      {totalSteps > 1 && <StepIndicator current={step} total={totalSteps} />}
+      <StepIndicator current={step} total={totalSteps} />
 
       {step === 1 && (
         <form onSubmit={handleStep1Submit} className="space-y-3">
@@ -281,7 +247,7 @@ export function WalletOnboardingForm() {
             <p className="text-sm font-medium text-text-primary mb-2">I want to</p>
             <div className={cn(
               "flex p-1 gap-1 rounded-xl bg-[#F3F4F6]",
-              "shadow-[inset_2px_2px_5px_#d1d5db,inset_-2px_-2px_5px_#ffffff]",
+              "shadow-[inset_3px_3px_6px_#d1d5db,inset_-3px_-3px_6px_#ffffff]",
             )}>
               {ROLE_OPTIONS.map((opt) => {
                 const active = step1.type === opt.id;
@@ -291,15 +257,17 @@ export function WalletOnboardingForm() {
                     type="button"
                     onClick={() => handleRoleSelect(opt.id)}
                     className={cn(
-                      "flex-1 flex items-center justify-center gap-1.5 py-2 px-2 rounded-lg text-xs font-medium",
+                      "flex-1 py-2 px-2 rounded-lg text-xs font-semibold",
                       "outline-none transition-all duration-200 cursor-pointer",
                       "focus-visible:ring-2 focus-visible:ring-primary/40",
                       active
-                        ? "bg-primary text-white shadow-[2px_2px_5px_#0d7a7b55]"
+                        ? [
+                            "bg-[#F3F4F6] text-primary",
+                            "shadow-[inset_3px_3px_6px_#c5c9d0,inset_-2px_-2px_5px_#ffffff]",
+                          ]
                         : "text-text-secondary hover:text-text-primary",
                     )}
                   >
-                    <span className="shrink-0 opacity-80">{opt.icon}</span>
                     {opt.label}
                   </button>
                 );
