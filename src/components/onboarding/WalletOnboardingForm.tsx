@@ -82,6 +82,7 @@ export function WalletOnboardingForm() {
     type: "BUYER",
     country: "",
     phone: "",
+    email: "",
   });
   const [step1Errors, setStep1Errors] = useState<Step1Errors>({});
 
@@ -130,6 +131,11 @@ export function WalletOnboardingForm() {
       return;
     }
 
+    if (!user?.email && !step1.email?.trim()) {
+      setStep1Errors({ email: "Enter your email to continue" });
+      return;
+    }
+
     if (needsStep2) {
       setStep(2);
     } else {
@@ -170,6 +176,7 @@ export function WalletOnboardingForm() {
         type: step1.type,
         location: step1.country.trim() || undefined,
         phone: step1.phone.trim() || undefined,
+        ...(!user?.email && step1.email?.trim() ? { email: step1.email.trim() } : {}),
         professionalTitle: step2.professionalTitle.trim() || undefined,
         bio: step2.bio.trim() || undefined,
       });
@@ -330,6 +337,19 @@ export function WalletOnboardingForm() {
               {step1Errors.phone && <p className="mt-1.5 text-xs text-error">{step1Errors.phone}</p>}
             </div>
           </div>
+
+          {!user?.email && (
+            <AuthInput
+              label="Email"
+              type="email"
+              name="email"
+              value={step1.email ?? ""}
+              onChange={handleStep1Change}
+              error={step1Errors.email}
+              placeholder="jane@example.com"
+              autoComplete="email"
+            />
+          )}
 
           {submitError && (
             <div className="p-3 rounded-xl bg-error/10 text-error text-sm">{submitError}</div>

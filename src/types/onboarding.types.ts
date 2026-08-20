@@ -22,6 +22,11 @@ export const onboardingStep1Schema = z.object({
     .trim()
     .min(7, "Enter a valid phone number to continue")
     .max(20, "Phone number is too long"),
+  email: z
+    .string()
+    .trim()
+    .email("Enter a valid email address")
+    .optional(),
 });
 
 export const onboardingStep2Schema = z.object({
