@@ -278,7 +278,7 @@ export function WalletOnboardingForm() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <AuthInput
-              label="Country (optional)"
+              label="Country"
               type="text"
               name="country"
               value={step1.country}
@@ -289,7 +289,7 @@ export function WalletOnboardingForm() {
             />
             <div>
               <label className="text-sm font-medium text-text-primary mb-2 block" htmlFor="onboarding-phone">
-                Phone <span className="text-text-secondary font-normal">(optional)</span>
+                Phone
               </label>
               <input
                 id="onboarding-phone"
@@ -352,7 +352,7 @@ export function WalletOnboardingForm() {
               className="text-sm font-medium text-text-primary mb-2 block"
               htmlFor="onboarding-bio"
             >
-              Bio <span className="text-text-secondary font-normal">(optional)</span>
+              Bio
             </label>
             <textarea
               id="onboarding-bio"
@@ -374,7 +374,7 @@ export function WalletOnboardingForm() {
               {step2Errors.bio ? (
                 <p className="text-xs text-error">{step2Errors.bio}</p>
               ) : (
-                <p className="text-xs text-text-secondary">Optional. Max 500 characters.</p>
+                <p className="text-xs text-text-secondary">Min 20 characters. Max 500.</p>
               )}
               <p className="text-xs text-text-secondary ml-auto">{step2.bio.length}/500</p>
             </div>
