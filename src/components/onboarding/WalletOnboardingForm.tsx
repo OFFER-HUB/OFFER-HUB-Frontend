@@ -7,37 +7,26 @@ import { AuthInput } from "@/components/auth/AuthInput";
 import { cn } from "@/lib/cn";
 import { updateProfile } from "@/lib/api/profile";
 import { useAuthStore, type User } from "@/stores/auth-store";
-import { onboardingSchema, type OnboardingAccountType } from "@/types/onboarding.types";
+import {
+  onboardingStep1Schema,
+  onboardingStep2Schema,
+  type OnboardingAccountType,
+  type OnboardingStep1Values,
+  type OnboardingStep2Values,
+} from "@/types/onboarding.types";
 
-const ACCOUNT_TYPE_OPTIONS: ReadonlyArray<{
+const ROLE_OPTIONS: ReadonlyArray<{
   id: OnboardingAccountType;
   label: string;
   hint: string;
 }> = [
-  { id: "BUYER", label: "Buyer", hint: "Hire talent" },
-  { id: "SELLER", label: "Seller", hint: "Offer services" },
-  { id: "BOTH", label: "Both", hint: "Do both" },
+  { id: "BUYER",  label: "Client",     hint: "I need to hire"    },
+  { id: "SELLER", label: "Freelancer", hint: "I offer services"  },
+  { id: "BOTH",   label: "Both",       hint: "I do both"         },
 ];
 
-interface OnboardingFields {
-  firstName: string;
-  lastName: string;
-  username: string;
-  type: OnboardingAccountType | "";
-  bio: string;
-  country: string;
-}
-
-type OnboardingFieldErrors = Partial<Record<keyof OnboardingFields, string>>;
-
-const INITIAL_FORM: OnboardingFields = {
-  firstName: "",
-  lastName: "",
-  username: "",
-  type: "",
-  bio: "",
-  country: "",
-};
+type Step1Errors = Partial<Record<keyof OnboardingStep1Values, string>>;
+type Step2Errors = Partial<Record<keyof OnboardingStep2Values, string>>;
 
 function toUserType(value: string): User["type"] {
   if (value === "BUYER" || value === "SELLER" || value === "BOTH" || value === "ADMIN") {
@@ -46,67 +35,144 @@ function toUserType(value: string): User["type"] {
   return undefined;
 }
 
+function StepIndicator({ current, total }: { current: number; total: number }) {
+  return (
+    <div className="flex items-center justify-center gap-2 mb-6">
+      {Array.from({ length: total }, (_, i) => {
+        const step = i + 1;
+        const done = step < current;
+        const active = step === current;
+        return (
+          <div key={step} className="flex items-center gap-2">
+            <div
+              className={cn(
+                "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300",
+                active && "bg-primary text-white shadow-[3px_3px_6px_#d1d5db,-3px_-3px_6px_#ffffff]",
+                done && "bg-primary/20 text-primary",
+                !active && !done && "bg-[#F3F4F6] text-text-secondary shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]",
+              )}
+            >
+              {done ? (
+                <svg viewBox="0 0 16 16" fill="currentColor" className="w-4 h-4">
+                  <path fillRule="evenodd" d="M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+              ) : step}
+            </div>
+            {step < total && (
+              <div className={cn("w-8 h-0.5 rounded-full transition-all duration-300", done ? "bg-primary/40" : "bg-gray-200")} />
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 export function WalletOnboardingForm() {
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
   const token = useAuthStore((state) => state.token);
   const login = useAuthStore((state) => state.login);
-  const [formData, setFormData] = useState<OnboardingFields>({
-    ...INITIAL_FORM,
+
+  const [step, setStep] = useState<1 | 2>(1);
+
+  const [step1, setStep1] = useState<OnboardingStep1Values>({
+    firstName: "",
+    lastName: "",
     username: user?.username ?? "",
+    type: "BUYER",
+    country: "",
+    phone: "",
   });
-  const [errors, setErrors] = useState<OnboardingFieldErrors>({});
+  const [step1Errors, setStep1Errors] = useState<Step1Errors>({});
+
+  const [step2, setStep2] = useState<OnboardingStep2Values>({
+    professionalTitle: "",
+    bio: "",
+  });
+  const [step2Errors, setStep2Errors] = useState<Step2Errors>({});
+
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  function handleTextChange(event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
-    const { name, value } = event.target;
-    const field = name as keyof OnboardingFields;
-    setFormData((prev) => ({ ...prev, [field]: value }));
-    if (errors[field]) {
-      setErrors((prev) => ({ ...prev, [field]: undefined }));
-    }
+  const needsStep2 = step1.type === "SELLER" || step1.type === "BOTH";
+
+  function handleStep1Change(e: React.ChangeEvent<HTMLInputElement>) {
+    const { name, value } = e.target;
+    const field = name as keyof OnboardingStep1Values;
+    setStep1((prev) => ({ ...prev, [field]: value }));
+    if (step1Errors[field]) setStep1Errors((prev) => ({ ...prev, [field]: undefined }));
   }
 
-  function handleTypeSelect(type: OnboardingAccountType) {
-    setFormData((prev) => ({ ...prev, type }));
-    if (errors.type) {
-      setErrors((prev) => ({ ...prev, type: undefined }));
-    }
+  function handleRoleSelect(type: OnboardingAccountType) {
+    setStep1((prev) => ({ ...prev, type }));
+    if (step1Errors.type) setStep1Errors((prev) => ({ ...prev, type: undefined }));
   }
 
-  async function handleSubmit(event: React.FormEvent) {
-    event.preventDefault();
+  function handleStep2Change(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
+    const { name, value } = e.target;
+    const field = name as keyof OnboardingStep2Values;
+    setStep2((prev) => ({ ...prev, [field]: value }));
+    if (step2Errors[field]) setStep2Errors((prev) => ({ ...prev, [field]: undefined }));
+  }
+
+  function handleStep1Submit(e: React.FormEvent) {
+    e.preventDefault();
     setSubmitError(null);
 
-    const parsed = onboardingSchema.safeParse(formData);
+    const parsed = onboardingStep1Schema.safeParse(step1);
     if (!parsed.success) {
-      const nextErrors: OnboardingFieldErrors = {};
+      const errs: Step1Errors = {};
       for (const issue of parsed.error.issues) {
-        const field = issue.path[0];
-        if (typeof field === "string" && nextErrors[field as keyof OnboardingFields] == null) {
-          nextErrors[field as keyof OnboardingFields] = issue.message;
-        }
+        const field = issue.path[0] as keyof OnboardingStep1Values;
+        if (!errs[field]) errs[field] = issue.message;
       }
-      setErrors(nextErrors);
+      setStep1Errors(errs);
       return;
     }
 
+    if (needsStep2) {
+      setStep(2);
+    } else {
+      void submitAll();
+    }
+  }
+
+  function handleStep2Submit(e: React.FormEvent) {
+    e.preventDefault();
+    setSubmitError(null);
+
+    const parsed = onboardingStep2Schema.safeParse(step2);
+    if (!parsed.success) {
+      const errs: Step2Errors = {};
+      for (const issue of parsed.error.issues) {
+        const field = issue.path[0] as keyof OnboardingStep2Values;
+        if (!errs[field]) errs[field] = issue.message;
+      }
+      setStep2Errors(errs);
+      return;
+    }
+
+    void submitAll();
+  }
+
+  async function submitAll() {
     if (!token) {
       setSubmitError("Authentication token not found. Please log in again.");
       return;
     }
 
     setIsSubmitting(true);
-
     try {
       const profile = await updateProfile(token, {
-        firstName: parsed.data.firstName,
-        lastName: parsed.data.lastName,
-        username: parsed.data.username,
-        type: parsed.data.type,
-        bio: parsed.data.bio || undefined,
-        location: parsed.data.country || undefined,
+        firstName: step1.firstName.trim(),
+        lastName: step1.lastName.trim(),
+        username: step1.username.trim(),
+        type: step1.type,
+        location: step1.country.trim() || undefined,
+        phone: step1.phone.trim() || undefined,
+        professionalTitle: step2.professionalTitle.trim() || undefined,
+        bio: step2.bio.trim() || undefined,
       });
 
       if (user) {
@@ -115,10 +181,10 @@ export function WalletOnboardingForm() {
             ...user,
             firstName: profile.firstName,
             lastName: profile.lastName,
-            username: profile.username ?? parsed.data.username,
-            type: toUserType(profile.type) ?? parsed.data.type,
+            username: profile.username ?? step1.username,
+            type: toUserType(profile.type) ?? step1.type,
           },
-          token
+          token,
         );
       }
 
@@ -130,6 +196,8 @@ export function WalletOnboardingForm() {
     }
   }
 
+  const totalSteps = needsStep2 ? 2 : 1;
+
   return (
     <AuthLayout>
       <div
@@ -138,146 +206,226 @@ export function WalletOnboardingForm() {
       >
         <h1 className="text-2xl font-bold text-text-primary mb-1">Complete your profile</h1>
         <p className="text-sm text-text-secondary">
-          Tell us a bit about yourself to start using the marketplace
+          {step === 1 ? "Tell us a bit about yourself" : "Describe what you offer"}
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-3">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <AuthInput
-            label="First name"
-            type="text"
-            name="firstName"
-            value={formData.firstName}
-            onChange={handleTextChange}
-            error={errors.firstName}
-            placeholder="Jane"
-            autoComplete="given-name"
-          />
-          <AuthInput
-            label="Last name"
-            type="text"
-            name="lastName"
-            value={formData.lastName}
-            onChange={handleTextChange}
-            error={errors.lastName}
-            placeholder="Doe"
-            autoComplete="family-name"
-          />
-        </div>
+      {totalSteps > 1 && <StepIndicator current={step} total={totalSteps} />}
 
-        <AuthInput
-          label="Username"
-          type="text"
-          name="username"
-          value={formData.username}
-          onChange={handleTextChange}
-          error={errors.username}
-          placeholder="jane_dev"
-          autoComplete="username"
-        />
+      {step === 1 && (
+        <form onSubmit={handleStep1Submit} className="space-y-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <AuthInput
+              label="First name"
+              type="text"
+              name="firstName"
+              value={step1.firstName}
+              onChange={handleStep1Change}
+              error={step1Errors.firstName}
+              placeholder="Jane"
+              autoComplete="given-name"
+            />
+            <AuthInput
+              label="Last name"
+              type="text"
+              name="lastName"
+              value={step1.lastName}
+              onChange={handleStep1Change}
+              error={step1Errors.lastName}
+              placeholder="Doe"
+              autoComplete="family-name"
+            />
+          </div>
 
-        <div>
-          <p className="text-sm font-medium text-text-primary mb-2">I want to</p>
-          <div
-            className={cn(
-              "grid grid-cols-3 gap-2 p-1 rounded-2xl bg-background",
-              "shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]"
-            )}
-          >
-            {ACCOUNT_TYPE_OPTIONS.map((option) => {
-              const active = formData.type === option.id;
-              return (
-                <button
-                  key={option.id}
-                  type="button"
-                  onClick={() => handleTypeSelect(option.id)}
-                  className={cn(
-                    "flex flex-col items-center justify-center rounded-xl px-2 py-2.5 cursor-pointer",
-                    "transition-all duration-200 outline-none",
-                    "focus-visible:ring-2 focus-visible:ring-primary/40",
-                    active
-                      ? "bg-primary text-white shadow-[2px_2px_6px_#d1d5db]"
-                      : "text-text-secondary hover:text-text-primary"
-                  )}
-                >
-                  <span className="text-sm font-medium">{option.label}</span>
-                  <span
-                    className={cn("text-[10px]", active ? "text-white/80" : "text-text-secondary")}
+          <AuthInput
+            label="Username"
+            type="text"
+            name="username"
+            value={step1.username}
+            onChange={handleStep1Change}
+            error={step1Errors.username}
+            placeholder="jane_dev"
+            autoComplete="username"
+          />
+
+          {/* Role selector */}
+          <div>
+            <p className="text-sm font-medium text-text-primary mb-2">I want to</p>
+            <div
+              className={cn(
+                "grid grid-cols-3 gap-2 p-1 rounded-2xl bg-[#F3F4F6]",
+                "shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]",
+              )}
+            >
+              {ROLE_OPTIONS.map((opt) => {
+                const active = step1.type === opt.id;
+                return (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    onClick={() => handleRoleSelect(opt.id)}
+                    className={cn(
+                      "flex flex-col items-center justify-center rounded-xl px-2 py-2.5 cursor-pointer",
+                      "transition-all duration-200 outline-none",
+                      "focus-visible:ring-2 focus-visible:ring-primary/40",
+                      active
+                        ? "bg-primary text-white shadow-[2px_2px_6px_#d1d5db]"
+                        : "text-text-secondary hover:text-text-primary",
+                    )}
                   >
-                    {option.hint}
-                  </span>
-                </button>
-              );
-            })}
+                    <span className="text-sm font-medium">{opt.label}</span>
+                    <span className={cn("text-[10px]", active ? "text-white/80" : "text-text-secondary")}>
+                      {opt.hint}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+            {step1Errors.type && <p className="mt-1.5 text-xs text-error">{step1Errors.type}</p>}
           </div>
-          {errors.type && <p className="mt-1.5 text-xs text-error">{errors.type}</p>}
-        </div>
 
-        <AuthInput
-          label="Country (optional)"
-          type="text"
-          name="country"
-          value={formData.country}
-          onChange={handleTextChange}
-          error={errors.country}
-          placeholder="Costa Rica"
-          autoComplete="country-name"
-        />
-
-        <div>
-          <label
-            className="text-sm font-medium text-text-primary mb-2 block"
-            htmlFor="onboarding-bio"
-          >
-            Bio (optional)
-          </label>
-          <textarea
-            id="onboarding-bio"
-            name="bio"
-            rows={3}
-            value={formData.bio}
-            onChange={handleTextChange}
-            placeholder="A short introduction for your public profile"
-            className={cn(
-              "w-full px-4 py-3 rounded-xl text-sm resize-none",
-              "bg-background text-text-primary placeholder-text-secondary/50",
-              "shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]",
-              "focus:outline-none focus:ring-2 focus:ring-primary/30",
-              "transition-all duration-200",
-              errors.bio && "ring-2 ring-error/30"
-            )}
-          />
-          <div className="flex justify-between mt-1">
-            {errors.bio ? (
-              <p className="text-xs text-error">{errors.bio}</p>
-            ) : (
-              <p className="text-xs text-text-secondary">Optional. Max 500 characters.</p>
-            )}
-            <p className="text-xs text-text-secondary ml-auto">{formData.bio.length}/500</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <AuthInput
+              label="Country (optional)"
+              type="text"
+              name="country"
+              value={step1.country}
+              onChange={handleStep1Change}
+              error={step1Errors.country}
+              placeholder="Costa Rica"
+              autoComplete="country-name"
+            />
+            <div>
+              <label className="text-sm font-medium text-text-primary mb-2 block" htmlFor="onboarding-phone">
+                Phone <span className="text-text-secondary font-normal">(optional)</span>
+              </label>
+              <input
+                id="onboarding-phone"
+                type="tel"
+                name="phone"
+                value={step1.phone}
+                onChange={handleStep1Change}
+                placeholder="+506 8888 8888"
+                autoComplete="tel"
+                className={cn(
+                  "w-full px-4 py-3 rounded-xl text-sm",
+                  "bg-[#F3F4F6] text-text-primary placeholder-text-secondary/50",
+                  "shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]",
+                  "focus:outline-none focus:ring-2 focus:ring-primary/30",
+                  "transition-all duration-200",
+                  step1Errors.phone && "ring-2 ring-error/30",
+                )}
+              />
+              {step1Errors.phone && <p className="mt-1.5 text-xs text-error">{step1Errors.phone}</p>}
+            </div>
           </div>
-        </div>
 
-        {submitError && (
-          <div className="p-3 rounded-xl bg-error/10 text-error text-sm">{submitError}</div>
-        )}
-
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className={cn(
-            "w-full px-6 py-3 rounded-xl font-medium mt-2 cursor-pointer",
-            "bg-primary text-white",
-            "shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]",
-            "hover:bg-primary-hover hover:shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff] hover:scale-[1.02]",
-            "active:shadow-[inset_4px_4px_8px_rgba(0,0,0,0.2)] active:scale-[0.98]",
-            "disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100",
-            "transition-all duration-200"
+          {submitError && (
+            <div className="p-3 rounded-xl bg-error/10 text-error text-sm">{submitError}</div>
           )}
-        >
-          {isSubmitting ? "Saving..." : "Continue"}
-        </button>
-      </form>
+
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className={cn(
+              "w-full px-6 py-3 rounded-xl font-medium mt-2 cursor-pointer",
+              "bg-primary text-white",
+              "shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]",
+              "hover:bg-primary-hover hover:shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff] hover:scale-[1.02]",
+              "active:shadow-[inset_4px_4px_8px_rgba(0,0,0,0.2)] active:scale-[0.98]",
+              "disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100",
+              "transition-all duration-200",
+            )}
+          >
+            {isSubmitting ? "Saving..." : needsStep2 ? "Continue" : "Get started"}
+          </button>
+        </form>
+      )}
+
+      {step === 2 && (
+        <form onSubmit={handleStep2Submit} className="space-y-3">
+          <AuthInput
+            label="Professional title"
+            type="text"
+            name="professionalTitle"
+            value={step2.professionalTitle}
+            onChange={handleStep2Change}
+            error={step2Errors.professionalTitle}
+            placeholder="Full Stack Developer"
+            autoComplete="organization-title"
+          />
+
+          <div>
+            <label
+              className="text-sm font-medium text-text-primary mb-2 block"
+              htmlFor="onboarding-bio"
+            >
+              Bio <span className="text-text-secondary font-normal">(optional)</span>
+            </label>
+            <textarea
+              id="onboarding-bio"
+              name="bio"
+              rows={4}
+              value={step2.bio}
+              onChange={handleStep2Change}
+              placeholder="Describe your skills and the services you offer…"
+              className={cn(
+                "w-full px-4 py-3 rounded-xl text-sm resize-none",
+                "bg-[#F3F4F6] text-text-primary placeholder-text-secondary/50",
+                "shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]",
+                "focus:outline-none focus:ring-2 focus:ring-primary/30",
+                "transition-all duration-200",
+                step2Errors.bio && "ring-2 ring-error/30",
+              )}
+            />
+            <div className="flex justify-between mt-1">
+              {step2Errors.bio ? (
+                <p className="text-xs text-error">{step2Errors.bio}</p>
+              ) : (
+                <p className="text-xs text-text-secondary">Optional. Max 500 characters.</p>
+              )}
+              <p className="text-xs text-text-secondary ml-auto">{step2.bio.length}/500</p>
+            </div>
+          </div>
+
+          {submitError && (
+            <div className="p-3 rounded-xl bg-error/10 text-error text-sm">{submitError}</div>
+          )}
+
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={() => setStep(1)}
+              disabled={isSubmitting}
+              className={cn(
+                "flex-1 px-6 py-3 rounded-xl font-medium cursor-pointer",
+                "text-text-secondary bg-[#F3F4F6]",
+                "shadow-[3px_3px_6px_#d1d5db,-3px_-3px_6px_#ffffff]",
+                "hover:text-text-primary active:shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]",
+                "disabled:opacity-70 disabled:cursor-not-allowed",
+                "transition-all duration-200",
+              )}
+            >
+              Back
+            </button>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className={cn(
+                "flex-1 px-6 py-3 rounded-xl font-medium cursor-pointer",
+                "bg-primary text-white",
+                "shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]",
+                "hover:bg-primary-hover hover:shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff] hover:scale-[1.02]",
+                "active:shadow-[inset_4px_4px_8px_rgba(0,0,0,0.2)] active:scale-[0.98]",
+                "disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100",
+                "transition-all duration-200",
+              )}
+            >
+              {isSubmitting ? "Saving..." : "Get started"}
+            </button>
+          </div>
+        </form>
+      )}
     </AuthLayout>
   );
 }
