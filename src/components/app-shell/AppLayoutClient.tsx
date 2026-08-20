@@ -1,13 +1,14 @@
 "use client";
 
-import { useState } from "react";
-import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/cn";
 import { AppHeader, AppSidebar } from "@/components/app-shell";
 import { OnboardingTour } from "@/components/onboarding";
 import { NotificationToastContainer } from "@/components/notifications/NotificationToastContainer";
 import { EmailVerificationBanner } from "@/components/auth/EmailVerificationBanner";
 import { useAuthStore } from "@/stores/auth-store";
+import { isNewUser } from "@/lib/auth/is-new-user";
 import { sendVerification } from "@/lib/api/auth";
 
 interface AppLayoutClientProps {
@@ -17,9 +18,22 @@ interface AppLayoutClientProps {
 export function AppLayoutClient({ children }: AppLayoutClientProps): React.JSX.Element {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
 
+  const hasHydrated = useAuthStore((state) => state.hasHydrated);
   const user = useAuthStore((state) => state.user);
   const token = useAuthStore((state) => state.token);
+
+  useEffect(() => {
+    if (!hasHydrated) return;
+    if (!token || !user) {
+      router.replace("/login");
+      return;
+    }
+    if (isNewUser(user)) {
+      router.replace("/onboarding");
+    }
+  }, [hasHydrated, token, user, router]);
 
   const isDashboardPage = pathname?.endsWith("/dashboard");
 

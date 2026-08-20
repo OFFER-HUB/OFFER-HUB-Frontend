@@ -15,6 +15,10 @@ import {
   type OnboardingStep2Values,
 } from "@/types/onboarding.types";
 
+function truncateAddress(address: string): string {
+  return `${address.slice(0, 6)}…${address.slice(-4)}`;
+}
+
 const ROLE_OPTIONS: ReadonlyArray<{ id: OnboardingAccountType; label: string }> = [
   { id: "BUYER",  label: "Client"     },
   { id: "SELLER", label: "Freelancer" },
@@ -67,6 +71,7 @@ export function WalletOnboardingForm() {
   const user = useAuthStore((state) => state.user);
   const token = useAuthStore((state) => state.token);
   const login = useAuthStore((state) => state.login);
+  const walletAddress = useAuthStore((state) => state.walletAddress);
 
   const [step, setStep] = useState<1 | 2>(1);
 
@@ -203,6 +208,20 @@ export function WalletOnboardingForm() {
           {step === 1 ? "Tell us a bit about yourself" : "Describe what you offer"}
         </p>
       </div>
+
+      {walletAddress && (
+        <div className="flex justify-center mb-2">
+          <div className={cn(
+            "inline-flex items-center gap-2 px-3 py-1.5 rounded-full",
+            "bg-[#F3F4F6] shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]",
+          )}>
+            <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
+            <span className="text-xs font-mono text-text-secondary">
+              {truncateAddress(walletAddress)}
+            </span>
+          </div>
+        </div>
+      )}
 
       <StepIndicator current={step} total={totalSteps} />
 
