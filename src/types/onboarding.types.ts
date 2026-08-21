@@ -22,11 +22,15 @@ export const onboardingStep1Schema = z.object({
     .trim()
     .min(7, "Enter a valid phone number to continue")
     .max(20, "Phone number is too long"),
-  email: z
-    .string()
-    .trim()
-    .email("Enter a valid email address")
-    .optional(),
+  // Only rendered/collected when the user has no email yet (see
+  // WalletOnboardingForm.tsx). z.string().optional() only treats `undefined`
+  // as "not provided" - an empty string still runs through .email() and
+  // fails - so blank/whitespace-only input is normalized to undefined
+  // before validation instead of silently blocking submission.
+  email: z.preprocess(
+    (val) => (typeof val === "string" && val.trim() === "" ? undefined : val),
+    z.string().trim().email("Enter a valid email address").optional()
+  ),
 });
 
 export const onboardingStep2Schema = z.object({

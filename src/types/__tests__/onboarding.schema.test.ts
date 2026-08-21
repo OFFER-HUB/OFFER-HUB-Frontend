@@ -34,6 +34,29 @@ describe("onboardingStep1Schema", () => {
   it("rejects a phone shorter than 7 characters", () => {
     expect(onboardingStep1Schema.safeParse({ ...valid, phone: "123" }).success).toBe(false);
   });
+
+  // Regression: WalletOnboardingForm initializes step1.email to "" and hides
+  // the input whenever the user already has an email, so this exact shape -
+  // an explicit empty string, not an omitted key - is what real submissions
+  // send for anyone who signed up with email/password. This used to fail
+  // validation silently (no email input on screen to show the error against),
+  // blocking the "Get started" button with no visible feedback.
+  it("accepts an empty string email (field hidden because the user already has one)", () => {
+    const result = onboardingStep1Schema.safeParse({ ...valid, email: "" });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts a whitespace-only email the same as empty", () => {
+    expect(onboardingStep1Schema.safeParse({ ...valid, email: "   " }).success).toBe(true);
+  });
+
+  it("still rejects a real but invalid email", () => {
+    expect(onboardingStep1Schema.safeParse({ ...valid, email: "not-an-email" }).success).toBe(false);
+  });
+
+  it("still accepts a valid email", () => {
+    expect(onboardingStep1Schema.safeParse({ ...valid, email: "ada@example.com" }).success).toBe(true);
+  });
 });
 
 describe("onboardingStep2Schema", () => {
