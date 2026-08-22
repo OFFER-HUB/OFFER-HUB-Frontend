@@ -23,9 +23,15 @@ vi.mock("@/lib/api/wallet-connect", () => ({
 }));
 
 const mockSetPrimaryWallet = vi.fn();
+let mockUser: { wallet?: { id: string } } | null = null;
 vi.mock("@/stores/auth-store", () => ({
-  useAuthStore: (selector: (s: { token: string | null; setPrimaryWallet: typeof mockSetPrimaryWallet }) => unknown) =>
-    selector({ token: "jwt-token", setPrimaryWallet: mockSetPrimaryWallet }),
+  useAuthStore: (
+    selector: (s: {
+      token: string | null;
+      setPrimaryWallet: typeof mockSetPrimaryWallet;
+      user: typeof mockUser;
+    }) => unknown
+  ) => selector({ token: "jwt-token", setPrimaryWallet: mockSetPrimaryWallet, user: mockUser }),
 }));
 
 const PRIMARY = {
@@ -60,6 +66,7 @@ const DISCONNECTED = {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  mockUser = null;
 });
 
 describe("WalletManagementCard", () => {
@@ -123,5 +130,19 @@ describe("WalletManagementCard", () => {
 
     await waitFor(() => expect(mockDisconnectWallet).toHaveBeenCalledWith("jwt-token", "wal_1"));
     expect(mockSetPrimaryWallet).toHaveBeenCalledWith(undefined);
+  });
+
+  it("refetches when the account's primary wallet changes elsewhere (header button, claim flow, etc.)", async () => {
+    mockListWallets.mockResolvedValueOnce([]).mockResolvedValueOnce([PRIMARY]);
+    const { rerender } = render(<WalletManagementCard />);
+
+    await screen.findByText("You have not connected a wallet yet.");
+    expect(mockListWallets).toHaveBeenCalledTimes(1);
+
+    mockUser = { wallet: { id: "wal_1" } };
+    rerender(<WalletManagementCard />);
+
+    await waitFor(() => expect(mockListWallets).toHaveBeenCalledTimes(2));
+    await screen.findByText("Primary");
   });
 });

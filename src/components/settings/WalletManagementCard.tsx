@@ -113,6 +113,11 @@ function WalletRow({ wallet, busy, onSetPrimary, onDisconnect }: WalletRowProps)
 export function WalletManagementCard(): React.JSX.Element {
   const token = useAuthStore((state) => state.token);
   const setPrimaryWallet = useAuthStore((state) => state.setPrimaryWallet);
+  // Connecting or disconnecting elsewhere (the header button, the connect
+  // modal, the claim flow) updates this. Keying the fetch off it, instead of
+  // fetching once on mount, is what keeps this list in sync without the user
+  // having to reload the page.
+  const primaryWalletId = useAuthStore((state) => state.user?.wallet?.id ?? null);
 
   const [wallets, setWallets] = useState<ConnectedWallet[] | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -135,7 +140,7 @@ export function WalletManagementCard(): React.JSX.Element {
     return () => {
       cancelled = true;
     };
-  }, [token]);
+  }, [token, primaryWalletId]);
 
   async function handleSetPrimary(wallet: ConnectedWallet): Promise<void> {
     if (!token) return;
