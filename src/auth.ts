@@ -7,6 +7,9 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
     GitHub({
       clientId: process.env.AUTH_GITHUB_ID!,
       clientSecret: process.env.AUTH_GITHUB_SECRET!,
+      // GitHub started sending an RFC 9207 "iss" param in OAuth callbacks;
+      // openid-client requires the provider's issuer to be set or it throws.
+      issuer: "https://github.com/login/oauth",
     }),
     Google({
       clientId: process.env.AUTH_GOOGLE_ID!,
