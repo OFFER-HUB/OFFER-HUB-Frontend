@@ -67,6 +67,14 @@ beforeEach(() => {
   });
 });
 
+describe("WalletOnboardingForm username lock", () => {
+  it("keeps the username locked for an email-registered account", () => {
+    render(<WalletOnboardingForm />);
+
+    expect(screen.getByPlaceholderText("jane_dev")).toHaveAttribute("readonly");
+  });
+});
+
 describe("WalletOnboardingForm inline optional wallet connect", () => {
   it("shows a Connect wallet option alongside the profile fields when the account has no wallet linked", () => {
     render(<WalletOnboardingForm />);
@@ -141,6 +149,14 @@ describe("WalletOnboardingForm inline optional wallet connect", () => {
     render(<WalletOnboardingForm />);
 
     expect(screen.getByText("Email (optional)")).toBeInTheDocument();
+
+    // The backend auto-generated this username from the public key; the
+    // account never got to pick one, so it must stay editable here.
+    const usernameInput = screen.getByPlaceholderText("jane_dev");
+    expect(usernameInput).not.toHaveAttribute("readonly");
+    await user.clear(usernameInput);
+    await user.type(usernameInput, "chosen_name");
+    expect(usernameInput).toHaveValue("chosen_name");
 
     await fillStep1(user);
     await user.click(screen.getByRole("button", { name: "Get started" }));

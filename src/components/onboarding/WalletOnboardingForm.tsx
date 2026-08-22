@@ -79,6 +79,12 @@ export function WalletOnboardingForm() {
   // over from a previous session in the same browser.
   const walletAddress = user?.wallet?.publicKey ?? null;
 
+  // Email/OAuth accounts typed or picked their username at registration, so
+  // it's locked here. A wallet-first account never chose one at all — the
+  // backend auto-generates it from the public key (see
+  // `findOrCreateUserByWallet`) — so it's editable until they set a real one.
+  const isWalletFirstAccount = walletAddress !== null && !user?.email;
+
   const [step, setStep] = useState<1 | 2>(1);
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
 
@@ -275,9 +281,11 @@ export function WalletOnboardingForm() {
             />
           </div>
 
-          {/* Already chosen at registration (typed for email, auto-generated
-              for wallet-first). Onboarding collects the rest of the
-              profile, not a rename. Change it later from account settings. */}
+          {/* Email/OAuth accounts already chose this at registration, so it's
+              locked here (change it later from account settings). A
+              wallet-first account never chose one, the backend just
+              auto-generated it from the public key, so it stays editable
+              until they pick a real one. */}
           <AuthInput
             label="Username"
             type="text"
@@ -287,7 +295,7 @@ export function WalletOnboardingForm() {
             error={step1Errors.username}
             placeholder="jane_dev"
             autoComplete="username"
-            readOnly
+            readOnly={!isWalletFirstAccount}
           />
 
           {/* Role selector */}
