@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { AuthLayout } from "@/components/auth/AuthLayout";
 import { AuthInput } from "@/components/auth/AuthInput";
+import { WalletConnectModal } from "@/components/wallet/WalletConnectModal";
 import { cn } from "@/lib/cn";
 import { updateProfile, ProfileApiError } from "@/lib/api/profile";
 import { useAuthStore, type User } from "@/stores/auth-store";
@@ -78,7 +79,8 @@ export function WalletOnboardingForm() {
   // over from a previous session in the same browser.
   const walletAddress = user?.wallet?.publicKey ?? null;
 
-  const [step, setStep] = useState<1 | 2>(1);
+  const [step, setStep] = useState<1 | 2 | "wallet">(1);
+  const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
 
   const [step1, setStep1] = useState<OnboardingStep1Values>({
     firstName: "",
@@ -199,7 +201,14 @@ export function WalletOnboardingForm() {
         );
       }
 
-      router.push("/app");
+      // Wallet connection stays optional here: users with one already linked
+      // (wallet-first signups) skip straight to the dashboard, everyone else
+      // gets one skippable offer to connect before landing there.
+      if (walletAddress) {
+        router.push("/app");
+      } else {
+        setStep("wallet");
+      }
     } catch (error) {
       if (error instanceof ProfileApiError) {
         const code = error.code;
@@ -231,13 +240,19 @@ export function WalletOnboardingForm() {
         className="text-center mb-4 opacity-0 animate-fade-in-up"
         style={{ animationFillMode: "forwards" }}
       >
-        <h1 className="text-2xl font-bold text-text-primary mb-1">Complete your profile</h1>
+        <h1 className="text-2xl font-bold text-text-primary mb-1">
+          {step === "wallet" ? "Connect your wallet" : "Complete your profile"}
+        </h1>
         <p className="text-sm text-text-secondary">
-          {step === 1 ? "Tell us a bit about yourself" : "Describe what you offer"}
+          {step === 1
+            ? "Tell us a bit about yourself"
+            : step === 2
+              ? "Describe what you offer"
+              : "Optional — you can always do this later"}
         </p>
       </div>
 
-      {walletAddress && (
+      {walletAddress && step !== "wallet" && (
         <div className="flex justify-center mb-2">
           <div className={cn(
             "inline-flex items-center gap-2 px-3 py-1.5 rounded-full",
@@ -251,7 +266,7 @@ export function WalletOnboardingForm() {
         </div>
       )}
 
-      <StepIndicator current={step} total={totalSteps} />
+      {step !== "wallet" && <StepIndicator current={step} total={totalSteps} />}
 
       {step === 1 && (
         <form onSubmit={handleStep1Submit} className="space-y-3">
@@ -487,6 +502,53 @@ export function WalletOnboardingForm() {
             </button>
           </div>
         </form>
+      )}
+
+      {step === "wallet" && (
+        <div className="space-y-4">
+          <p className="text-sm text-text-secondary text-center">
+            Connect a Stellar wallet to receive payments directly, or skip and connect one later
+            from your profile.
+          </p>
+
+          <button
+            type="button"
+            onClick={() => setIsWalletModalOpen(true)}
+            className={cn(
+              "w-full px-6 py-3 rounded-xl font-medium cursor-pointer",
+              "bg-primary text-white",
+              "shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]",
+              "hover:bg-primary-hover hover:shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff] hover:scale-[1.02]",
+              "active:scale-[0.98]",
+              "transition-all duration-200",
+            )}
+          >
+            Connect wallet
+          </button>
+
+          <button
+            type="button"
+            onClick={() => router.push("/app")}
+            className={cn(
+              "w-full px-6 py-3 rounded-xl font-medium cursor-pointer",
+              "text-text-secondary bg-[#F3F4F6]",
+              "shadow-[3px_3px_6px_#d1d5db,-3px_-3px_6px_#ffffff]",
+              "hover:text-text-primary active:shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]",
+              "transition-all duration-200",
+            )}
+          >
+            Skip for now
+          </button>
+
+          <WalletConnectModal
+            isOpen={isWalletModalOpen}
+            onClose={() => setIsWalletModalOpen(false)}
+            onConnected={() => {
+              setIsWalletModalOpen(false);
+              router.push("/app");
+            }}
+          />
+        </div>
       )}
     </AuthLayout>
   );
