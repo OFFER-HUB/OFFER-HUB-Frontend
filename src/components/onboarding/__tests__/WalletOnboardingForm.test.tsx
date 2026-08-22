@@ -71,7 +71,7 @@ describe("WalletOnboardingForm inline optional wallet connect", () => {
   it("shows a Connect wallet option alongside the profile fields when the account has no wallet linked", () => {
     render(<WalletOnboardingForm />);
 
-    expect(screen.getByText("Connect a wallet (optional, you can also do this later)")).toBeInTheDocument();
+    expect(screen.getByText("Connect a wallet")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Connect wallet" })).toBeInTheDocument();
   });
 
@@ -96,7 +96,7 @@ describe("WalletOnboardingForm inline optional wallet connect", () => {
     };
     render(<WalletOnboardingForm />);
 
-    expect(screen.queryByText("Connect a wallet (optional, you can also do this later)")).not.toBeInTheDocument();
+    expect(screen.queryByText("Connect a wallet")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Connect wallet" })).not.toBeInTheDocument();
   });
 

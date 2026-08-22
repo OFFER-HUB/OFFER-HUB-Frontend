@@ -386,9 +386,7 @@ export function WalletOnboardingForm() {
 
           {!walletAddress && (
             <div className="flex items-center justify-between gap-3">
-              <p className="text-xs text-text-secondary">
-                Connect a wallet (optional, you can also do this later)
-              </p>
+              <p className="text-xs text-text-secondary">Connect a wallet</p>
               <button
                 type="button"
                 onClick={() => setIsWalletModalOpen(true)}
