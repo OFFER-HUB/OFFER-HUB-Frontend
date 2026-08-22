@@ -72,14 +72,14 @@ describe("WalletOnboardingForm inline optional wallet connect", () => {
     render(<WalletOnboardingForm />);
 
     expect(screen.getByText("Connect a wallet")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Connect wallet" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Connect wallet (Freighter, Lobstr, xBull)" })).toBeInTheDocument();
   });
 
   it("opens WalletConnectModal without submitting the profile or navigating", async () => {
     const user = userEvent.setup();
     render(<WalletOnboardingForm />);
 
-    await user.click(screen.getByRole("button", { name: "Connect wallet" }));
+    await user.click(screen.getByRole("button", { name: "Connect wallet (Freighter, Lobstr, xBull)" }));
 
     expect(mockModalIsOpen).toBe(true);
     expect(screen.getByTestId("wallet-connect-modal")).toBeInTheDocument();
@@ -97,7 +97,7 @@ describe("WalletOnboardingForm inline optional wallet connect", () => {
     render(<WalletOnboardingForm />);
 
     expect(screen.queryByText("Connect a wallet")).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Connect wallet" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Connect wallet (Freighter, Lobstr, xBull)" })).not.toBeInTheDocument();
   });
 
   it("submits the profile and redirects to /app immediately regardless of the wallet section", async () => {

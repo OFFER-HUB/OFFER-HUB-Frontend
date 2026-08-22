@@ -399,7 +399,7 @@ export function WalletOnboardingForm() {
                   "transition-all duration-150",
                 )}
               >
-                Connect wallet
+                Connect wallet (Freighter, Lobstr, xBull)
               </button>
             </div>
           )}
