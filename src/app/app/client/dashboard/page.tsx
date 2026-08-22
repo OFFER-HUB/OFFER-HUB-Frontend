@@ -6,6 +6,7 @@ import { useAuthStore, type User } from "@/stores/auth-store";
 import { useModeStore } from "@/stores/mode-store";
 import { useClientDashboardData } from "@/hooks/useClientDashboardData";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
+import { useWalletBalance } from "@/hooks/useWalletBalance";
 import { cn } from "@/lib/cn";
 import { NEUMORPHIC_CARD } from "@/lib/styles";
 import type { ClientActivity } from "@/lib/api/client";
@@ -49,6 +50,10 @@ export default function ClientDashboardPage(): React.JSX.Element {
     refetch,
   } = useClientDashboardData();
 
+  // Live on-chain USDC balance of the connected wallet (SCF D1.1), independent
+  // of the platform-ledger `walletBalance` above.
+  const onChainBalance = useWalletBalance();
+
   const { isPulling, pullDistance } = usePullToRefresh(refetch);
 
   useEffect(() => {
@@ -86,6 +91,11 @@ export default function ClientDashboardPage(): React.JSX.Element {
           <DashboardWalletHeader
             walletAddress={user?.wallet?.publicKey}
             balance={walletBalance}
+            onChainUsdc={
+              onChainBalance.address === null
+                ? null
+                : { amount: onChainBalance.balances?.usdc.balance ?? "0", isLoading: onChainBalance.isLoading }
+            }
           />
         </div>
         {/* Manual refresh button */}

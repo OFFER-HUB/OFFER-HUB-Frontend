@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useAuthStore } from "@/stores/auth-store";
 import { useFreelancerDashboardData } from "@/hooks/useFreelancerDashboardData";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
+import { useWalletBalance } from "@/hooks/useWalletBalance";
 import { cn } from "@/lib/cn";
 import { NEUMORPHIC_CARD } from "@/lib/styles";
 import type { FreelancerActivity } from "@/lib/api/freelancer";
@@ -40,6 +41,10 @@ export function FreelancerDashboard(): React.JSX.Element {
     refetch,
   } = useFreelancerDashboardData();
 
+  // Live on-chain USDC balance of the connected wallet (SCF D1.1), independent
+  // of the platform-ledger `walletBalance` above.
+  const onChainBalance = useWalletBalance();
+
   const { isPulling, pullDistance } = usePullToRefresh(refetch);
 
   if (!isMounted) return <div className="min-h-screen bg-background" />;
@@ -75,6 +80,11 @@ export function FreelancerDashboard(): React.JSX.Element {
           <DashboardWalletHeader
             walletAddress={user?.wallet?.publicKey}
             balance={walletBalance}
+            onChainUsdc={
+              onChainBalance.address === null
+                ? null
+                : { amount: onChainBalance.balances?.usdc.balance ?? "0", isLoading: onChainBalance.isLoading }
+            }
           />
         </div>
 
