@@ -392,7 +392,12 @@ export function WalletOnboardingForm() {
               <button
                 type="button"
                 onClick={() => setIsWalletModalOpen(true)}
-                className="shrink-0 text-xs font-semibold text-primary hover:underline cursor-pointer"
+                className={cn(
+                  "shrink-0 px-3.5 py-1.5 rounded-lg text-xs font-semibold cursor-pointer",
+                  "text-primary bg-white border border-primary/30",
+                  "hover:bg-primary/5",
+                  "transition-colors duration-150",
+                )}
               >
                 Connect wallet
               </button>
