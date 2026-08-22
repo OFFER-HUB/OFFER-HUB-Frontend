@@ -387,7 +387,10 @@ export function WalletOnboardingForm() {
           {!walletAddress && (
             <div className="flex items-center justify-between gap-3 py-1">
               <p className="text-sm font-medium text-text-primary">
-                Connect a wallet (Freighter, Lobstr, xBull)
+                Connect a wallet{" "}
+                <span className="text-xs font-normal text-text-secondary">
+                  (Freighter, Lobstr, xBull)
+                </span>
               </p>
               <button
                 type="button"
