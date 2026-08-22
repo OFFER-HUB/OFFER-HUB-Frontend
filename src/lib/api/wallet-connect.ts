@@ -185,3 +185,87 @@ export async function disconnectWallet(token: string, walletId: string): Promise
 
   return toConnectedWallets(payload.data);
 }
+
+/**
+ * The account's full wallet history (`GET /wallet/wallets`): active and
+ * inactive, primary or not. A plain read, unlike connect/disconnect/set-primary
+ * which all return the list only as a side effect of a mutation.
+ *
+ * @throws {ConnectWalletError} for every refusal, with the API's code attached.
+ */
+export async function listWallets(token: string): Promise<ConnectedWallet[]> {
+  let response: Response;
+
+  try {
+    response = await fetch(`${API_URL}/wallet/wallets`, {
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  } catch {
+    throw new ConnectWalletError(
+      "Could not reach the server. Check your connection and try again.",
+      "NETWORK_ERROR",
+      0
+    );
+  }
+
+  if (!response.ok) {
+    throw await toConnectError(response);
+  }
+
+  const payload: unknown = await response.json();
+  if (!isRecord(payload) || !Array.isArray(payload.data)) {
+    throw new ConnectWalletError(
+      "The server returned an unexpected response.",
+      "MALFORMED_RESPONSE",
+      response.status
+    );
+  }
+
+  return toConnectedWallets(payload.data);
+}
+
+/**
+ * Promote `walletId` to primary (`POST /wallet/set-primary`). Demotes
+ * whichever wallet held that role before, in the same backend transaction.
+ *
+ * @throws {ConnectWalletError} for every refusal, with the API's code attached.
+ */
+export async function setPrimaryWalletApi(token: string, walletId: string): Promise<ConnectedWallet[]> {
+  let response: Response;
+
+  try {
+    response = await fetch(`${API_URL}/wallet/set-primary`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ walletId }),
+    });
+  } catch {
+    throw new ConnectWalletError(
+      "Could not reach the server. Check your connection and try again.",
+      "NETWORK_ERROR",
+      0
+    );
+  }
+
+  if (!response.ok) {
+    throw await toConnectError(response);
+  }
+
+  const payload: unknown = await response.json();
+  if (!isRecord(payload) || !Array.isArray(payload.data)) {
+    throw new ConnectWalletError(
+      "The server returned an unexpected response.",
+      "MALFORMED_RESPONSE",
+      response.status
+    );
+  }
+
+  return toConnectedWallets(payload.data);
+}

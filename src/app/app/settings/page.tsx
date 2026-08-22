@@ -7,6 +7,7 @@ import { MOCK_API_DELAY } from "@/lib/constants";
 import { Icon, ICON_PATHS, LoadingSpinner } from "@/components/ui/Icon";
 import { NEUMORPHIC_CARD, PRIMARY_BUTTON, DANGER_BUTTON } from "@/lib/styles";
 import { ClaimWalletCard } from "@/components/settings/ClaimWalletCard";
+import { WalletManagementCard } from "@/components/settings/WalletManagementCard";
 import { useOnboardingStore } from "@/stores/onboarding-store";
 
 interface NotificationSettings {
@@ -372,6 +373,8 @@ export default function SettingsPage(): React.JSX.Element {
       {/* Custodial → non-custodial migration. Sits above the account section
           because it is a one-way change to who holds the keys, not a preference. */}
       <ClaimWalletCard />
+
+      <WalletManagementCard />
 
       <div className={cn(NEUMORPHIC_CARD, "border border-error/20")}>
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
