@@ -386,7 +386,9 @@ export function WalletOnboardingForm() {
 
           {!walletAddress && (
             <div className="flex items-center justify-between gap-3 py-1">
-              <p className="text-sm font-medium text-text-primary">Connect a wallet</p>
+              <p className="text-sm font-medium text-text-primary">
+                Connect a wallet (Freighter, Lobstr, xBull)
+              </p>
               <button
                 type="button"
                 onClick={() => setIsWalletModalOpen(true)}
@@ -399,7 +401,7 @@ export function WalletOnboardingForm() {
                   "transition-all duration-150",
                 )}
               >
-                Connect wallet (Freighter, Lobstr, xBull)
+                Connect wallet
               </button>
             </div>
           )}
