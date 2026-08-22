@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AuthLayout } from "@/components/auth/AuthLayout";
 import { AuthInput } from "@/components/auth/AuthInput";
@@ -81,6 +81,13 @@ export function WalletOnboardingForm() {
 
   const [step, setStep] = useState<1 | 2 | "wallet">(1);
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
+  // Holds the profile update between "the API call succeeded" and "the user
+  // is actually done" (i.e. after they connect a wallet or skip). Applying
+  // it via `login()` flips `user.firstName` away from null, which is exactly
+  // the signal OnboardingGuard uses to decide the profile is complete and
+  // redirect to /app on its own — firing that before the wallet step has a
+  // chance to render would race it off the screen.
+  const pendingUserRef = useRef<User | null>(null);
 
   const [step1, setStep1] = useState<OnboardingStep1Values>({
     firstName: "",
@@ -188,25 +195,24 @@ export function WalletOnboardingForm() {
         bio: step2.bio.trim() || undefined,
       });
 
-      if (user) {
-        login(
-          {
+      const updatedUser: User | null = user
+        ? {
             ...user,
             firstName: profile.firstName,
             lastName: profile.lastName,
             username: profile.username ?? step1.username,
             type: toUserType(profile.type) ?? step1.type,
-          },
-          token,
-        );
-      }
+          }
+        : null;
 
       // Wallet connection stays optional here: users with one already linked
       // (wallet-first signups) skip straight to the dashboard, everyone else
       // gets one skippable offer to connect before landing there.
       if (walletAddress) {
+        if (updatedUser) login(updatedUser, token);
         router.push("/app");
       } else {
+        pendingUserRef.current = updatedUser;
         setStep("wallet");
       }
     } catch (error) {
@@ -230,6 +236,13 @@ export function WalletOnboardingForm() {
     } finally {
       setIsSubmitting(false);
     }
+  }
+
+  function finishOnboarding() {
+    if (pendingUserRef.current && token) {
+      login(pendingUserRef.current, token);
+    }
+    router.push("/app");
   }
 
   const totalSteps = needsStep2 ? 2 : 1;
@@ -528,7 +541,7 @@ export function WalletOnboardingForm() {
 
           <button
             type="button"
-            onClick={() => router.push("/app")}
+            onClick={finishOnboarding}
             className={cn(
               "w-full px-6 py-3 rounded-xl font-medium cursor-pointer",
               "text-text-secondary bg-[#F3F4F6]",
@@ -545,7 +558,7 @@ export function WalletOnboardingForm() {
             onClose={() => setIsWalletModalOpen(false)}
             onConnected={() => {
               setIsWalletModalOpen(false);
-              router.push("/app");
+              finishOnboarding();
             }}
           />
         </div>

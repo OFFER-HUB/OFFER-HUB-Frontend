@@ -85,6 +85,11 @@ describe("WalletOnboardingForm — optional wallet step", () => {
     expect(screen.getByRole("button", { name: "Connect wallet" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Skip for now" })).toBeInTheDocument();
     expect(mockPush).not.toHaveBeenCalled();
+    // The profile update must not reach the store yet: applying it here would
+    // flip `user.firstName` away from null, which is exactly the signal
+    // OnboardingGuard watches to redirect to /app on its own, racing this
+    // step off the screen before the user can act on it.
+    expect(mockLogin).not.toHaveBeenCalled();
   });
 
   it("completes onboarding without a wallet when the user skips", async () => {
@@ -96,6 +101,10 @@ describe("WalletOnboardingForm — optional wallet step", () => {
 
     await user.click(await screen.findByRole("button", { name: "Skip for now" }));
 
+    expect(mockLogin).toHaveBeenCalledWith(
+      expect.objectContaining({ firstName: "Jane", lastName: "Doe" }),
+      "jwt-token"
+    );
     expect(mockPush).toHaveBeenCalledWith("/app");
   });
 
@@ -111,6 +120,10 @@ describe("WalletOnboardingForm — optional wallet step", () => {
 
     mockModalOnConnected?.();
 
+    expect(mockLogin).toHaveBeenCalledWith(
+      expect.objectContaining({ firstName: "Jane", lastName: "Doe" }),
+      "jwt-token"
+    );
     expect(mockPush).toHaveBeenCalledWith("/app");
   });
 
