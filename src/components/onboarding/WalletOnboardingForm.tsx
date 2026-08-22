@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { AuthLayout } from "@/components/auth/AuthLayout";
 import { AuthInput } from "@/components/auth/AuthInput";
@@ -79,15 +79,8 @@ export function WalletOnboardingForm() {
   // over from a previous session in the same browser.
   const walletAddress = user?.wallet?.publicKey ?? null;
 
-  const [step, setStep] = useState<1 | 2 | "wallet">(1);
+  const [step, setStep] = useState<1 | 2>(1);
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
-  // Holds the profile update between "the API call succeeded" and "the user
-  // is actually done" (i.e. after they connect a wallet or skip). Applying
-  // it via `login()` flips `user.firstName` away from null, which is exactly
-  // the signal OnboardingGuard uses to decide the profile is complete and
-  // redirect to /app on its own — firing that before the wallet step has a
-  // chance to render would race it off the screen.
-  const pendingUserRef = useRef<User | null>(null);
 
   const [step1, setStep1] = useState<OnboardingStep1Values>({
     firstName: "",
@@ -195,26 +188,20 @@ export function WalletOnboardingForm() {
         bio: step2.bio.trim() || undefined,
       });
 
-      const updatedUser: User | null = user
-        ? {
+      if (user) {
+        login(
+          {
             ...user,
             firstName: profile.firstName,
             lastName: profile.lastName,
             username: profile.username ?? step1.username,
             type: toUserType(profile.type) ?? step1.type,
-          }
-        : null;
-
-      // Wallet connection stays optional here: users with one already linked
-      // (wallet-first signups) skip straight to the dashboard, everyone else
-      // gets one skippable offer to connect before landing there.
-      if (walletAddress) {
-        if (updatedUser) login(updatedUser, token);
-        router.push("/app");
-      } else {
-        pendingUserRef.current = updatedUser;
-        setStep("wallet");
+          },
+          token,
+        );
       }
+
+      router.push("/app");
     } catch (error) {
       if (error instanceof ProfileApiError) {
         const code = error.code;
@@ -238,13 +225,6 @@ export function WalletOnboardingForm() {
     }
   }
 
-  function finishOnboarding() {
-    if (pendingUserRef.current && token) {
-      login(pendingUserRef.current, token);
-    }
-    router.push("/app");
-  }
-
   const totalSteps = needsStep2 ? 2 : 1;
 
   return (
@@ -253,19 +233,13 @@ export function WalletOnboardingForm() {
         className="text-center mb-4 opacity-0 animate-fade-in-up"
         style={{ animationFillMode: "forwards" }}
       >
-        <h1 className="text-2xl font-bold text-text-primary mb-1">
-          {step === "wallet" ? "Connect your wallet" : "Complete your profile"}
-        </h1>
+        <h1 className="text-2xl font-bold text-text-primary mb-1">Complete your profile</h1>
         <p className="text-sm text-text-secondary">
-          {step === 1
-            ? "Tell us a bit about yourself"
-            : step === 2
-              ? "Describe what you offer"
-              : "Optional — you can always do this later"}
+          {step === 1 ? "Tell us a bit about yourself" : "Describe what you offer"}
         </p>
       </div>
 
-      {walletAddress && step !== "wallet" && (
+      {walletAddress && (
         <div className="flex justify-center mb-2">
           <div className={cn(
             "inline-flex items-center gap-2 px-3 py-1.5 rounded-full",
@@ -279,7 +253,7 @@ export function WalletOnboardingForm() {
         </div>
       )}
 
-      {step !== "wallet" && <StepIndicator current={step} total={totalSteps} />}
+      <StepIndicator current={step} total={totalSteps} />
 
       {step === 1 && (
         <form onSubmit={handleStep1Submit} className="space-y-3">
@@ -410,6 +384,31 @@ export function WalletOnboardingForm() {
             />
           )}
 
+          {!walletAddress && (
+            <div className={cn(
+              "rounded-xl p-3.5 flex items-center justify-between gap-3",
+              "shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]",
+            )}>
+              <div>
+                <p className="text-sm font-medium text-text-primary">Connect a wallet</p>
+                <p className="text-xs text-text-secondary">Optional — you can also do this later from your profile.</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsWalletModalOpen(true)}
+                className={cn(
+                  "shrink-0 px-4 py-2 rounded-lg text-xs font-semibold cursor-pointer",
+                  "text-primary bg-white",
+                  "shadow-[3px_3px_6px_#d1d5db,-3px_-3px_6px_#ffffff]",
+                  "hover:shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]",
+                  "transition-all duration-150",
+                )}
+              >
+                Connect wallet
+              </button>
+            </div>
+          )}
+
           {submitError && (
             <div className="p-3 rounded-xl bg-error/10 text-error text-sm">{submitError}</div>
           )}
@@ -429,6 +428,12 @@ export function WalletOnboardingForm() {
           >
             {isSubmitting ? "Saving..." : needsStep2 ? "Continue" : "Get started"}
           </button>
+
+          <WalletConnectModal
+            isOpen={isWalletModalOpen}
+            onClose={() => setIsWalletModalOpen(false)}
+            onConnected={() => setIsWalletModalOpen(false)}
+          />
         </form>
       )}
 
@@ -515,53 +520,6 @@ export function WalletOnboardingForm() {
             </button>
           </div>
         </form>
-      )}
-
-      {step === "wallet" && (
-        <div className="space-y-4">
-          <p className="text-sm text-text-secondary text-center">
-            Connect a Stellar wallet to receive payments directly, or skip and connect one later
-            from your profile.
-          </p>
-
-          <button
-            type="button"
-            onClick={() => setIsWalletModalOpen(true)}
-            className={cn(
-              "w-full px-6 py-3 rounded-xl font-medium cursor-pointer",
-              "bg-primary text-white",
-              "shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]",
-              "hover:bg-primary-hover hover:shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff] hover:scale-[1.02]",
-              "active:scale-[0.98]",
-              "transition-all duration-200",
-            )}
-          >
-            Connect wallet
-          </button>
-
-          <button
-            type="button"
-            onClick={finishOnboarding}
-            className={cn(
-              "w-full px-6 py-3 rounded-xl font-medium cursor-pointer",
-              "text-text-secondary bg-[#F3F4F6]",
-              "shadow-[3px_3px_6px_#d1d5db,-3px_-3px_6px_#ffffff]",
-              "hover:text-text-primary active:shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]",
-              "transition-all duration-200",
-            )}
-          >
-            Skip for now
-          </button>
-
-          <WalletConnectModal
-            isOpen={isWalletModalOpen}
-            onClose={() => setIsWalletModalOpen(false)}
-            onConnected={() => {
-              setIsWalletModalOpen(false);
-              finishOnboarding();
-            }}
-          />
-        </div>
       )}
     </AuthLayout>
   );
