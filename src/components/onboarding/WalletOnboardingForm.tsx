@@ -385,13 +385,13 @@ export function WalletOnboardingForm() {
           )}
 
           {!walletAddress && (
-            <div className="flex items-center justify-between gap-3">
-              <p className="text-xs text-text-secondary">Connect a wallet</p>
+            <div className="flex items-center justify-between gap-3 py-1">
+              <p className="text-sm font-medium text-text-primary">Connect a wallet</p>
               <button
                 type="button"
                 onClick={() => setIsWalletModalOpen(true)}
                 className={cn(
-                  "shrink-0 px-4 py-2 rounded-xl text-xs font-semibold cursor-pointer",
+                  "shrink-0 px-5 py-2.5 rounded-xl text-sm font-semibold cursor-pointer",
                   "text-emerald-600 bg-[#F3F4F6]",
                   "shadow-[3px_3px_6px_#d1d5db,-3px_-3px_6px_#ffffff]",
                   "hover:shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]",
