@@ -73,7 +73,7 @@ export function WalletOnboardingForm() {
   const token = useAuthStore((state) => state.token);
   const login = useAuthStore((state) => state.login);
   // The account's actual linked wallet (backend truth), not the browser
-  // extension's live SWK session (`walletAddress` in the store) — that one
+  // extension's live SWK session (`walletAddress` in the store). That one
   // persists across whatever OfferHub account is logged in, so a brand new
   // account with nothing connected could otherwise show a wallet chip left
   // over from a previous session in the same browser.
@@ -281,7 +281,7 @@ export function WalletOnboardingForm() {
           </div>
 
           {/* Already chosen at registration (typed for email, auto-generated
-              for wallet-first) — onboarding collects the rest of the
+              for wallet-first). Onboarding collects the rest of the
               profile, not a rename. Change it later from account settings. */}
           <AuthInput
             label="Username"
@@ -385,24 +385,14 @@ export function WalletOnboardingForm() {
           )}
 
           {!walletAddress && (
-            <div className={cn(
-              "rounded-xl p-3.5 flex items-center justify-between gap-3",
-              "shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]",
-            )}>
-              <div>
-                <p className="text-sm font-medium text-text-primary">Connect a wallet</p>
-                <p className="text-xs text-text-secondary">Optional — you can also do this later from your profile.</p>
-              </div>
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-xs text-text-secondary">
+                Connect a wallet (optional, you can also do this later)
+              </p>
               <button
                 type="button"
                 onClick={() => setIsWalletModalOpen(true)}
-                className={cn(
-                  "shrink-0 px-4 py-2 rounded-lg text-xs font-semibold cursor-pointer",
-                  "text-primary bg-white",
-                  "shadow-[3px_3px_6px_#d1d5db,-3px_-3px_6px_#ffffff]",
-                  "hover:shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]",
-                  "transition-all duration-150",
-                )}
+                className="shrink-0 text-xs font-semibold text-primary hover:underline cursor-pointer"
               >
                 Connect wallet
               </button>
