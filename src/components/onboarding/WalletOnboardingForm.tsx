@@ -138,11 +138,6 @@ export function WalletOnboardingForm() {
       return;
     }
 
-    if (!user?.email && !step1.email?.trim()) {
-      setStep1Errors({ email: "Enter your email to continue" });
-      return;
-    }
-
     if (needsStep2) {
       setStep(2);
     } else {
@@ -373,7 +368,7 @@ export function WalletOnboardingForm() {
 
           {!user?.email && (
             <AuthInput
-              label="Email"
+              label="Email (optional)"
               type="email"
               name="email"
               value={step1.email ?? ""}

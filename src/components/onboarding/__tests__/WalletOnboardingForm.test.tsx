@@ -130,4 +130,25 @@ describe("WalletOnboardingForm inline optional wallet connect", () => {
 
     expect(mockPush).toHaveBeenCalledWith("/app");
   });
+
+  it("completes onboarding without an email for a wallet-first account, since D1.2 does not require one", async () => {
+    mockUser = {
+      id: "usr_1",
+      username: "wallet_user",
+      wallet: { id: "wal_1", publicKey: "GDRXE2BQUC3AZNPVFSCEZ76NJ3WWL25FYFK6RGZGIEKWE4SOOHSUJUJ", type: "EXTERNAL" },
+    };
+    const user = userEvent.setup();
+    render(<WalletOnboardingForm />);
+
+    expect(screen.getByText("Email (optional)")).toBeInTheDocument();
+
+    await fillStep1(user);
+    await user.click(screen.getByRole("button", { name: "Get started" }));
+
+    expect(mockUpdateProfile).toHaveBeenCalledWith(
+      "jwt-token",
+      expect.not.objectContaining({ email: expect.anything() })
+    );
+    expect(mockPush).toHaveBeenCalledWith("/app");
+  });
 });
