@@ -81,6 +81,14 @@ const FREIGHTER = {
   isAvailable: true,
 };
 
+const LOBSTR_NOT_INSTALLED = {
+  id: "lobstr",
+  name: "Lobstr",
+  icon: "/lobstr.png",
+  url: "https://lobstr.co",
+  isAvailable: false,
+};
+
 function setup() {
   mockToken = "jwt-token";
   mockUser = { id: "usr_1" };
@@ -181,6 +189,33 @@ describe("WalletConnectModal — persisting the link server-side", () => {
     await waitFor(() => expect(mockConnectWallet).toHaveBeenCalledWith(PUBLIC_KEY));
     expect(mockConnectWalletApi).not.toHaveBeenCalled();
     expect(mockRequestChallenge).not.toHaveBeenCalled();
+  });
+});
+
+describe("WalletConnectModal — wallet list rendering", () => {
+  it("renders an installed wallet as connectable and a not-installed one as install-only", async () => {
+    mockRefreshSupportedWallets.mockResolvedValue([FREIGHTER, LOBSTR_NOT_INSTALLED]);
+    render(<WalletConnectModal isOpen onClose={vi.fn()} />);
+
+    expect(await screen.findByRole("button", { name: "Connect Freighter" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Install Lobstr" })).toBeInTheDocument();
+    expect(screen.getByText("Available")).toBeInTheDocument();
+    expect(screen.getByText("Not installed")).toBeInTheDocument();
+  });
+
+  it("opens the install page instead of attempting to connect a not-installed wallet", async () => {
+    mockRefreshSupportedWallets.mockResolvedValue([LOBSTR_NOT_INSTALLED]);
+    const openSpy = vi.spyOn(window, "open").mockImplementation(() => null);
+    const user = userEvent.setup();
+    render(<WalletConnectModal isOpen onClose={vi.fn()} />);
+
+    await user.click(await screen.findByRole("button", { name: "Install Lobstr" }));
+
+    expect(openSpy).toHaveBeenCalledWith("https://lobstr.co", "_blank", "noopener,noreferrer");
+    expect(mockSetWallet).not.toHaveBeenCalled();
+    expect(mockConnectWalletApi).not.toHaveBeenCalled();
+
+    openSpy.mockRestore();
   });
 });
 
