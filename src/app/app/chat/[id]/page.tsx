@@ -1,7 +1,7 @@
 "use client";
 
 import { ICON_PATHS, Icon } from "@/components/ui/Icon";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 
 import { ChatHeader } from "@/components/chat/ChatHeader";
@@ -19,6 +19,9 @@ import { useChatStore } from "@/stores/chat-store";
 import { useMarkAsRead } from "@/hooks/use-mark-as-read";
 import { useSidebarStore } from "@/stores/sidebar-store";
 
+const EMPTY_MESSAGES: never[] = [];
+const EMPTY_TYPING_USERS = new Set<string>();
+
 export default function ChatThreadPage(): React.JSX.Element {
   const params = useParams();
   const router = useRouter();
@@ -33,10 +36,10 @@ export default function ChatThreadPage(): React.JSX.Element {
 
   // ── Store selectors ──────────────────────────────────────────────────────
   const conversations = useChatStore((s) => s.conversations);
-  const messages = useChatStore((s) => s.messagesByConversation[chatId] ?? []);
+  const messages = useChatStore((s) => s.messagesByConversation[chatId] ?? EMPTY_MESSAGES);
   const isLoadingMessages = useChatStore((s) => s.messagesLoading[chatId] ?? false);
   const hasMoreMessages = useChatStore((s) => s.messagesHasMore[chatId] ?? false);
-  const typingUsers = useChatStore((s) => s.typingUsers[chatId] ?? new Set<string>());
+  const typingUsers = useChatStore((s) => s.typingUsers[chatId] ?? EMPTY_TYPING_USERS);
   const connectionStatus = useChatStore((s) => s.connectionStatus[chatId] ?? "disconnected");
 
   const { fetchConversations, fetchMessages, fetchMoreMessages, sendMessage } = useChatStore();
