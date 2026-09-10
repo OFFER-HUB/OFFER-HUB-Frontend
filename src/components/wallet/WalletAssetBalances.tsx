@@ -101,18 +101,7 @@ export function WalletAssetBalances({
     <div className={cn("space-y-4", className)}>
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <div className="flex items-center gap-2">
-            <h3 className="text-sm font-bold text-text-primary">Connected wallet assets</h3>
-            <span
-              className={cn(
-                "inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-semibold",
-                "bg-primary/10 text-primary"
-              )}
-            >
-              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-              Horizon Live
-            </span>
-          </div>
+          <h3 className="text-sm font-bold text-text-primary">Connected wallet assets</h3>
           <p className="text-xs text-text-secondary mt-1 flex items-center gap-1.5">
             <span id={accountId} className="font-mono text-text-secondary">
               {truncateAddress(address)}

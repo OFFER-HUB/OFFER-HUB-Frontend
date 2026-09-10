@@ -65,10 +65,7 @@ export function BalanceCard({
     >
       <div className="flex items-start justify-between gap-4 mb-6">
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold uppercase tracking-wider mb-2">
-            <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
-            Total Balance
-          </div>
+          <p className="text-sm font-medium text-text-secondary mb-1">Total Balance</p>
           <p className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-text-primary tracking-tight">
             {totalDisplay}
           </p>

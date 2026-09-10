@@ -34,14 +34,9 @@ export function BalanceChart({ data, className }: BalanceChartProps): React.JSX.
         className
       )}
     >
-      <div className="flex items-center justify-between gap-2 mb-4">
-        <div>
-          <h2 className="text-lg font-bold text-text-primary">Cash Flow & Volume</h2>
-          <p className="text-xs text-text-secondary mt-0.5">Earnings vs withdrawals by period</p>
-        </div>
-        <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-primary/10 text-primary">
-          Live Ledger
-        </span>
+      <div className="mb-4">
+        <h2 className="text-lg font-bold text-text-primary">Earnings vs Withdrawals</h2>
+        <p className="text-xs text-text-secondary mt-0.5">Earnings and withdrawals comparison over time</p>
       </div>
       <div className="min-w-0 overflow-hidden">
         <BalanceChartInner data={data} />

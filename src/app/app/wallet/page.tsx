@@ -180,15 +180,11 @@ export default function WalletPage(): React.JSX.Element {
       {/* Header Banner & Action Controls */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold uppercase tracking-wider mb-2">
-            <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
-            On-Chain Ledger & Escrow
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-text-primary tracking-tight">
-            Wallet Overview
+          <h1 className="text-2xl sm:text-3xl font-bold text-text-primary tracking-tight">
+            Wallet
           </h1>
           <p className="text-sm text-text-secondary mt-1">
-            Real-time ledger balance, on-chain Horizon assets, and withdrawal management.
+            Manage your balance, track earnings, and withdraw funds.
           </p>
         </div>
 
@@ -277,130 +273,87 @@ export default function WalletPage(): React.JSX.Element {
         />
       </div>
 
-      {/* Symmetrical 3-Card Metric KPI Grid (Adapts seamlessly when menu opens/closes) */}
+      {/* 3-Card Metric KPI Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-6">
         {/* Card 1: Earned this month */}
         <div
           className={cn(
-            "p-6 rounded-3xl bg-white dark:bg-slate-900",
+            "p-6 rounded-3xl bg-surface",
             "shadow-[var(--shadow-neumorphic-light)] dark:shadow-[var(--shadow-neumorphic-dark)]",
-            "border-none transition-all duration-300 flex flex-col justify-between"
+            "transition-all duration-300"
           )}
         >
-          <div>
-            <div className="flex items-center justify-between gap-2 mb-3">
-              <span className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
-                Earned this month
-              </span>
-              <div className="h-8 w-8 rounded-xl bg-success/10 text-success flex items-center justify-center shrink-0">
-                <Icon path={ICON_PATHS.trendingUp} size="sm" />
-              </div>
-            </div>
-            <p className="text-2xl sm:text-3xl font-extrabold text-text-primary tracking-tight">
-              {new Intl.NumberFormat("en-US", {
-                style: "currency",
-                currency: data.balance.currency,
-              }).format(parseMoney(data.monthly.currentMonthEarnings))}
+          <p className="text-sm font-medium text-text-secondary">Earned this month</p>
+          <p className="text-xs text-text-secondary mb-2">From completed orders</p>
+          <p className="text-2xl sm:text-3xl font-bold text-text-primary">
+            {new Intl.NumberFormat("en-US", {
+              style: "currency",
+              currency: data.balance.currency,
+            }).format(parseMoney(data.monthly.currentMonthEarnings))}
+          </p>
+          {earnPct !== null ? (
+            <p
+              className={cn(
+                "text-xs mt-2 font-medium",
+                earnPct >= 0 ? "text-success" : "text-error"
+              )}
+            >
+              {formatPct(earnPct)} vs last month
             </p>
-            <p className="text-xs text-text-secondary mt-1">From completed orders & milestones</p>
-          </div>
-
-          <div className="pt-4 mt-4 border-t border-slate-100 dark:border-slate-800">
-            {earnPct !== null ? (
-              <span
-                className={cn(
-                  "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold",
-                  earnPct >= 0
-                    ? "bg-success/10 text-success"
-                    : "bg-error/10 text-error"
-                )}
-              >
-                <span className={cn("h-1.5 w-1.5 rounded-full", earnPct >= 0 ? "bg-success" : "bg-error")} />
-                {formatPct(earnPct)} vs last month
-              </span>
-            ) : (
-              <span className="text-xs text-text-secondary">No baseline last month</span>
-            )}
-          </div>
+          ) : (
+            <p className="text-xs text-text-secondary mt-2">No comparison last month</p>
+          )}
         </div>
 
         {/* Card 2: Withdrawn this month */}
         <div
           className={cn(
-            "p-6 rounded-3xl bg-white dark:bg-slate-900",
+            "p-6 rounded-3xl bg-surface",
             "shadow-[var(--shadow-neumorphic-light)] dark:shadow-[var(--shadow-neumorphic-dark)]",
-            "border-none transition-all duration-300 flex flex-col justify-between"
+            "transition-all duration-300"
           )}
         >
-          <div>
-            <div className="flex items-center justify-between gap-2 mb-3">
-              <span className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
-                Withdrawn this month
-              </span>
-              <div className="h-8 w-8 rounded-xl bg-warning/10 text-warning flex items-center justify-center shrink-0">
-                <Icon path={ICON_PATHS.currency} size="sm" />
-              </div>
-            </div>
-            <p className="text-2xl sm:text-3xl font-extrabold text-text-primary tracking-tight">
-              {new Intl.NumberFormat("en-US", {
-                style: "currency",
-                currency: data.balance.currency,
-              }).format(parseMoney(data.monthly.currentMonthSpending))}
+          <p className="text-sm font-medium text-text-secondary">Withdrawn this month</p>
+          <p className="text-xs text-text-secondary mb-2">Completed withdrawals</p>
+          <p className="text-2xl sm:text-3xl font-bold text-text-primary">
+            {new Intl.NumberFormat("en-US", {
+              style: "currency",
+              currency: data.balance.currency,
+            }).format(parseMoney(data.monthly.currentMonthSpending))}
+          </p>
+          {spendPct !== null ? (
+            <p
+              className={cn(
+                "text-xs mt-2 font-medium",
+                spendPct <= 0 ? "text-success" : "text-warning"
+              )}
+            >
+              {formatPct(spendPct)} vs last month
             </p>
-            <p className="text-xs text-text-secondary mt-1">Completed external payouts</p>
-          </div>
-
-          <div className="pt-4 mt-4 border-t border-slate-100 dark:border-slate-800">
-            {spendPct !== null ? (
-              <span
-                className={cn(
-                  "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold",
-                  spendPct <= 0
-                    ? "bg-success/10 text-success"
-                    : "bg-warning/10 text-warning"
-                )}
-              >
-                <span className={cn("h-1.5 w-1.5 rounded-full", spendPct <= 0 ? "bg-success" : "bg-warning")} />
-                {formatPct(spendPct)} vs last month
-              </span>
-            ) : (
-              <span className="text-xs text-text-secondary">No baseline last month</span>
-            )}
-          </div>
+          ) : (
+            <p className="text-xs text-text-secondary mt-2">No comparison last month</p>
+          )}
         </div>
 
         {/* Card 3: Pending withdrawals */}
         <div
           className={cn(
-            "p-6 rounded-3xl bg-white dark:bg-slate-900",
+            "p-6 rounded-3xl bg-surface",
             "shadow-[var(--shadow-neumorphic-light)] dark:shadow-[var(--shadow-neumorphic-dark)]",
-            "border-none transition-all duration-300 flex flex-col justify-between sm:col-span-2 lg:col-span-1"
+            "transition-all duration-300 sm:col-span-2 lg:col-span-1"
           )}
         >
-          <div>
-            <div className="flex items-center justify-between gap-2 mb-3">
-              <span className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
-                Pending withdrawals
-              </span>
-              <div className="h-8 w-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                <Icon path={ICON_PATHS.clock} size="sm" />
-              </div>
-            </div>
-            <p className="text-2xl sm:text-3xl font-extrabold text-text-primary tracking-tight">
-              {new Intl.NumberFormat("en-US", {
-                style: "currency",
-                currency: data.balance.currency,
-              }).format(parseMoney(data.withdrawals.pendingTotal))}
-            </p>
-            <p className="text-xs text-text-secondary mt-1">Currently in processing queue</p>
-          </div>
-
-          <div className="pt-4 mt-4 border-t border-slate-100 dark:border-slate-800">
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-background shadow-[var(--shadow-neumorphic-inset-light)] dark:shadow-[var(--shadow-neumorphic-inset-dark)] text-text-primary">
-              <span className={cn("h-1.5 w-1.5 rounded-full", data.withdrawals.pendingCount > 0 ? "bg-warning animate-pulse" : "bg-slate-400")} />
-              {data.withdrawals.pendingCount} open {data.withdrawals.pendingCount === 1 ? "request" : "requests"}
-            </span>
-          </div>
+          <p className="text-sm font-medium text-text-secondary">Pending withdrawals</p>
+          <p className="text-xs text-text-secondary mb-2">
+            {data.withdrawals.pendingCount} open {data.withdrawals.pendingCount === 1 ? "request" : "requests"}
+          </p>
+          <p className="text-2xl sm:text-3xl font-bold text-text-primary">
+            {new Intl.NumberFormat("en-US", {
+              style: "currency",
+              currency: data.balance.currency,
+            }).format(parseMoney(data.withdrawals.pendingTotal))}
+          </p>
+          <p className="text-xs text-text-secondary mt-2">Currently in processing queue</p>
         </div>
       </div>
 
