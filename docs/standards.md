@@ -111,6 +111,11 @@ PRs with `any` will be rejected unless accompanied by:
 2. A tracking issue for proper typing
 3. Approval from a senior developer
 
+> **`src/lib/api/*.ts` specifically**: the return types of every exported function in
+> `lib/api/` must be fully typed — `Promise<any>` and `Promise<any[]>` are not allowed.
+> These functions are the boundary between the network and the rest of the app; a typed
+> return is what lets callers omit any runtime narrowing at all.
+
 ### Exports
 
 Prefer named exports:
@@ -122,6 +127,59 @@ export const MAX_ITEMS = 100;
 // Exception: Next.js pages and layouts use default exports
 export default function Page() { ... }
 ```
+
+## Component Architecture
+
+### Pages Are Orchestrators
+
+A `page.tsx` file is a **thin orchestrator**: it calls hooks, composes components, and
+returns JSX. It must not contain:
+
+- Direct `fetch`/API calls (those belong in a hook or `lib/api/`)
+- Data-transform helper functions (those belong in a hook or `lib/`)
+- Form validation logic (that belongs in a hook or schema file)
+- Inline JSX bodies longer than ~100 lines
+
+**Reference examples (follow these):**
+- `src/app/app/client/dashboard/page.tsx` — calls `useClientDashboardData`, renders
+  imported components, zero inline business logic.
+- `src/app/app/orders/[id]/page.tsx` — delegates all escrow/signing state to
+  `useOrderActions`, renders imported components.
+
+If a `page.tsx` is growing past 100 lines of JSX, extract a `useXData`/`useXActions`
+hook and move the logic there.
+
+### Single-Responsibility Components
+
+A component file may not combine all three of:
+- (a) direct API/service calls
+- (b) non-trivial business logic (derived state, validation, multi-step flows)
+- (c) substantial JSX (> ~80 lines)
+
+If a component needs all three, split it: extract the data-fetching and logic into a
+`useX` hook and keep the component as a render-only view.
+
+**Canonical before/after (issue #349):**
+- Before: a single component mixing fetch + logic + JSX
+- After: `useSkillsManager.ts` / `useAvailabilityForm.ts` handle state & API calls;
+  `SkillsInput.tsx` / `AvailabilitySettings.tsx` render from props
+
+### Where Types Live
+
+Any interface or type that represents a **domain entity** (user, order, wallet, dispute,
+service, …) belongs in `src/types/<domain>.types.ts`.
+
+**Never define domain types inline** in:
+- Component files
+- Hook files
+- `src/lib/api/*.ts` files (those files import from `src/types/`)
+
+**Before adding a new domain type**, search `src/types/` first — the type may already
+exist under a slightly different name.
+
+**Exemption:** local UI-only shapes that are not shared outside a single file (e.g.
+`interface TooltipProps` used only by an inline sub-component in the same file) may
+stay inline.
 
 ## ESLint Configuration
 
