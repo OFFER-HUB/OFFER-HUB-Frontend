@@ -62,16 +62,16 @@ export interface UseOrderActionsResult {
   showSuccess: (message: string) => void;
   dismissError: () => void;
   dismissSuccess: () => void;
-  /** Buyer confirms the order, reserving funds from their balance. */
+  /** Buyer confirms the order, reserving funds from their balance (custodial path). */
   handleReserveFunds: () => Promise<void>;
-  /** Buyer starts the escrow contract. */
+  /**
+   * Buyer starts the escrow contract. For an EXTERNAL wallet, walks through
+   * client-side signing (see `createSigning`) instead of the server-signed call.
+   */
   handleCreateEscrow: () => Promise<void>;
   /**
-   * Funds an already-created escrow.
-   *
-   * Not wired to a control today — funding is driven server-side once the
-   * contract exists — but kept so the flow stays reachable from one place if
-   * the manual step comes back.
+   * Funds an already-created escrow. For an EXTERNAL wallet, walks through
+   * client-side signing (see `fundSigning`) instead of the server-signed call.
    */
   handleFundEscrow: () => Promise<void>;
   /** Buyer cancels the order, after a native confirmation prompt. */
@@ -107,6 +107,10 @@ export interface UseOrderActionsResult {
   handleSubmitReview: (rating: number, comment: string) => Promise<void>;
   /** Seller answers the review left on them. Rejects on failure. */
   handleSubmitReviewResponse: (content: string) => Promise<void>;
+  /** D2.1 signing state behind the buyer's create-escrow step — drives EscrowSigningModal/WalletConnectModal for it. */
+  createSigning: UseEscrowSigningActionResult;
+  /** D2.1 signing state behind the buyer's fund-escrow step — drives EscrowSigningModal/WalletConnectModal for it. */
+  fundSigning: UseEscrowSigningActionResult;
   /** D2.1 signing state behind the seller's complete_milestone step — drives EscrowSigningModal/WalletConnectModal for it. */
   completeSigning: UseEscrowSigningActionResult;
   /** D2.1 signing state behind the release action — drives EscrowSigningModal/WalletConnectModal for it. */
@@ -199,23 +203,54 @@ export function useOrderActions({
     [orderId, runOrderMutation]
   );
 
-  const handleCreateEscrow = useCallback(
-    () =>
+  // ---- D2.1: create escrow -------------------------------------------------
+
+  const createSigning = useEscrowSigningAction({
+    orderId,
+    operation: "create",
+    legacyAction: () =>
       runOrderMutation(
         (authToken) => createEscrow(authToken, orderId),
         ORDER_ACTION_MESSAGES.createEscrow
       ),
-    [orderId, runOrderMutation]
-  );
+    onConfirmed: () => {
+      setSuccess(ORDER_ACTION_MESSAGES.createEscrow.success);
+      void refetchOrder();
+    },
+  });
 
-  const handleFundEscrow = useCallback(
-    () =>
+  const handleCreateEscrow = useCallback(async (): Promise<void> => {
+    try {
+      await createSigning.run();
+    } catch {
+      // Surfaced via createSigning.inlineError (client-signing failures) or,
+      // for the legacy path, the shared error banner runOrderMutation already set.
+    }
+  }, [createSigning]);
+
+  // ---- D2.1: fund escrow ---------------------------------------------------
+
+  const fundSigning = useEscrowSigningAction({
+    orderId,
+    operation: "fund",
+    legacyAction: () =>
       runOrderMutation(
         (authToken) => fundEscrow(authToken, orderId),
         ORDER_ACTION_MESSAGES.fundEscrow
       ),
-    [orderId, runOrderMutation]
-  );
+    onConfirmed: () => {
+      setSuccess(ORDER_ACTION_MESSAGES.fundEscrow.success);
+      void refetchOrder();
+    },
+  });
+
+  const handleFundEscrow = useCallback(async (): Promise<void> => {
+    try {
+      await fundSigning.run();
+    } catch {
+      // Surfaced via fundSigning.inlineError or the shared error banner.
+    }
+  }, [fundSigning]);
 
   const handleCancel = useCallback(async (): Promise<void> => {
     if (!window.confirm(ORDER_CONFIRM_PROMPTS.cancelOrder)) return;
@@ -460,6 +495,8 @@ export function useOrderActions({
     handleRequestRefund,
     handleSubmitReview,
     handleSubmitReviewResponse,
+    createSigning,
+    fundSigning,
     completeSigning,
     releaseSigning,
     disputeSigning,

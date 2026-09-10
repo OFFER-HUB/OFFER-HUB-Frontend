@@ -22,9 +22,17 @@ interface BuyerActionPanelProps {
   isWorkCompleted: boolean;
   /** An action is already running — every button is disabled. */
   isProcessing: boolean;
+  /**
+   * True when the buyer's primary wallet is WalletType.EXTERNAL (non-custodial).
+   * Changes ORDER_CREATED copy/action (skip reserve funds, sign directly) and
+   * adds a "Sign Fund Transaction" button at ESCROW_FUNDING.
+   */
+  isExternalWallet?: boolean;
   onConfirmOrder: () => void;
   onCancelOrder: () => void;
   onStartSecurePayment: () => void;
+  /** Sign the fund-escrow XDR — only called for non-custodial buyers at ESCROW_FUNDING. */
+  onSignFundEscrow?: () => void;
   onRequestRelease: () => void;
   onRequestDispute: () => void;
   onRequestRefund: () => void;
@@ -41,9 +49,11 @@ export function BuyerActionPanel({
   status,
   isWorkCompleted,
   isProcessing,
+  isExternalWallet = false,
   onConfirmOrder,
   onCancelOrder,
   onStartSecurePayment,
+  onSignFundEscrow,
   onRequestRelease,
   onRequestDispute,
   onRequestRefund,
@@ -55,28 +65,57 @@ export function BuyerActionPanel({
       {status === "ORDER_CREATED" && (
         <div className="space-y-4">
           <div className={cn("p-5 rounded-xl", NEUMORPHIC_INSET)}>
-            <OrderNoticeRow tone="primary" iconPath={ICON_PATHS.infoCircle} className="mb-4">
-              Confirm this order to reserve funds from your balance. The freelancer will be
-              notified to start work.
-            </OrderNoticeRow>
-            <button
-              type="button"
-              onClick={onConfirmOrder}
-              disabled={isProcessing}
-              className={cn(PRIMARY_BUTTON, "w-full justify-center")}
-            >
-              {isProcessing ? (
-                <>
-                  <LoadingSpinner size="sm" />
-                  <span>Processing...</span>
-                </>
-              ) : (
-                <>
-                  <Icon path={ICON_PATHS.check} size="sm" />
-                  <span>Confirm Order</span>
-                </>
-              )}
-            </button>
+            {isExternalWallet ? (
+              <>
+                <OrderNoticeRow tone="primary" iconPath={ICON_PATHS.lock} className="mb-4">
+                  Lock funds directly in the Soroban escrow contract by signing with your
+                  wallet. No platform balance required.
+                </OrderNoticeRow>
+                <button
+                  type="button"
+                  onClick={onStartSecurePayment}
+                  disabled={isProcessing}
+                  className={cn(PRIMARY_BUTTON, "w-full justify-center")}
+                >
+                  {isProcessing ? (
+                    <>
+                      <LoadingSpinner size="sm" />
+                      <span>Processing...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Icon path={ICON_PATHS.lock} size="sm" />
+                      <span>Lock Funds in Escrow</span>
+                    </>
+                  )}
+                </button>
+              </>
+            ) : (
+              <>
+                <OrderNoticeRow tone="primary" iconPath={ICON_PATHS.infoCircle} className="mb-4">
+                  Confirm this order to reserve funds from your balance. The freelancer will be
+                  notified to start work.
+                </OrderNoticeRow>
+                <button
+                  type="button"
+                  onClick={onConfirmOrder}
+                  disabled={isProcessing}
+                  className={cn(PRIMARY_BUTTON, "w-full justify-center")}
+                >
+                  {isProcessing ? (
+                    <>
+                      <LoadingSpinner size="sm" />
+                      <span>Processing...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Icon path={ICON_PATHS.check} size="sm" />
+                      <span>Confirm Order</span>
+                    </>
+                  )}
+                </button>
+              </>
+            )}
           </div>
           <button
             type="button"
@@ -119,7 +158,7 @@ export function BuyerActionPanel({
         </div>
       )}
 
-      {(status === "ESCROW_CREATING" || status === "ESCROW_FUNDING") && (
+      {status === "ESCROW_CREATING" && (
         <div
           className={cn(
             "p-5 rounded-xl flex items-center gap-4",
@@ -131,10 +170,57 @@ export function BuyerActionPanel({
             <LoadingSpinner size="sm" />
           </div>
           <div>
-            <p className="font-semibold text-text-primary mb-1">Processing Payment...</p>
+            <p className="font-semibold text-text-primary mb-1">Creating Escrow Contract...</p>
             <p className="text-sm text-text-secondary">This may take a few moments. Please wait.</p>
           </div>
         </div>
+      )}
+
+      {status === "ESCROW_FUNDING" && (
+        isExternalWallet ? (
+          <div className="space-y-4">
+            <div className={cn("p-5 rounded-xl", NEUMORPHIC_INSET)}>
+              <OrderNoticeRow tone="primary" iconPath={ICON_PATHS.lock} className="mb-4">
+                The escrow contract is ready. Sign the funding transaction with your wallet to
+                lock your USDC and let the freelancer begin.
+              </OrderNoticeRow>
+              <button
+                type="button"
+                onClick={onSignFundEscrow}
+                disabled={isProcessing}
+                className={cn(PRIMARY_BUTTON, "w-full justify-center")}
+              >
+                {isProcessing ? (
+                  <>
+                    <LoadingSpinner size="sm" />
+                    <span>Processing...</span>
+                  </>
+                ) : (
+                  <>
+                    <Icon path={ICON_PATHS.lock} size="sm" />
+                    <span>Sign Fund Transaction</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div
+            className={cn(
+              "p-5 rounded-xl flex items-center gap-4",
+              "bg-background shadow-[inset_3px_3px_6px_rgba(245,158,11,0.1),inset_-3px_-3px_6px_#ffffff]",
+              "border-l-4 border-warning"
+            )}
+          >
+            <div className="w-10 h-10 rounded-full bg-warning/10 flex items-center justify-center flex-shrink-0">
+              <LoadingSpinner size="sm" />
+            </div>
+            <div>
+              <p className="font-semibold text-text-primary mb-1">Funding Escrow...</p>
+              <p className="text-sm text-text-secondary">This may take a few moments. Please wait.</p>
+            </div>
+          </div>
+        )
       )}
 
       {status === "IN_PROGRESS" && (

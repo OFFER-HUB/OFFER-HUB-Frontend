@@ -291,3 +291,97 @@ describe("useOrderActions — handleMarkCompleted", () => {
     expect(result.current.error).toBeNull();
   });
 });
+
+// Instance key order with the new signing hooks (operation → key):
+//   "create_0" → createSigning
+//   "fund_0"   → fundSigning
+//   "release_0"→ releaseSigning
+//   "dispute_0"→ disputeSigning
+//   "refund_0" → refundSigning
+//   "release_1"→ completeSigning
+
+describe("useOrderActions — handleCreateEscrow (D2.1)", () => {
+  it("always goes through createSigning.run(), not createEscrow directly", async () => {
+    const { result } = setup();
+    const { createEscrow } = await import("@/lib/api/orders");
+
+    await act(async () => {
+      await result.current.handleCreateEscrow();
+    });
+
+    expect(runByKey["create_0"]).toHaveBeenCalledOnce();
+    expect(createEscrow).not.toHaveBeenCalled();
+  });
+
+  it("reaches the custodial createEscrow call for an INVISIBLE wallet (legacy path)", async () => {
+    const { result } = setup();
+    const { createEscrow } = await import("@/lib/api/orders");
+    (createEscrow as ReturnType<typeof vi.fn>).mockResolvedValue({ id: ORDER_ID, status: "ESCROW_CREATING" });
+    useLegacyPath("create_0");
+
+    await act(async () => {
+      await result.current.handleCreateEscrow();
+    });
+
+    expect(createEscrow).toHaveBeenCalledWith("jwt-token", ORDER_ID);
+  });
+
+  it("swallows a rejected run() instead of throwing out of the handler", async () => {
+    const { result } = setup();
+    runByKey["create_0"].mockRejectedValue(new Error("network error"));
+
+    await act(async () => {
+      await expect(result.current.handleCreateEscrow()).resolves.toBeUndefined();
+    });
+  });
+
+  it("exposes createSigning on the result with the standard UseEscrowSigningActionResult shape", () => {
+    const { result } = setup();
+    expect(result.current.createSigning).toBeDefined();
+    expect(result.current.createSigning.run).toBeInstanceOf(Function);
+    expect(result.current.createSigning.isSigningModalOpen).toBe(false);
+  });
+});
+
+describe("useOrderActions — handleFundEscrow (D2.1)", () => {
+  it("always goes through fundSigning.run(), not fundEscrow directly", async () => {
+    const { result } = setup();
+    const { fundEscrow } = await import("@/lib/api/orders");
+
+    await act(async () => {
+      await result.current.handleFundEscrow();
+    });
+
+    expect(runByKey["fund_0"]).toHaveBeenCalledOnce();
+    expect(fundEscrow).not.toHaveBeenCalled();
+  });
+
+  it("reaches the custodial fundEscrow call for an INVISIBLE wallet (legacy path)", async () => {
+    const { result } = setup();
+    const { fundEscrow } = await import("@/lib/api/orders");
+    (fundEscrow as ReturnType<typeof vi.fn>).mockResolvedValue({ id: ORDER_ID, status: "ESCROW_FUNDED" });
+    useLegacyPath("fund_0");
+
+    await act(async () => {
+      await result.current.handleFundEscrow();
+    });
+
+    expect(fundEscrow).toHaveBeenCalledWith("jwt-token", ORDER_ID);
+  });
+
+  it("swallows a rejected run() instead of throwing out of the handler", async () => {
+    const { result } = setup();
+    runByKey["fund_0"].mockRejectedValue(new Error("Stellar timeout"));
+
+    await act(async () => {
+      await expect(result.current.handleFundEscrow()).resolves.toBeUndefined();
+    });
+  });
+
+  it("exposes fundSigning on the result with the standard UseEscrowSigningActionResult shape", () => {
+    const { result } = setup();
+    expect(result.current.fundSigning).toBeDefined();
+    expect(result.current.fundSigning.run).toBeInstanceOf(Function);
+    expect(result.current.fundSigning.isSigningModalOpen).toBe(false);
+  });
+});

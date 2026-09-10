@@ -62,17 +62,23 @@ export default function OrderDetailPage(): React.JSX.Element {
     onReviewSubmitted: modals.holdReviewModalOpen,
   });
 
-  // Only one of the four D2.1 signing flows can be mid-connect at a time —
+  const isExternalWallet = roles.isBuyer && order?.buyer?.wallet?.type === "EXTERNAL";
+
+  // Only one of the six D2.1 signing flows can be mid-connect at a time —
   // whichever one is, this is the wallet-connect guard driving it.
-  const activeWalletConnectGuard = actions.completeSigning.isWalletConnectOpen
-    ? actions.completeSigning
-    : actions.releaseSigning.isWalletConnectOpen
-      ? actions.releaseSigning
-      : actions.disputeSigning.isWalletConnectOpen
-        ? actions.disputeSigning
-        : actions.refundSigning.isWalletConnectOpen
-          ? actions.refundSigning
-          : null;
+  const activeWalletConnectGuard = actions.createSigning.isWalletConnectOpen
+    ? actions.createSigning
+    : actions.fundSigning.isWalletConnectOpen
+      ? actions.fundSigning
+      : actions.completeSigning.isWalletConnectOpen
+        ? actions.completeSigning
+        : actions.releaseSigning.isWalletConnectOpen
+          ? actions.releaseSigning
+          : actions.disputeSigning.isWalletConnectOpen
+            ? actions.disputeSigning
+            : actions.refundSigning.isWalletConnectOpen
+              ? actions.refundSigning
+              : null;
 
   if (isLoading) return <OrderDetailLoading />;
   if (!order) return <OrderNotFoundCard />;
@@ -125,9 +131,11 @@ export default function OrderDetailPage(): React.JSX.Element {
           status={order.status}
           isWorkCompleted={roles.isWorkCompleted}
           isProcessing={actions.isProcessing}
+          isExternalWallet={isExternalWallet}
           onConfirmOrder={actions.handleReserveFunds}
           onCancelOrder={actions.handleCancel}
           onStartSecurePayment={actions.handleCreateEscrow}
+          onSignFundEscrow={actions.handleFundEscrow}
           onRequestRelease={modals.openReleaseModal}
           onRequestDispute={modals.openDisputeModal}
           onRequestRefund={modals.openRefundModal}
@@ -180,6 +188,26 @@ export default function OrderDetailPage(): React.JSX.Element {
         error={actions.refundSigning.inlineError}
         onCancel={modals.closeRefundModal}
         onConfirm={actions.handleRequestRefund}
+      />
+
+      <EscrowSigningModal
+        isOpen={actions.createSigning.isSigningModalOpen}
+        state={actions.createSigning.signingState}
+        error={actions.createSigning.signingError}
+        transactionHash={actions.createSigning.transactionHash}
+        walletName={currentWalletName()}
+        onRetry={() => void actions.handleCreateEscrow()}
+        onClose={actions.createSigning.dismissSigningModal}
+      />
+
+      <EscrowSigningModal
+        isOpen={actions.fundSigning.isSigningModalOpen}
+        state={actions.fundSigning.signingState}
+        error={actions.fundSigning.signingError}
+        transactionHash={actions.fundSigning.transactionHash}
+        walletName={currentWalletName()}
+        onRetry={() => void actions.handleFundEscrow()}
+        onClose={actions.fundSigning.dismissSigningModal}
       />
 
       <EscrowSigningModal

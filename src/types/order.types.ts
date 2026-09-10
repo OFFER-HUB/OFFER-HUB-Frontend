@@ -15,12 +15,19 @@ export type OrderStatus =
 export type OrderSource = 'DIRECT' | 'SERVICE' | 'APPLICATION';
 
 /** Either side of an order, as embedded in the order payload. */
+export interface OrderParticipantWallet {
+  type: string;
+  publicKey: string;
+}
+
 export interface OrderParticipant {
   id: string;
   email: string;
   name?: string;
   username?: string;
   avatar?: string;
+  /** Present when the API includes the participant's primary wallet. */
+  wallet?: OrderParticipantWallet;
 }
 
 /** Soroban escrow backing an order, present once the contract has been created. */
