@@ -45,6 +45,28 @@ function StepIndicator({ status }: { status: PayoutStatus }): React.JSX.Element 
     );
   }
 
+  if (status === "REFUNDED") {
+    return (
+      <div className="flex items-center gap-3 text-warning">
+        <div className="w-10 h-10 rounded-full flex items-center justify-center bg-warning/10 shrink-0">
+          <Icon path={ICON_PATHS.arrowLeft} size="md" />
+        </div>
+        <span className="font-semibold">Payout refunded</span>
+      </div>
+    );
+  }
+
+  if (status === "ON_HOLD") {
+    return (
+      <div className="flex items-center gap-3 text-warning">
+        <div className="w-10 h-10 rounded-full flex items-center justify-center bg-warning/10 shrink-0">
+          <LoadingSpinner size="sm" className="text-warning" />
+        </div>
+        <span className="font-semibold">Under compliance review</span>
+      </div>
+    );
+  }
+
   const currentIndex = STEPS.findIndex((step) => step.status === status);
 
   return (
@@ -138,7 +160,7 @@ export function PayoutStatusCard({ orderId, className }: PayoutStatusCardProps):
         const result = await getPayoutStatus(token as string, orderId);
         if (cancelled) return;
         setState({ kind: "ready", payout: result });
-        if (result.status === "COMPLETED" || result.status === "FAILED") {
+        if (result.status === "COMPLETED" || result.status === "FAILED" || result.status === "REFUNDED") {
           stopPolling();
         }
       } catch (err) {
@@ -226,6 +248,28 @@ export function PayoutStatusCard({ orderId, className }: PayoutStatusCardProps):
               Contact Support
             </Link>
           </>
+        ) : payout.status === "REFUNDED" ? (
+          <>
+            <p className="text-sm text-text-primary">
+              {payout.failureReason ?? "BlindPay returned the funds to OfferHub."}
+            </p>
+            <p className="text-xs text-text-secondary mt-1">
+              Our team will reach out to arrange a new transfer to your bank account.
+            </p>
+            <Link
+              href="/app/chat"
+              className="inline-flex items-center gap-2 mt-2 text-sm font-medium text-primary hover:underline"
+            >
+              <Icon path={ICON_PATHS.chat} size="sm" />
+              Contact Support
+            </Link>
+          </>
+        ) : payout.status === "ON_HOLD" ? (
+          <p className="text-sm text-text-secondary">
+            {payout.failureReason
+              ? `Under review: ${payout.failureReason}`
+              : "Your payout is under compliance review. This usually resolves within 1–2 business days."}
+          </p>
         ) : payout.fiatAmount ? (
           <p className="text-sm text-text-secondary">
             Settling as {formatFiat(payout.fiatAmount, payout.fiatCurrency)}
