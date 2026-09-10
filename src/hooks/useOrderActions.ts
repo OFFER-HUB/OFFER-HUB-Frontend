@@ -82,7 +82,13 @@ export interface UseOrderActionsResult {
    * instead of the server-signed call.
    */
   handleReleaseFunds: () => Promise<void>;
-  /** Seller marks the work delivered, handing review back to the buyer. */
+  /**
+   * Seller marks the work delivered. For an EXTERNAL wallet, signs the
+   * `complete_milestone` on-chain step first (see `completeSigning`), then
+   * records the off-chain flag. For an INVISIBLE wallet, just records the
+   * flag — the server holds seller keys and signs server-side when the buyer
+   * later triggers the release flow.
+   */
   handleMarkCompleted: () => Promise<void>;
   /**
    * Opens a dispute from whichever side the current user is on. For an
@@ -101,6 +107,8 @@ export interface UseOrderActionsResult {
   handleSubmitReview: (rating: number, comment: string) => Promise<void>;
   /** Seller answers the review left on them. Rejects on failure. */
   handleSubmitReviewResponse: (content: string) => Promise<void>;
+  /** D2.1 signing state behind the seller's complete_milestone step — drives EscrowSigningModal/WalletConnectModal for it. */
+  completeSigning: UseEscrowSigningActionResult;
   /** D2.1 signing state behind the release action — drives EscrowSigningModal/WalletConnectModal for it. */
   releaseSigning: UseEscrowSigningActionResult;
   /** D2.1 signing state behind the dispute action. */
@@ -346,14 +354,47 @@ export function useOrderActions({
     [pendingRefundReason, refundSigning]
   );
 
-  const handleMarkCompleted = useCallback(
-    () =>
+  // ---- D2.1: complete_milestone (seller) ------------------------------------
+
+  // For an EXTERNAL-wallet seller, `complete_milestone` must be signed
+  // client-side before the buyer can sign `approve_milestone` + `release`.
+  // For an INVISIBLE-wallet seller, the server holds both parties' keys and
+  // signs all three steps when the buyer triggers the release flow, so the
+  // off-chain metadata flag is all the seller needs to set here.
+  const completeSigning = useEscrowSigningAction({
+    orderId,
+    operation: "release",
+    legacyAction: () =>
       runOrderMutation(
         (authToken) => markOrderCompleted(authToken, orderId),
         ORDER_ACTION_MESSAGES.markCompleted
       ),
-    [orderId, runOrderMutation]
-  );
+    onConfirmed: async () => {
+      // On-chain step confirmed — persist the off-chain flag so the buyer's
+      // UI knows the work is delivered and unlocks their "Release Funds" flow.
+      if (token) {
+        try {
+          const updated = await markOrderCompleted(token, orderId);
+          onOrderChange(updated);
+        } catch {
+          // Best-effort — the on-chain step succeeded; the metadata update
+          // failing is not worth surfacing as an error to the seller.
+        }
+      }
+      setSuccess(ORDER_ACTION_MESSAGES.markCompleted.success);
+      void refetchOrder();
+    },
+  });
+
+  const handleMarkCompleted = useCallback(async (): Promise<void> => {
+    try {
+      await completeSigning.run();
+    } catch (cause) {
+      if (!(cause instanceof SigningCancelledError)) {
+        showError(toMessage(cause, ORDER_ACTION_MESSAGES.markCompleted.failure));
+      }
+    }
+  }, [completeSigning, showError]);
 
   const handleSubmitReview = useCallback(
     async (rating: number, comment: string): Promise<void> => {
@@ -419,6 +460,7 @@ export function useOrderActions({
     handleRequestRefund,
     handleSubmitReview,
     handleSubmitReviewResponse,
+    completeSigning,
     releaseSigning,
     disputeSigning,
     refundSigning,

@@ -62,15 +62,17 @@ export default function OrderDetailPage(): React.JSX.Element {
     onReviewSubmitted: modals.holdReviewModalOpen,
   });
 
-  // Only one of the three D2.1 signing flows can be mid-connect at a time —
+  // Only one of the four D2.1 signing flows can be mid-connect at a time —
   // whichever one is, this is the wallet-connect guard driving it.
-  const activeWalletConnectGuard = actions.releaseSigning.isWalletConnectOpen
-    ? actions.releaseSigning
-    : actions.disputeSigning.isWalletConnectOpen
-      ? actions.disputeSigning
-      : actions.refundSigning.isWalletConnectOpen
-        ? actions.refundSigning
-        : null;
+  const activeWalletConnectGuard = actions.completeSigning.isWalletConnectOpen
+    ? actions.completeSigning
+    : actions.releaseSigning.isWalletConnectOpen
+      ? actions.releaseSigning
+      : actions.disputeSigning.isWalletConnectOpen
+        ? actions.disputeSigning
+        : actions.refundSigning.isWalletConnectOpen
+          ? actions.refundSigning
+          : null;
 
   if (isLoading) return <OrderDetailLoading />;
   if (!order) return <OrderNotFoundCard />;
@@ -217,6 +219,16 @@ export default function OrderDetailPage(): React.JSX.Element {
           actions.refundSigning.dismissSigningModal();
           modals.closeRefundModal();
         }}
+      />
+
+      <EscrowSigningModal
+        isOpen={actions.completeSigning.isSigningModalOpen}
+        state={actions.completeSigning.signingState}
+        error={actions.completeSigning.signingError}
+        transactionHash={actions.completeSigning.transactionHash}
+        walletName={currentWalletName()}
+        onRetry={() => void actions.handleMarkCompleted()}
+        onClose={actions.completeSigning.dismissSigningModal}
       />
 
       <WalletConnectModal

@@ -30,13 +30,14 @@ vi.mock("@/lib/api/reviews", () => ({
   submitReviewResponse: vi.fn(),
 }));
 
-// One controllable `run()` mock and its real `legacyAction` per operation —
-// mirrors how useOrderActions builds one useEscrowSigningAction instance per
-// action. Each test decides, per operation, whether `run()` should call the
-// real legacy action (simulating an INVISIBLE wallet), resolve on its own
-// (EXTERNAL wallet, signed), or reject (EXTERNAL wallet, error/cancelled).
-const runByOperation: Record<string, ReturnType<typeof vi.fn>> = {};
-const legacyActionByOperation: Record<string, () => Promise<void>> = {};
+// One controllable `run()` mock and its real `legacyAction` per instance.
+// Keys are `"${operation}_${n}"` where n is the call order within an operation
+// (e.g. "release_0" = releaseSigning, "release_1" = completeSigning).
+// Tests that only care about a single instance of an operation can use
+// the bare operation name — "release" resolves to "release_0".
+const runByKey: Record<string, ReturnType<typeof vi.fn>> = {};
+const legacyActionByKey: Record<string, () => Promise<void>> = {};
+const callCountByOperation: Record<string, number> = {};
 
 vi.mock("@/hooks/useEscrowSigningAction", () => {
   class MockSigningCancelledError extends Error {
@@ -55,17 +56,23 @@ vi.mock("@/hooks/useEscrowSigningAction", () => {
       operation: string;
       legacyAction: () => Promise<void>;
     }) => {
-      legacyActionByOperation[operation] = legacyAction;
-      const run = runByOperation[operation] ?? (runByOperation[operation] = vi.fn().mockResolvedValue(undefined));
+      const count = callCountByOperation[operation] ?? 0;
+      callCountByOperation[operation] = count + 1;
+      const key = `${operation}_${count}`;
+      legacyActionByKey[key] = legacyAction;
+      const run = runByKey[key] ?? (runByKey[key] = vi.fn().mockResolvedValue(undefined));
       return {
         run,
         isSigningModalOpen: false,
         signingState: "idle" as const,
+        signingError: null,
+        transactionHash: null,
         inlineError: null,
         clearInlineError: vi.fn(),
         isWalletConnectOpen: false,
         closeWalletConnect: vi.fn(),
         onWalletConnected: vi.fn(),
+        dismissSigningModal: vi.fn(),
       };
     },
   };
@@ -92,19 +99,29 @@ function setup(overrides: Partial<Parameters<typeof useOrderActions>[0]> = {}) {
   );
 }
 
-/** Makes this operation's `run()` behave like an INVISIBLE wallet: call the real legacy action. */
-function useLegacyPath(operation: string) {
-  runByOperation[operation].mockImplementation(() => legacyActionByOperation[operation]());
+/**
+ * Makes an instance's `run()` behave like an INVISIBLE wallet: call the real legacy action.
+ * Key format: `"${operation}_${n}"`, e.g. "release_0" for releaseSigning, "release_1" for completeSigning.
+ */
+function useLegacyPath(key: string) {
+  runByKey[key].mockImplementation(() => legacyActionByKey[key]());
 }
 
 beforeEach(() => {
   vi.clearAllMocks();
-  Object.keys(runByOperation).forEach((key) => delete runByOperation[key]);
-  Object.keys(legacyActionByOperation).forEach((key) => delete legacyActionByOperation[key]);
+  Object.keys(runByKey).forEach((k) => delete runByKey[k]);
+  Object.keys(legacyActionByKey).forEach((k) => delete legacyActionByKey[k]);
+  Object.keys(callCountByOperation).forEach((k) => delete callCountByOperation[k]);
   mockReleaseFunds.mockResolvedValue({ id: ORDER_ID, status: "CLOSED" });
   mockOpenDispute.mockResolvedValue({ id: "dsp_1" });
   mockRequestRefund.mockResolvedValue({ id: ORDER_ID, status: "CLOSED" });
 });
+
+// Instance key order in useOrderActions (determined by hook call order):
+//   "release_0" → releaseSigning (buyer release flow)
+//   "dispute_0" → disputeSigning
+//   "refund_0"  → refundSigning
+//   "release_1" → completeSigning (seller complete_milestone flow)
 
 describe("useOrderActions — handleReleaseFunds", () => {
   it("always goes through releaseSigning.run(), not releaseFunds directly", async () => {
@@ -114,13 +131,13 @@ describe("useOrderActions — handleReleaseFunds", () => {
       await result.current.handleReleaseFunds();
     });
 
-    expect(runByOperation["release"]).toHaveBeenCalledOnce();
+    expect(runByKey["release_0"]).toHaveBeenCalledOnce();
     expect(mockReleaseFunds).not.toHaveBeenCalled();
   });
 
   it("still reaches the legacy releaseFunds call for an INVISIBLE wallet", async () => {
     const { result } = setup();
-    useLegacyPath("release");
+    useLegacyPath("release_0");
 
     await act(async () => {
       await result.current.handleReleaseFunds();
@@ -131,7 +148,7 @@ describe("useOrderActions — handleReleaseFunds", () => {
 
   it("swallows a rejected run() instead of throwing out of the handler", async () => {
     const { result } = setup();
-    runByOperation["release"].mockRejectedValue(new Error("boom"));
+    runByKey["release_0"].mockRejectedValue(new Error("boom"));
 
     await act(async () => {
       await expect(result.current.handleReleaseFunds()).resolves.toBeUndefined();
@@ -147,7 +164,7 @@ describe("useOrderActions — handleOpenDispute", () => {
       await result.current.handleOpenDispute("QUALITY_ISSUE", "Work was incomplete and low quality.");
     });
 
-    expect(runByOperation["dispute"]).toHaveBeenCalledOnce();
+    expect(runByKey["dispute_0"]).toHaveBeenCalledOnce();
     expect(mockOpenDispute).toHaveBeenCalledWith(
       "jwt-token",
       expect.objectContaining({ orderId: ORDER_ID, openedBy: "BUYER", reason: "QUALITY_ISSUE" })
@@ -161,7 +178,7 @@ describe("useOrderActions — handleOpenDispute", () => {
       await result.current.handleOpenDispute("OTHER", "Buyer is unresponsive.");
     });
 
-    expect(runByOperation["dispute"]).not.toHaveBeenCalled();
+    expect(runByKey["dispute_0"]).not.toHaveBeenCalled();
     expect(mockOpenDispute).toHaveBeenCalledWith(
       "jwt-token",
       expect.objectContaining({ openedBy: "SELLER" })
@@ -170,7 +187,7 @@ describe("useOrderActions — handleOpenDispute", () => {
 
   it("rethrows with a friendly message and does not open the admin record when signing is cancelled", async () => {
     const { result } = setup({ isBuyer: true });
-    runByOperation["dispute"].mockRejectedValue(new RealSigningCancelledError());
+    runByKey["dispute_0"].mockRejectedValue(new RealSigningCancelledError());
 
     await expect(
       result.current.handleOpenDispute("OTHER", "Something happened here.")
@@ -181,7 +198,7 @@ describe("useOrderActions — handleOpenDispute", () => {
 
   it("rethrows the real failure message and does not open the admin record on a genuine signing error", async () => {
     const { result } = setup({ isBuyer: true });
-    runByOperation["dispute"].mockRejectedValue(new Error("network exploded"));
+    runByKey["dispute_0"].mockRejectedValue(new Error("network exploded"));
 
     await expect(
       result.current.handleOpenDispute("OTHER", "Something happened here.")
@@ -194,13 +211,13 @@ describe("useOrderActions — handleOpenDispute", () => {
 describe("useOrderActions — handleRequestRefund", () => {
   it("threads the reason through to the legacy call for an INVISIBLE wallet", async () => {
     const { result } = setup();
-    useLegacyPath("refund");
+    useLegacyPath("refund_0");
 
     await act(async () => {
       await result.current.handleRequestRefund("The work was never delivered.");
     });
 
-    expect(runByOperation["refund"]).toHaveBeenCalledOnce();
+    expect(runByKey["refund_0"]).toHaveBeenCalledOnce();
     expect(mockRequestRefund).toHaveBeenCalledWith("jwt-token", ORDER_ID, "The work was never delivered.");
   });
 
@@ -211,16 +228,66 @@ describe("useOrderActions — handleRequestRefund", () => {
       await result.current.handleRequestRefund("The work was never delivered.");
     });
 
-    expect(runByOperation["refund"]).toHaveBeenCalledOnce();
+    expect(runByKey["refund_0"]).toHaveBeenCalledOnce();
     expect(mockRequestRefund).not.toHaveBeenCalled();
   });
 
   it("swallows a rejected run() instead of throwing out of the handler", async () => {
     const { result } = setup();
-    runByOperation["refund"].mockRejectedValue(new Error("boom"));
+    runByKey["refund_0"].mockRejectedValue(new Error("boom"));
 
     await act(async () => {
       await expect(result.current.handleRequestRefund("reason")).resolves.toBeUndefined();
     });
+  });
+});
+
+describe("useOrderActions — handleMarkCompleted", () => {
+  it("always goes through completeSigning.run(), not markOrderCompleted directly", async () => {
+    const { result } = setup();
+    const { markOrderCompleted } = await import("@/lib/api/orders");
+
+    await act(async () => {
+      await result.current.handleMarkCompleted();
+    });
+
+    // completeSigning is the second "release" instance
+    expect(runByKey["release_1"]).toHaveBeenCalledOnce();
+    expect(markOrderCompleted).not.toHaveBeenCalled();
+  });
+
+  it("calls markOrderCompleted for an INVISIBLE-wallet seller (legacy path)", async () => {
+    const { result } = setup();
+    const { markOrderCompleted } = await import("@/lib/api/orders");
+    (markOrderCompleted as ReturnType<typeof vi.fn>).mockResolvedValue({ id: ORDER_ID, status: "IN_PROGRESS" });
+    useLegacyPath("release_1");
+
+    await act(async () => {
+      await result.current.handleMarkCompleted();
+    });
+
+    expect(markOrderCompleted).toHaveBeenCalledWith("jwt-token", ORDER_ID);
+  });
+
+  it("surfaces a signing error in the error banner without throwing", async () => {
+    const { result } = setup();
+    runByKey["release_1"].mockRejectedValue(new Error("XDR build failed"));
+
+    await act(async () => {
+      await expect(result.current.handleMarkCompleted()).resolves.toBeUndefined();
+    });
+
+    expect(result.current.error).toBe("XDR build failed");
+  });
+
+  it("swallows a SigningCancelledError without setting the error banner", async () => {
+    const { result } = setup();
+    runByKey["release_1"].mockRejectedValue(new RealSigningCancelledError());
+
+    await act(async () => {
+      await expect(result.current.handleMarkCompleted()).resolves.toBeUndefined();
+    });
+
+    expect(result.current.error).toBeNull();
   });
 });
