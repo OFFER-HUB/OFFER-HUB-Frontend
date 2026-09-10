@@ -60,8 +60,8 @@ export function TransactionFilters({
   return (
     <section
       className={cn(
-        "p-5 sm:p-6 rounded-3xl bg-white",
-        "shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff]",
+        "p-5 sm:p-6 rounded-3xl bg-surface",
+        "shadow-[var(--shadow-neumorphic-light)] dark:shadow-[var(--shadow-neumorphic-dark)] transition-all duration-300",
         className
       )}
     >
@@ -158,10 +158,10 @@ export function TransactionFilters({
                 type="button"
                 onClick={() => toggleType(option.value)}
                 className={cn(
-                  "px-3 py-2 rounded-xl text-sm font-semibold transition-all border",
+                  "px-3.5 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all duration-200 border",
                   isActive
-                    ? "bg-primary text-white border-primary shadow-[2px_2px_4px_#d1d5db,-2px_-2px_4px_#ffffff]"
-                    : "bg-background border-transparent text-text-secondary hover:text-text-primary",
+                    ? "bg-primary text-white border-primary shadow-[var(--shadow-neumorphic-light)] dark:shadow-[var(--shadow-neumorphic-dark)]"
+                    : "bg-surface border-transparent text-text-secondary hover:text-text-primary shadow-[var(--shadow-neumorphic-light)] dark:shadow-[var(--shadow-neumorphic-dark)] active:shadow-[var(--shadow-neumorphic-inset-light)] dark:active:shadow-[var(--shadow-neumorphic-inset-dark)]",
                   !isActive && option.className
                 )}
               >

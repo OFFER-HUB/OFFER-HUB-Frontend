@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { cn } from "@/lib/cn";
 import { Icon, ICON_PATHS } from "@/components/ui/Icon";
 import type { WalletTransactionRow } from "@/lib/api/wallet";
@@ -49,49 +50,70 @@ export function RecentTransactions({ transactions, className }: RecentTransactio
   return (
     <div
       className={cn(
-        "p-6 rounded-3xl bg-white",
-        "shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff]",
+        "p-6 sm:p-7 rounded-3xl bg-white dark:bg-slate-900",
+        "shadow-[var(--shadow-neumorphic-light)] dark:shadow-[var(--shadow-neumorphic-dark)]",
+        "border-none transition-all duration-300",
         className
       )}
     >
-      <h2 className="text-lg font-bold text-text-primary mb-4">Recent transactions</h2>
-      <ul className="space-y-3">
-        {transactions.map((tx) => {
-          const typeStyle = TYPE_STYLES[tx.type];
-          return (
-            <li
-              key={tx.id}
-              className={cn(
-                "flex items-center gap-3 p-3 rounded-xl",
-                "bg-background",
-                "shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]"
-              )}
-            >
-              <div
+      <div className="flex items-center justify-between gap-2 mb-4">
+        <div>
+          <h2 className="text-lg font-bold text-text-primary">Recent Transactions</h2>
+          <p className="text-xs text-text-secondary mt-0.5">Latest account credits, debits & escrow</p>
+        </div>
+        <Link
+          href="/app/wallet/transactions"
+          className="text-xs font-semibold text-primary hover:text-primary-hover hover:underline inline-flex items-center gap-1"
+        >
+          View all
+          <span aria-hidden="true">→</span>
+        </Link>
+      </div>
+
+      {transactions.length === 0 ? (
+        <div className="py-10 text-center text-sm text-text-secondary">
+          <p>No transactions recorded yet.</p>
+        </div>
+      ) : (
+        <ul className="space-y-3">
+          {transactions.map((tx) => {
+            const typeStyle = TYPE_STYLES[tx.type];
+            return (
+              <li
+                key={tx.id}
                 className={cn(
-                  "w-10 h-10 rounded-xl flex items-center justify-center shrink-0",
-                  typeStyle.badgeClass
+                  "flex items-center gap-3 p-3.5 rounded-2xl",
+                  "bg-background",
+                  "shadow-[var(--shadow-neumorphic-inset-light)] dark:shadow-[var(--shadow-neumorphic-inset-dark)]",
+                  "hover:scale-[1.01] transition-transform duration-200"
                 )}
               >
-                <Icon path={typeStyle.icon} size="md" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-medium text-text-primary truncate">{tx.description}</p>
-                <p className="text-xs text-text-secondary">{formatTime(tx.createdAt)}</p>
-              </div>
-              <span
-                className={cn(
-                  "font-semibold tabular-nums shrink-0",
-                  typeStyle.amountClass
-                )}
-              >
-                {typeStyle.prefix}
-                {formatMoney(tx.amount)}
-              </span>
-            </li>
-          );
-        })}
-      </ul>
+                <div
+                  className={cn(
+                    "w-10 h-10 rounded-xl flex items-center justify-center shrink-0",
+                    typeStyle.badgeClass
+                  )}
+                >
+                  <Icon path={typeStyle.icon} size="md" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-sm text-text-primary truncate">{tx.description}</p>
+                  <p className="text-xs text-text-secondary">{formatTime(tx.createdAt)}</p>
+                </div>
+                <span
+                  className={cn(
+                    "font-bold text-sm tabular-nums shrink-0",
+                    typeStyle.amountClass
+                  )}
+                >
+                  {typeStyle.prefix}
+                  {formatMoney(tx.amount)}
+                </span>
+              </li>
+            );
+          })}
+        </ul>
+      )}
     </div>
   );
 }

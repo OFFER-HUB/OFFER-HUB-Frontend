@@ -256,8 +256,9 @@ export function WithdrawModal({
                     type="button"
                     onClick={handleClose}
                     className={cn(
-                      "px-5 py-2.5 rounded-xl text-sm font-medium text-white",
-                      "bg-primary shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]"
+                      "px-6 py-2.5 rounded-2xl text-xs font-semibold uppercase tracking-wider text-white",
+                      "bg-primary shadow-[var(--shadow-neumorphic-light)] dark:shadow-[var(--shadow-neumorphic-dark)]",
+                      "hover:brightness-105 active:scale-[0.98] transition-all"
                     )}
                   >
                     Done

@@ -23,11 +23,10 @@ export interface WalletConnectButtonProps {
 }
 
 const TRIGGER_BASE = cn(
-  "flex items-center gap-2 rounded-xl font-semibold",
-  "bg-white",
-  "shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]",
-  "hover:shadow-[2px_2px_4px_#d1d5db,-2px_-2px_4px_#ffffff]",
-  "active:shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]",
+  "flex items-center gap-2 rounded-2xl font-semibold",
+  "bg-surface text-text-primary",
+  "shadow-[var(--shadow-neumorphic-light)] dark:shadow-[var(--shadow-neumorphic-dark)]",
+  "hover:text-primary active:shadow-[var(--shadow-neumorphic-inset-light)] dark:active:shadow-[var(--shadow-neumorphic-inset-dark)]",
   "focus-visible:ring-2 focus-visible:ring-primary/40 outline-none",
   "transition-all duration-200 cursor-pointer"
 );
@@ -214,7 +213,7 @@ export function WalletConnectButton({
             className={cn(
               TRIGGER_BASE,
               "px-3 py-2.5 text-sm text-text-primary sm:px-4",
-              isMenuOpen && "shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]"
+              isMenuOpen && "shadow-[var(--shadow-neumorphic-inset-light)] dark:shadow-[var(--shadow-neumorphic-inset-dark)]"
             )}
           >
             <span className={STELLAR_BADGE}>

@@ -57,55 +57,63 @@ export function BalanceCard({
   return (
     <div
       className={cn(
-        "p-6 rounded-3xl bg-white",
-        "shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff]",
+        "p-6 sm:p-8 rounded-3xl bg-white dark:bg-slate-900",
+        "shadow-[var(--shadow-neumorphic-light)] dark:shadow-[var(--shadow-neumorphic-dark)]",
+        "border-none transition-all duration-300",
         className
       )}
     >
       <div className="flex items-start justify-between gap-4 mb-6">
         <div>
-          <p className="text-sm font-medium text-text-secondary mb-1">Total balance</p>
-          <p className="text-3xl sm:text-4xl font-bold text-text-primary tracking-tight">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold uppercase tracking-wider mb-2">
+            <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+            Total Balance
+          </div>
+          <p className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-text-primary tracking-tight">
             {totalDisplay}
           </p>
-          <p className="text-xs text-text-secondary mt-2">Available plus reserved escrow</p>
+          <p className="text-xs text-text-secondary mt-2">Available funds plus active escrow reserves</p>
         </div>
         <div
           className={cn(
             "w-14 h-14 rounded-2xl flex items-center justify-center shrink-0",
-            "bg-primary text-white",
-            "shadow-[4px_4px_8px_#d1d5db,-2px_-2px_6px_#ffffff]"
+            "bg-primary/10 text-primary",
+            "shadow-[var(--shadow-neumorphic-inset-light)] dark:shadow-[var(--shadow-neumorphic-inset-dark)]"
           )}
         >
-          <Icon path={ICON_PATHS.currency} size="lg" className="text-white" />
+          <Icon path={ICON_PATHS.currency} size="lg" className="text-primary" />
         </div>
       </div>
 
       <div
         className={cn(
-          "grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-2xl",
+          "grid grid-cols-1 sm:grid-cols-2 gap-4 p-5 rounded-2xl",
           "bg-background",
-          "shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]"
+          "shadow-[var(--shadow-neumorphic-inset-light)] dark:shadow-[var(--shadow-neumorphic-inset-dark)]"
         )}
       >
-        <div>
-          <p className="text-xs font-medium text-text-secondary uppercase tracking-wide mb-1">
-            Available
+        <div className="flex flex-col justify-between">
+          <p className="text-xs font-semibold text-text-secondary uppercase tracking-wider flex items-center gap-1.5 mb-1">
+            <span className="h-2 w-2 rounded-full bg-success" />
+            Available for Payout
           </p>
-          <p className="text-lg font-semibold text-success">{formatMoney(available, currency)}</p>
+          <p className="text-xl sm:text-2xl font-bold text-success tracking-tight">{formatMoney(available, currency)}</p>
+          <p className="text-[11px] text-text-secondary mt-0.5">Ready for instant withdrawal</p>
         </div>
-        <div>
-          <p className="text-xs font-medium text-text-secondary uppercase tracking-wide mb-1">
-            Reserved
+        <div className="flex flex-col justify-between">
+          <p className="text-xs font-semibold text-text-secondary uppercase tracking-wider flex items-center gap-1.5 mb-1">
+            <span className="h-2 w-2 rounded-full bg-warning" />
+            Locked in Escrow
           </p>
-          <p className="text-lg font-semibold text-warning">{formatMoney(reserved, currency)}</p>
+          <p className="text-xl sm:text-2xl font-bold text-warning tracking-tight">{formatMoney(reserved, currency)}</p>
+          <p className="text-[11px] text-text-secondary mt-0.5">Released upon milestone approval</p>
         </div>
       </div>
 
       {externalWallet ? (
         <WalletAssetBalances
           {...externalWallet}
-          className="mt-6 pt-6 border-t border-border-light"
+          className="mt-6 pt-6 border-t border-slate-100 dark:border-slate-800"
         />
       ) : null}
     </div>

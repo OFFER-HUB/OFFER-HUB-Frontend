@@ -23,13 +23,13 @@ interface TransactionGroup {
 
 function LoadingRows({ showRunningBalance }: { showRunningBalance: boolean }): React.JSX.Element {
   return (
-    <div className="rounded-3xl bg-white p-4 shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff]">
+    <div className="rounded-3xl bg-surface p-4 shadow-[var(--shadow-neumorphic-light)] dark:shadow-[var(--shadow-neumorphic-dark)]">
       <div className="space-y-3 animate-pulse">
         {Array.from({ length: 6 }).map((_, index) => (
           <div key={index} className="grid grid-cols-4 gap-3">
-            <div className="h-10 rounded-xl bg-gray-100" />
-            <div className="h-10 rounded-xl bg-gray-100 col-span-2" />
-            <div className="h-10 rounded-xl bg-gray-100" />
+            <div className="h-10 rounded-xl bg-surface-secondary/60" />
+            <div className="h-10 rounded-xl bg-surface-secondary/60 col-span-2" />
+            <div className="h-10 rounded-xl bg-surface-secondary/60" />
             {showRunningBalance ? <div className="hidden" /> : null}
           </div>
         ))}
@@ -76,7 +76,7 @@ function Pagination({
         type="button"
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage === 1}
-        className="px-3 py-2 rounded-xl bg-white text-sm font-medium text-text-primary shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff] disabled:opacity-50"
+        className="px-3.5 py-2 rounded-xl bg-surface text-xs font-semibold uppercase tracking-wider text-text-primary shadow-[var(--shadow-neumorphic-light)] dark:shadow-[var(--shadow-neumorphic-dark)] active:shadow-[var(--shadow-neumorphic-inset-light)] dark:active:shadow-[var(--shadow-neumorphic-inset-dark)] disabled:opacity-50 transition-all"
       >
         Previous
       </button>
@@ -87,10 +87,10 @@ function Pagination({
           onClick={() => onPageChange(page)}
           aria-current={page === currentPage ? "page" : undefined}
           className={cn(
-            "min-w-10 px-3 py-2 rounded-xl text-sm font-semibold transition-all",
+            "min-w-10 px-3.5 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all",
             page === currentPage
-              ? "bg-primary text-white shadow-[2px_2px_4px_#d1d5db,-2px_-2px_4px_#ffffff]"
-              : "bg-white text-text-primary shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]"
+              ? "bg-primary text-white shadow-[var(--shadow-neumorphic-light)] dark:shadow-[var(--shadow-neumorphic-dark)]"
+              : "bg-surface text-text-primary shadow-[var(--shadow-neumorphic-light)] dark:shadow-[var(--shadow-neumorphic-dark)] active:shadow-[var(--shadow-neumorphic-inset-light)] dark:active:shadow-[var(--shadow-neumorphic-inset-dark)] hover:text-primary"
           )}
         >
           {page}
@@ -100,7 +100,7 @@ function Pagination({
         type="button"
         onClick={() => onPageChange(currentPage + 1)}
         disabled={currentPage === totalPages}
-        className="px-3 py-2 rounded-xl bg-white text-sm font-medium text-text-primary shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff] disabled:opacity-50"
+        className="px-3.5 py-2 rounded-xl bg-surface text-xs font-semibold uppercase tracking-wider text-text-primary shadow-[var(--shadow-neumorphic-light)] dark:shadow-[var(--shadow-neumorphic-dark)] active:shadow-[var(--shadow-neumorphic-inset-light)] dark:active:shadow-[var(--shadow-neumorphic-inset-dark)] disabled:opacity-50 transition-all"
       >
         Next
       </button>
@@ -125,7 +125,7 @@ export function TransactionList({
 
   if (transactions.length === 0) {
     return (
-      <div className="rounded-3xl bg-white p-4 shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff]">
+      <div className="rounded-3xl bg-surface p-6 shadow-[var(--shadow-neumorphic-light)] dark:shadow-[var(--shadow-neumorphic-dark)]">
         <EmptyState
           icon={ICON_PATHS.currency}
           title="No transactions found"
@@ -142,10 +142,10 @@ export function TransactionList({
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-        <p className="text-sm text-text-secondary">
+        <p className="text-xs font-semibold uppercase tracking-wider text-text-secondary">
           Showing {start}-{end} of {totalItems} transactions
         </p>
-        <p className="text-sm text-text-secondary">Grouped by transaction date</p>
+        <p className="text-xs font-semibold uppercase tracking-wider text-text-secondary">Grouped by transaction date</p>
       </div>
 
       {groups.map((group) => (
@@ -157,10 +157,10 @@ export function TransactionList({
             </span>
           </div>
 
-          <div className="hidden md:block rounded-3xl bg-white overflow-x-auto shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff]">
+          <div className="hidden md:block rounded-3xl bg-surface overflow-x-auto shadow-[var(--shadow-neumorphic-light)] dark:shadow-[var(--shadow-neumorphic-dark)]">
             <table className="w-full min-w-[760px]">
               <thead>
-                <tr className="bg-gray-50/80">
+                <tr className="bg-surface-secondary/40 border-b border-border/40">
                   <th className="px-4 py-3 text-left text-xs font-semibold text-text-secondary uppercase tracking-wider whitespace-nowrap">
                     Type
                   </th>

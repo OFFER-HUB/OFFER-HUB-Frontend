@@ -44,7 +44,7 @@ function truncateAddress(address: string): string {
 
 const TILE_STYLES = cn(
   "p-4 rounded-2xl bg-background",
-  "shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]"
+  "shadow-[var(--shadow-neumorphic-inset-light)] dark:shadow-[var(--shadow-neumorphic-inset-dark)]"
 );
 
 interface AssetTileProps {
@@ -55,10 +55,10 @@ interface AssetTileProps {
 function AssetTile({ asset, caption }: AssetTileProps): React.JSX.Element {
   return (
     <div className={TILE_STYLES}>
-      <p className="text-xs font-medium text-text-secondary uppercase tracking-wide mb-1">
+      <p className="text-xs font-semibold text-text-secondary uppercase tracking-wider mb-1">
         {asset.code}
       </p>
-      <p className="text-lg font-semibold text-text-primary tabular-nums break-all">
+      <p className="text-lg font-bold text-text-primary tabular-nums break-all">
         {formatAssetAmount(asset.balance)}
       </p>
       <p className="text-xs text-text-secondary mt-1">
@@ -95,24 +95,29 @@ export function WalletAssetBalances({
   onRefresh,
   className,
 }: WalletAssetBalancesProps): React.JSX.Element {
-  const titleId = useId();
+  const accountId = useId();
 
   return (
-    <section
-      className={cn("space-y-3", className)}
-      aria-labelledby={titleId}
-      aria-busy={isLoading || isRefreshing}
-    >
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="min-w-0">
-          <h3 id={titleId} className="text-sm font-semibold text-text-primary">
-            Connected wallet
-          </h3>
-          <p className="text-xs text-text-secondary">
-            <span className="font-mono">{truncateAddress(address)}</span>
-            <span className="mx-1.5" aria-hidden="true">
-              ·
+    <div className={cn("space-y-4", className)}>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+          <div className="flex items-center gap-2">
+            <h3 className="text-sm font-bold text-text-primary">Connected wallet assets</h3>
+            <span
+              className={cn(
+                "inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-semibold",
+                "bg-primary/10 text-primary"
+              )}
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+              Horizon Live
             </span>
+          </div>
+          <p className="text-xs text-text-secondary mt-1 flex items-center gap-1.5">
+            <span id={accountId} className="font-mono text-text-secondary">
+              {truncateAddress(address)}
+            </span>
+            <span>•</span>
             <span>{STELLAR_NETWORK === "public" ? "Stellar mainnet" : "Stellar testnet"}</span>
           </p>
         </div>
@@ -123,8 +128,8 @@ export function WalletAssetBalances({
             target="_blank"
             rel="noopener noreferrer"
             className={cn(
-              "inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium",
-              "text-text-secondary hover:text-primary transition-colors",
+              "inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold",
+              "bg-background shadow-[var(--shadow-neumorphic-inset-light)] dark:shadow-[var(--shadow-neumorphic-inset-dark)] text-text-secondary hover:text-primary transition-colors",
               "focus-visible:ring-2 focus-visible:ring-primary/40 outline-none"
             )}
           >
@@ -137,12 +142,12 @@ export function WalletAssetBalances({
             disabled={isLoading || isRefreshing}
             aria-label="Refresh on-chain balances"
             className={cn(
-              "inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium",
-              "bg-white text-text-primary",
-              "shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]",
-              "hover:shadow-[2px_2px_4px_#d1d5db,-2px_-2px_4px_#ffffff]",
+              "inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold",
+              "bg-white dark:bg-slate-900 text-text-primary",
+              "shadow-[var(--shadow-neumorphic-light)] dark:shadow-[var(--shadow-neumorphic-dark)]",
+              "hover:text-primary active:shadow-[var(--shadow-neumorphic-inset-light)] dark:active:shadow-[var(--shadow-neumorphic-inset-dark)]",
               "focus-visible:ring-2 focus-visible:ring-primary/40 outline-none",
-              "disabled:opacity-60 disabled:cursor-not-allowed",
+              "disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer",
               "transition-all duration-200"
             )}
           >
@@ -174,12 +179,12 @@ export function WalletAssetBalances({
             type="button"
             onClick={onRefresh}
             className={cn(
-              "px-4 py-2 rounded-xl text-xs font-medium bg-white text-text-primary",
-              "shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]",
-              "focus-visible:ring-2 focus-visible:ring-primary/40 outline-none"
+              "px-4 py-2 rounded-xl text-xs font-semibold bg-white dark:bg-slate-900 text-text-primary",
+              "shadow-[var(--shadow-neumorphic-light)] dark:shadow-[var(--shadow-neumorphic-dark)] active:shadow-[var(--shadow-neumorphic-inset-light)]",
+              "focus-visible:ring-2 focus-visible:ring-primary/40 outline-none cursor-pointer"
             )}
           >
-            Try again
+            Retry
           </button>
         </div>
       ) : null}
@@ -201,6 +206,6 @@ export function WalletAssetBalances({
           ) : null}
         </>
       ) : null}
-    </section>
+    </div>
   );
 }

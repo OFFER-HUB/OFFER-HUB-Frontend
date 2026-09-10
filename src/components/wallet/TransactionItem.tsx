@@ -139,8 +139,8 @@ export function TransactionItem({
   return (
     <article
       className={cn(
-        "rounded-2xl p-4 bg-white",
-        "shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff]"
+        "rounded-2xl p-4 bg-surface",
+        "shadow-[var(--shadow-neumorphic-light)] dark:shadow-[var(--shadow-neumorphic-dark)]"
       )}
     >
       <div className="flex items-start justify-between gap-3">

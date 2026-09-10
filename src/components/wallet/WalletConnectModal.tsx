@@ -145,8 +145,8 @@ export function WalletConnectModal({
         aria-labelledby="wc-title"
         className={cn(
           "relative w-full max-w-sm outline-none",
-          "bg-white rounded-2xl p-6",
-          "shadow-[8px_8px_16px_#d1d5db,-8px_-8px_16px_#ffffff]",
+          "bg-surface rounded-3xl p-6",
+          "shadow-[var(--shadow-neumorphic-light)] dark:shadow-[var(--shadow-neumorphic-dark)]",
           "animate-scale-in",
         )}
       >
@@ -168,10 +168,10 @@ export function WalletConnectModal({
             aria-label="Close"
             className={cn(
               "w-9 h-9 flex items-center justify-center rounded-xl shrink-0 ml-3",
-              "text-text-secondary bg-white",
-              "shadow-[3px_3px_6px_#d1d5db,-3px_-3px_6px_#ffffff]",
+              "text-text-secondary bg-surface",
+              "shadow-[var(--shadow-neumorphic-light)] dark:shadow-[var(--shadow-neumorphic-dark)]",
               "hover:text-text-primary",
-              "active:shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]",
+              "active:shadow-[var(--shadow-neumorphic-inset-light)] dark:active:shadow-[var(--shadow-neumorphic-inset-dark)]",
               "transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed",
             )}
           >
@@ -182,12 +182,12 @@ export function WalletConnectModal({
         </div>
 
         {/* Divider */}
-        <div className="h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent mb-5" />
+        <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent mb-5" />
 
         {/* Content */}
         {linkedWallet ? (
           <div className="space-y-4">
-            <div className="rounded-xl p-4 shadow-[inset_3px_3px_6px_#d1d5db,inset_-3px_-3px_6px_#ffffff]">
+            <div className="rounded-2xl p-4 shadow-[var(--shadow-neumorphic-inset-light)] dark:shadow-[var(--shadow-neumorphic-inset-dark)] bg-surface">
               <p className="text-xs font-medium text-text-secondary mb-1.5">Connected address</p>
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
@@ -203,10 +203,10 @@ export function WalletConnectModal({
                 onClick={handleDisconnect}
                 disabled={isDisconnecting}
                 className={cn(
-                  "flex-1 py-2.5 rounded-xl text-sm font-medium",
-                  "text-text-secondary bg-white",
-                  "shadow-[3px_3px_6px_#d1d5db,-3px_-3px_6px_#ffffff]",
-                  "hover:text-error active:shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]",
+                  "flex-1 py-2.5 rounded-2xl text-xs font-semibold uppercase tracking-wider",
+                  "text-text-secondary bg-surface",
+                  "shadow-[var(--shadow-neumorphic-light)] dark:shadow-[var(--shadow-neumorphic-dark)]",
+                  "hover:text-error active:shadow-[var(--shadow-neumorphic-inset-light)] dark:active:shadow-[var(--shadow-neumorphic-inset-dark)]",
                   "transition-all duration-150 cursor-pointer",
                   "disabled:opacity-60 disabled:cursor-not-allowed",
                 )}
@@ -217,11 +217,10 @@ export function WalletConnectModal({
                 type="button"
                 onClick={onClose}
                 className={cn(
-                  "flex-1 py-2.5 rounded-xl text-sm font-medium text-white",
+                  "flex-1 py-2.5 rounded-2xl text-xs font-semibold uppercase tracking-wider text-white",
                   "bg-primary",
-                  "shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]",
-                  "hover:bg-primary-hover hover:scale-[1.02]",
-                  "active:scale-[0.98]",
+                  "shadow-[var(--shadow-neumorphic-light)] dark:shadow-[var(--shadow-neumorphic-dark)]",
+                  "hover:brightness-105 active:scale-[0.98]",
                   "transition-all duration-150 cursor-pointer",
                 )}
               >
@@ -253,16 +252,16 @@ export function WalletConnectModal({
                         aria-busy={isThisConnecting}
                         aria-label={available ? `Connect ${wallet.name}` : `Install ${wallet.name}`}
                         className={cn(
-                          "w-full flex items-center gap-3.5 px-4 py-3.5 rounded-xl text-left",
-                          "bg-white transition-all duration-150 outline-none cursor-pointer",
+                          "w-full flex items-center gap-3.5 px-4 py-3.5 rounded-2xl text-left",
+                          "bg-surface transition-all duration-200 outline-none cursor-pointer",
                           "focus-visible:ring-2 focus-visible:ring-primary/30",
                           available
                             ? [
-                                "shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]",
-                                "hover:shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff]",
-                                "active:shadow-[inset_3px_3px_6px_#d1d5db,inset_-3px_-3px_6px_#ffffff]",
+                                "shadow-[var(--shadow-neumorphic-light)] dark:shadow-[var(--shadow-neumorphic-dark)]",
+                                "hover:scale-[1.01] hover:text-primary",
+                                "active:shadow-[var(--shadow-neumorphic-inset-light)] dark:active:shadow-[var(--shadow-neumorphic-inset-dark)]",
                               ]
-                            : "shadow-[2px_2px_4px_#d1d5db,-2px_-2px_4px_#ffffff] opacity-55",
+                            : "shadow-[var(--shadow-neumorphic-light)] dark:shadow-[var(--shadow-neumorphic-dark)] opacity-50",
                           "disabled:cursor-not-allowed",
                         )}
                       >

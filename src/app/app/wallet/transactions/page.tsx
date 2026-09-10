@@ -133,8 +133,9 @@ export default function WalletTransactionsPage(): React.JSX.Element {
         <Link
           href="/login?redirect=/app/wallet/transactions"
           className={cn(
-            "inline-flex items-center justify-center px-6 py-3 rounded-xl font-medium",
-            "bg-primary text-white shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]"
+            "inline-flex items-center justify-center px-6 py-3 rounded-2xl font-semibold text-sm",
+            "bg-primary text-white shadow-[var(--shadow-neumorphic-light)] dark:shadow-[var(--shadow-neumorphic-dark)]",
+            "hover:brightness-105 active:scale-[0.98] transition-all"
           )}
         >
           Sign in
@@ -155,9 +156,10 @@ export default function WalletTransactionsPage(): React.JSX.Element {
             onClick={() => refresh()}
             disabled={isRefreshing}
             className={cn(
-              "inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium",
-              "bg-white text-text-primary shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]",
-              "disabled:opacity-60"
+              "inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl text-xs font-semibold uppercase tracking-wider",
+              "bg-surface text-text-primary shadow-[var(--shadow-neumorphic-light)] dark:shadow-[var(--shadow-neumorphic-dark)]",
+              "hover:text-primary active:shadow-[var(--shadow-neumorphic-inset-light)] dark:active:shadow-[var(--shadow-neumorphic-inset-dark)]",
+              "disabled:opacity-60 transition-all"
             )}
           >
             <Icon path={ICON_PATHS.refresh} size="sm" className={cn(isRefreshing && "animate-spin")} />
@@ -242,30 +244,32 @@ export default function WalletTransactionsPage(): React.JSX.Element {
   const reservesCount = walletData.transactions.filter((transaction) => transaction.type === "reserve").length;
 
   return (
-    <div className="max-w-6xl mx-auto pb-10 space-y-6">
-      <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-5">
+    <div className="w-full max-w-7xl mx-auto pb-12 space-y-6 transition-all duration-300 ease-in-out">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 text-sm text-text-secondary mb-2">
-            <Link href="/app/wallet" className="hover:text-text-primary transition-colors">
+          <div className="flex items-center gap-2 text-xs font-semibold text-text-secondary uppercase tracking-wider mb-1.5">
+            <Link href="/app/wallet" className="hover:text-primary transition-colors">
               Wallet
             </Link>
             <span>/</span>
             <span className="text-text-primary">Transactions</span>
           </div>
-          <h1 className="text-2xl font-bold text-text-primary">Transaction history</h1>
+          <h1 className="text-2xl lg:text-3xl font-bold tracking-tight text-text-primary">Transaction history</h1>
           <p className="text-sm text-text-secondary mt-1">
             Review credits, debits, and reserved funds across your wallet
           </p>
         </div>
 
-        <div className="flex flex-wrap gap-2">
+        <div className="flex items-center gap-3">
           <button
             type="button"
             onClick={() => refresh()}
             disabled={isRefreshing}
             className={cn(
-              "inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium",
-              "bg-white text-text-primary shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]",
+              "inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-semibold uppercase tracking-wider transition-all duration-200",
+              "bg-surface text-text-primary",
+              "shadow-[var(--shadow-neumorphic-light)] dark:shadow-[var(--shadow-neumorphic-dark)]",
+              "hover:text-primary active:shadow-[var(--shadow-neumorphic-inset-light)] dark:active:shadow-[var(--shadow-neumorphic-inset-dark)]",
               "disabled:opacity-60"
             )}
           >
@@ -277,9 +281,10 @@ export default function WalletTransactionsPage(): React.JSX.Element {
             onClick={() => exportCsv()}
             disabled={filteredTransactions.length === 0}
             className={cn(
-              "inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium",
-              "bg-background text-text-primary",
-              "shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]",
+              "inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-semibold uppercase tracking-wider transition-all duration-200",
+              "bg-surface text-text-primary",
+              "shadow-[var(--shadow-neumorphic-light)] dark:shadow-[var(--shadow-neumorphic-dark)]",
+              "hover:text-primary active:shadow-[var(--shadow-neumorphic-inset-light)] dark:active:shadow-[var(--shadow-neumorphic-inset-dark)]",
               "disabled:opacity-50"
             )}
           >
@@ -290,21 +295,21 @@ export default function WalletTransactionsPage(): React.JSX.Element {
       </div>
 
       <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        <div className="p-5 rounded-3xl bg-white shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff]">
-          <p className="text-sm text-text-secondary">Total transactions</p>
-          <p className="text-2xl font-bold text-text-primary mt-2">{walletData.transactions.length}</p>
+        <div className="p-5 rounded-3xl bg-surface shadow-[var(--shadow-neumorphic-light)] dark:shadow-[var(--shadow-neumorphic-dark)] transition-all duration-200">
+          <p className="text-xs font-semibold uppercase tracking-wider text-text-secondary">Total transactions</p>
+          <p className="text-2xl lg:text-3xl font-extrabold text-text-primary mt-2">{walletData.transactions.length}</p>
         </div>
-        <div className="p-5 rounded-3xl bg-white shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff]">
-          <p className="text-sm text-text-secondary">Credits</p>
-          <p className="text-2xl font-bold text-success mt-2">{creditsCount}</p>
+        <div className="p-5 rounded-3xl bg-surface shadow-[var(--shadow-neumorphic-light)] dark:shadow-[var(--shadow-neumorphic-dark)] transition-all duration-200">
+          <p className="text-xs font-semibold uppercase tracking-wider text-text-secondary">Credits</p>
+          <p className="text-2xl lg:text-3xl font-extrabold text-success mt-2">{creditsCount}</p>
         </div>
-        <div className="p-5 rounded-3xl bg-white shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff]">
-          <p className="text-sm text-text-secondary">Debits</p>
-          <p className="text-2xl font-bold text-text-primary mt-2">{debitsCount}</p>
+        <div className="p-5 rounded-3xl bg-surface shadow-[var(--shadow-neumorphic-light)] dark:shadow-[var(--shadow-neumorphic-dark)] transition-all duration-200">
+          <p className="text-xs font-semibold uppercase tracking-wider text-text-secondary">Debits</p>
+          <p className="text-2xl lg:text-3xl font-extrabold text-text-primary mt-2">{debitsCount}</p>
         </div>
-        <div className="p-5 rounded-3xl bg-white shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff]">
-          <p className="text-sm text-text-secondary">Reserved</p>
-          <p className="text-2xl font-bold text-warning mt-2">{reservesCount}</p>
+        <div className="p-5 rounded-3xl bg-surface shadow-[var(--shadow-neumorphic-light)] dark:shadow-[var(--shadow-neumorphic-dark)] transition-all duration-200">
+          <p className="text-xs font-semibold uppercase tracking-wider text-text-secondary">Reserved</p>
+          <p className="text-2xl lg:text-3xl font-extrabold text-warning mt-2">{reservesCount}</p>
         </div>
       </section>
 
