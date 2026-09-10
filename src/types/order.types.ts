@@ -50,6 +50,7 @@ export interface Order {
   };
   escrow?: OrderEscrow;
   milestones?: Milestone[];
+  payout?: OrderPayout | null;
   metadata?: Record<string, any>;
 }
 

@@ -22,6 +22,7 @@ import { OrderStatusBanner } from "@/components/orders/OrderStatusBanner";
 import { OrderSummaryHeader } from "@/components/orders/OrderSummaryHeader";
 import { ReleaseFundsModal } from "@/components/orders/ReleaseFundsModal";
 import { SellerStatusPanel } from "@/components/orders/SellerStatusPanel";
+import { PayoutStatusCard } from "@/components/orders/PayoutStatusCard";
 
 const ORDERS_ROUTE = "/app/orders";
 
@@ -132,6 +133,10 @@ export default function OrderDetailPage(): React.JSX.Element {
           onNotifySuccess={actions.showSuccess}
           onNotifyError={actions.showError}
         />
+      )}
+
+      {roles.isSeller && order.payout && (
+        <PayoutStatusCard payout={order.payout} />
       )}
 
       <ReleaseFundsModal
