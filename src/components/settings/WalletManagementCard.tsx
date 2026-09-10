@@ -9,6 +9,7 @@ import { useAuthStore } from "@/stores/auth-store";
 import {
   listWallets,
   disconnectWallet as disconnectWalletApi,
+  reconnectWalletApi,
   setPrimaryWalletApi,
   ConnectWalletError,
   type ConnectedWallet,
@@ -25,10 +26,11 @@ interface WalletRowProps {
   wallet: ConnectedWallet;
   busy: boolean;
   onSetPrimary: (wallet: ConnectedWallet) => void;
+  onReconnect: (wallet: ConnectedWallet) => void;
   onDisconnect: (wallet: ConnectedWallet) => void;
 }
 
-function WalletRow({ wallet, busy, onSetPrimary, onDisconnect }: WalletRowProps): React.JSX.Element {
+function WalletRow({ wallet, busy, onSetPrimary, onReconnect, onDisconnect }: WalletRowProps): React.JSX.Element {
   const [confirmingDisconnect, setConfirmingDisconnect] = useState(false);
 
   return (
@@ -55,51 +57,63 @@ function WalletRow({ wallet, busy, onSetPrimary, onDisconnect }: WalletRowProps)
 
       <p className="text-xs text-text-secondary">Connected {formatDate(wallet.createdAt)}</p>
 
-      {wallet.isActive && (
-        <div className="flex flex-wrap gap-2">
-          {!wallet.isPrimary && (
-            <button
-              type="button"
-              disabled={busy}
-              onClick={() => onSetPrimary(wallet)}
-              className={cn(ACTION_BUTTON_DEFAULT, "w-auto px-4 py-2 text-xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed")}
-            >
-              Set as primary
-            </button>
-          )}
+      <div className="flex flex-wrap gap-2">
+        {wallet.isActive ? (
+          <>
+            {!wallet.isPrimary && (
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => onSetPrimary(wallet)}
+                className={cn(ACTION_BUTTON_DEFAULT, "w-auto px-4 py-2 text-xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed")}
+              >
+                Set as primary
+              </button>
+            )}
 
-          {confirmingDisconnect ? (
-            <>
+            {confirmingDisconnect ? (
+              <>
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={() => onDisconnect(wallet)}
+                  aria-busy={busy}
+                  className={cn(ACTION_BUTTON_DANGER, "w-auto px-4 py-2 text-xs disabled:opacity-50 disabled:cursor-not-allowed")}
+                >
+                  {busy ? <LoadingSpinner size="sm" /> : "Confirm disconnect"}
+                </button>
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={() => setConfirmingDisconnect(false)}
+                  className="px-4 py-2 text-xs font-medium text-text-secondary cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Cancel
+                </button>
+              </>
+            ) : (
               <button
                 type="button"
                 disabled={busy}
-                onClick={() => onDisconnect(wallet)}
-                aria-busy={busy}
-                className={cn(ACTION_BUTTON_DANGER, "w-auto px-4 py-2 text-xs disabled:opacity-50 disabled:cursor-not-allowed")}
+                onClick={() => setConfirmingDisconnect(true)}
+                className={cn(ACTION_BUTTON_DANGER, "w-auto px-4 py-2 text-xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed")}
               >
-                {busy ? <LoadingSpinner size="sm" /> : "Confirm disconnect"}
+                Disconnect
               </button>
-              <button
-                type="button"
-                disabled={busy}
-                onClick={() => setConfirmingDisconnect(false)}
-                className="px-4 py-2 text-xs font-medium text-text-secondary cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Cancel
-              </button>
-            </>
-          ) : (
-            <button
-              type="button"
-              disabled={busy}
-              onClick={() => setConfirmingDisconnect(true)}
-              className={cn(ACTION_BUTTON_DANGER, "w-auto px-4 py-2 text-xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed")}
-            >
-              Disconnect
-            </button>
-          )}
-        </div>
-      )}
+            )}
+          </>
+        ) : (
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => onReconnect(wallet)}
+            aria-busy={busy}
+            className={cn(ACTION_BUTTON_DEFAULT, "w-auto px-4 py-2 text-xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed")}
+          >
+            {busy ? <LoadingSpinner size="sm" /> : "Activate"}
+          </button>
+        )}
+      </div>
     </div>
   );
 }
@@ -141,6 +155,20 @@ export function WalletManagementCard(): React.JSX.Element {
       cancelled = true;
     };
   }, [token, primaryWalletId]);
+
+  async function handleReconnect(wallet: ConnectedWallet): Promise<void> {
+    if (!token) return;
+    setActionError(null);
+    setBusyWalletId(wallet.id);
+    try {
+      const updated = await reconnectWalletApi(token, wallet.id);
+      setWallets(updated);
+    } catch (err) {
+      setActionError(err instanceof ConnectWalletError ? err.message : "Could not reactivate this wallet.");
+    } finally {
+      setBusyWalletId(null);
+    }
+  }
 
   async function handleSetPrimary(wallet: ConnectedWallet): Promise<void> {
     if (!token) return;
@@ -201,6 +229,7 @@ export function WalletManagementCard(): React.JSX.Element {
               wallet={wallet}
               busy={busyWalletId === wallet.id}
               onSetPrimary={handleSetPrimary}
+              onReconnect={handleReconnect}
               onDisconnect={handleDisconnect}
             />
           ))}

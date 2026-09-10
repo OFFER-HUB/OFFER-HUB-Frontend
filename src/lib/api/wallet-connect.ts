@@ -228,6 +228,49 @@ export async function listWallets(token: string): Promise<ConnectedWallet[]> {
 }
 
 /**
+ * Reactivate a previously-disconnected wallet (`POST /wallet/reconnect`).
+ * No re-signing required — ownership was already proven at connect time.
+ *
+ * @throws {ConnectWalletError} for every refusal, with the API's code attached.
+ */
+export async function reconnectWalletApi(token: string, walletId: string): Promise<ConnectedWallet[]> {
+  let response: Response;
+
+  try {
+    response = await fetch(`${API_URL}/wallet/reconnect`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ walletId }),
+    });
+  } catch {
+    throw new ConnectWalletError(
+      "Could not reach the server. Check your connection and try again.",
+      "NETWORK_ERROR",
+      0
+    );
+  }
+
+  if (!response.ok) {
+    throw await toConnectError(response);
+  }
+
+  const payload: unknown = await response.json();
+  if (!isRecord(payload) || !Array.isArray(payload.data)) {
+    throw new ConnectWalletError(
+      "The server returned an unexpected response.",
+      "MALFORMED_RESPONSE",
+      response.status
+    );
+  }
+
+  return toConnectedWallets(payload.data);
+}
+
+/**
  * Promote `walletId` to primary (`POST /wallet/set-primary`). Demotes
  * whichever wallet held that role before, in the same backend transaction.
  *
