@@ -28,6 +28,7 @@ import { PayoutStatusCard } from "@/components/payout/PayoutStatusCard";
 import { EscrowSigningModal } from "@/components/escrow/EscrowSigningModal";
 import { WalletConnectModal } from "@/components/wallet/WalletConnectModal";
 import { currentWalletName } from "@/hooks/useEscrowSigningAction";
+import { useAuthStore } from "@/stores/auth-store";
 import { cn } from "@/lib/cn";
 import { NEUMORPHIC_CARD } from "@/lib/styles";
 
@@ -65,7 +66,8 @@ export default function OrderDetailPage(): React.JSX.Element {
     onReviewSubmitted: modals.holdReviewModalOpen,
   });
 
-  const isExternalWallet = roles.isBuyer && order?.buyer?.wallet?.type === "EXTERNAL";
+  const currentUserWallet = useAuthStore((s) => s.user?.wallet);
+  const isExternalWallet = roles.isBuyer && currentUserWallet?.type === "EXTERNAL";
 
   const activeWalletConnectGuard = actions.createSigning.isWalletConnectOpen
     ? actions.createSigning
