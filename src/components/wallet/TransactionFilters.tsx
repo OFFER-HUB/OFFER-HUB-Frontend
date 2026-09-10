@@ -3,19 +3,13 @@
 import { cn } from "@/lib/cn";
 import { Icon, ICON_PATHS } from "@/components/ui/Icon";
 import { ICON_BUTTON, NEUMORPHIC_INPUT } from "@/lib/styles";
-import type { WalletTransactionType } from "@/lib/api/wallet";
+import type {
+  WalletTransactionType,
+  TransactionSortOption,
+  TransactionFiltersValue,
+} from "@/types/wallet.types";
 
-export type TransactionSortOption = "date-desc" | "date-asc" | "amount-desc" | "amount-asc";
-
-export interface TransactionFiltersValue {
-  search: string;
-  types: WalletTransactionType[];
-  startDate: string;
-  endDate: string;
-  minAmount: string;
-  maxAmount: string;
-  sortBy: TransactionSortOption;
-}
+export type { TransactionSortOption, TransactionFiltersValue };
 
 interface TransactionFiltersProps {
   filters: TransactionFiltersValue;

@@ -1,5 +1,146 @@
 import type { StellarNetworkName } from "@/config/wallet";
 
+// ─── Connected-wallet record (backend source of truth) ───────────────────────
+
+/**
+ * A wallet record as returned by POST /wallet/connect and related endpoints.
+ * Full shape including provider and lifecycle flags.
+ */
+export interface ConnectedWallet {
+  id: string;
+  publicKey: string;
+  type: string;
+  provider: string;
+  isPrimary: boolean;
+  isActive: boolean;
+  createdAt: string;
+}
+
+// ─── Custodial ledger types ───────────────────────────────────────────────────
+
+export interface WalletBalance {
+  currency: string;
+  available: string;
+  reserved: string;
+}
+
+export interface WalletMonthlyStats {
+  currentMonthEarnings: string;
+  currentMonthSpending: string;
+  previousMonthEarnings: string;
+  previousMonthSpending: string;
+}
+
+export interface WalletWithdrawals {
+  pendingTotal: string;
+  pendingCount: number;
+}
+
+export interface WalletChartPoint {
+  label: string;
+  earnings: number;
+  spending: number;
+}
+
+export type WalletTransactionType = "credit" | "debit" | "reserve";
+
+export interface WalletTransactionRow {
+  id: string;
+  type: WalletTransactionType;
+  amount: string;
+  description: string;
+  createdAt: string;
+  orderId?: string | null;
+  balanceAfter?: string | null;
+}
+
+export interface WalletTransactionsData {
+  currency: string;
+  runningBalanceAvailable: boolean;
+  transactions: WalletTransactionRow[];
+}
+
+export interface WalletDashboardData {
+  balance: WalletBalance;
+  monthly: WalletMonthlyStats;
+  withdrawals: WalletWithdrawals;
+  chart: WalletChartPoint[];
+  recentTransactions: WalletTransactionRow[];
+}
+
+export interface WalletBalanceSummary {
+  availableBalance: string;
+  reservedBalance: string;
+  currency: string;
+}
+
+export interface CreateWithdrawalRequestInput {
+  amount: number;
+  destination: string;
+  saveDestination?: boolean;
+}
+
+export interface WithdrawalRequestData {
+  id: string;
+  status: "pending" | "processing" | "completed" | "failed";
+  amount: string;
+  fee: string;
+  totalDeducted: string;
+  currency: string;
+  destination: string;
+  estimatedArrival: string;
+  createdAt: string;
+  message?: string;
+}
+
+/**
+ * Canonical sort option for wallet transactions.
+ * Used by both the API filter params and the UI filter component.
+ */
+export type TransactionSortOption = "date-desc" | "date-asc" | "amount-desc" | "amount-asc";
+
+/**
+ * API-level filter params for GET /wallet/transactions.
+ * All fields are optional — omit to skip.
+ */
+export interface WalletTransactionFilters {
+  search?: string;
+  types?: WalletTransactionType[];
+  startDate?: string;
+  endDate?: string;
+  minAmount?: string;
+  maxAmount?: string;
+  sortBy?: TransactionSortOption;
+}
+
+/**
+ * UI filter form state. All fields required for controlled-input binding.
+ * Use empty string / empty array as the "unset" sentinel.
+ */
+export interface TransactionFiltersValue {
+  search: string;
+  types: WalletTransactionType[];
+  startDate: string;
+  endDate: string;
+  minAmount: string;
+  maxAmount: string;
+  sortBy: TransactionSortOption;
+}
+
+// ─── On-chain balance (Horizon / SWK) ────────────────────────────────────────
+
+/**
+ * Live USDC balance read from Horizon for the connected external wallet.
+ * Independent of the platform custodial ledger.
+ */
+export interface OnChainUsdcBalance {
+  /** USDC balance as Horizon reports it, e.g. "0" without a trustline. */
+  amount: string;
+  isLoading: boolean;
+}
+
+// ─── Wallet store slice ───────────────────────────────────────────────────────
+
 /**
  * Wallet slice of the auth store.
  *

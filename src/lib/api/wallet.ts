@@ -1,60 +1,33 @@
 import { API_URL } from "@/config/api";
+import type {
+  WalletBalance,
+  WalletMonthlyStats,
+  WalletWithdrawals,
+  WalletChartPoint,
+  WalletTransactionType,
+  WalletTransactionRow,
+  WalletTransactionsData,
+  WalletDashboardData,
+  WalletBalanceSummary,
+  CreateWithdrawalRequestInput,
+  WithdrawalRequestData,
+  WalletTransactionFilters,
+} from "@/types/wallet.types";
 
-export interface WalletBalance {
-  currency: string;
-  available: string;
-  reserved: string;
-}
-
-export interface WalletMonthlyStats {
-  currentMonthEarnings: string;
-  currentMonthSpending: string;
-  previousMonthEarnings: string;
-  previousMonthSpending: string;
-}
-
-export interface WalletWithdrawals {
-  pendingTotal: string;
-  pendingCount: number;
-}
-
-export interface WalletChartPoint {
-  label: string;
-  earnings: number;
-  spending: number;
-}
-
-export type WalletTransactionType = "credit" | "debit" | "reserve";
-
-export interface WalletTransactionRow {
-  id: string;
-  type: WalletTransactionType;
-  amount: string;
-  description: string;
-  createdAt: string;
-  orderId?: string | null;
-  balanceAfter?: string | null;
-}
-
-export interface WalletTransactionsData {
-  currency: string;
-  runningBalanceAvailable: boolean;
-  transactions: WalletTransactionRow[];
-}
-
-export interface WalletDashboardData {
-  balance: WalletBalance;
-  monthly: WalletMonthlyStats;
-  withdrawals: WalletWithdrawals;
-  chart: WalletChartPoint[];
-  recentTransactions: WalletTransactionRow[];
-}
-
-export interface CreateWithdrawalRequestInput {
-  amount: number;
-  destination: string;
-  saveDestination?: boolean;
-}
+export type {
+  WalletBalance,
+  WalletMonthlyStats,
+  WalletWithdrawals,
+  WalletChartPoint,
+  WalletTransactionType,
+  WalletTransactionRow,
+  WalletTransactionsData,
+  WalletDashboardData,
+  WalletBalanceSummary,
+  CreateWithdrawalRequestInput,
+  WithdrawalRequestData,
+  WalletTransactionFilters,
+};
 
 interface WithdrawalApiPayload {
   amount: string;
@@ -62,35 +35,6 @@ interface WithdrawalApiPayload {
   destinationType: string;
   destinationRef: string;
   commit: boolean;
-}
-
-export interface WithdrawalRequestData {
-  id: string;
-  status: "pending" | "processing" | "completed" | "failed";
-  amount: string;
-  fee: string;
-  totalDeducted: string;
-  currency: string;
-  destination: string;
-  estimatedArrival: string;
-  createdAt: string;
-  message?: string;
-}
-
-export interface WalletBalanceSummary {
-  availableBalance: string;
-  reservedBalance: string;
-  currency: string;
-}
-
-export interface WalletTransactionFilters {
-  search?: string;
-  types?: WalletTransactionType[];
-  startDate?: string;
-  endDate?: string;
-  minAmount?: string;
-  maxAmount?: string;
-  sortBy?: "date-desc" | "date-asc" | "amount-desc" | "amount-asc";
 }
 
 type ApiErrorResponse = {

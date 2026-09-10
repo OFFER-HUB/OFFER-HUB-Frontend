@@ -10,17 +10,9 @@
  */
 
 import { API_URL } from "@/config/api";
+import type { ConnectedWallet } from "@/types/wallet.types";
 
-/** A wallet on the account after the call — the full list, newest last. */
-export interface ConnectedWallet {
-  id: string;
-  publicKey: string;
-  type: string;
-  provider: string;
-  isPrimary: boolean;
-  isActive: boolean;
-  createdAt: string;
-}
+export type { ConnectedWallet };
 
 /**
  * A failed connect call, carrying the API's error code so the UI can react to

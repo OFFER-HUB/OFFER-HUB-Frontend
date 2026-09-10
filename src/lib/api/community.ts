@@ -1,8 +1,7 @@
 import { API_URL } from "@/config/api";
-import type { MapUser, MapLocationsResponse } from "@/components/community-map/types";
+import type { MapUser, MapLocationsResponse } from "@/types/community-map.types";
 
-// Re-export types for convenience
-export type { MapUser, MapLocationsResponse } from "@/components/community-map/types";
+export type { MapUser, MapLocationsResponse } from "@/types/community-map.types";
 
 /**
  * Get all users who have opted to appear on the community map.

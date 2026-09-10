@@ -2,15 +2,9 @@ import Link from "next/link";
 import { cn } from "@/lib/cn";
 import { Icon, ICON_PATHS } from "@/components/ui/Icon";
 import { WalletAddress } from "@/components/ui/WalletAddress";
-import type { WalletBalanceSummary } from "@/lib/api/wallet";
+import type { WalletBalanceSummary, OnChainUsdcBalance } from "@/types/wallet.types";
 
 const DEFAULT_WALLET_HREF = "/app/wallet";
-
-interface OnChainUsdcBalance {
-  /** USDC balance as Horizon reports it, e.g. "0" without a trustline. */
-  amount: string;
-  isLoading: boolean;
-}
 
 interface DashboardWalletHeaderProps {
   /** Stellar public key of the linked wallet, or null/undefined when none is linked. */
