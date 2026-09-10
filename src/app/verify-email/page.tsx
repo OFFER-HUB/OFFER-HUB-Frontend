@@ -1,96 +1,25 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import { Icon, ICON_PATHS, LoadingSpinner } from "@/components/ui/Icon";
-import { cn } from "@/lib/cn";
 import { useAuthStore } from "@/stores/auth-store";
-import { verifyEmail, sendVerification } from "@/lib/api/auth";
-
-const REDIRECT_DELAY_MS = 4000;
-const COOLDOWN_INITIAL_SECONDS = 60;
+import { useEmailVerification } from "@/hooks/useEmailVerification";
 
 function VerifyEmailInner(): React.JSX.Element {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
-  const testState = searchParams.get("testState") as "loading" | "success" | "expired" | "invalid" | null;
+  const testState = searchParams.get("testState") as
+    | "loading"
+    | "success"
+    | "expired"
+    | "invalid"
+    | null;
 
-  const { token: userToken, isAuthenticated, user } = useAuthStore();
-  const [status, setStatus] = useState<"loading" | "success" | "expired" | "invalid">(testState || "loading");
-  const [errorMessage, setErrorMessage] = useState("");
-  const [resending, setResending] = useState(false);
-  const [resendSuccess, setResendSuccess] = useState(false);
-  const [cooldown, setCooldown] = useState(0);
-
-  // Drive the resend button cooldown counter
-  useEffect(() => {
-    if (cooldown <= 0) return;
-    const interval = setInterval(() => {
-      setCooldown((prev) => prev - 1);
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [cooldown]);
-
-  // Attempt verification if token is present
-  useEffect(() => {
-    if (testState) {
-      setStatus(testState);
-      return;
-    }
-
-    if (!token) {
-      setStatus("invalid");
-      return;
-    }
-
-    async function attemptVerification() {
-      try {
-        await verifyEmail(token!);
-        setStatus("success");
-
-        // Optimistically update isEmailVerified in auth store
-        useAuthStore.setState((state) => ({
-          user: state.user ? { ...state.user, isEmailVerified: true } : null,
-        }));
-
-        // Graceful redirect to app dashboard
-        setTimeout(() => {
-          router.push("/app/dashboard");
-        }, REDIRECT_DELAY_MS);
-      } catch (err) {
-        const msg = err instanceof Error ? err.message : "Invalid or expired verification token";
-        setErrorMessage(msg);
-        if (msg.toLowerCase().includes("expired") || msg.toLowerCase().includes("timeout")) {
-          setStatus("expired");
-        } else {
-          setStatus("invalid");
-        }
-      }
-    }
-
-    void attemptVerification();
-  }, [token, router]);
-
-  const handleResend = async () => {
-    if (resending || cooldown > 0) return;
-    if (!isAuthenticated || !userToken) {
-      router.push("/login?redirect=/verify-email");
-      return;
-    }
-
-    setResending(true);
-    setResendSuccess(false);
-    try {
-      await sendVerification(userToken);
-      setResendSuccess(true);
-      setCooldown(COOLDOWN_INITIAL_SECONDS);
-    } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to resend verification email");
-    } finally {
-      setResending(false);
-    }
-  };
+  const { isAuthenticated } = useAuthStore();
+  const { status, errorMessage, resending, resendSuccess, cooldown, handleResend } =
+    useEmailVerification(token, testState);
 
   return (
     <div className="w-full max-w-md p-8 rounded-3xl bg-white shadow-[var(--shadow-neumorphic-light)] dark:bg-secondary dark:shadow-[var(--shadow-neumorphic-dark)] text-center transition-all duration-300">
@@ -100,7 +29,9 @@ function VerifyEmailInner(): React.JSX.Element {
             <LoadingSpinner className="w-10 h-10 text-primary" />
           </div>
           <h2 className="text-xl font-bold text-text-primary mb-2">Verifying Your Email</h2>
-          <p className="text-sm text-text-secondary">Please wait while we validate your credentials…</p>
+          <p className="text-sm text-text-secondary">
+            Please wait while we validate your credentials…
+          </p>
         </div>
       )}
 
@@ -111,13 +42,20 @@ function VerifyEmailInner(): React.JSX.Element {
           </div>
           <h2 className="text-2xl font-bold text-text-primary mb-2">Email Verified!</h2>
           <p className="text-sm text-text-secondary mb-6 leading-relaxed">
-            Thank you for verifying your email address. Your account features are now completely unlocked.
+            Thank you for verifying your email address. Your account features are now completely
+            unlocked.
           </p>
           <div className="w-full p-4 rounded-2xl bg-background/50 dark:bg-background/10 text-xs text-text-secondary flex items-center justify-center gap-2">
             <span>Redirecting to your dashboard</span>
             <span className="flex gap-0.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: "-0.3s" }} />
-              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: "-0.15s" }} />
+              <span
+                className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce"
+                style={{ animationDelay: "-0.3s" }}
+              />
+              <span
+                className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce"
+                style={{ animationDelay: "-0.15s" }}
+              />
               <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" />
             </span>
           </div>
@@ -131,7 +69,8 @@ function VerifyEmailInner(): React.JSX.Element {
           </div>
           <h2 className="text-2xl font-bold text-text-primary mb-2">Link Expired</h2>
           <p className="text-sm text-text-secondary mb-6 leading-relaxed">
-            The verification token has expired. For security reasons, email verification links are only valid for a limited time.
+            The verification token has expired. For security reasons, email verification links are
+            only valid for a limited time.
           </p>
 
           <div className="flex flex-col w-full gap-3">
@@ -182,7 +121,8 @@ function VerifyEmailInner(): React.JSX.Element {
           </div>
           <h2 className="text-2xl font-bold text-text-primary mb-2">Invalid Token</h2>
           <p className="text-sm text-text-secondary mb-6 leading-relaxed">
-            {errorMessage || "The verification link is invalid, corrupted, or has already been used to verify this account."}
+            {errorMessage ||
+              "The verification link is invalid, corrupted, or has already been used to verify this account."}
           </p>
 
           <button

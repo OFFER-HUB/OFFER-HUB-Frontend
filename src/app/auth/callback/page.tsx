@@ -1,139 +1,23 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
-import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/cn";
-import { useAuthStore } from "@/stores/auth-store";
-import { isNewUser } from "@/lib/auth/is-new-user";
-import { oauthCallback, OAuthCallbackError, type OAuthProvider } from "@/lib/api/oauth";
 import { LoadingSpinner, Icon, ICON_PATHS } from "@/components/ui/Icon";
-
-type CallbackState =
-  | { type: "loading" }
-  | { type: "processing" }
-  | { type: "success" }
-  | { type: "error"; message: string };
-
-/** Turns a backend error code into wording the user can act on. */
-function describeCallbackError(error: unknown): string {
-  if (error instanceof OAuthCallbackError) {
-    switch (error.code) {
-      case "EMAIL_REGISTERED_WITH_PASSWORD":
-        return "This email is already registered with a password. Sign in with your password, then link this provider from your profile settings.";
-      case "OAUTH_EMAIL_UNVERIFIED":
-        return "Your provider has not verified this email address. Verify it with them and try again.";
-      case "OAUTH_TOKEN_INVALID":
-      case "OAUTH_IDENTITY_MISMATCH":
-        return "We could not confirm your identity with the provider. Please try signing in again.";
-      case "OAUTH_PROVIDER_UNAVAILABLE":
-        return "The provider is unreachable right now. Please try again in a moment.";
-    }
-    return error.message;
-  }
-
-  return error instanceof Error ? error.message : "Failed to authenticate with OAuth";
-}
+import { useOAuthCallback } from "@/hooks/useOAuthCallback";
 
 export default function OAuthCallbackPage() {
-  const { data: session, status } = useSession();
   const router = useRouter();
-  const { login, redirectAfterLogin, setRedirectAfterLogin } = useAuthStore();
-  const [state, setState] = useState<CallbackState>({ type: "loading" });
-  const processedRef = useRef(false);
+  const state = useOAuthCallback();
 
-  useEffect(() => {
-    async function handleOAuthCallback() {
-      // Prevent re-running after we've processed the callback
-      if (processedRef.current) return;
-
-      // Wait for session to load
-      if (status === "loading") return;
-
-      // No session means user cancelled or error
-      if (!session?.provider || !session?.providerAccountId || !session?.oauthEmail) {
-        // Only set error if we haven't processed yet and status is not loading
-        if (status === "unauthenticated") {
-          setState({ type: "error", message: "OAuth authentication was cancelled or failed" });
-        }
-        return;
-      }
-
-      // Mark as processed to prevent re-runs
-      processedRef.current = true;
-      setState({ type: "processing" });
-
-      try {
-        const provider = session.provider.toUpperCase() as OAuthProvider;
-        const result = await oauthCallback({
-          provider,
-          providerAccountId: session.providerAccountId,
-          email: session.oauthEmail,
-          name: session.oauthName,
-          avatarUrl: session.oauthAvatarUrl,
-          // Proof of ownership — the backend verifies it with the provider
-          // before it will issue a session token.
-          accessToken: session.oauthAccessToken,
-          idToken: session.oauthIdToken,
-        });
-
-        // LOGIN or REGISTER success
-        const oauthUser = {
-          id: result.user.id,
-          email: result.user.email,
-          username: result.user.username,
-          firstName: result.user.firstName ?? null,
-          lastName: result.user.lastName ?? null,
-          avatarUrl: session.oauthAvatarUrl,
-          type: result.user.type as "BUYER" | "SELLER" | "BOTH",
-          balance: result.user.balance || undefined,
-          wallet: result.user.wallet || undefined,
-        };
-        login(oauthUser, result.token);
-
-        // Clear NextAuth session (we use our own JWT)
-        await signOut({ redirect: false });
-
-        if (result.action === "REGISTER") {
-          localStorage.setItem("show-onboarding-tour", "true");
-        }
-
-        setState({ type: "success" });
-
-        // A fresh OAuth registration has no firstName yet — same as an email
-        // or wallet registration, it needs onboarding before the dashboard,
-        // not after (this used to route to /app/dashboard unconditionally,
-        // which just got bounced straight back out to /onboarding).
-        const destination = isNewUser(oauthUser)
-          ? "/onboarding"
-          : redirectAfterLogin || "/app/dashboard"; // /app/dashboard redirects based on mode
-        setRedirectAfterLogin(null);
-        router.push(destination);
-      } catch (error) {
-        console.error("OAuth callback error:", error);
-
-        // Clear NextAuth session on error
-        await signOut({ redirect: false });
-
-        setState({ type: "error", message: describeCallbackError(error) });
-      }
-    }
-
-    handleOAuthCallback();
-  }, [session, status, login, router, redirectAfterLogin, setRedirectAfterLogin]);
-
-  function handleBackToLogin() {
-    router.push("/login");
-  }
-
-  // Loading state
   if (state.type === "loading" || state.type === "processing") {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className={cn(
-          "p-8 rounded-2xl text-center max-w-md w-full mx-4",
-          "bg-white shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff]"
-        )}>
+        <div
+          className={cn(
+            "p-8 rounded-2xl text-center max-w-md w-full mx-4",
+            "bg-white shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff]"
+          )}
+        >
           <LoadingSpinner className="w-12 h-12 mx-auto text-primary mb-4" />
           <h1 className="text-xl font-bold text-text-primary mb-2">
             {state.type === "loading" ? "Loading..." : "Processing..."}
@@ -148,27 +32,24 @@ export default function OAuthCallbackPage() {
     );
   }
 
-  // Error state
   if (state.type === "error") {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
-        <div className={cn(
-          "p-8 rounded-2xl text-center max-w-md w-full",
-          "bg-white shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff]"
-        )}>
+        <div
+          className={cn(
+            "p-8 rounded-2xl text-center max-w-md w-full",
+            "bg-white shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff]"
+          )}
+        >
           <div className="flex justify-center mb-6">
             <div className="w-16 h-16 rounded-full bg-error/10 flex items-center justify-center">
               <Icon path={ICON_PATHS.x} size="lg" className="text-error" />
             </div>
           </div>
-
-          <h1 className="text-xl font-bold text-text-primary mb-2">
-            Authentication Failed
-          </h1>
+          <h1 className="text-xl font-bold text-text-primary mb-2">Authentication Failed</h1>
           <p className="text-text-secondary mb-6">{state.message}</p>
-
           <button
-            onClick={handleBackToLogin}
+            onClick={() => router.push("/login")}
             className={cn(
               "px-6 py-3 rounded-xl font-medium",
               "bg-primary text-white",
@@ -184,13 +65,14 @@ export default function OAuthCallbackPage() {
     );
   }
 
-  // Success state (brief, will redirect)
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className={cn(
-        "p-8 rounded-2xl text-center max-w-md w-full mx-4",
-        "bg-white shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff]"
-      )}>
+      <div
+        className={cn(
+          "p-8 rounded-2xl text-center max-w-md w-full mx-4",
+          "bg-white shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff]"
+        )}
+      >
         <div className="flex justify-center mb-6">
           <div className="w-16 h-16 rounded-full bg-success/10 flex items-center justify-center">
             <Icon path={ICON_PATHS.check} size="lg" className="text-success" />

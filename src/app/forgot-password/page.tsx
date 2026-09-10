@@ -3,20 +3,16 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Icon, ICON_PATHS, LoadingSpinner } from "@/components/ui/Icon";
-
-/* ── Types ── */
+import { AuthInput } from "@/components/auth/AuthInput";
+import { forgotPassword } from "@/lib/api/auth";
 
 type PageState = "idle" | "loading" | "success" | "error";
-
-/* ── Helpers ── */
 
 function validateEmail(email: string): string | null {
   if (!email.trim()) return "Email address is required.";
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return "Please enter a valid email address.";
   return null;
 }
-
-/* ── Main Page ── */
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -43,17 +39,7 @@ export default function ForgotPasswordPage() {
     setApiError(null);
 
     try {
-      const res = await fetch("/api/auth/forgot-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim().toLowerCase() }),
-      });
-
-      if (!res.ok && res.status >= 500) {
-        throw new Error("Server error");
-      }
-
-      // Always show success — never reveal whether the email exists
+      await forgotPassword(email);
       setPageState("success");
     } catch {
       setApiError(
@@ -70,62 +56,47 @@ export default function ForgotPasswordPage() {
 
   return (
     <main className="min-h-screen bg-background flex items-center justify-center px-4 py-12">
-      {/* Background gradient — matches hero pattern */}
       <div
         className="pointer-events-none fixed inset-0 -z-10 opacity-30"
-        style={{
-          background:
-            "radial-gradient(ellipse 80% 60% at 50% 0%, #15949C22, transparent)",
-        }}
+        style={{ background: "radial-gradient(ellipse 80% 60% at 50% 0%, #15949C22, transparent)" }}
         aria-hidden="true"
       />
 
       <div className="w-full max-w-md">
-        {/* ── Brand mark ── */}
         <div className="flex justify-center mb-8">
-          <Link
-            href="/"
-            className="text-2xl font-bold tracking-tight"
-            style={{ color: "#149A9B" }}
-          >
+          <Link href="/" className="text-2xl font-bold tracking-tight" style={{ color: "#149A9B" }}>
             OFFER<span className="text-text-primary">HUB</span>
           </Link>
         </div>
 
-        {/* ── Card ── */}
         <div
           className="rounded-2xl p-8 md:p-10"
           style={{
             backgroundColor: "#002333",
-            boxShadow:
-              "6px 6px 12px #0a0f1a, -6px -6px 12px #1e2a4a",
+            boxShadow: "6px 6px 12px #0a0f1a, -6px -6px 12px #1e2a4a",
           }}
         >
           {pageState === "success" ? (
-            /* ── Success state ── */
             <div className="flex flex-col items-center text-center gap-5">
               <div
                 className="w-16 h-16 rounded-full flex items-center justify-center"
                 style={{
                   backgroundColor: "#16a34a18",
-                  boxShadow:
-                    "inset 4px 4px 8px #0a0f1a, inset -4px -4px 8px #1e2a4a",
+                  boxShadow: "inset 4px 4px 8px #0a0f1a, inset -4px -4px 8px #1e2a4a",
                 }}
               >
                 <Icon path={ICON_PATHS.check} size="xl" className="text-green-600" />
               </div>
 
               <div>
-                <h1 className="text-xl font-bold text-white mb-2">
-                  Check your email
-                </h1>
+                <h1 className="text-xl font-bold text-white mb-2">Check your email</h1>
                 <p className="text-sm leading-relaxed" style={{ color: "#6D758F" }}>
                   If an account exists for{" "}
                   <span className="font-semibold" style={{ color: "#B4B9C9" }}>
                     {email}
                   </span>
-                  , you&apos;ll receive a password reset link shortly. Be sure to
-                  check your spam folder.
+                  , you&apos;ll receive a password reset link shortly. Be sure to check your spam
+                  folder.
                 </p>
               </div>
 
@@ -139,87 +110,27 @@ export default function ForgotPasswordPage() {
               </Link>
             </div>
           ) : (
-            /* ── Request form state ── */
             <>
               <div className="mb-8">
-                <h1 className="text-2xl font-bold text-white mb-2">
-                  Forgot your password?
-                </h1>
+                <h1 className="text-2xl font-bold text-white mb-2">Forgot your password?</h1>
                 <p className="text-sm leading-relaxed" style={{ color: "#6D758F" }}>
-                  Enter the email address associated with your account and we&apos;ll
-                  send you a link to reset your password.
+                  Enter the email address associated with your account and we&apos;ll send you a
+                  link to reset your password.
                 </p>
               </div>
 
               <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-5">
-                {/* Email field */}
-                <div className="flex flex-col gap-1.5">
-                  <label
-                    htmlFor="email"
-                    className="text-sm font-semibold"
-                    style={{ color: "#B4B9C9" }}
-                  >
-                    Email address
-                  </label>
+                <AuthInput
+                  label="Email address"
+                  type="email"
+                  name="email"
+                  value={email}
+                  onChange={handleEmailChange}
+                  placeholder="you@example.com"
+                  error={fieldError ?? undefined}
+                  autoComplete="email"
+                />
 
-                  <div className="relative">
-                    <span
-                      className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2"
-                      aria-hidden="true"
-                    >
-                      <Icon
-                        path={ICON_PATHS.mail}
-                        size="sm"
-                        className={fieldError ? "text-red-500" : "text-[#6D758F]"}
-                      />
-                    </span>
-
-                    <input
-                      id="email"
-                      type="email"
-                      name="email"
-                      autoComplete="email"
-                      value={email}
-                      onChange={handleEmailChange}
-                      placeholder="you@example.com"
-                      disabled={pageState === "loading"}
-                      aria-invalid={!!fieldError}
-                      aria-describedby={fieldError ? "email-error" : undefined}
-                      className="w-full pl-10 pr-4 py-3 rounded-xl text-sm text-white placeholder-[#6D758F] outline-none transition-all duration-200 disabled:opacity-60"
-                      style={{
-                        backgroundColor: "#DEEFE710",
-                        boxShadow: fieldError
-                          ? "inset 4px 4px 8px #0a0f1a, inset -4px -4px 8px #1e2a4a, 0 0 0 1.5px #FF0000"
-                          : "inset 4px 4px 8px #0a0f1a, inset -4px -4px 8px #1e2a4a",
-                      }}
-                      onFocus={(e) => {
-                        if (!fieldError) {
-                          e.currentTarget.style.boxShadow =
-                            "inset 4px 4px 8px #0a0f1a, inset -4px -4px 8px #1e2a4a, 0 0 0 1.5px #149A9B";
-                        }
-                      }}
-                      onBlur={(e) => {
-                        e.currentTarget.style.boxShadow = fieldError
-                          ? "inset 4px 4px 8px #0a0f1a, inset -4px -4px 8px #1e2a4a, 0 0 0 1.5px #FF0000"
-                          : "inset 4px 4px 8px #0a0f1a, inset -4px -4px 8px #1e2a4a";
-                      }}
-                    />
-                  </div>
-
-                  {fieldError && (
-                    <p
-                      id="email-error"
-                      role="alert"
-                      className="flex items-center gap-1.5 text-xs"
-                      style={{ color: "#FF0000" }}
-                    >
-                      <Icon path={ICON_PATHS.alertCircle} size="sm" />
-                      {fieldError}
-                    </p>
-                  )}
-                </div>
-
-                {/* API error banner */}
                 {apiError && (
                   <div
                     role="alert"
@@ -230,12 +141,15 @@ export default function ForgotPasswordPage() {
                       color: "#FF0000",
                     }}
                   >
-                    <Icon path={ICON_PATHS.alertCircle} size="sm" className="mt-0.5 flex-shrink-0" />
+                    <Icon
+                      path={ICON_PATHS.alertCircle}
+                      size="sm"
+                      className="mt-0.5 flex-shrink-0"
+                    />
                     <span>{apiError}</span>
                   </div>
                 )}
 
-                {/* Submit button */}
                 <button
                   type="submit"
                   disabled={pageState === "loading"}
@@ -243,14 +157,6 @@ export default function ForgotPasswordPage() {
                   style={{
                     background: "linear-gradient(to right, #002333, #15949C)",
                     boxShadow: "6px 6px 12px #0a0f1a, -6px -6px 12px #1e2a4a",
-                  }}
-                  onMouseEnter={(e) => {
-                    if (pageState !== "loading") {
-                      e.currentTarget.style.opacity = "0.9";
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.opacity = "1";
                   }}
                 >
                   {pageState === "loading" ? (
@@ -266,7 +172,6 @@ export default function ForgotPasswordPage() {
                 </button>
               </form>
 
-              {/* Back to login */}
               <div className="mt-6 text-center">
                 <Link
                   href="/login"
@@ -281,7 +186,6 @@ export default function ForgotPasswordPage() {
           )}
         </div>
 
-        {/* ── Footer note ── */}
         <p className="mt-6 text-center text-xs" style={{ color: "#6D758F" }}>
           Don&apos;t have an account?{" "}
           <Link

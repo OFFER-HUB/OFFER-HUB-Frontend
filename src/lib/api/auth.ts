@@ -58,6 +58,20 @@ export async function verifyEmail(token: string): Promise<{ message: string }> {
   return result.data || result;
 }
 
+export async function forgotPassword(email: string): Promise<void> {
+  const response = await fetch(`${API_URL}/auth/forgot-password`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email: email.trim().toLowerCase() }),
+  });
+
+  if (response.ok || response.status < 500) {
+    return;
+  }
+
+  throw new Error("Server error — please try again.");
+}
+
 export async function sendVerification(token: string): Promise<{ message: string }> {
   const response = await fetch(`${API_URL}/auth/send-verification`, {
     method: "POST",
