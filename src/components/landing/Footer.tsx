@@ -1,8 +1,7 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
-import { AnimatedSection, Container } from "@/components/ui";
+import { AnimatedSection, Container, Logo } from "@/components/ui";
 
 const footerLinks = {
   platform: {
@@ -78,27 +77,20 @@ export function Footer() {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-8">
             {/* Brand Column */}
             <div className="lg:col-span-5">
-              <Link href="/" className="inline-flex items-center gap-2 mb-4">
-                <Image
-                  src="/OFFER-HUB-logo.png"
-                  alt="OFFER-HUB"
-                  width={32}
-                  height={32}
-                  className="h-8 w-8"
-                />
-                <span className="font-bold text-xl text-text-primary">OFFER-HUB</span>
-              </Link>
+              <div className="mb-4">
+                <Logo size="md" />
+              </div>
               <p className="text-text-secondary text-sm leading-relaxed mb-6 max-w-sm">
                 Empowering freelancers and businesses with secure, blockchain-powered solutions — making work easier to find, manage, and pay.
               </p>
 
               {/* Social Links */}
-              <div className="flex gap-4">
+              <div className="flex gap-3">
                 {socialLinks.map((social) => (
                   <a
                     key={social.name}
                     href={social.href}
-                    className="text-text-secondary hover:text-text-primary transition-colors"
+                    className="w-10 h-10 flex items-center justify-center rounded-xl bg-background text-text-secondary hover:text-primary transition-all duration-200 shadow-[var(--shadow-neumorphic-light)] hover:shadow-[var(--shadow-neumorphic-inset-light)] active:scale-95"
                     aria-label={social.name}
                   >
                     {social.icon}
@@ -119,7 +111,7 @@ export function Footer() {
                       <li key={index}>
                         <Link
                           href={link.href}
-                          className="text-text-secondary hover:text-text-primary text-sm transition-colors"
+                          className="text-text-secondary hover:text-primary text-sm transition-colors"
                         >
                           {link.label}
                         </Link>
@@ -145,9 +137,9 @@ export function Footer() {
 
         {/* Large Watermark Text */}
         <AnimatedSection animation="blur" delay={300} duration={1000}>
-          <div className="relative mt-8 overflow-hidden h-32 lg:h-48">
+          <div className="relative mt-8 overflow-hidden h-28 sm:h-36 lg:h-48">
             <div className="absolute inset-0 flex items-center justify-center">
-              <span className="text-[8rem] lg:text-[14rem] font-bold text-text-secondary/[0.07] select-none whitespace-nowrap tracking-tight">
+              <span className="text-[4.5rem] sm:text-[9rem] lg:text-[14rem] font-bold text-text-secondary/[0.07] select-none whitespace-nowrap tracking-tight">
                 OFFER-HUB
               </span>
             </div>

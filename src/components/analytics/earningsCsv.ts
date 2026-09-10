@@ -1,4 +1,4 @@
-import type { FreelancerEarningsAnalytics } from "@/lib/api/earnings";
+import type { FreelancerEarningsAnalytics } from "@/types/earnings.types";
 
 function csvEscape(cell: string): string {
   const s = String(cell);

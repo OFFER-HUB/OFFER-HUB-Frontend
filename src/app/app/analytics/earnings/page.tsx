@@ -1,194 +1,152 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect } from "react";
 import Link from "next/link";
-import { useAuthStore } from "@/stores/auth-store";
 import { useModeStore } from "@/stores/mode-store";
 import { cn } from "@/lib/cn";
+import { Button } from "@/components/ui/Button";
 import { Icon, ICON_PATHS } from "@/components/ui/Icon";
-import {
-  buildMockEarningsAnalytics,
-  getFreelancerEarningsAnalytics,
-  type FreelancerEarningsAnalytics,
-} from "@/lib/api/earnings";
+import { ErrorState } from "@/components/ui/ErrorState";
+import { useEarningsAnalytics } from "@/hooks/useEarningsAnalytics";
 import {
   EarningsBreakdown,
   EarningsChart,
+  EarningsDateRangePicker,
   EarningsPageSkeleton,
-  downloadEarningsCsv,
+  EarningsSummaryCards,
+  EarningsZeroState,
 } from "@/components/analytics";
-import { EarningsDateRangePicker } from "@/components/analytics/EarningsDateRangePicker";
-import {
-  type PresetId,
-  getRangeForPreset,
-  parseMoney,
-  pctChange,
-  formatPct,
-} from "@/lib/earnings-utils";
-
-const CARD = cn(
-  "p-5 rounded-3xl bg-white",
-  "shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff]"
-);
+import { parseMoney } from "@/lib/earnings-utils";
 
 export default function EarningsAnalyticsPage(): React.JSX.Element {
   const { setMode } = useModeStore();
-  const token = useAuthStore((s) => s.token);
-  const hasHydrated = useAuthStore((s) => s.hasHydrated);
-
-  const initialRange = useMemo(() => getRangeForPreset("12m"), []);
-  const [startDate, setStartDate] = useState(initialRange.start);
-  const [endDate, setEndDate] = useState(initialRange.end);
-  const [activePreset, setActivePreset] = useState<PresetId>("12m");
-
-  const [data, setData] = useState<FreelancerEarningsAnalytics | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [isDemo, setIsDemo] = useState(false);
+  const {
+    hasHydrated,
+    token,
+    startDate,
+    endDate,
+    activePreset,
+    data,
+    isLoading,
+    isRefreshing,
+    error,
+    applyPreset,
+    onCustomStart,
+    onCustomEnd,
+    refresh,
+    exportCsv,
+  } = useEarningsAnalytics();
 
   useEffect(() => {
     setMode("freelancer");
   }, [setMode]);
 
-  const load = useCallback(async () => {
-    if (!token) {
-      setData(null);
-      setIsLoading(false);
-      return;
-    }
-    try {
-      const res = await getFreelancerEarningsAnalytics(token, { startDate, endDate });
-      setData(res);
-      setIsDemo(false);
-    } catch {
-      setData(buildMockEarningsAnalytics(startDate, endDate));
-      setIsDemo(true);
-    } finally {
-      setIsLoading(false);
-      setIsRefreshing(false);
-    }
-  }, [token, startDate, endDate]);
-
-  useEffect(() => {
-    setIsLoading(true);
-    void load();
-  }, [load]);
-
-  function applyPreset(p: Exclude<PresetId, "custom">): void {
-    const r = getRangeForPreset(p);
-    setStartDate(r.start);
-    setEndDate(r.end);
-    setActivePreset(p);
-  }
-
-  function onCustomStart(v: string): void {
-    setStartDate(v);
-    setActivePreset("custom");
-  }
-
-  function onCustomEnd(v: string): void {
-    setEndDate(v);
-    setActivePreset("custom");
-  }
-
-  function refresh(): void {
-    if (!token) return;
-    setIsRefreshing(true);
-    void load();
-  }
-
-  function exportCsv(): void {
-    if (!data) return;
-    const fname = `offer-hub-earnings-${startDate}-to-${endDate}.csv`;
-    downloadEarningsCsv(data, fname);
-  }
-
-  // Before hydration the store is empty even for a signed-in user, so an early
-  // `!token` would flash the sign-in wall on every reload.
+  // Auth Store Hydration Wall
   if (!hasHydrated) {
     return <EarningsPageSkeleton />;
   }
 
+  // Signed-out User Wall
   if (!token) {
     return (
       <div className="max-w-lg mx-auto text-center py-16 px-4">
-        <Icon path={ICON_PATHS.lock} size="xl" className="mx-auto text-text-secondary mb-4" />
-        <h1 className="text-xl font-bold text-text-primary mb-2">Earnings analytics</h1>
-        <p className="text-text-secondary mb-6">Sign in to view income trends and breakdowns.</p>
-        <Link
-          href="/login?redirect=/app/analytics/earnings"
-          className={cn(
-            "inline-flex items-center justify-center px-6 py-3 rounded-xl font-medium",
-            "bg-primary text-white shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]"
-          )}
-        >
-          Sign in
+        <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-white shadow-[var(--shadow-neumorphic-light)] flex items-center justify-center text-text-secondary">
+          <Icon path={ICON_PATHS.lock} size="xl" />
+        </div>
+        <h1 className="text-2xl font-bold text-text-primary mb-2">Earnings Analytics</h1>
+        <p className="text-text-secondary mb-6">
+          Sign in to your freelancer account to view live income analytics, trends, and client breakdowns.
+        </p>
+        <Link href="/login?redirect=/app/analytics/earnings">
+          <Button variant="primary" size="md">
+            Sign In to Continue
+          </Button>
         </Link>
       </div>
     );
   }
 
-  if (isLoading || !data) {
+  // Loading State
+  if (isLoading) {
     return <EarningsPageSkeleton />;
   }
 
-  const curTotal = parseMoney(data.currentPeriod.totalEarnings);
-  const prevTotal = parseMoney(data.previousPeriod.totalEarnings);
-  const totalDelta = pctChange(curTotal, prevTotal);
+  // Error State with Retry option
+  if (error || !data) {
+    return (
+      <div className="max-w-xl mx-auto py-12 px-4">
+        <ErrorState
+          variant="card"
+          title="Earnings Analytics Unavailable"
+          message={error || "Could not retrieve earnings data from the backend server."}
+          onRetry={refresh}
+          retryLabel="Retry Connection"
+        />
+      </div>
+    );
+  }
 
-  const curAov = parseMoney(data.currentPeriod.averageOrderValue);
-  const prevAov = parseMoney(data.previousPeriod.averageOrderValue);
-  const aovDelta = pctChange(curAov, prevAov);
-
-  const goal = data.monthlyGoal ? parseMoney(data.monthlyGoal) : 0;
-  const thisMonthNum = parseMoney(data.totals.thisMonth);
-  const goalPct = goal > 0 ? Math.min(100, Math.round((thisMonthNum / goal) * 100)) : null;
-
-  const fmt = (amount: string) =>
-    new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: data.currency,
-    }).format(parseMoney(amount));
+  const currentTotalEarnings = parseMoney(data.currentPeriod.totalEarnings);
+  const isZeroEarnings = currentTotalEarnings === 0 && data.currentPeriod.orderCount === 0;
+  const hasChartData = data.monthly && data.monthly.length > 0;
+  const hasBreakdownData = (data.byClient && data.byClient.length > 0) || (data.byCategory && data.byCategory.length > 0);
 
   return (
-    <div className="max-w-6xl mx-auto pb-10">
-      <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6 mb-6">
+    <div className="w-full max-w-7xl mx-auto pb-12 transition-all duration-300 ease-in-out">
+      {/* Header Banner & Live API Status */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-text-primary">Earnings analytics</h1>
+          <div className="flex items-center gap-2.5 mb-1.5">
+            <span className="text-xs font-bold text-primary uppercase tracking-wider px-2.5 py-0.5 rounded-md bg-primary/10">
+              Freelancer Analytics
+            </span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-text-primary tracking-tight">
+            Earnings Analytics
+          </h1>
           <p className="text-sm text-text-secondary mt-1">
-            Track income, compare periods, and spot trends
-            {isDemo ? " · sample data until the API responds" : ""}
+            Real-time settled revenue and order analytics directly from your ledger balance.
           </p>
         </div>
-        <div className="flex flex-wrap gap-2">
+
+        {/* Action Controls */}
+        <div className="flex flex-wrap gap-2 sm:gap-3">
           <button
             type="button"
-            onClick={() => refresh()}
+            onClick={refresh}
             disabled={isRefreshing}
             className={cn(
-              "inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium",
+              "inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 cursor-pointer",
               "bg-white text-text-primary shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]",
-              "disabled:opacity-60"
+              "hover:shadow-[2px_2px_4px_#d1d5db,-2px_-2px_4px_#ffffff] active:shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]",
+              "disabled:opacity-60 disabled:cursor-not-allowed"
             )}
+            title="Refresh analytics data"
           >
-            <Icon path={ICON_PATHS.refresh} size="sm" className={cn(isRefreshing && "animate-spin")} />
+            <Icon
+              path={ICON_PATHS.refresh}
+              size="sm"
+              className={cn("text-text-secondary", isRefreshing && "animate-spin")}
+            />
             Refresh
           </button>
           <button
             type="button"
-            onClick={() => exportCsv()}
+            onClick={exportCsv}
             className={cn(
-              "inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium",
-              "bg-background text-text-primary",
-              "shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]"
+              "inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 cursor-pointer",
+              "bg-background text-text-primary shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]",
+              "hover:text-primary active:scale-95"
             )}
+            title="Export CSV report"
           >
-            <Icon path={ICON_PATHS.document} size="sm" />
+            <Icon path={ICON_PATHS.document} size="sm" className="text-primary" />
             Export CSV
           </button>
         </div>
       </div>
 
+      {/* Date Range Selector */}
       <EarningsDateRangePicker
         startDate={startDate}
         endDate={endDate}
@@ -198,118 +156,34 @@ export default function EarningsAnalyticsPage(): React.JSX.Element {
         onEndChange={onCustomEnd}
       />
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
-        <div className={CARD}>
-          <p className="text-sm font-medium text-text-secondary mb-1">This month</p>
-          <p className="text-2xl font-bold text-text-primary tabular-nums">{fmt(data.totals.thisMonth)}</p>
-        </div>
-        <div className={CARD}>
-          <p className="text-sm font-medium text-text-secondary mb-1">This year</p>
-          <p className="text-2xl font-bold text-text-primary tabular-nums">{fmt(data.totals.thisYear)}</p>
-        </div>
-        <div className={CARD}>
-          <p className="text-sm font-medium text-text-secondary mb-1">All time</p>
-          <p className="text-2xl font-bold text-text-primary tabular-nums">{fmt(data.totals.allTime)}</p>
-        </div>
-        <div className={CARD}>
-          <p className="text-sm font-medium text-text-secondary mb-1">Avg. order value</p>
-          <p className="text-2xl font-bold text-text-primary tabular-nums">
-            {fmt(data.currentPeriod.averageOrderValue)}
-          </p>
-          <p className="text-xs text-text-secondary mt-1">In selected range</p>
-        </div>
-      </div>
+      {/* Top Summary Metric Cards */}
+      <EarningsSummaryCards data={data} />
 
-      <div className={cn(CARD, "mb-6")}>
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div>
-            <p className="text-sm font-medium text-text-secondary">Selected range total</p>
-            <p className="text-3xl font-bold text-text-primary tabular-nums mt-1">
-              {fmt(data.currentPeriod.totalEarnings)}
-            </p>
-            <p className="text-sm text-text-secondary mt-1">
-              {data.currentPeriod.orderCount}{" "}
-              {data.currentPeriod.orderCount === 1 ? "completed order" : "completed orders"} ·{" "}
-              {data.currentPeriod.start} to {data.currentPeriod.end}
-            </p>
-          </div>
-          <div className="rounded-2xl bg-background px-4 py-3 min-w-[200px]">
-            <p className="text-xs font-medium text-text-secondary uppercase tracking-wide">vs previous period</p>
-            {totalDelta !== null ? (
-              <p
-                className={cn(
-                  "text-lg font-bold mt-1 tabular-nums",
-                  totalDelta >= 0 ? "text-success" : "text-error"
-                )}
-              >
-                {formatPct(totalDelta)} revenue
-              </p>
-            ) : (
-              <p className="text-sm text-text-secondary mt-1">No prior period to compare</p>
-            )}
-            {aovDelta !== null ? (
-              <p className={cn("text-sm mt-2", aovDelta >= 0 ? "text-success" : "text-error")}>
-                AOV {formatPct(aovDelta)}
-              </p>
-            ) : null}
-            <p className="text-xs text-text-secondary mt-2">
-              Previous: {fmt(data.previousPeriod.totalEarnings)} · {data.previousPeriod.start} –{" "}
-              {data.previousPeriod.end}
-            </p>
-          </div>
-        </div>
-      </div>
+      {/* Zero State if 0 Earnings / Orders */}
+      {isZeroEarnings ? (
+        <EarningsZeroState startDate={startDate} endDate={endDate} />
+      ) : null}
 
-      {goal > 0 ? (
-        <div className={cn(CARD, "mb-6")}>
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div>
-              <p className="text-sm font-semibold text-text-primary">Monthly goal</p>
-              <p className="text-sm text-text-secondary mt-1">
-                {fmt(data.monthlyGoal!)} target · this month {fmt(data.totals.thisMonth)}
-              </p>
-            </div>
-            {goalPct !== null ? (
-              <div className="flex-1 max-w-md">
-                <div className="flex justify-between text-xs text-text-secondary mb-1">
-                  <span>Progress</span>
-                  <span>{goalPct}%</span>
-                </div>
-                <div
-                  className={cn(
-                    "h-3 rounded-full overflow-hidden",
-                    "bg-background shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]"
-                  )}
-                >
-                  <div
-                    className="h-full rounded-full bg-primary transition-all duration-500"
-                    style={{ width: `${goalPct}%` }}
-                  />
-                </div>
-              </div>
-            ) : null}
-          </div>
+      {/* Monthly Interactive Revenue Chart (Rendered when chart data exists) */}
+      {hasChartData ? (
+        <div className={cn("mb-6 transition-opacity duration-200", isRefreshing && "opacity-60 pointer-events-none")}>
+          <EarningsChart data={data.monthly} currency={data.currency} monthlyGoal={data.monthlyGoal} />
         </div>
       ) : null}
 
-      <div className={cn("mb-6", isRefreshing && "opacity-70 pointer-events-none transition-opacity")}>
-        <EarningsChart
-          data={data.monthly}
+      {/* Breakdown Lists: Top Clients & Service Categories (Rendered when breakdown data exists) */}
+      {hasBreakdownData ? (
+        <EarningsBreakdown
+          byClient={data.byClient}
+          byCategory={data.byCategory}
           currency={data.currency}
-          monthlyGoal={data.monthlyGoal}
+          className="mb-6"
         />
-      </div>
+      ) : null}
 
-      <EarningsBreakdown
-        byClient={data.byClient}
-        byCategory={data.byCategory}
-        currency={data.currency}
-        className="mb-6"
-      />
-
-      <p className="text-xs text-text-secondary text-center">
-        Amounts in {data.currency}. Export includes totals, monthly buckets, clients, and categories for the
-        current view.
+      {/* Footer Disclaimer */}
+      <p className="text-xs text-text-secondary text-center pt-2">
+        All amounts in {data.currency}. Data updated in real-time from your backend database ledger.
       </p>
     </div>
   );

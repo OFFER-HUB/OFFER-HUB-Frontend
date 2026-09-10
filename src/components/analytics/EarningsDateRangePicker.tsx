@@ -1,7 +1,11 @@
 "use client";
 
+import { Card } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
+import { Icon, ICON_PATHS } from "@/components/ui/Icon";
+import { Input } from "@/components/ui/Input";
 import { cn } from "@/lib/cn";
-import type { PresetId } from "@/lib/earnings-utils";
+import type { PresetId } from "@/types/earnings.types";
 
 const PRESETS: { id: Exclude<PresetId, "custom">; label: string }[] = [
   { id: "30d", label: "30 days" },
@@ -10,11 +14,6 @@ const PRESETS: { id: Exclude<PresetId, "custom">; label: string }[] = [
   { id: "ytd", label: "Year to date" },
   { id: "all", label: "All time" },
 ];
-
-const CARD = cn(
-  "p-5 rounded-3xl bg-white",
-  "shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff]"
-);
 
 interface EarningsDateRangePickerProps {
   startDate: string;
@@ -34,54 +33,60 @@ export function EarningsDateRangePicker({
   onEndChange,
 }: EarningsDateRangePickerProps): React.JSX.Element {
   return (
-    <div className={cn(CARD, "p-5 sm:p-6 mb-6")}>
-      <p className="text-sm font-semibold text-text-primary mb-3">Date range</p>
-      <div className="flex flex-wrap gap-2 mb-4">
-        {PRESETS.map((p) => (
-          <button
-            key={p.id}
-            type="button"
-            onClick={() => onPresetChange(p.id)}
-            className={cn(
-              "px-3 py-1.5 rounded-lg text-sm font-medium transition-all border",
-              activePreset === p.id
-                ? "bg-primary text-white border-primary"
-                : "border-border-light bg-white text-text-secondary hover:text-text-primary"
-            )}
-          >
-            {p.label}
-          </button>
-        ))}
+    <Card variant="neumorphic" padding="md" className="mb-6">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <Icon path={ICON_PATHS.calendar} size="sm" className="text-primary" />
+          <span className="text-sm font-bold text-text-primary">Filter Date Range</span>
+        </div>
+        {activePreset === "custom" ? (
+          <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-primary/10 text-primary">
+            Custom Range
+          </span>
+        ) : null}
       </div>
+
+      {/* Preset Pill Buttons */}
+      <div className="flex flex-wrap gap-2 mb-5">
+        {PRESETS.map((p) => {
+          const isActive = activePreset === p.id;
+          return (
+            <Button
+              key={p.id}
+              type="button"
+              variant={isActive ? "primary" : "ghost"}
+              size="sm"
+              onClick={() => onPresetChange(p.id)}
+              className={cn(
+                "transition-all duration-200",
+                !isActive &&
+                  "bg-background text-text-secondary hover:text-text-primary shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]"
+              )}
+            >
+              {p.label}
+            </Button>
+          );
+        })}
+      </div>
+
+      {/* Inputs in sunken neumorphic wells without ugly borders */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <label className="flex flex-col gap-1 text-sm">
-          <span className="text-text-secondary">Start</span>
-          <input
-            type="date"
-            value={startDate}
-            onChange={(e) => onStartChange(e.target.value)}
-            className={cn(
-              "rounded-xl border border-border-light px-3 py-2.5",
-              "text-text-primary bg-white",
-              "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
-            )}
-          />
-        </label>
-        <label className="flex flex-col gap-1 text-sm">
-          <span className="text-text-secondary">End</span>
-          <input
-            type="date"
-            value={endDate}
-            min={startDate}
-            onChange={(e) => onEndChange(e.target.value)}
-            className={cn(
-              "rounded-xl border border-border-light px-3 py-2.5",
-              "text-text-primary bg-white",
-              "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
-            )}
-          />
-        </label>
+        <Input
+          type="date"
+          label="Start Date"
+          value={startDate}
+          onChange={(e) => onStartChange(e.target.value)}
+          className="border-none shadow-[var(--shadow-neumorphic-inset-light)] focus:ring-2 focus:ring-primary"
+        />
+        <Input
+          type="date"
+          label="End Date"
+          value={endDate}
+          min={startDate}
+          onChange={(e) => onEndChange(e.target.value)}
+          className="border-none shadow-[var(--shadow-neumorphic-inset-light)] focus:ring-2 focus:ring-primary"
+        />
       </div>
-    </div>
+    </Card>
   );
 }

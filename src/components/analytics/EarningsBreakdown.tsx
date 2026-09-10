@@ -1,7 +1,9 @@
 "use client";
 
+import { Card } from "@/components/ui/Card";
+import { Icon, ICON_PATHS } from "@/components/ui/Icon";
 import { cn } from "@/lib/cn";
-import type { EarningsCategoryRow, EarningsClientRow } from "@/lib/api/earnings";
+import type { EarningsCategoryRow, EarningsClientRow } from "@/types/earnings.types";
 
 interface EarningsBreakdownProps {
   byClient: EarningsClientRow[];
@@ -21,6 +23,7 @@ function formatMoney(amount: number, currency: string): string {
 interface BreakdownListProps {
   title: string;
   subtitle: string;
+  iconPath: string;
   rows: { id: string; label: string; earnings: number; orderCount: number }[];
   maxEarnings: number;
   currency: string;
@@ -29,53 +32,66 @@ interface BreakdownListProps {
 function BreakdownList({
   title,
   subtitle,
+  iconPath,
   rows,
   maxEarnings,
   currency,
 }: BreakdownListProps): React.JSX.Element {
   return (
-    <div
-      className={cn(
-        "p-6 rounded-3xl bg-white",
-        "shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff]"
-      )}
-    >
-      <h2 className="text-lg font-bold text-text-primary mb-1">{title}</h2>
-      <p className="text-sm text-text-secondary mb-4">{subtitle}</p>
+    <Card variant="neumorphic" padding="md">
+      <div className="flex items-center gap-2 mb-1">
+        <Icon path={iconPath} size="sm" className="text-primary" />
+        <h2 className="text-lg font-bold text-text-primary">{title}</h2>
+      </div>
+      <p className="text-xs text-text-secondary mb-4">{subtitle}</p>
+
       {rows.length === 0 ? (
-        <p className="text-sm text-text-secondary py-8 text-center">No data for this range.</p>
+        <div className="py-12 flex flex-col items-center justify-center text-center rounded-2xl bg-background shadow-[var(--shadow-neumorphic-inset-light)] p-6">
+          <Icon path={iconPath} size="lg" className="text-text-secondary/50 mb-2" />
+          <p className="text-sm font-semibold text-text-primary">No data in this range</p>
+          <p className="text-xs text-text-secondary mt-1">Breakdown will display here when orders settle.</p>
+        </div>
       ) : (
         <ul className="space-y-4">
-          {rows.map((row) => {
+          {rows.map((row, index) => {
             const pct = maxEarnings > 0 ? Math.round((row.earnings / maxEarnings) * 100) : 0;
             return (
-              <li key={row.id}>
-                <div className="flex items-baseline justify-between gap-2 mb-1">
-                  <span className="font-medium text-text-primary truncate">{row.label}</span>
-                  <span className="text-sm font-semibold text-primary whitespace-nowrap tabular-nums">
-                    {formatMoney(row.earnings, currency)}
-                  </span>
+              <li key={row.id} className="group">
+                <div className="flex items-center justify-between gap-2 mb-1.5">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <span className="w-5 h-5 rounded-md bg-background shadow-[inset_1px_1px_2px_#d1d5db,inset_-1px_-1px_2px_#ffffff] text-[10px] font-bold text-text-secondary flex items-center justify-center shrink-0">
+                      #{index + 1}
+                    </span>
+                    <span className="font-semibold text-sm text-text-primary truncate">
+                      {row.label}
+                    </span>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <span className="text-sm font-bold text-primary tabular-nums">
+                      {formatMoney(row.earnings, currency)}
+                    </span>
+                  </div>
                 </div>
-                <div
-                  className={cn(
-                    "h-2 rounded-full overflow-hidden",
-                    "bg-background shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]"
-                  )}
-                >
+
+                <div className="h-2.5 rounded-full overflow-hidden bg-background shadow-[var(--shadow-neumorphic-inset-light)]">
                   <div
-                    className="h-full rounded-full bg-primary transition-all duration-500"
+                    className="h-full rounded-full bg-gradient-to-r from-primary to-primary-alt transition-all duration-500"
                     style={{ width: `${pct}%` }}
                   />
                 </div>
-                <p className="text-xs text-text-secondary mt-1">
-                  {row.orderCount} {row.orderCount === 1 ? "order" : "orders"}
-                </p>
+
+                <div className="flex items-center justify-between text-[11px] text-text-secondary mt-1 px-0.5">
+                  <span>
+                    {row.orderCount} {row.orderCount === 1 ? "order" : "orders"}
+                  </span>
+                  {maxEarnings > 0 ? <span>{pct}% of top</span> : null}
+                </div>
               </li>
             );
           })}
         </ul>
       )}
-    </div>
+    </Card>
   );
 }
 
@@ -104,15 +120,17 @@ export function EarningsBreakdown({
   return (
     <div className={cn("grid grid-cols-1 lg:grid-cols-2 gap-6", className)}>
       <BreakdownList
-        title="Top clients"
+        title="Top Clients"
         subtitle="Where your revenue is concentrated"
+        iconPath={ICON_PATHS.users}
         rows={clientRows}
         maxEarnings={maxClient}
         currency={currency}
       />
       <BreakdownList
-        title="By service category"
-        subtitle="Mix of work in the selected period"
+        title="By Service Category"
+        subtitle="Mix of work delivered in the selected period"
+        iconPath={ICON_PATHS.grid}
         rows={categoryRows}
         maxEarnings={maxCat}
         currency={currency}
