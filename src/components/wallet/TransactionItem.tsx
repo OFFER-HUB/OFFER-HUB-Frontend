@@ -139,7 +139,7 @@ export function TransactionItem({
   return (
     <article
       className={cn(
-        "rounded-2xl p-4 bg-surface",
+        "rounded-2xl p-4 bg-white",
         "shadow-[var(--shadow-neumorphic-light)] dark:shadow-[var(--shadow-neumorphic-dark)]"
       )}
     >

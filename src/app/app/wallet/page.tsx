@@ -278,7 +278,7 @@ export default function WalletPage(): React.JSX.Element {
         {/* Card 1: Earned this month */}
         <div
           className={cn(
-            "p-6 rounded-3xl bg-surface",
+            "p-6 rounded-3xl bg-white",
             "shadow-[var(--shadow-neumorphic-light)] dark:shadow-[var(--shadow-neumorphic-dark)]",
             "transition-all duration-300"
           )}
@@ -308,7 +308,7 @@ export default function WalletPage(): React.JSX.Element {
         {/* Card 2: Withdrawn this month */}
         <div
           className={cn(
-            "p-6 rounded-3xl bg-surface",
+            "p-6 rounded-3xl bg-white",
             "shadow-[var(--shadow-neumorphic-light)] dark:shadow-[var(--shadow-neumorphic-dark)]",
             "transition-all duration-300"
           )}
@@ -338,7 +338,7 @@ export default function WalletPage(): React.JSX.Element {
         {/* Card 3: Pending withdrawals */}
         <div
           className={cn(
-            "p-6 rounded-3xl bg-surface",
+            "p-6 rounded-3xl bg-white",
             "shadow-[var(--shadow-neumorphic-light)] dark:shadow-[var(--shadow-neumorphic-dark)]",
             "transition-all duration-300 sm:col-span-2 lg:col-span-1"
           )}

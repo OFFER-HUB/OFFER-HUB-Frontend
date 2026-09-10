@@ -157,7 +157,7 @@ export default function WalletTransactionsPage(): React.JSX.Element {
             disabled={isRefreshing}
             className={cn(
               "inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl text-xs font-semibold uppercase tracking-wider",
-              "bg-surface text-text-primary shadow-[var(--shadow-neumorphic-light)] dark:shadow-[var(--shadow-neumorphic-dark)]",
+              "bg-white text-text-primary shadow-[var(--shadow-neumorphic-light)] dark:shadow-[var(--shadow-neumorphic-dark)]",
               "hover:text-primary active:shadow-[var(--shadow-neumorphic-inset-light)] dark:active:shadow-[var(--shadow-neumorphic-inset-dark)]",
               "disabled:opacity-60 transition-all"
             )}
@@ -267,7 +267,7 @@ export default function WalletTransactionsPage(): React.JSX.Element {
             disabled={isRefreshing}
             className={cn(
               "inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-semibold uppercase tracking-wider transition-all duration-200",
-              "bg-surface text-text-primary",
+              "bg-white text-text-primary",
               "shadow-[var(--shadow-neumorphic-light)] dark:shadow-[var(--shadow-neumorphic-dark)]",
               "hover:text-primary active:shadow-[var(--shadow-neumorphic-inset-light)] dark:active:shadow-[var(--shadow-neumorphic-inset-dark)]",
               "disabled:opacity-60"
@@ -282,7 +282,7 @@ export default function WalletTransactionsPage(): React.JSX.Element {
             disabled={filteredTransactions.length === 0}
             className={cn(
               "inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-semibold uppercase tracking-wider transition-all duration-200",
-              "bg-surface text-text-primary",
+              "bg-white text-text-primary",
               "shadow-[var(--shadow-neumorphic-light)] dark:shadow-[var(--shadow-neumorphic-dark)]",
               "hover:text-primary active:shadow-[var(--shadow-neumorphic-inset-light)] dark:active:shadow-[var(--shadow-neumorphic-inset-dark)]",
               "disabled:opacity-50"
@@ -295,19 +295,19 @@ export default function WalletTransactionsPage(): React.JSX.Element {
       </div>
 
       <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        <div className="p-5 rounded-3xl bg-surface shadow-[var(--shadow-neumorphic-light)] dark:shadow-[var(--shadow-neumorphic-dark)] transition-all duration-200">
+        <div className="p-5 rounded-3xl bg-white shadow-[var(--shadow-neumorphic-light)] dark:shadow-[var(--shadow-neumorphic-dark)] transition-all duration-200">
           <p className="text-xs font-semibold uppercase tracking-wider text-text-secondary">Total transactions</p>
           <p className="text-2xl lg:text-3xl font-extrabold text-text-primary mt-2">{walletData.transactions.length}</p>
         </div>
-        <div className="p-5 rounded-3xl bg-surface shadow-[var(--shadow-neumorphic-light)] dark:shadow-[var(--shadow-neumorphic-dark)] transition-all duration-200">
+        <div className="p-5 rounded-3xl bg-white shadow-[var(--shadow-neumorphic-light)] dark:shadow-[var(--shadow-neumorphic-dark)] transition-all duration-200">
           <p className="text-xs font-semibold uppercase tracking-wider text-text-secondary">Credits</p>
           <p className="text-2xl lg:text-3xl font-extrabold text-success mt-2">{creditsCount}</p>
         </div>
-        <div className="p-5 rounded-3xl bg-surface shadow-[var(--shadow-neumorphic-light)] dark:shadow-[var(--shadow-neumorphic-dark)] transition-all duration-200">
+        <div className="p-5 rounded-3xl bg-white shadow-[var(--shadow-neumorphic-light)] dark:shadow-[var(--shadow-neumorphic-dark)] transition-all duration-200">
           <p className="text-xs font-semibold uppercase tracking-wider text-text-secondary">Debits</p>
           <p className="text-2xl lg:text-3xl font-extrabold text-text-primary mt-2">{debitsCount}</p>
         </div>
-        <div className="p-5 rounded-3xl bg-surface shadow-[var(--shadow-neumorphic-light)] dark:shadow-[var(--shadow-neumorphic-dark)] transition-all duration-200">
+        <div className="p-5 rounded-3xl bg-white shadow-[var(--shadow-neumorphic-light)] dark:shadow-[var(--shadow-neumorphic-dark)] transition-all duration-200">
           <p className="text-xs font-semibold uppercase tracking-wider text-text-secondary">Reserved</p>
           <p className="text-2xl lg:text-3xl font-extrabold text-warning mt-2">{reservesCount}</p>
         </div>

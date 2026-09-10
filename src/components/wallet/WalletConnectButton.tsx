@@ -24,7 +24,7 @@ export interface WalletConnectButtonProps {
 
 const TRIGGER_BASE = cn(
   "flex items-center gap-2 rounded-2xl font-semibold",
-  "bg-surface text-text-primary",
+  "bg-white text-text-primary",
   "shadow-[var(--shadow-neumorphic-light)] dark:shadow-[var(--shadow-neumorphic-dark)]",
   "hover:text-primary active:shadow-[var(--shadow-neumorphic-inset-light)] dark:active:shadow-[var(--shadow-neumorphic-inset-dark)]",
   "focus-visible:ring-2 focus-visible:ring-primary/40 outline-none",

@@ -149,7 +149,7 @@ export function WithdrawForm({
             disabled={isSubmitting || maxWithdrawable <= 0}
             className={cn(
               "px-4 py-3 rounded-2xl text-xs font-semibold uppercase tracking-wider",
-              "bg-surface text-primary shadow-[var(--shadow-neumorphic-light)] dark:shadow-[var(--shadow-neumorphic-dark)]",
+              "bg-white text-primary shadow-[var(--shadow-neumorphic-light)] dark:shadow-[var(--shadow-neumorphic-dark)]",
               "active:shadow-[var(--shadow-neumorphic-inset-light)] dark:active:shadow-[var(--shadow-neumorphic-inset-dark)] hover:brightness-105 transition-all",
               "disabled:opacity-50 disabled:cursor-not-allowed"
             )}
