@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
   AuthLayout,
@@ -12,10 +11,7 @@ import {
 } from "@/components/auth";
 import { WalletSignInButton } from "@/components/auth/WalletSignInButton";
 import { cn } from "@/lib/cn";
-import { isNewUser } from "@/lib/auth/is-new-user";
-import { useAuthStore } from "@/stores/auth-store";
-import { useModeStore } from "@/stores/mode-store";
-import type { RegisterFormData, AuthFormErrors } from "@/types/auth.types";
+import { useRegisterForm } from "@/hooks/useRegisterForm";
 
 type AuthTabId = "email" | "wallet";
 
@@ -25,21 +21,10 @@ const AUTH_TABS: ReadonlyArray<{ id: AuthTabId; label: string }> = [
 ];
 
 export function RegisterForm() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const login = useAuthStore((state) => state.login);
-  const mode = useModeStore((state) => state.mode);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
+  const { formData, errors, isLoading, isSuccess, handleChange, handleSubmit, handleWalletSignedIn } =
+    useRegisterForm();
+
   const [passwordFocused, setPasswordFocused] = useState(false);
-  const emailParam = searchParams.get("email") ?? "";
-  const [formData, setFormData] = useState<RegisterFormData>({
-    email: emailParam,
-    username: "",
-    password: "",
-    confirmPassword: "",
-  });
-  const [errors, setErrors] = useState<AuthFormErrors>({});
   const [activeTab, setActiveTab] = useState<AuthTabId>("email");
 
   /**
@@ -57,177 +42,6 @@ export function RegisterForm() {
 
     setActiveTab(next.id);
     document.getElementById(`register-tab-${next.id}`)?.focus();
-  };
-
-  const validateForm = (): boolean => {
-    const newErrors: AuthFormErrors = {};
-
-    if (!formData.email) {
-      newErrors.email = "Email is required";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = "Please enter a valid email address";
-    }
-
-    if (!formData.username) {
-      newErrors.username = "Username is required";
-    } else if (formData.username.length < 3) {
-      newErrors.username = "Username must be at least 3 characters";
-    }
-
-    if (!formData.password) {
-      newErrors.password = "Password is required";
-    } else if (formData.password.length < 8) {
-      newErrors.password = "Password must be at least 8 characters";
-    }
-
-    if (!formData.confirmPassword) {
-      newErrors.confirmPassword = "Please confirm your password";
-    } else if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = "Passwords do not match";
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-    if (errors[name as keyof AuthFormErrors]) {
-      setErrors((prev) => ({ ...prev, [name]: undefined }));
-    }
-  };
-
-  const handleWalletSignedIn = () => {
-    const user = useAuthStore.getState().user;
-    if (user && isNewUser(user)) {
-      router.push("/onboarding");
-      return;
-    }
-
-    const defaultDashboard =
-      mode === "client" ? "/app/client/dashboard" : "/app/freelancer/dashboard";
-    router.push(defaultDashboard);
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!validateForm()) return;
-
-    setIsLoading(true);
-
-    try {
-      const response = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: formData.email,
-          password: formData.password,
-          username: formData.username,
-          type: "BOTH",
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        const newErrors: AuthFormErrors = {};
-
-        // Handle structured error responses from backend
-        if (data.error?.code) {
-          // ConflictException with error codes
-          if (data.error.code === "EMAIL_REGISTERED_VIA_OAUTH") {
-            const providers = (data.error.details?.providers as string[]) || [];
-            const providerNames = providers
-              .map((p: string) => p.charAt(0).toUpperCase() + p.slice(1))
-              .join(" or ");
-            newErrors.email = `This email is registered via ${providerNames}. Please use the ${providerNames} button above to sign in.`;
-          } else if (data.error.code === "EMAIL_ALREADY_EXISTS") {
-            newErrors.email = data.error.message || "This email is already registered";
-          } else if (data.error.code === "USERNAME_TAKEN") {
-            newErrors.username = data.error.message || "This username is already taken";
-          } else if (
-            data.error.code === "VALIDATION_ERROR" &&
-            data.error.details?.validationErrors
-          ) {
-            // Validation errors from class-validator
-            const validationErrors = data.error.details.validationErrors as string[];
-            validationErrors.forEach((msg: string) => {
-              const msgLower = msg.toLowerCase();
-              if (msgLower.includes("email")) {
-                newErrors.email = msg;
-              } else if (msgLower.includes("username")) {
-                newErrors.username = msg;
-              } else if (msgLower.includes("password")) {
-                newErrors.password = msg;
-              } else {
-                newErrors.email = msg;
-              }
-            });
-          } else {
-            // Generic error with code
-            newErrors.email = data.error.message || "Registration failed";
-          }
-        } else {
-          // Fallback for unknown error format
-          newErrors.email = data.error || "Registration failed";
-        }
-
-        setErrors(newErrors);
-        setIsLoading(false);
-        return;
-      }
-
-      setIsSuccess(true);
-
-      // Auto-login after successful registration to get full user data (including wallet)
-      try {
-        const loginResponse = await fetch("/api/auth/login", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            email: formData.email,
-            password: formData.password,
-          }),
-        });
-
-        if (loginResponse.ok) {
-          const loginData = await loginResponse.json();
-          login(loginData.user, loginData.token);
-
-          // Wait for Zustand persist to write cookie before redirecting
-          await new Promise((resolve) => setTimeout(resolve, 100));
-        } else {
-          console.error("Auto-login failed:", await loginResponse.text());
-        }
-      } catch (loginError) {
-        console.error("Auto-login error:", loginError);
-      }
-
-      setIsLoading(false);
-
-      // A fresh email registration never has firstName set — it always needs
-      // onboarding. Sending it to the dashboard first (as this used to do
-      // unconditionally) just meant AppLayoutClient bounced it straight back
-      // out to /onboarding, flashing the dashboard shell in between.
-      const registeredUser = useAuthStore.getState().user;
-      const destination =
-        registeredUser && isNewUser(registeredUser)
-          ? "/onboarding"
-          : mode === "client"
-            ? "/app/client/dashboard"
-            : "/app/freelancer/dashboard";
-
-      localStorage.setItem("show-onboarding-tour", "true");
-      setTimeout(() => {
-        window.location.href = destination;
-      }, 1500);
-    } catch (error) {
-      console.error("Register error:", error);
-      setErrors({ email: "Connection error. Please try again." });
-      setIsLoading(false);
-    }
   };
 
   if (isSuccess) {

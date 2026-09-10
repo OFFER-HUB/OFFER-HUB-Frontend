@@ -1,15 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useState } from "react";
 import Link from "next/link";
 import { AuthLayout, SocialAuthButtons, AuthInput, AuthDivider } from "@/components/auth";
 import { WalletSignInButton } from "@/components/auth/WalletSignInButton";
 import { cn } from "@/lib/cn";
-import { isNewUser } from "@/lib/auth/is-new-user";
-import { useAuthStore } from "@/stores/auth-store";
-import { useModeStore } from "@/stores/mode-store";
-import type { LoginFormData, AuthFormErrors } from "@/types/auth.types";
+import { useLoginForm } from "@/hooks/useLoginForm";
 
 type AuthTabId = "email" | "wallet";
 
@@ -19,21 +15,9 @@ const AUTH_TABS: ReadonlyArray<{ id: AuthTabId; label: string }> = [
 ];
 
 export function LoginForm() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const login = useAuthStore((state) => state.login);
-  const setRedirectAfterLogin = useAuthStore((state) => state.setRedirectAfterLogin);
-  const mode = useModeStore((state) => state.mode);
-  const registered = searchParams.get("registered") === "true";
-  const redirect = searchParams.get("redirect");
-  const [isLoading, setIsLoading] = useState(false);
-  const [showSuccessMessage, setShowSuccessMessage] = useState(registered);
-  const [formData, setFormData] = useState<LoginFormData>({
-    email: "",
-    password: "",
-  });
-  const [errors, setErrors] = useState<AuthFormErrors>({});
-  const [redirectPath] = useState<string | null>(redirect);
+  const { formData, errors, isLoading, showSuccessMessage, handleChange, handleSubmit, handleWalletSignedIn } =
+    useLoginForm();
+
   // Email stays the default: it is what every existing account uses, and the
   // wallet path is additive rather than a replacement.
   const [activeTab, setActiveTab] = useState<AuthTabId>("email");
@@ -53,129 +37,6 @@ export function LoginForm() {
 
     setActiveTab(next.id);
     document.getElementById(`auth-tab-${next.id}`)?.focus();
-  };
-
-  useEffect(() => {
-    if (redirect) {
-      setRedirectAfterLogin(redirect);
-    }
-  }, [redirect, setRedirectAfterLogin]);
-
-  useEffect(() => {
-    if (!registered) return;
-
-    const timeoutId = window.setTimeout(() => {
-      setShowSuccessMessage(false);
-    }, 5000);
-
-    return () => window.clearTimeout(timeoutId);
-  }, [registered]);
-
-  const validateForm = (): boolean => {
-    const newErrors: AuthFormErrors = {};
-
-    if (!formData.email) {
-      newErrors.email = "Email is required";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = "Please enter a valid email address";
-    }
-
-    if (!formData.password) {
-      newErrors.password = "Password is required";
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-    if (errors[name as keyof AuthFormErrors]) {
-      setErrors((prev) => ({ ...prev, [name]: undefined }));
-    }
-  };
-
-  /**
-   * Where a successful sign-in lands, whatever proved the identity.
-   * Shared so wallet auth cannot drift from the email path.
-   */
-  const goToDashboard = () => {
-    const defaultDashboard =
-      mode === "client" ? "/app/client/dashboard" : "/app/freelancer/dashboard";
-
-    router.push(redirectPath || defaultDashboard);
-  };
-
-  /**
-   * Any account with no firstName yet — wallet-first or a pre-#180 email
-   * registration that never collected one — needs onboarding before the
-   * dashboard, not after: RegisterForm doesn't ask for a name at all, so a
-   * fresh email account is just as "new" as a wallet one. Routing here
-   * unconditionally used to send those users to the dashboard first, which
-   * AppLayoutClient immediately bounced back out to /onboarding.
-   */
-  const goToDashboardOrOnboarding = () => {
-    const user = useAuthStore.getState().user;
-    if (user && isNewUser(user)) {
-      router.push("/onboarding");
-      return;
-    }
-
-    goToDashboard();
-  };
-
-  const handleWalletSignedIn = () => {
-    goToDashboardOrOnboarding();
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!validateForm()) return;
-
-    setIsLoading(true);
-
-    try {
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: formData.email,
-          password: formData.password,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        // Handle OAuth-only account trying to login with password
-        if (data.error?.code === "LOGIN_VIA_OAUTH_REQUIRED") {
-          const providers = (data.error.details?.providers as string[]) || [];
-          const providerNames = providers
-            .map((p: string) => p.charAt(0).toUpperCase() + p.slice(1))
-            .join(" or ");
-          setErrors({
-            email: `This account uses ${providerNames} for login. Please use the ${providerNames} button above.`,
-          });
-        } else {
-          setErrors({ email: data.error?.message || data.error || "Login failed" });
-        }
-        setIsLoading(false);
-        return;
-      }
-
-      // Update auth state with user and token from API
-      login(data.user, data.token);
-
-      setIsLoading(false);
-
-      goToDashboardOrOnboarding();
-    } catch (error) {
-      console.error("Login error:", error);
-      setErrors({ email: "Connection error. Please try again." });
-      setIsLoading(false);
-    }
   };
 
   return (
