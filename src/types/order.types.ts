@@ -57,7 +57,35 @@ export interface Order {
   };
   escrow?: OrderEscrow;
   milestones?: Milestone[];
-  metadata?: Record<string, any>;
+  metadata?: {
+    attachments?: OrderAttachment[];
+    notes?: OrderProjectNote[];
+    [key: string]: unknown;
+  };
+}
+
+export interface OrderAttachment {
+  id: string;
+  name: string;
+  size: number;
+  mimeType: string;
+  url: string;
+  publicId?: string;
+  uploadedBy: string;
+  uploaderRole: 'buyer' | 'seller';
+  uploaderName?: string;
+  category?: 'brief' | 'deliverable' | 'evidence' | 'reference';
+  note?: string | null;
+  createdAt: string;
+}
+
+export interface OrderProjectNote {
+  id: string;
+  message: string;
+  authorId: string;
+  authorRole: 'buyer' | 'seller';
+  authorName?: string;
+  createdAt: string;
 }
 
 export interface Milestone {
@@ -102,7 +130,7 @@ export interface CreateOrderPayload {
   amount: string;
   title: string;
   description?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export const ORDER_STATUS_CONFIG: Record<OrderStatus, { label: string; color: string; bg: string }> = {

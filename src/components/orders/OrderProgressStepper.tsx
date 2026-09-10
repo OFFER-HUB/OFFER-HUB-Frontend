@@ -21,39 +21,43 @@ export function OrderProgressStepper({
   const lastIndex = ORDER_PROGRESS_MILESTONES.length - 1;
 
   return (
-    <div className={NEUMORPHIC_CARD}>
-      <h2 className="text-lg font-semibold text-text-primary mb-8">Order Progress</h2>
-      <div className="relative px-4">
+    <div className={cn(NEUMORPHIC_CARD, "p-6 sm:p-7")}>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-base font-bold text-[#111827]">Order Lifecycle Progress</h2>
+        <span className="text-xs font-semibold text-text-secondary">
+          Step {Math.min(ORDER_PROGRESS_MILESTONES.findIndex((m) => m.step >= currentStep) + 1 || 1, 4)} of 4
+        </span>
+      </div>
+      <div className="relative px-2 sm:px-6">
         <div className="relative grid grid-cols-4 gap-2">
           {ORDER_PROGRESS_MILESTONES.map((milestone, index) => {
-            const isReached = currentStep >= milestone.step;
             const isPassed = currentStep > milestone.step;
             const isCurrent = currentStep === milestone.step;
+            const isPending = currentStep < milestone.step;
+            const stepNumber = index + 1;
 
             return (
-              <div key={milestone.step} className="flex flex-col items-center relative">
+              <div key={milestone.step} className="flex flex-col items-center relative group">
                 <div
                   className={cn(
-                    "w-12 h-12 rounded-full flex items-center justify-center font-semibold text-sm mb-3 transition-all relative z-10 bg-background",
-                    isReached
-                      ? "text-primary shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]"
-                      : "text-text-secondary shadow-[inset_3px_3px_6px_#d1d5db,inset_-3px_-3px_6px_#ffffff]"
+                    "w-11 h-11 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center font-bold text-xs sm:text-sm mb-3 transition-all relative z-10",
+                    isPassed && "bg-primary text-white shadow-[3px_3px_8px_#cbd5e1]",
+                    isCurrent && "bg-background text-primary ring-2 ring-primary shadow-[4px_4px_10px_#cbd5e1,-4px_-4px_10px_#ffffff]",
+                    isPending && "bg-background text-text-secondary/70 shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]"
                   )}
                 >
                   {isPassed ? (
-                    <Icon path={ICON_PATHS.check} size="sm" className="text-primary" />
-                  ) : isCurrent ? (
-                    <div className="w-3 h-3 rounded-full bg-primary" />
+                    <Icon path={ICON_PATHS.check} size="sm" className="text-white" />
                   ) : (
-                    milestone.step
+                    <span>{stepNumber}</span>
                   )}
                 </div>
 
                 {index < lastIndex && (
-                  <div className="absolute top-6 left-1/2 w-full h-0.5 -z-0">
+                  <div className="absolute top-5 sm:top-6 left-1/2 w-full h-1 -z-0">
                     <div
                       className={cn(
-                        "h-full transition-all duration-500",
+                        "h-full transition-all duration-500 rounded-full",
                         isPassed
                           ? "bg-primary"
                           : "bg-border-light shadow-[inset_1px_1px_2px_#d1d5db]"
@@ -62,7 +66,12 @@ export function OrderProgressStepper({
                   </div>
                 )}
 
-                <span className="text-xs font-medium text-text-secondary text-center">
+                <span
+                  className={cn(
+                    "text-xs text-center transition-colors",
+                    isCurrent ? "font-bold text-[#111827]" : isPassed ? "font-semibold text-text-primary" : "text-text-secondary"
+                  )}
+                >
                   {milestone.label}
                 </span>
               </div>

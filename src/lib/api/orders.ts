@@ -318,3 +318,89 @@ export async function getMyPurchases(
   // Backend wraps response: { data: { data: Order[], hasMore, nextCursor }, meta: {...} }
   return responseData.data;
 }
+
+/**
+ * Upload an attachment (deliverable, project brief, reference, evidence) to an order.
+ * POST /orders/:id/attachments
+ */
+export async function uploadOrderAttachment(
+  token: string,
+  orderId: string,
+  file: File,
+  category?: string,
+  note?: string
+): Promise<Order> {
+  const formData = new FormData();
+  formData.append("file", file);
+  if (category) formData.append("category", category);
+  if (note) formData.append("note", note);
+
+  const response = await fetch(`${API_URL}/orders/${orderId}/attachments`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.error?.message || error.message || "Failed to upload file");
+  }
+
+  const data = await response.json();
+  return data.data || data;
+}
+
+/**
+ * Delete an attachment from an order.
+ * DELETE /orders/:id/attachments/:attachmentId
+ */
+export async function deleteOrderAttachment(
+  token: string,
+  orderId: string,
+  attachmentId: string
+): Promise<Order> {
+  const response = await fetch(`${API_URL}/orders/${orderId}/attachments/${attachmentId}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.error?.message || error.message || "Failed to delete file");
+  }
+
+  const data = await response.json();
+  return data.data || data;
+}
+
+/**
+ * Post a project note/update to an order.
+ * POST /orders/:id/notes
+ */
+export async function addOrderProjectNote(
+  token: string,
+  orderId: string,
+  message: string
+): Promise<Order> {
+  const response = await fetch(`${API_URL}/orders/${orderId}/notes`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ message }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.error?.message || error.message || "Failed to post note");
+  }
+
+  const data = await response.json();
+  return data.data || data;
+}
+
