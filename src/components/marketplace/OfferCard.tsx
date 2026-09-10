@@ -4,7 +4,6 @@ import Link from "next/link";
 import { cn } from "@/lib/cn";
 import { Icon, ICON_PATHS } from "@/components/ui/Icon";
 import type { MarketplaceOffer } from "@/lib/api/marketplace";
-import { HighlightedText } from "@/components/search/HighlightedText";
 import { FavoriteButton } from "@/components/favorites/FavoriteButton";
 import { useFavoritesStore } from "@/stores/favorites-store";
 
@@ -26,141 +25,143 @@ const CATEGORY_MAP: Record<string, string> = {
   OTHER: "Other",
 };
 
-const CATEGORY_GRADIENTS: Record<string, string> = {
-  WEB_DEVELOPMENT: "from-blue-400 to-indigo-600",
-  MOBILE_DEVELOPMENT: "from-violet-400 to-purple-600",
-  DESIGN: "from-pink-400 to-rose-600",
-  WRITING: "from-amber-400 to-orange-500",
-  MARKETING: "from-green-400 to-emerald-600",
-  VIDEO: "from-red-400 to-rose-600",
-  MUSIC: "from-cyan-400 to-teal-600",
-  DATA: "from-sky-400 to-blue-600",
-  OTHER: "from-gray-400 to-slate-600",
-};
-
-export function OfferCard({ offer, className, highlightQuery }: OfferCardProps): React.JSX.Element {
+export function OfferCard({ offer, className }: OfferCardProps): React.JSX.Element {
   const budget = parseFloat(offer.budget);
   const deadline = new Date(offer.deadline).toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
-    year: "numeric",
   });
-  const category = CATEGORY_MAP[offer.category] || offer.category;
-  const userName = offer.user?.email?.split("@")[0] || "Anonymous";
-
-  // Only use absolute Cloudinary URLs — /uploads/... paths are broken (ephemeral Railway disk)
-  const imageAttachment = offer.attachments?.find((att) =>
-    att.mimeType.startsWith("image/")
-  );
-  const rawUrl = imageAttachment?.url ?? null;
-  const imageUrl = rawUrl?.startsWith("https://") ? rawUrl : null;
+  const categoryLabel = CATEGORY_MAP[offer.category] || offer.category;
+  const userName = offer.user?.email ? offer.user.email.split("@")[0] : "Client";
+  const initials = userName.slice(0, 2).toUpperCase();
 
   const isFavorited = useFavoritesStore((s) => s.offerIds.includes(offer.id));
   const toggleOffer = useFavoritesStore((s) => s.toggleOffer);
 
   return (
-    <div className="relative">
+    <div className="relative h-full">
       <FavoriteButton
         type="offer"
         id={offer.id}
         isFavorited={isFavorited}
         onToggle={() => toggleOffer(offer)}
-        className="absolute top-3 right-3 z-10"
+        className="absolute top-6 right-6 z-10"
       />
       <Link
-      href={`/marketplace/offers/${offer.id}`}
-      className={cn(
-        "flex flex-col h-full rounded-xl transition-all duration-200 overflow-hidden",
-        "bg-background shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]",
-        "hover:shadow-[2px_2px_4px_#d1d5db,-2px_-2px_4px_#ffffff]",
-        "hover:scale-[1.01]",
-        className
-      )}
-    >
-      {/* Image / Gradient Placeholder — always h-44 */}
-      <div className="relative w-full h-44 overflow-hidden bg-gray-100 flex-shrink-0">
-        {imageUrl ? (
-          <img
-            src={imageUrl}
-            alt={offer.title}
-            className="w-full h-full object-cover"
-          />
-        ) : (
-          <div
+        href={`/marketplace/offers/${offer.id}`}
+        className={cn(
+          "group flex flex-col h-full p-7 rounded-[28px] transition-all duration-300",
+          "bg-white",
+          "shadow-[6px_6px_14px_#d1d5db,-6px_-6px_14px_#ffffff]",
+          "hover:shadow-[10px_10px_20px_#cbd5e1,-10px_-10px_20px_#ffffff]",
+          "hover:-translate-y-1.5",
+          className
+        )}
+      >
+        {/* Header: Client Avatar with Status + Name & Verified Badge */}
+        <div className="flex items-start gap-4 mb-5 pr-12">
+          <div className="relative flex-shrink-0">
+            <div className="p-1 rounded-2xl shadow-[3px_3px_6px_#d1d5db,-3px_-3px_6px_#ffffff] bg-white">
+              <div className="w-14 h-14 rounded-xl bg-background shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff] flex items-center justify-center">
+                <span className="text-primary font-bold text-lg tracking-wider">
+                  {initials}
+                </span>
+              </div>
+            </div>
+            {offer.status === "ACTIVE" && (
+              <span
+                className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-500 border-2 border-white rounded-full shadow-sm"
+                title="Active Project"
+              />
+            )}
+          </div>
+
+          <div className="flex-1 min-w-0 pt-0.5">
+            <div className="flex items-center gap-1.5">
+              <h3 className="font-bold text-text-primary text-lg leading-snug group-hover:text-primary transition-colors truncate">
+                {userName}
+              </h3>
+              <div
+                className="w-4 h-4 rounded-full bg-primary/15 text-primary flex items-center justify-center flex-shrink-0"
+                title="Verified Client"
+              >
+                <Icon path={ICON_PATHS.check} size="sm" className="w-2.5 h-2.5 text-primary" strokeWidth={3} />
+              </div>
+            </div>
+            <p className="text-xs text-text-secondary/70 truncate font-mono">
+              Client • Verified Project
+            </p>
+            <p className="text-sm font-semibold text-text-secondary mt-0.5 truncate">
+              {offer.title}
+            </p>
+          </div>
+        </div>
+
+        {/* Professional Metrics Line */}
+        <div className="flex items-center gap-3 mb-4 text-xs">
+          <div className="flex items-center gap-1 font-bold text-text-primary bg-amber-500/10 text-amber-700 px-2 py-0.5 rounded-lg">
+            <Icon path={ICON_PATHS.star} size="sm" className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
+            <span>5.0</span>
+          </div>
+          <span className="text-text-secondary/30">•</span>
+          <div className="flex items-center gap-1 text-text-secondary font-medium truncate">
+            <Icon path={ICON_PATHS.clock} size="sm" className="w-3.5 h-3.5 text-text-secondary/60 flex-shrink-0" />
+            <span>Deadline: {deadline}</span>
+          </div>
+          <span className="text-text-secondary/30">•</span>
+          <span className="text-emerald-700 font-semibold text-xs">
+            Open Offer
+          </span>
+        </div>
+
+        {/* Category & Applicants Highlights */}
+        <div className="flex flex-wrap items-center gap-2 mb-4">
+          <span
             className={cn(
-              "w-full h-full bg-gradient-to-br animate-shimmer flex items-center justify-center",
-              CATEGORY_GRADIENTS[offer.category] || CATEGORY_GRADIENTS.OTHER
+              "px-3 py-1 text-xs font-bold uppercase tracking-wider rounded-xl",
+              "bg-background text-text-secondary",
+              "shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]"
             )}
           >
-            <Icon
-              path={ICON_PATHS.image}
-              size="lg"
-              className="text-white opacity-40"
-            />
-          </div>
-        )}
-      </div>
-
-      {/* Content */}
-      <div className="p-4 flex flex-col flex-grow">
-        {/* Client Info */}
-        <div className="flex items-center gap-3 mb-3">
-          <div className="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center font-semibold flex-shrink-0">
-            {userName.charAt(0).toUpperCase()}
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="font-medium text-text-primary truncate">{userName}</p>
-            <p className="text-xs text-text-secondary truncate">{category}</p>
-          </div>
+            {categoryLabel}
+          </span>
+          {offer.applicantsCount > 0 && (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-medium text-primary bg-primary/10 rounded-xl border border-primary/20">
+              <Icon path={ICON_PATHS.users} size="sm" className="w-3.5 h-3.5" />
+              {offer.applicantsCount} {offer.applicantsCount === 1 ? "applicant" : "applicants"}
+            </span>
+          )}
         </div>
 
-        {/* Title */}
-        <h3 className="text-lg font-semibold text-text-primary mb-2 line-clamp-2">
-          {highlightQuery ? (
-            <HighlightedText text={offer.title} query={highlightQuery} />
-          ) : (
-            offer.title
-          )}
-        </h3>
-
-        {/* Description */}
-        <p className="text-sm text-text-secondary mb-4 line-clamp-2">
-          {highlightQuery ? (
-            <HighlightedText text={offer.description} query={highlightQuery} />
-          ) : (
-            offer.description
-          )}
+        {/* Project Scope Description */}
+        <p className="text-sm text-text-secondary/85 leading-relaxed line-clamp-2 mb-6">
+          {offer.description}
         </p>
 
-        {/* Footer — pinned to bottom */}
-        <div className="mt-auto">
-          <div className="flex items-center justify-between pt-4 border-t border-border-light">
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-1 text-primary">
-                <Icon path={ICON_PATHS.currency} size="sm" />
-                <span className="font-semibold">${budget.toLocaleString()}</span>
-              </div>
-              <div className="flex items-center gap-1 text-text-secondary">
-                <Icon path={ICON_PATHS.clock} size="sm" />
-                <span className="text-sm">{deadline}</span>
-              </div>
-            </div>
-            {offer.attachments && offer.attachments.length > 0 && (
-              <div className="flex items-center gap-1 text-text-secondary">
-                <Icon path={ICON_PATHS.image} size="sm" />
-                <span className="text-xs">{offer.attachments.length}</span>
-              </div>
-            )}
+        {/* Footer: Budget & View Offer Button */}
+        <div className="mt-auto pt-5 border-t border-border-light flex items-center justify-between gap-3">
+          <div>
+            <span className="text-2xl font-black text-text-primary tracking-tight">
+              ${budget.toLocaleString()}
+            </span>
+            <span className="text-xs text-text-secondary font-medium ml-1">budget</span>
           </div>
-          {offer.applicantsCount > 0 && (
-            <div className="mt-3 flex items-center gap-1 text-xs text-text-secondary">
-              <Icon path={ICON_PATHS.users} size="sm" />
-              <span>{offer.applicantsCount} applicant{offer.applicantsCount !== 1 ? "s" : ""}</span>
-            </div>
-          )}
+
+          <div
+            className={cn(
+              "flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all duration-200",
+              "bg-primary text-white",
+              "shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]",
+              "group-hover:shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff]",
+              "group-hover:bg-primary-hover",
+              "active:shadow-[inset_2px_2px_4px_rgba(0,0,0,0.2)]"
+            )}
+          >
+            <span>View Offer</span>
+            <Icon path={ICON_PATHS.arrowRight} size="sm" className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+          </div>
         </div>
-      </div>
-    </Link>
+      </Link>
     </div>
   );
 }

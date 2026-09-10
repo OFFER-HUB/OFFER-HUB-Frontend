@@ -130,7 +130,7 @@ export default function ClientDashboardPage(): React.JSX.Element {
           description="Find the right freelancer"
         />
         <QuickActionButton
-          href="/marketplace"
+          href="/marketplace/services"
           iconPath={ICON_PATHS.search}
           iconColor="bg-accent/90 shadow-lg shadow-accent/20"
           title="Browse Talent"

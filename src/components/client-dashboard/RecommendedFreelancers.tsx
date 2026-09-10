@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { cn } from "@/lib/cn";
-import { NEUMORPHIC_CARD, NEUMORPHIC_INSET, ICON_CONTAINER } from "@/lib/styles";
+import { NEUMORPHIC_CARD, NEUMORPHIC_INSET } from "@/lib/styles";
 import { Icon, ICON_PATHS } from "@/components/ui/Icon";
 import { getPublicServices, type MarketplaceService } from "@/lib/api/marketplace";
 
@@ -113,7 +113,7 @@ export function RecommendedFreelancers(): React.JSX.Element {
           <p className="text-sm text-text-secondary mt-1">Top-rated talent available for hire</p>
         </div>
         <Link
-          href="/marketplace"
+          href="/marketplace/services"
           className="group flex items-center gap-2 px-4 py-2 rounded-full bg-background text-sm font-semibold text-primary shadow-sm hover:shadow-md transition-all active:scale-95"
         >
           Browse all

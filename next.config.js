@@ -40,6 +40,16 @@ const nextConfig = {
     optimizePackageImports: ["@/components/ui", "@/lib"],
   },
 
+  async redirects() {
+    return [
+      {
+        source: "/marketplace",
+        destination: "/marketplace/services",
+        permanent: false,
+      },
+    ];
+  },
+
   async headers() {
     return [
       {

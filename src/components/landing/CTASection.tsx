@@ -49,7 +49,7 @@ export function CTASection() {
                   Book a demo
                 </Button>
               </Link>
-              <Link href="/marketplace">
+              <Link href="/marketplace/services">
                 <Button variant="outline" size="lg">
                   Start Free Trial
                 </Button>

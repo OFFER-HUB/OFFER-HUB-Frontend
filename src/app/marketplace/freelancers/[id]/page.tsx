@@ -61,11 +61,11 @@ export default async function PublicFreelancerProfilePage({ params }: PageProps)
       <div className="min-h-screen bg-background">
         <div className="container mx-auto px-4 py-8 max-w-3xl">
           <Link
-            href="/marketplace"
+            href="/marketplace/services"
             className="inline-flex items-center gap-2 mb-8 text-text-secondary hover:text-text-primary transition-colors text-sm font-medium"
           >
             <Icon path={ICON_PATHS.chevronLeft} size="sm" />
-            Back to marketplace
+            Back to services
           </Link>
 
           <div

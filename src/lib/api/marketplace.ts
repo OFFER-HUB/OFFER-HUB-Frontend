@@ -18,6 +18,15 @@ export interface MarketplaceOffer {
   user: {
     id: string;
     email: string;
+    username?: string | null;
+    firstName?: string | null;
+    lastName?: string | null;
+    avatarUrl?: string | null;
+    country?: string | null;
+    location?: string | null;
+    bio?: string | null;
+    professionalTitle?: string | null;
+    createdAt?: string;
   };
   attachments: Array<{
     id: string;
@@ -49,6 +58,10 @@ export interface MarketplaceService {
     lastName: string | null;
     avatarUrl: string | null;
     country: string | null;
+    location?: string | null;
+    bio?: string | null;
+    professionalTitle?: string | null;
+    createdAt?: string;
   };
 }
 

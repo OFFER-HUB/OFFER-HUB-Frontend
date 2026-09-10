@@ -7,7 +7,8 @@ const footerLinks = {
   platform: {
     title: "Platform",
     links: [
-      { href: "/marketplace", label: "Marketplace" },
+      { href: "/marketplace/services", label: "Browse Services" },
+      { href: "/marketplace/offers", label: "Browse Offers" },
       { href: "/register", label: "Get Started" },
       { href: "/login", label: "Sign In" },
     ],

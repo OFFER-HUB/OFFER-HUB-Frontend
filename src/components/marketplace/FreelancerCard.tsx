@@ -62,25 +62,25 @@ export function FreelancerCard({ freelancer }: FreelancerCardProps) {
         {/* Header with Avatar */}
         <div className="flex items-start gap-4 mb-5">
           <div className="relative flex-shrink-0">
-            <div className="p-1 rounded-[24px] shadow-[3px_3px_6px_#d1d5db,-3px_-3px_6px_#ffffff]">
+            <div className="p-1 rounded-2xl shadow-[3px_3px_6px_#d1d5db,-3px_-3px_6px_#ffffff] bg-white">
               {freelancer.avatar ? (
                 <Image
                   src={freelancer.avatar}
                   alt={freelancer.name}
                   width={56}
-                  height={72}
-                  className="rounded-[20px] object-cover w-14 h-[72px]"
+                  height={56}
+                  className="rounded-xl object-cover w-14 h-14"
                 />
               ) : (
-                <div className="rounded-[20px] w-14 h-[72px] bg-background shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff] flex items-center justify-center">
-                  <span className="text-primary font-bold text-xl">
+                <div className="rounded-xl w-14 h-14 bg-background shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff] flex items-center justify-center">
+                  <span className="text-primary font-bold text-lg">
                     {freelancer.name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase()}
                   </span>
                 </div>
               )}
             </div>
             {freelancer.isAvailable && (
-              <span className="absolute bottom-0 right-0 w-4 h-4 bg-green-500 border-2 border-white rounded-full shadow-sm" />
+              <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-500 border-2 border-white rounded-full shadow-sm" />
             )}
           </div>
           <div className="flex-1 min-w-0 pt-1">

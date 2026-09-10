@@ -18,11 +18,14 @@ import {
   DROPDOWN_ITEM_DANGER,
 } from "@/lib/styles";
 
-const NAV_LINKS = [
-  { href: "/app/dashboard", label: "Dashboard" },
-  { href: "/marketplace", label: "Marketplace" },
+const PUBLIC_NAV_LINKS = [
   { href: "/faq", label: "FAQ" },
   { href: "/help", label: "Help" },
+];
+
+const MARKETPLACE_LINKS = [
+  { href: "/marketplace/offers", label: "Browse Offers", icon: ICON_PATHS.briefcase },
+  { href: "/marketplace/services", label: "Browse Services", icon: ICON_PATHS.users },
 ];
 
 interface AppHeaderProps {
@@ -40,9 +43,12 @@ export function AppHeader({ onMenuClick }: AppHeaderProps): React.JSX.Element {
   const [mounted, setMounted] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
+  const [isMarketplaceMenuOpen, setIsMarketplaceMenuOpen] = useState(false);
+  const [isMarketplaceHovered, setIsMarketplaceHovered] = useState(false);
 
   const userMenuRef = useRef<HTMLDivElement>(null);
   const notifRef = useRef<HTMLDivElement>(null);
+  const marketplaceMenuRef = useRef<HTMLDivElement>(null);
 
   const pathname = usePathname();
   const { user, logout } = useAuthStore();
@@ -65,6 +71,13 @@ export function AppHeader({ onMenuClick }: AppHeaderProps): React.JSX.Element {
         !notifRef.current.contains(event.target as Node)
       ) {
         setIsNotifOpen(false);
+      }
+      // Close marketplace dropdown
+      if (
+        marketplaceMenuRef.current &&
+        !marketplaceMenuRef.current.contains(event.target as Node)
+      ) {
+        setIsMarketplaceMenuOpen(false);
       }
     }
 
@@ -119,11 +132,90 @@ export function AppHeader({ onMenuClick }: AppHeaderProps): React.JSX.Element {
 
       {/* Center: nav (always centered regardless of sidebar state) */}
       <nav className="hidden lg:flex items-center gap-6">
-        {NAV_LINKS.map((link) => (
+        <Link
+          href="/app/dashboard"
+          className={cn(
+            "font-medium transition-colors relative",
+            isActiveLink(pathname, "/app/dashboard")
+              ? "text-primary"
+              : "text-text-secondary hover:text-text-primary"
+          )}
+        >
+          Dashboard
+          {isActiveLink(pathname, "/app/dashboard") && (
+            <span className="absolute -bottom-1 left-0 right-0 h-0.5 bg-primary rounded-full" />
+          )}
+        </Link>
+
+        {/* Marketplace Dropdown */}
+        <div
+          ref={marketplaceMenuRef}
+          className="relative"
+          data-tour="nav-marketplace"
+          onMouseEnter={() => {
+            setIsMarketplaceMenuOpen(true);
+            setIsMarketplaceHovered(true);
+          }}
+          onMouseLeave={() => {
+            setIsMarketplaceMenuOpen(false);
+            setIsMarketplaceHovered(false);
+          }}
+        >
+          <button
+            onClick={() => setIsMarketplaceMenuOpen((prev) => !prev)}
+            className={cn(
+              "font-medium transition-colors relative flex items-center gap-1 cursor-pointer",
+              pathname.startsWith("/marketplace") || isMarketplaceHovered
+                ? "text-primary"
+                : "text-text-secondary hover:text-text-primary"
+            )}
+          >
+            Marketplace
+            <Icon
+              path={ICON_PATHS.chevronDown}
+              size="sm"
+              className={cn(
+                "transition-transform duration-200",
+                isMarketplaceMenuOpen && "rotate-180"
+              )}
+            />
+            {pathname.startsWith("/marketplace") && (
+              <span className="absolute -bottom-1 left-0 right-0 h-0.5 bg-primary rounded-full" />
+            )}
+          </button>
+
+          {isMarketplaceMenuOpen && (
+            <div className="absolute left-0 top-full pt-2 w-52 z-50 animate-fade-in">
+              <div
+                className={cn(
+                  "py-2 rounded-2xl bg-white",
+                  "shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff]",
+                  "border border-border-light"
+                )}
+              >
+                {MARKETPLACE_LINKS.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    onClick={() => setIsMarketplaceMenuOpen(false)}
+                    className={cn(
+                      DROPDOWN_ITEM,
+                      isActiveLink(pathname, link.href) && "text-primary font-semibold"
+                    )}
+                  >
+                    <Icon path={link.icon} size="sm" className="text-text-secondary" />
+                    {link.label}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {PUBLIC_NAV_LINKS.map((link) => (
           <Link
             key={link.href}
             href={link.href}
-            data-tour={link.href === "/marketplace" ? "nav-marketplace" : undefined}
             className={cn(
               "font-medium transition-colors relative",
               isActiveLink(pathname, link.href)

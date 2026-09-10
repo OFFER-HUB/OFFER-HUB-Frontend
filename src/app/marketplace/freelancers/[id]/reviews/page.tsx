@@ -88,7 +88,7 @@ export default async function PublicFreelancerReviewsPage({
 
   const profileHref = `/marketplace/freelancers/${id}`;
   const breadcrumbJson = getBreadcrumbSchema([
-    { name: "Marketplace", url: "/marketplace" },
+    { name: "Services", url: "/marketplace/services" },
     { name: summary.displayName, url: profileHref },
     { name: "Reviews", url: `/marketplace/freelancers/${id}/reviews` },
   ]);
@@ -120,8 +120,8 @@ export default async function PublicFreelancerReviewsPage({
       <div className="min-h-screen bg-background">
         <div className="container mx-auto px-4 py-8 max-w-4xl">
           <nav className="text-sm text-text-secondary mb-6 flex flex-wrap items-center gap-2" aria-label="Breadcrumb">
-            <Link href="/marketplace" className="hover:text-primary">
-              Marketplace
+            <Link href="/marketplace/services" className="hover:text-primary">
+              Services
             </Link>
             <span aria-hidden>/</span>
             <Link href={profileHref} className="hover:text-primary truncate max-w-[12rem] sm:max-w-none">
