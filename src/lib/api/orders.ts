@@ -1,4 +1,5 @@
 import type { Order, CreateOrderPayload, Milestone, Payout } from "@/types/order.types";
+import type { Dispute } from "@/types/dispute.types";
 import { API_URL } from "@/config/api";
 
 export async function createOrder(token: string, payload: CreateOrderPayload): Promise<Order> {
@@ -242,7 +243,7 @@ export interface OpenDisputePayload {
   evidence?: string[];
 }
 
-export async function openDispute(token: string, payload: OpenDisputePayload): Promise<any> {
+export async function openDispute(token: string, payload: OpenDisputePayload): Promise<Dispute> {
   const response = await fetch(`${API_URL}/orders/${payload.orderId}/resolution/dispute`, {
     method: "POST",
     headers: {

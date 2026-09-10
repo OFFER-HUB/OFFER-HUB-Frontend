@@ -1,4 +1,4 @@
-import type { Service, ServiceCategory, ServiceOrder, OrderStatus } from "@/types/service.types";
+import type { Service, ServiceCategory, ServiceOrder } from "@/types/service.types";
 
 export const MIN_TITLE_LENGTH = 10;
 export const MIN_DESCRIPTION_LENGTH = 50;
@@ -67,7 +67,7 @@ export const MOCK_SERVICES: Service[] = [
   },
 ];
 
-export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
+export const ORDER_STATUS_LABELS: Record<string, string> = {
   pending: "Pending",
   in_progress: "In Progress",
   delivered: "Delivered",
@@ -75,7 +75,7 @@ export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
   cancelled: "Cancelled",
 };
 
-export const ORDER_STATUS_COLORS: Record<OrderStatus, string> = {
+export const ORDER_STATUS_COLORS: Record<string, string> = {
   pending: "bg-warning/20 text-warning",
   in_progress: "bg-primary/20 text-primary",
   delivered: "bg-accent/20 text-accent",

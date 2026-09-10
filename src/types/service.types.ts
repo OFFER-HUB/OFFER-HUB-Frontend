@@ -43,15 +43,14 @@ export interface Service {
   updatedAt: string;
 }
 
-export type OrderStatus = "pending" | "in_progress" | "delivered" | "completed" | "cancelled";
-
 export interface ServiceOrder {
   id: string;
   serviceId: string;
   clientId: string;
   clientName: string;
   clientAvatar: string;
-  status: OrderStatus;
+  /** Raw order status string from the API. */
+  status: string;
   price: number;
   orderedAt: string;
   deliveryDate: string;

@@ -34,9 +34,12 @@ export async function getPublicFreelancerSummary(freelancerId: string): Promise<
     }
 
     const json = await response.json();
-    const data = unwrapData<any>(json);
+    type ApiResponse = Omit<PublicFreelancerSummary, 'skills'> & {
+      skills?: (string | { name: string })[];
+    };
+    const data = unwrapData<ApiResponse>(json);
     if (!data) return null;
-    
+
     return {
       id: data.id,
       displayName: data.displayName,
@@ -45,8 +48,8 @@ export async function getPublicFreelancerSummary(freelancerId: string): Promise<
       averageRating: data.averageRating,
       totalReviews: data.totalReviews,
       bio: data.bio,
-      skills: data.skills?.map((s: any) => typeof s === 'string' ? s : s.name) || [],
-    } as PublicFreelancerSummary;
+      skills: data.skills?.map((s) => typeof s === 'string' ? s : s.name) ?? [],
+    };
   } catch {
     return null;
   }

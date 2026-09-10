@@ -242,7 +242,7 @@ export default function ServiceDetailsPage({ params }: PageProps): React.JSX.Ele
   const [, forceUpdate] = useState(0);
   const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [orders, setOrders] = useState<any[]>([]);
+  const [orders, setOrders] = useState<ServiceOrder[]>([]);
   const [isFetchingOrders, setIsFetchingOrders] = useState(true);
 
   useEffect(() => {

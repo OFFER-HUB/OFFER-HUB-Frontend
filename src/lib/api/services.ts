@@ -1,4 +1,6 @@
 import { API_URL } from "@/config/api";
+import type { Order } from "@/types/order.types";
+import type { ServiceOrder } from "@/types/service.types";
 
 const API_BASE_URL = API_URL;
 
@@ -200,7 +202,7 @@ export async function deleteService(
 export async function getServiceOrders(
   token: string,
   serviceId: string
-): Promise<any[]> {
+): Promise<ServiceOrder[]> {
   const response = await fetch(`${API_BASE_URL}/services/${serviceId}/orders`, {
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -224,7 +226,7 @@ export async function hireService(
   token: string,
   serviceId: string,
   requirements?: string
-): Promise<any> {
+): Promise<Order> {
   const response = await fetch(`${API_BASE_URL}/services/${serviceId}/hire`, {
     method: 'POST',
     headers: {

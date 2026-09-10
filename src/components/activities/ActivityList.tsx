@@ -3,8 +3,16 @@
 import { ICON_PATHS, Icon } from "@/components/ui/Icon";
 import { ActivityItem } from "./ActivityItem";
 
+interface Activity {
+    id: string;
+    type: string;
+    title: string;
+    description: string;
+    time: string;
+}
+
 interface ActivityListProps {
-    activities: any[];
+    activities: Activity[];
     icons: Record<string, string>;
     isLoading?: boolean;
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { API_URL } from "@/config/api";
 
 export default function StatusPage() {
   const [result, setResult] = useState<string>("");
@@ -9,7 +10,7 @@ export default function StatusPage() {
   const checkHealth = async () => {
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:4000/api/v1/health");
+      const res = await fetch(`${API_URL}/health`);
       const data = await res.json();
       setResult(JSON.stringify(data, null, 2));
     } catch (err) {
