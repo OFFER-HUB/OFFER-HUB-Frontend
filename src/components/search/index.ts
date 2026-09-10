@@ -4,3 +4,4 @@ export { SearchSuggestions } from "./SearchSuggestions";
 export { SearchFilters, type SearchFiltersState } from "./SearchFilters";
 export { SearchResults, type ResultsViewMode } from "./SearchResults";
 export { FreelancerSearchCard } from "./FreelancerSearchCard";
+export { SearchTabStrip } from "./SearchTabStrip";
