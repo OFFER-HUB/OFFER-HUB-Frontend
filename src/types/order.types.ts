@@ -74,6 +74,27 @@ export interface CreateOrderPayload {
   metadata?: Record<string, any>;
 }
 
+export type PayoutStatus =
+  | 'PENDING'
+  | 'PROCESSING'
+  | 'COMPLETED'
+  | 'FAILED'
+  | 'REFUNDED'
+  | 'ON_HOLD';
+
+export interface OrderPayout {
+  id: string;
+  status: PayoutStatus;
+  corridor: string;
+  fiatCurrency: string;
+  usdcAmount: string;
+  fiatAmount?: string | null;
+  exchangeRate?: string | null;
+  failureReason?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export const ORDER_STATUS_CONFIG: Record<OrderStatus, { label: string; color: string; bg: string }> = {
   ORDER_CREATED: { label: 'Created', color: 'text-text-secondary', bg: 'bg-text-secondary/10' },
   FUNDS_RESERVED: { label: 'Funds Reserved', color: 'text-primary', bg: 'bg-primary/10' },
