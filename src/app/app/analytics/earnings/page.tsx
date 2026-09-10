@@ -17,56 +17,14 @@ import {
   EarningsPageSkeleton,
   downloadEarningsCsv,
 } from "@/components/analytics";
-
-function toLocalISODate(d: Date): string {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${day}`;
-}
-
-type PresetId = "custom" | "30d" | "90d" | "12m" | "ytd" | "all";
-
-function getRangeForPreset(preset: Exclude<PresetId, "custom">): { start: string; end: string } {
-  const end = new Date();
-  const endStr = toLocalISODate(end);
-
-  if (preset === "30d") {
-    const s = new Date(end);
-    s.setDate(s.getDate() - 29);
-    return { start: toLocalISODate(s), end: endStr };
-  }
-  if (preset === "90d") {
-    const s = new Date(end);
-    s.setDate(s.getDate() - 89);
-    return { start: toLocalISODate(s), end: endStr };
-  }
-  if (preset === "12m") {
-    const s = new Date(end.getFullYear(), end.getMonth() - 11, 1);
-    return { start: toLocalISODate(s), end: endStr };
-  }
-  if (preset === "ytd") {
-    const s = new Date(end.getFullYear(), 0, 1);
-    return { start: toLocalISODate(s), end: endStr };
-  }
-  const s = new Date(end.getFullYear() - 3, 0, 1);
-  return { start: toLocalISODate(s), end: endStr };
-}
-
-function parseMoney(s: string): number {
-  const n = parseFloat(s);
-  return Number.isNaN(n) ? 0 : n;
-}
-
-function pctChange(current: number, prev: number): number | null {
-  if (prev === 0) return null;
-  return ((current - prev) / prev) * 100;
-}
-
-function formatPct(p: number): string {
-  const sign = p > 0 ? "+" : "";
-  return `${sign}${p.toFixed(1)}%`;
-}
+import { EarningsDateRangePicker } from "@/components/analytics/EarningsDateRangePicker";
+import {
+  type PresetId,
+  getRangeForPreset,
+  parseMoney,
+  pctChange,
+  formatPct,
+} from "@/lib/earnings-utils";
 
 const CARD = cn(
   "p-5 rounded-3xl bg-white",
@@ -192,14 +150,6 @@ export default function EarningsAnalyticsPage(): React.JSX.Element {
       currency: data.currency,
     }).format(parseMoney(amount));
 
-  const presets: { id: Exclude<PresetId, "custom">; label: string }[] = [
-    { id: "30d", label: "30 days" },
-    { id: "90d", label: "90 days" },
-    { id: "12m", label: "12 months" },
-    { id: "ytd", label: "Year to date" },
-    { id: "all", label: "All time" },
-  ];
-
   return (
     <div className="max-w-6xl mx-auto pb-10">
       <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6 mb-6">
@@ -239,55 +189,14 @@ export default function EarningsAnalyticsPage(): React.JSX.Element {
         </div>
       </div>
 
-      <div className={cn(CARD, "p-5 sm:p-6 mb-6")}>
-        <p className="text-sm font-semibold text-text-primary mb-3">Date range</p>
-        <div className="flex flex-wrap gap-2 mb-4">
-          {presets.map((p) => (
-            <button
-              key={p.id}
-              type="button"
-              onClick={() => applyPreset(p.id)}
-              className={cn(
-                "px-3 py-1.5 rounded-lg text-sm font-medium transition-all border",
-                activePreset === p.id
-                  ? "bg-primary text-white border-primary"
-                  : "border-border-light bg-white text-text-secondary hover:text-text-primary"
-              )}
-            >
-              {p.label}
-            </button>
-          ))}
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <label className="flex flex-col gap-1 text-sm">
-            <span className="text-text-secondary">Start</span>
-            <input
-              type="date"
-              value={startDate}
-              onChange={(e) => onCustomStart(e.target.value)}
-              className={cn(
-                "rounded-xl border border-border-light px-3 py-2.5",
-                "text-text-primary bg-white",
-                "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
-              )}
-            />
-          </label>
-          <label className="flex flex-col gap-1 text-sm">
-            <span className="text-text-secondary">End</span>
-            <input
-              type="date"
-              value={endDate}
-              min={startDate}
-              onChange={(e) => onCustomEnd(e.target.value)}
-              className={cn(
-                "rounded-xl border border-border-light px-3 py-2.5",
-                "text-text-primary bg-white",
-                "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
-              )}
-            />
-          </label>
-        </div>
-      </div>
+      <EarningsDateRangePicker
+        startDate={startDate}
+        endDate={endDate}
+        activePreset={activePreset}
+        onPresetChange={applyPreset}
+        onStartChange={onCustomStart}
+        onEndChange={onCustomEnd}
+      />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
         <div className={CARD}>

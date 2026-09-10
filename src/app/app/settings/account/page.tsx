@@ -7,7 +7,7 @@ import { cn } from "@/lib/cn";
 import { NEUMORPHIC_CARD, DANGER_BUTTON } from "@/lib/styles";
 import { Icon, ICON_PATHS } from "@/components/ui/Icon";
 import { useAuthStore } from "@/stores/auth-store";
-import { deleteAccount, type DeleteAccountError } from "@/lib/api/account";
+import { deleteAccount, describeDeleteAccountError, type DeleteAccountError } from "@/lib/api/account";
 import { DeleteAccountModal } from "@/components/settings/DeleteAccountModal";
 
 const ACCOUNT_ITEMS = [
@@ -48,20 +48,7 @@ export default function AccountSettingsPage(): React.JSX.Element {
       await logout();
       router.push("/");
     } catch (err) {
-      const e = err as DeleteAccountError;
-      if (e.code === "ACTIVE_ORDERS") {
-        setServerError(
-          "You have active orders in progress. Please complete or cancel them before deleting your account."
-        );
-      } else if (e.code === "INSUFFICIENT_BALANCE") {
-        setServerError(
-          "You have a remaining balance. Please withdraw your funds before deleting your account."
-        );
-      } else if (e.code === "INVALID_PASSWORD") {
-        setServerError("Incorrect password. Please try again.");
-      } else {
-        setServerError(e.message ?? "Something went wrong. Please try again.");
-      }
+      setServerError(describeDeleteAccountError(err as DeleteAccountError));
       // Re-throw so the modal knows to stop its loading state
       throw err;
     }

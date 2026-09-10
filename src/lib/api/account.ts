@@ -57,3 +57,16 @@ export async function deleteAccount(
 
   throw { code: "UNKNOWN", message } satisfies DeleteAccountError;
 }
+
+export function describeDeleteAccountError(err: DeleteAccountError): string {
+  switch (err.code) {
+    case "ACTIVE_ORDERS":
+      return "You have active orders in progress. Please complete or cancel them before deleting your account.";
+    case "INSUFFICIENT_BALANCE":
+      return "You have a remaining balance. Please withdraw your funds before deleting your account.";
+    case "INVALID_PASSWORD":
+      return "Incorrect password. Please try again.";
+    default:
+      return err.message ?? "Something went wrong. Please try again.";
+  }
+}
