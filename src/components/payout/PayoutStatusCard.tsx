@@ -279,20 +279,32 @@ export function PayoutStatusCard({ orderId, className }: PayoutStatusCardProps):
             </p>
           </div>
         ) : payout.status === "FAILED" ? (
-          <>
+          <div className="space-y-3">
             <p className="text-sm text-text-primary">
               {payout.failureReason ?? "This payout could not be completed."}
             </p>
-            <Link
-              href="/app/chat"
-              className={cn(
-                "inline-flex items-center gap-2 mt-2 text-sm font-medium text-primary hover:underline"
-              )}
-            >
-              <Icon path={ICON_PATHS.chat} size="sm" />
-              Contact Support
-            </Link>
-          </>
+            <p className="text-xs text-text-secondary">
+              If your wallet is non-custodial, this can usually be retried by signing a fresh
+              transfer — no need to contact support first.
+            </p>
+            <div className="flex flex-wrap items-center gap-4">
+              <button
+                type="button"
+                onClick={handleSignClick}
+                className={cn(PRIMARY_BUTTON, "justify-center")}
+              >
+                <Icon path={ICON_PATHS.creditCard} size="sm" />
+                <span>Retry & Sign</span>
+              </button>
+              <Link
+                href="/app/chat"
+                className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline"
+              >
+                <Icon path={ICON_PATHS.chat} size="sm" />
+                Contact Support
+              </Link>
+            </div>
+          </div>
         ) : payout.status === "REFUNDED" ? (
           <>
             <p className="text-sm text-text-primary">
