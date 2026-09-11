@@ -13,6 +13,16 @@ const MOCK_USER = {
 
 const TOKEN = 'jwt_test_token';
 
+/** Unsigned-but-well-formed JWT carrying the given claims (base64url, no padding). */
+function makeJwt(payload: Record<string, unknown>): string {
+  const b64u = (value: unknown) =>
+    btoa(JSON.stringify(value)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  return `${b64u({ alg: 'HS256', typ: 'JWT' })}.${b64u(payload)}.signature`;
+}
+
+const ADMIN_TOKEN = makeJwt({ sub: 'usr_1', email: 'test@example.com', type: 'BOTH', isAdmin: true });
+const NON_ADMIN_TOKEN = makeJwt({ sub: 'usr_1', email: 'test@example.com', type: 'BOTH', isAdmin: false });
+
 function resetStore() {
   act(() => {
     useAuthStore.setState({
@@ -36,9 +46,26 @@ describe('auth-store', () => {
       act(() => { useAuthStore.getState().login(MOCK_USER, TOKEN); });
 
       const state = useAuthStore.getState();
-      expect(state.user).toEqual(MOCK_USER);
+      expect(state.user).toEqual({ ...MOCK_USER, isAdmin: false });
       expect(state.token).toBe(TOKEN);
       expect(state.isAuthenticated).toBe(true);
+    });
+
+    it('mirrors the JWT isAdmin claim onto user.isAdmin', () => {
+      // The login response body never carries isAdmin — only the token does —
+      // so the store is what makes it visible to admin route guards.
+      act(() => { useAuthStore.getState().login(MOCK_USER, ADMIN_TOKEN); });
+      expect(useAuthStore.getState().user?.isAdmin).toBe(true);
+
+      act(() => { useAuthStore.getState().login(MOCK_USER, NON_ADMIN_TOKEN); });
+      expect(useAuthStore.getState().user?.isAdmin).toBe(false);
+    });
+
+    it('ignores any isAdmin the caller puts on the user object', () => {
+      const spoofed = { ...MOCK_USER, isAdmin: true };
+      act(() => { useAuthStore.getState().login(spoofed, NON_ADMIN_TOKEN); });
+
+      expect(useAuthStore.getState().user?.isAdmin).toBe(false);
     });
 
     it('does not carry a previous session\'s wallet into a new account that has none', () => {
@@ -133,6 +160,23 @@ describe('auth-store', () => {
 
       act(() => { useAuthStore.getState().setRedirectAfterLogin(null); });
       expect(useAuthStore.getState().redirectAfterLogin).toBeNull();
+    });
+  });
+
+  describe('persist rehydrate', () => {
+    it('derives user.isAdmin from the persisted token, not the persisted user', async () => {
+      // Sessions written before this field existed have a user without isAdmin
+      // but a token that already carries the claim.
+      localStorage.setItem('auth-state', JSON.stringify({
+        state: { user: MOCK_USER, token: ADMIN_TOKEN, isAuthenticated: true, walletAddress: null, walletConnected: false },
+        version: 0,
+      }));
+
+      await act(async () => { await useAuthStore.persist.rehydrate(); });
+
+      expect(useAuthStore.getState().user?.isAdmin).toBe(true);
+      expect(useAuthStore.getState().hasHydrated).toBe(true);
+      localStorage.removeItem('auth-state');
     });
   });
 

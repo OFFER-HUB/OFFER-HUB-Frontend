@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/stores/auth-store";
+import { useAdminGuard } from "@/hooks/useAdminGuard";
 import { cn } from "@/lib/cn";
 import { Icon, ICON_PATHS } from "@/components/ui/Icon";
 import { LoadingState } from "@/components/ui/LoadingState";
@@ -94,11 +94,8 @@ function BulkActionBar({ selectedCount, onBanSelected, onDeleteSelected, onClear
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function AdminUsersPage(): React.JSX.Element | null {
-  const router = useRouter();
-  const { user, token, isAuthenticated } = useAuthStore();
-
-  // Auth gate state — prevents flash of page content before redirect
-  const [isAuthorized, setIsAuthorized] = useState(false);
+  const { token } = useAuthStore();
+  const isAuthorized = useAdminGuard();
 
   // ── Data ──
   const [users, setUsers] = useState<AdminUser[]>([]);
@@ -123,19 +120,6 @@ export default function AdminUsersPage(): React.JSX.Element | null {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isBulkBanning, setIsBulkBanning] = useState(false);
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
-
-  // ── Admin guard ───────────────────────────────────────────────────────────
-  useEffect(() => {
-    if (!isAuthenticated || user === null) {
-      router.replace("/login");
-      return;
-    }
-    if (user.type !== "ADMIN") {
-      router.replace("/app/client/dashboard");
-      return;
-    }
-    setIsAuthorized(true);
-  }, [user, isAuthenticated, router]);
 
   // ── Fetch users ───────────────────────────────────────────────────────────
   useEffect(() => {

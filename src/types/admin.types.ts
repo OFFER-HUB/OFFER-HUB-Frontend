@@ -6,7 +6,7 @@ export type AdminUserStatus =
   | "SUSPENDED"
   | "PENDING_VERIFICATION";
 
-export type AdminUserRole = "BUYER" | "SELLER" | "BOTH" | "ADMIN";
+export type AdminUserRole = "BUYER" | "SELLER" | "BOTH";
 
 // ─── Activity Log ─────────────────────────────────────────────────────────────
 
@@ -159,7 +159,6 @@ export const ADMIN_USER_ROLE_LABELS: Record<AdminUserRole, string> = {
   BUYER: "Buyer",
   SELLER: "Seller",
   BOTH: "Both",
-  ADMIN: "Admin",
 };
 
 // ─── Admin Disputes ───────────────────────────────────────────────────────────

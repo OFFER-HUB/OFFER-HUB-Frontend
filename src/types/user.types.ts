@@ -17,8 +17,14 @@ export interface User {
   firstName?: string | null;
   lastName?: string | null;
   avatarUrl?: string;
-  type?: "BUYER" | "SELLER" | "BOTH" | "ADMIN";
+  type?: "BUYER" | "SELLER" | "BOTH";
   balance?: UserBalance;
   wallet?: UserWallet;
   isEmailVerified?: boolean;
+  /**
+   * Mirrors the `isAdmin` claim of the session JWT. `type` is the marketplace
+   * role (buyer/seller) and has nothing to do with authorization — this is the
+   * only field admin route guards may check.
+   */
+  isAdmin?: boolean;
 }

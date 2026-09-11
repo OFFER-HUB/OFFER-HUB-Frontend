@@ -30,7 +30,7 @@ type Step1Errors = Partial<Record<keyof OnboardingStep1Values, string>>;
 type Step2Errors = Partial<Record<keyof OnboardingStep2Values, string>>;
 
 function toUserType(value: string): User["type"] {
-  if (value === "BUYER" || value === "SELLER" || value === "BOTH" || value === "ADMIN") {
+  if (value === "BUYER" || value === "SELLER" || value === "BOTH") {
     return value;
   }
   return undefined;

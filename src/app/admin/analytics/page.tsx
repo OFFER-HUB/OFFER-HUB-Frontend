@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useAuthStore } from "@/stores/auth-store";
+import { useAdminGuard } from "@/hooks/useAdminGuard";
 import { getAdminAnalytics } from "@/lib/api/admin-analytics";
 import type { AdminAnalyticsData, DateRange } from "@/types/admin-analytics.types";
 import { PlatformStats } from "@/components/admin/analytics/PlatformStats";
@@ -15,7 +16,8 @@ import { LoadingState } from "@/components/ui/LoadingState";
 import { ErrorState } from "@/components/ui/ErrorState";
 
 export default function AdminAnalyticsPage(): React.JSX.Element {
-  const { user, token } = useAuthStore();
+  const { token } = useAuthStore();
+  const isAuthorized = useAdminGuard();
   const [analyticsData, setAnalyticsData] = useState<AdminAnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -23,8 +25,6 @@ export default function AdminAnalyticsPage(): React.JSX.Element {
     start: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     end: new Date().toISOString().split('T')[0],
   });
-
-  const isUnauthorized = !user || user.type !== "ADMIN";
 
   const fetchAnalytics = useCallback(async () => {
     if (!token) return;
@@ -42,19 +42,12 @@ export default function AdminAnalyticsPage(): React.JSX.Element {
   }, [token, dateRange]);
 
   useEffect(() => {
-    if (!token || isUnauthorized) return;
+    if (!token || !isAuthorized) return;
     fetchAnalytics();
-  }, [token, isUnauthorized, fetchAnalytics]);
+  }, [token, isAuthorized, fetchAnalytics]);
 
-  if (isUnauthorized) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <ErrorState
-          title="Access Denied"
-          message="You don't have permission to access this page."
-        />
-      </div>
-    );
+  if (!isAuthorized) {
+    return <LoadingState variant="fullscreen" message="Checking permissions..." />;
   }
 
 

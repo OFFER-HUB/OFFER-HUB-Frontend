@@ -122,7 +122,6 @@ export function UsersFilters({ filters, onFiltersChange, className }: UsersFilte
           <option value="BUYER">Buyer</option>
           <option value="SELLER">Seller</option>
           <option value="BOTH">Both</option>
-          <option value="ADMIN">Admin</option>
         </select>
         <span className="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary pointer-events-none">
           <Icon path={ICON_PATHS.chevronDown} size="sm" />

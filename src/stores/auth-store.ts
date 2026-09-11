@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import type { WalletConnectionState } from "@/types/wallet.types";
 import type { User, UserWallet } from "@/types/user.types";
+import { hasAdminClaim } from "@/lib/jwt";
 
 export type { User, UserWallet } from "@/types/user.types";
 
@@ -81,7 +82,7 @@ export const useAuthStore = create<AuthState>()(
         // would show a previous session's wallet. Only trust a wallet here
         // when this session's own user record actually has one.
         set({
-          user,
+          user: { ...user, isAdmin: hasAdminClaim(token) },
           token,
           isAuthenticated: true,
           walletAddress: user.wallet?.publicKey ?? null,
@@ -122,6 +123,15 @@ export const useAuthStore = create<AuthState>()(
         walletAddress: state.walletAddress,
         walletConnected: state.walletConnected,
       }),
+      // `isAdmin` is derived from the token rather than trusted from storage, so a
+      // session persisted before the field existed on User still resolves correctly.
+      merge: (persistedState, currentState) => {
+        const merged = { ...currentState, ...(persistedState as Partial<AuthState>) };
+        if (merged.user) {
+          merged.user = { ...merged.user, isAdmin: hasAdminClaim(merged.token) };
+        }
+        return merged;
+      },
       onRehydrateStorage: () => (state) => {
         state?.setHasHydrated(true);
       },

@@ -152,7 +152,7 @@ export async function verifySignature(
   return { user: toUser(data.user), token: data.token };
 }
 
-const USER_TYPES = ["BUYER", "SELLER", "BOTH", "ADMIN"] as const;
+const USER_TYPES = ["BUYER", "SELLER", "BOTH"] as const;
 type UserType = (typeof USER_TYPES)[number];
 
 function toUserType(value: unknown): UserType | undefined {

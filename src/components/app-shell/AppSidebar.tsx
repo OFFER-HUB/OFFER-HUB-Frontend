@@ -70,7 +70,7 @@ export function AppSidebar({ isOpen, onClose }: AppSidebarProps): React.JSX.Elem
   const conversations = useChatStore((s) => s.conversations);
   const fetchConversations = useChatStore((s) => s.fetchConversations);
   const [hydrated, setHydrated] = useState(false);
-  const isAdmin = user?.type === "ADMIN";
+  const isAdmin = user?.isAdmin === true;
 
   useEffect(() => {
     setHydrated(true);

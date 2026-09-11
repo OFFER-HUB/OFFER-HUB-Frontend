@@ -134,7 +134,7 @@ describe('verifySignature', () => {
   });
 
   it('maps valid UserType values correctly', async () => {
-    for (const type of ['BUYER', 'SELLER', 'BOTH', 'ADMIN'] as const) {
+    for (const type of ['BUYER', 'SELLER', 'BOTH'] as const) {
       const resp = { data: { ...SESSION_RESPONSE.data, user: { ...SESSION_RESPONSE.data.user, type } } };
       mockFetch(resp);
       const result = await verifySignature(PUBLIC_KEY, 'sig==', 'challenge');
