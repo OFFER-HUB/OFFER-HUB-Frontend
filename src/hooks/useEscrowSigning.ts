@@ -13,6 +13,7 @@ import {
   prepareDisputeStep,
   submitEscrowXdr,
   type EscrowOperation,
+  type EscrowStepName,
   type PrepareEscrowResult,
   type PrepareEscrowStepResult,
 } from "@/lib/api/escrow";
@@ -34,6 +35,7 @@ export type EscrowSigningErrorCode =
   | "USER_REJECTED"
   | "XDR_EXPIRED"
   | "NO_WALLET_CONNECTED"
+  | "WRONG_SIGNER"
   | "API_ERROR";
 
 export interface EscrowSigningError {
@@ -47,10 +49,28 @@ export interface UseEscrowSigningResult {
    * Runs prepare -> sign -> submit for one escrow operation on one order.
    * Safe to call again after an `error` state to retry the same operation
    * from scratch (a fresh XDR is fetched, so `XDR_EXPIRED` self-heals).
+   *
+   * `callerRole` is the current viewer's role on this order (buyer or
+   * seller) — release/refund/dispute are step-wise and each step names
+   * which side must sign it (`PrepareEscrowStepResult.signer`). Without
+   * checking it here, a buyer clicking "Release Funds" before the seller
+   * has completed their own on-chain step would have their wallet handed a
+   * transaction that requires the seller's authorization, which Stellar
+   * rejects (`tx_bad_auth`) — a confusing failure that looks like a wallet
+   * problem when it's really just "not your turn yet".
    */
-  sign: (orderId: string, operation: EscrowOperation) => Promise<void>;
+  sign: (orderId: string, operation: EscrowOperation, callerRole?: "buyer" | "seller") => Promise<void>;
   reset: () => void;
   transactionHash: string | null;
+  /**
+   * Which on-chain step this call is/was for — only set for the step-wise
+   * operations (release/refund/dispute); stays `null` for create/fund. A
+   * release the buyer drives is two of their own separate signatures
+   * (`approve_milestone` then `release`), each ending in its own "confirmed"
+   * screen — this is what lets the modal say *which* one just landed instead
+   * of a bare "confirmed" that reads like the whole thing is done.
+   */
+  currentStep: EscrowStepName | null;
   error: EscrowSigningError | null;
 }
 
@@ -92,6 +112,7 @@ export function useEscrowSigning(): UseEscrowSigningResult {
   const [state, setState] = useState<EscrowSigningState>("idle");
   const [error, setError] = useState<EscrowSigningError | null>(null);
   const [transactionHash, setTransactionHash] = useState<string | null>(null);
+  const [currentStep, setCurrentStep] = useState<EscrowStepName | null>(null);
 
   const token = useAuthStore((s) => s.token);
   const { address, networkPassphrase } = useWalletKit();
@@ -103,10 +124,15 @@ export function useEscrowSigning(): UseEscrowSigningResult {
     setState("idle");
     setError(null);
     setTransactionHash(null);
+    setCurrentStep(null);
   }, []);
 
   const sign = useCallback(
-    async (orderId: string, operation: EscrowOperation): Promise<void> => {
+    async (
+      orderId: string,
+      operation: EscrowOperation,
+      callerRole?: "buyer" | "seller"
+    ): Promise<void> => {
       if (inFlight.current || !token) return;
 
       inFlight.current = true;
@@ -117,11 +143,32 @@ export function useEscrowSigning(): UseEscrowSigningResult {
         setState("building");
         const prepared = await PREPARE_BY_OPERATION[operation](token, orderId);
 
+        if ("step" in prepared) {
+          setCurrentStep(prepared.step);
+        }
+
         // Step-wise operations (release/refund/dispute) return unsignedXdr:
         // null once every step has already landed on-chain — nothing left
         // to sign, so this is success, not an error.
         if (!prepared.unsignedXdr) {
           setState("confirmed");
+          return;
+        }
+
+        // `signer` only exists on step-wise results (release/refund/dispute).
+        // If it names the other side, don't hand this XDR to the connected
+        // wallet at all — Stellar would reject it with an opaque
+        // `tx_bad_auth` that looks like a wallet malfunction rather than
+        // "wait for the other party".
+        if ("signer" in prepared && prepared.signer && callerRole && prepared.signer !== callerRole) {
+          setError({
+            code: "WRONG_SIGNER",
+            message:
+              prepared.signer === "seller"
+                ? "Waiting for the freelancer to complete their step before you can sign."
+                : "Waiting for the client to complete their step before you can sign.",
+          });
+          setState("error");
           return;
         }
 
@@ -180,5 +227,5 @@ export function useEscrowSigning(): UseEscrowSigningResult {
     [token, address, networkPassphrase]
   );
 
-  return { state, sign, reset, transactionHash, error };
+  return { state, sign, reset, transactionHash, error, currentStep };
 }

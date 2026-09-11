@@ -208,6 +208,7 @@ export function useOrderActions({
   const createSigning = useEscrowSigningAction({
     orderId,
     operation: "create",
+    callerRole: "buyer",
     legacyAction: () =>
       runOrderMutation(
         (authToken) => createEscrow(authToken, orderId),
@@ -233,6 +234,7 @@ export function useOrderActions({
   const fundSigning = useEscrowSigningAction({
     orderId,
     operation: "fund",
+    callerRole: "buyer",
     legacyAction: () =>
       runOrderMutation(
         (authToken) => fundEscrow(authToken, orderId),
@@ -266,6 +268,7 @@ export function useOrderActions({
   const releaseSigning = useEscrowSigningAction({
     orderId,
     operation: "release",
+    callerRole: "buyer",
     legacyAction: () =>
       runOrderMutation(
         (authToken) => releaseFunds(authToken, orderId),
@@ -295,6 +298,7 @@ export function useOrderActions({
   const disputeSigning = useEscrowSigningAction({
     orderId,
     operation: "dispute",
+    callerRole: "buyer",
     // INVISIBLE wallets never needed an on-chain step here before D2.1 —
     // opening a dispute has always been a pure admin-review record.
     legacyAction: async () => {},
@@ -363,6 +367,7 @@ export function useOrderActions({
   const refundSigning = useEscrowSigningAction({
     orderId,
     operation: "refund",
+    callerRole: "buyer",
     legacyAction: () =>
       runOrderMutation(
         (authToken) => requestRefund(authToken, orderId, pendingRefundReason.current),
@@ -399,6 +404,7 @@ export function useOrderActions({
   const completeSigning = useEscrowSigningAction({
     orderId,
     operation: "release",
+    callerRole: "seller",
     legacyAction: () =>
       runOrderMutation(
         (authToken) => markOrderCompleted(authToken, orderId),

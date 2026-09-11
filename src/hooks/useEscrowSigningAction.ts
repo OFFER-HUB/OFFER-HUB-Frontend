@@ -9,7 +9,7 @@ import {
   type EscrowSigningState,
   type EscrowSigningError,
 } from "@/hooks/useEscrowSigning";
-import type { EscrowOperation } from "@/lib/api/escrow";
+import type { EscrowOperation, EscrowStepName } from "@/lib/api/escrow";
 
 /** Thrown by `run()` when the user dismisses the wallet-connect guard without connecting. Not a failure — callers should treat it as "nothing happened" rather than showing an error. */
 export class SigningCancelledError extends Error {
@@ -23,6 +23,14 @@ export interface UseEscrowSigningActionParams {
   orderId: string;
   /** Which on-chain step this instance drives — fixed per modal, one hook call each. */
   operation: EscrowOperation;
+  /**
+   * The current viewer's role on this order. Release/refund/dispute are
+   * step-wise and each step names which side must sign it — without this,
+   * a click on the wrong side's turn would hand the connected wallet a
+   * transaction Stellar is guaranteed to reject (`tx_bad_auth`) instead of
+   * a clear "not your turn yet" message.
+   */
+  callerRole: "buyer" | "seller";
   /**
    * Runs the existing server-side (custodial) path for INVISIBLE-wallet
    * users. Left completely untouched by this hook — it's called as-is,
@@ -61,6 +69,8 @@ export interface UseEscrowSigningActionResult {
   signingError: EscrowSigningError | null;
   /** Pass straight through to EscrowSigningModal's `transactionHash` prop, shown on its confirmed screen. */
   transactionHash: string | null;
+  /** Pass straight through to EscrowSigningModal's `step` prop — lets it say which of the multiple release/refund/dispute signatures just landed. */
+  currentStep: EscrowStepName | null;
   /** Set once on an `error` state; the action modal is expected to show this inline and clear it on retry. */
   inlineError: string | null;
   clearInlineError: () => void;
@@ -87,6 +97,7 @@ export interface UseEscrowSigningActionResult {
 export function useEscrowSigningAction({
   orderId,
   operation,
+  callerRole,
   legacyAction,
   onConfirmed,
 }: UseEscrowSigningActionParams): UseEscrowSigningActionResult {
@@ -114,9 +125,9 @@ export function useEscrowSigningAction({
     setInlineError(null);
     return new Promise<void>((resolve, reject) => {
       pendingSettlers.current = { resolve, reject };
-      void signing.sign(orderId, operation);
+      void signing.sign(orderId, operation, callerRole);
     });
-  }, [orderId, operation, signing]);
+  }, [orderId, operation, callerRole, signing]);
 
   const run = useCallback((): Promise<void> => {
     if (!isExternalWallet) {
@@ -156,9 +167,9 @@ export function useEscrowSigningAction({
     if (hasPendingSign.current) {
       hasPendingSign.current = false;
       setInlineError(null);
-      void signing.sign(orderId, operation);
+      void signing.sign(orderId, operation, callerRole);
     }
-  }, [orderId, operation, signing]);
+  }, [orderId, operation, callerRole, signing]);
 
   useEffect(() => {
     if (signing.state === "confirmed") {
@@ -203,6 +214,7 @@ export function useEscrowSigningAction({
     signingState: signing.state,
     signingError: signing.error,
     transactionHash: signing.transactionHash,
+    currentStep: signing.currentStep,
     inlineError,
     clearInlineError,
     isWalletConnectOpen,

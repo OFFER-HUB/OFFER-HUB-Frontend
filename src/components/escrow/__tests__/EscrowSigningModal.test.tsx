@@ -14,6 +14,8 @@ function setup(overrides: {
   error?: EscrowSigningError | null;
   transactionHash?: string | null;
   walletName?: string | null;
+  operation?: import("@/lib/api/escrow").EscrowOperation;
+  step?: import("@/lib/api/escrow").EscrowStepName | null;
 } = {}) {
   return render(
     <EscrowSigningModal
@@ -22,6 +24,8 @@ function setup(overrides: {
       error={overrides.error ?? null}
       transactionHash={overrides.transactionHash ?? null}
       walletName={overrides.walletName}
+      operation={overrides.operation}
+      step={overrides.step}
       onRetry={onRetry}
       onClose={onClose}
     />
@@ -85,6 +89,16 @@ describe("EscrowSigningModal — awaiting_signature", () => {
     expect(screen.getByText(/\(Freighter\)/)).toBeInTheDocument();
   });
 
+  it("displays smart contract authorization context and security reassurance", () => {
+    setup({
+      state: "awaiting_signature",
+      operation: "release",
+      step: "approve_milestone",
+    });
+    expect(screen.getByText(/Approve Delivery \(Milestone Review\)/i)).toBeInTheDocument();
+    expect(screen.getByText(/Non-custodial escrow: only this specific on-chain action is authorized/i)).toBeInTheDocument();
+  });
+
   it("hides the header close button and cannot be dismissed via backdrop or Escape", async () => {
     setup({ state: "awaiting_signature" });
 
@@ -120,6 +134,28 @@ describe("EscrowSigningModal — confirmed", () => {
     expect(onClose).toHaveBeenCalledOnce();
   });
 
+  it("renders a link to view transaction on Stellar Expert", () => {
+    setup({ state: "confirmed", transactionHash: TX_HASH });
+
+    const explorerLink = screen.getByTitle("View transaction on Stellar Expert");
+    expect(explorerLink).toHaveAttribute("href", expect.stringContaining(`/tx/${TX_HASH}`));
+    expect(explorerLink).toHaveAttribute("target", "_blank");
+    expect(explorerLink).toHaveAttribute("rel", "noopener noreferrer");
+  });
+
+  it("renders 2-step progress visual when approving milestone for release", () => {
+    setup({
+      state: "confirmed",
+      transactionHash: TX_HASH,
+      operation: "release",
+      step: "approve_milestone",
+    });
+
+    expect(screen.getByText(/2-Step Release Flow: Action Needed Next/i)).toBeInTheDocument();
+    expect(screen.getByText(/Step 1: Done/i)).toBeInTheDocument();
+    expect(screen.getByText(/Step 2: Next/i)).toBeInTheDocument();
+  });
+
   it("copies the full hash to the clipboard", async () => {
     setup({ state: "confirmed", transactionHash: TX_HASH });
 
@@ -140,6 +176,7 @@ describe("EscrowSigningModal — error states", () => {
     setup({ state: "error", error: { code: "USER_REJECTED", message: "declined" } });
 
     expect(screen.getByText(/you cancelled the signing\. try again\?/i)).toBeInTheDocument();
+    expect(screen.getByText(/No funds were moved and no smart contract state was altered/i)).toBeInTheDocument();
 
     await userEvent.click(screen.getByRole("button", { name: /retry/i }));
     expect(onRetry).toHaveBeenCalledOnce();
@@ -152,6 +189,7 @@ describe("EscrowSigningModal — error states", () => {
     setup({ state: "error", error: { code: "XDR_EXPIRED", message: "expired" } });
 
     expect(screen.getByText(/transaction expired\. please try again\./i)).toBeInTheDocument();
+    expect(screen.getByText(/Soroban transactions expire after 4 minutes/i)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /retry/i })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /cancel/i })).not.toBeInTheDocument();
   });
@@ -165,6 +203,7 @@ describe("EscrowSigningModal — error states", () => {
     expect(
       screen.getByText("Cannot prepare create escrow order in state ORDER_CREATED")
     ).toBeInTheDocument();
+    expect(screen.getByText(/ensure your wallet has enough XLM/i)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /retry/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /cancel/i })).toBeInTheDocument();
   });

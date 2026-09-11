@@ -274,6 +274,8 @@ export default function OrderDetailPage(): React.JSX.Element {
         error={actions.createSigning.signingError}
         transactionHash={actions.createSigning.transactionHash}
         walletName={currentWalletName()}
+        operation="create"
+        step={actions.createSigning.currentStep}
         onRetry={() => void actions.handleCreateEscrow()}
         onClose={actions.createSigning.dismissSigningModal}
       />
@@ -284,6 +286,8 @@ export default function OrderDetailPage(): React.JSX.Element {
         error={actions.fundSigning.signingError}
         transactionHash={actions.fundSigning.transactionHash}
         walletName={currentWalletName()}
+        operation="fund"
+        step={actions.fundSigning.currentStep}
         onRetry={() => void actions.handleFundEscrow()}
         onClose={actions.fundSigning.dismissSigningModal}
       />
@@ -294,6 +298,8 @@ export default function OrderDetailPage(): React.JSX.Element {
         error={actions.releaseSigning.signingError}
         transactionHash={actions.releaseSigning.transactionHash}
         walletName={currentWalletName()}
+        operation="release"
+        step={actions.releaseSigning.currentStep}
         onRetry={() => void actions.handleReleaseFunds()}
         onClose={() => {
           actions.releaseSigning.dismissSigningModal();
@@ -307,6 +313,8 @@ export default function OrderDetailPage(): React.JSX.Element {
         error={actions.disputeSigning.signingError}
         transactionHash={actions.disputeSigning.transactionHash}
         walletName={currentWalletName()}
+        operation="dispute"
+        step={actions.disputeSigning.currentStep}
         onRetry={() => void actions.handleOpenDispute("OTHER", "")}
         onClose={() => {
           actions.disputeSigning.dismissSigningModal();
@@ -320,6 +328,8 @@ export default function OrderDetailPage(): React.JSX.Element {
         error={actions.refundSigning.signingError}
         transactionHash={actions.refundSigning.transactionHash}
         walletName={currentWalletName()}
+        operation="refund"
+        step={actions.refundSigning.currentStep}
         onRetry={() => void actions.handleRequestRefund("")}
         onClose={() => {
           actions.refundSigning.dismissSigningModal();
@@ -333,6 +343,8 @@ export default function OrderDetailPage(): React.JSX.Element {
         error={actions.completeSigning.signingError}
         transactionHash={actions.completeSigning.transactionHash}
         walletName={currentWalletName()}
+        operation="release"
+        step={actions.completeSigning.currentStep}
         onRetry={() => void actions.handleMarkCompleted()}
         onClose={actions.completeSigning.dismissSigningModal}
       />
