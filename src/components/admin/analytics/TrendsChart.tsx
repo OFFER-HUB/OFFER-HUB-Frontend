@@ -10,76 +10,77 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-import type { TrendsChartData } from "@/types/admin-analytics.types";
+import type { TrendsDataPoint } from "@/types/admin-analytics.types";
 
 interface TrendsChartProps {
-  data: TrendsChartData;
+  data: TrendsDataPoint[];
+  period: { from: string; to: string };
 }
 
-interface ChartDataPoint {
-  date: string;
-  users: number;
-  orders: number;
-  revenue: number;
+interface ChartDataPoint extends TrendsDataPoint {
   formattedDate: string;
 }
 
-export function TrendsChart({ data }: TrendsChartProps): React.JSX.Element {
-  // Format data for the chart
-  const chartData: ChartDataPoint[] = data.data.map((point) => ({
+// The backend period is UTC-bounded; render it in UTC too or the "from" day
+// shows as the previous evening anywhere west of Greenwich.
+function formatDay(iso: string): string {
+  return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
+}
+
+interface TooltipEntry {
+  color: string;
+  name: string;
+  dataKey: string;
+  value: number;
+}
+
+interface TooltipProps {
+  active?: boolean;
+  payload?: TooltipEntry[];
+  label?: string;
+}
+
+const CustomTooltip = ({ active, payload, label }: TooltipProps) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-background border border-border rounded-lg p-3 shadow-lg">
+        <p className="font-medium text-text-primary">{label}</p>
+        {payload.map((entry, index) => (
+          <p key={index} className="text-sm" style={{ color: entry.color }}>
+            {entry.name}: {
+              entry.dataKey === 'volume'
+                ? new Intl.NumberFormat('en-US', {
+                    style: 'currency',
+                    currency: 'USD',
+                    minimumFractionDigits: 0,
+                  }).format(entry.value)
+                : new Intl.NumberFormat('en-US').format(entry.value)
+            }
+          </p>
+        ))}
+      </div>
+    );
+  }
+  return null;
+};
+
+export function TrendsChart({ data, period }: TrendsChartProps): React.JSX.Element {
+  // Bucket labels are "YYYY-MM-DD"; pin them to UTC so they don't shift a day in western timezones.
+  const chartData: ChartDataPoint[] = data.map((point) => ({
     ...point,
-    formattedDate: new Date(point.date).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
+    formattedDate: new Date(`${point.label}T00:00:00Z`).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      timeZone: "UTC",
     }),
   }));
-
-  interface TooltipEntry {
-    color: string;
-    name: string;
-    dataKey: string;
-    value: number;
-  }
-
-  interface TooltipProps {
-    active?: boolean;
-    payload?: TooltipEntry[];
-    label?: string;
-  }
-
-  const CustomTooltip = ({ active, payload, label }: TooltipProps) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="bg-background border border-border rounded-lg p-3 shadow-lg">
-          <p className="font-medium text-text-primary">{label}</p>
-          {payload.map((entry, index) => (
-            <p key={index} className="text-sm" style={{ color: entry.color }}>
-              {entry.name}: {
-                entry.dataKey === 'revenue'
-                  ? new Intl.NumberFormat('en-US', {
-                      style: 'currency',
-                      currency: 'USD',
-                      minimumFractionDigits: 0,
-                    }).format(entry.value)
-                  : new Intl.NumberFormat('en-US').format(entry.value)
-              }
-            </p>
-          ))}
-        </div>
-      );
-    }
-    return null;
-  };
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold text-text-primary">Trends Over Time</h3>
         <div className="text-sm text-text-secondary">
-          {data.period === '7d' && 'Last 7 days'}
-          {data.period === '30d' && 'Last 30 days'}
-          {data.period === '90d' && 'Last 90 days'}
-          {data.period === '1y' && 'Last year'}
+          {formatDay(period.from)} – {formatDay(period.to)}
         </div>
       </div>
 
@@ -109,10 +110,10 @@ export function TrendsChart({ data }: TrendsChartProps): React.JSX.Element {
             <Legend />
             <Line
               type="monotone"
-              dataKey="users"
+              dataKey="newUsers"
               stroke="#3b82f6"
               strokeWidth={2}
-              name="Users"
+              name="New users"
               dot={{ fill: '#3b82f6', strokeWidth: 2, r: 4 }}
               activeDot={{ r: 6 }}
             />
@@ -127,10 +128,10 @@ export function TrendsChart({ data }: TrendsChartProps): React.JSX.Element {
             />
             <Line
               type="monotone"
-              dataKey="revenue"
+              dataKey="volume"
               stroke="#f59e0b"
               strokeWidth={2}
-              name="Revenue"
+              name="Volume"
               dot={{ fill: '#f59e0b', strokeWidth: 2, r: 4 }}
               activeDot={{ r: 6 }}
             />

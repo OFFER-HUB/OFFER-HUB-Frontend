@@ -2,33 +2,33 @@
 
 import { useState } from "react";
 import { useAuthStore } from "@/stores/auth-store";
-import { exportAnalyticsData } from "@/lib/api/admin-analytics";
+import { exportAnalyticsCsv } from "@/lib/api/admin-analytics";
 import { Button } from "@/components/ui/Button";
 import { Icon, ICON_PATHS } from "@/components/ui/Icon";
-import type { AdminAnalyticsData, DateRange, ExportFormat } from "@/types/admin-analytics.types";
+import type { DateRange } from "@/types/admin-analytics.types";
 
 interface ExportControlsProps {
-  data: AdminAnalyticsData;
   dateRange: DateRange;
 }
 
-export function ExportControls({ data, dateRange }: ExportControlsProps): React.JSX.Element {
+/** CSV is the only export the backend produces (`GET /admin/analytics/export`). */
+export function ExportControls({ dateRange }: ExportControlsProps): React.JSX.Element {
   const { token } = useAuthStore();
   const [isExporting, setIsExporting] = useState(false);
 
-  const handleExport = async (format: ExportFormat) => {
+  const handleExport = async () => {
     if (!token) return;
 
     try {
       setIsExporting(true);
 
-      const blob = await exportAnalyticsData(token, format, dateRange, true);
+      const blob = await exportAnalyticsCsv(token, dateRange);
 
       // Create download link
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `analytics-report-${dateRange.start}-to-${dateRange.end}.${format}`;
+      link.download = `analytics-${dateRange.start}-to-${dateRange.end}.csv`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -48,23 +48,12 @@ export function ExportControls({ data, dateRange }: ExportControlsProps): React.
       <Button
         variant="outline"
         size="sm"
-        onClick={() => handleExport('csv')}
-        disabled={isExporting}
-        className="flex items-center gap-2"
-      >
-        <Icon path={ICON_PATHS.externalLink} className="w-4 h-4" />
-        {isExporting ? 'Exporting...' : 'Export CSV'}
-      </Button>
-
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={() => handleExport('pdf')}
+        onClick={handleExport}
         disabled={isExporting}
         className="flex items-center gap-2"
       >
         <Icon path={ICON_PATHS.file} className="w-4 h-4" />
-        {isExporting ? 'Exporting...' : 'Export PDF'}
+        {isExporting ? 'Exporting...' : 'Export CSV'}
       </Button>
     </div>
   );

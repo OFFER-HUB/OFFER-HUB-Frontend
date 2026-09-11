@@ -1,80 +1,119 @@
 /**
  * Admin Analytics Types
  *
- * Types for platform-wide analytics and metrics.
+ * `PlatformAnalytics` mirrors the backend's `GET /admin/analytics` document
+ * field for field; `AdminAnalyticsData` is the view model the dashboard
+ * renders, built from it by `toAdminAnalyticsData()` in lib/api/admin-analytics.
  */
 
-// ─── Platform Statistics ──────────────────────────────────────────────────────
+// ─── Backend payload (apps/api admin-analytics.service.ts PlatformAnalytics) ──
+
+export type AnalyticsGranularity = "day" | "week" | "month";
+
+export interface ComparisonStat {
+  current: number;
+  previous: number;
+  changePercent: number;
+}
+
+export interface ComparisonVolume {
+  /** Decimal string, e.g. "155.00" */
+  current: string;
+  previous: string;
+  changePercent: number;
+}
+
+export interface TimeSeriesPoint {
+  /** Bucket start, "YYYY-MM-DD" */
+  label: string;
+  orders: number;
+  newUsers: number;
+  /** Decimal string of released/closed order volume in the bucket */
+  volume: string;
+}
+
+export interface PlatformAnalytics {
+  period: { from: string; to: string }; // ISO 8601
+  users: {
+    total: number;
+    active: number;
+    newThisPeriod: number;
+    growthRate: number;
+  };
+  orders: {
+    total: number;
+    completed: number;
+    inProgress: number;
+    canceled: number;
+    totalVolume: string;
+    averageValue: string;
+  };
+  disputes: {
+    total: number;
+    open: number;
+    resolved: number;
+    /** Percentage of orders that were disputed */
+    rate: number;
+  };
+  withdrawals: {
+    total: number;
+    totalVolume: string;
+  };
+  services: {
+    total: number;
+    byCategory: Record<string, number>;
+  };
+  comparison: {
+    users: ComparisonStat;
+    orders: ComparisonStat;
+    volume: ComparisonVolume;
+  };
+  timeSeries: TimeSeriesPoint[];
+}
+
+// ─── View model ───────────────────────────────────────────────────────────────
 
 export interface PlatformStats {
   totalUsers: number;
   activeUsers: number;
   newUsers: number;
+  /** New users this period vs the previous period of equal length */
+  newUsersChangePercent: number;
   totalOrders: number;
+  completedOrders: number;
+  ordersChangePercent: number;
   transactionVolume: number;
-  revenue: number;
-  growthRates: {
-    users: number; // percentage
-    orders: number; // percentage
-    revenue: number; // percentage
-  };
+  volumeChangePercent: number;
+  averageOrderValue: number;
+  openDisputes: number;
+  disputeRate: number;
+  withdrawalsVolume: number;
 }
-
-// ─── Trends Data ─────────────────────────────────────────────────────────────
 
 export interface TrendsDataPoint {
-  date: string; // ISO date
-  users: number;
+  label: string;
+  newUsers: number;
   orders: number;
-  revenue: number;
+  volume: number;
 }
-
-export interface TrendsChartData {
-  period: '7d' | '30d' | '90d' | '1y';
-  data: TrendsDataPoint[];
-}
-
-// ─── Category Breakdown ──────────────────────────────────────────────────────
 
 export interface CategoryBreakdown {
   category: string;
-  orders: number;
-  revenue: number;
+  services: number;
+  /** Share of all active services, 0–100 */
   percentage: number;
 }
 
-// ─── Geographic Distribution ─────────────────────────────────────────────────
-
-export interface GeographicData {
-  country: string;
-  users: number;
-  orders: number;
-  revenue: number;
+export interface AdminAnalyticsData {
+  period: { from: string; to: string };
+  stats: PlatformStats;
+  trends: TrendsDataPoint[];
+  categories: CategoryBreakdown[];
 }
 
-// ─── Date Range ──────────────────────────────────────────────────────────────
+// ─── Date Range (UI) ──────────────────────────────────────────────────────────
 
 export interface DateRange {
-  start: string; // ISO date
-  end: string; // ISO date
-}
-
-// ─── Admin Analytics Response ────────────────────────────────────────────────
-
-export interface AdminAnalyticsData {
-  stats: PlatformStats;
-  trends: TrendsChartData;
-  categories: CategoryBreakdown[];
-  geography: GeographicData[];
-  lastUpdated: string; // ISO timestamp
-}
-
-// ─── Export Options ──────────────────────────────────────────────────────────
-
-export type ExportFormat = 'csv' | 'pdf';
-
-export interface ExportOptions {
-  format: ExportFormat;
-  dateRange: DateRange;
-  includeCharts: boolean;
+  start: string; // "YYYY-MM-DD"
+  end: string; // "YYYY-MM-DD"
 }

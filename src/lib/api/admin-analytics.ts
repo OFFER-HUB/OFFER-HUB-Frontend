@@ -1,10 +1,9 @@
 import { API_URL } from "@/config/api";
-import type { ApiResponse } from "@/types/api-response.types";
 import type {
   AdminAnalyticsData,
+  AnalyticsGranularity,
   DateRange,
-  ExportFormat,
-  TrendsChartData,
+  PlatformAnalytics,
 } from "@/types/admin-analytics.types";
 
 const API_BASE_URL = API_URL;
@@ -27,89 +26,99 @@ function authHeaders(token: string): HeadersInit {
   };
 }
 
-/**
- * Fetch platform-wide analytics data for the admin dashboard.
- */
-export async function getAdminAnalytics(
-  token: string,
-  dateRange?: DateRange
-): Promise<AdminAnalyticsData> {
-  const params = dateRange
-    ? `?start=${dateRange.start}&end=${dateRange.end}`
-    : "";
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
-  const response = await fetch(`${API_BASE_URL}/admin/analytics${params}`, {
-    headers: authHeaders(token),
+/**
+ * Pick a bucket size that keeps the trends chart readable: daily up to a
+ * month, weekly up to half a year, monthly beyond.
+ */
+export function granularityForRange(range: DateRange): AnalyticsGranularity {
+  const days = Math.round((Date.parse(range.end) - Date.parse(range.start)) / MS_PER_DAY);
+  if (days <= 31) return "day";
+  if (days <= 183) return "week";
+  return "month";
+}
+
+/**
+ * The backend does `new Date(to)`, so a bare "YYYY-MM-DD" end date would stop
+ * at midnight and drop that whole day. Send full-day bounds instead.
+ */
+export function buildAnalyticsSearchParams(range: DateRange): URLSearchParams {
+  return new URLSearchParams({
+    from: `${range.start}T00:00:00.000Z`,
+    to: `${range.end}T23:59:59.999Z`,
+    granularity: granularityForRange(range),
   });
+}
+
+function toNumber(decimal: string): number {
+  const parsed = parseFloat(decimal);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+/** Build the dashboard view model from the backend document. Pure; no I/O. */
+export function toAdminAnalyticsData(raw: PlatformAnalytics): AdminAnalyticsData {
+  const totalServices = raw.services.total;
+  const categories = Object.entries(raw.services.byCategory)
+    .map(([category, services]) => ({
+      category,
+      services,
+      percentage: totalServices > 0 ? (services / totalServices) * 100 : 0,
+    }))
+    .sort((a, b) => b.services - a.services);
+
+  return {
+    period: raw.period,
+    stats: {
+      totalUsers: raw.users.total,
+      activeUsers: raw.users.active,
+      newUsers: raw.users.newThisPeriod,
+      newUsersChangePercent: raw.comparison.users.changePercent,
+      totalOrders: raw.orders.total,
+      completedOrders: raw.orders.completed,
+      ordersChangePercent: raw.comparison.orders.changePercent,
+      transactionVolume: toNumber(raw.orders.totalVolume),
+      volumeChangePercent: raw.comparison.volume.changePercent,
+      averageOrderValue: toNumber(raw.orders.averageValue),
+      openDisputes: raw.disputes.open,
+      disputeRate: raw.disputes.rate,
+      withdrawalsVolume: toNumber(raw.withdrawals.totalVolume),
+    },
+    trends: raw.timeSeries.map((point) => ({
+      label: point.label,
+      newUsers: point.newUsers,
+      orders: point.orders,
+      volume: toNumber(point.volume),
+    })),
+    categories,
+  };
+}
+
+/**
+ * Fetch platform-wide analytics for the admin dashboard.
+ */
+export async function getAdminAnalytics(token: string, range: DateRange): Promise<AdminAnalyticsData> {
+  const response = await fetch(
+    `${API_BASE_URL}/admin/analytics?${buildAnalyticsSearchParams(range).toString()}`,
+    { headers: authHeaders(token) }
+  );
 
   if (!response.ok) {
     throw await parseApiError(response, "Failed to fetch admin analytics");
   }
 
-  const result = (await response.json()) as ApiResponse<AdminAnalyticsData>;
-
-  if (!result.data) {
-    throw new Error(result.message || "Admin analytics response was empty");
-  }
-
-  return result.data;
+  const json = (await response.json()) as { data: PlatformAnalytics };
+  return toAdminAnalyticsData(json.data);
 }
 
 /**
- * Fetch trends data for a specific time period.
+ * Download the same period as CSV — the only export format the backend offers.
  */
-export async function getAnalyticsTrends(
-  token: string,
-  period: TrendsChartData["period"],
-  dateRange?: DateRange
-): Promise<TrendsChartData> {
-  const params = new URLSearchParams({ period });
-  if (dateRange) {
-    params.append("start", dateRange.start);
-    params.append("end", dateRange.end);
-  }
-
-  const response = await fetch(`${API_BASE_URL}/admin/analytics/trends?${params}`, {
-    headers: authHeaders(token),
-  });
-
-  if (!response.ok) {
-    throw await parseApiError(response, "Failed to fetch analytics trends");
-  }
-
-  const result = (await response.json()) as ApiResponse<TrendsChartData>;
-
-  if (!result.data) {
-    throw new Error(result.message || "Analytics trends response was empty");
-  }
-
-  return result.data;
-}
-
-/**
- * Export analytics data in the specified format.
- */
-export async function exportAnalyticsData(
-  token: string,
-  format: ExportFormat,
-  dateRange?: DateRange,
-  includeCharts: boolean = false
-): Promise<Blob> {
-  const params = new URLSearchParams({
-    format,
-    includeCharts: includeCharts.toString(),
-  });
-
-  if (dateRange) {
-    params.append("start", dateRange.start);
-    params.append("end", dateRange.end);
-  }
-
-  const response = await fetch(`${API_BASE_URL}/admin/analytics/export?${params}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+export async function exportAnalyticsCsv(token: string, range: DateRange): Promise<Blob> {
+  const response = await fetch(
+    `${API_BASE_URL}/admin/analytics/export?${buildAnalyticsSearchParams(range).toString()}`,
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
 
   if (!response.ok) {
     throw await parseApiError(response, "Failed to export analytics data");
