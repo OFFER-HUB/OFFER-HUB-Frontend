@@ -1,10 +1,9 @@
 import { API_URL } from "@/config/api";
-import { unwrapApiResponse } from "@/lib/disputes/map-dispute";
 import type {
   AdminDispute,
+  AdminDisputesPage,
+  AdminDisputesQuery,
   ResolveDisputePayload,
-  AddDisputeNotePayload,
-  UpdateDisputeStatusPayload,
 } from "@/types/admin.types";
 
 const API_BASE_URL = API_URL;
@@ -13,10 +12,6 @@ type ApiErrorResponse = {
   message?: string;
   title?: string;
   error?: { message?: string };
-};
-
-type DisputesListPayload = {
-  data?: AdminDispute[];
 };
 
 async function parseApiError(response: Response, fallback: string): Promise<Error> {
@@ -31,16 +26,34 @@ function authHeaders(token: string): HeadersInit {
   };
 }
 
-function unwrapDisputesList(json: unknown): AdminDispute[] {
-  const payload = unwrapApiResponse<DisputesListPayload | AdminDispute[]>(json);
-  if (Array.isArray(payload)) {
-    return payload;
-  }
-  return Array.isArray(payload?.data) ? payload.data : [];
+/**
+ * The disputes controller returns `{ data, hasMore }` and the global
+ * ResponseInterceptor wraps that once more, so the wire shape is
+ * `{ data: { data: AdminDispute[], hasMore } }`.
+ */
+export function unwrapDisputesPage(json: unknown): AdminDisputesPage {
+  const outer = (json as { data?: unknown })?.data;
+  const inner = outer as { data?: unknown; hasMore?: unknown } | undefined;
+  const disputes = Array.isArray(inner?.data) ? (inner!.data as AdminDispute[]) : Array.isArray(outer) ? (outer as AdminDispute[]) : [];
+  return { disputes, hasMore: inner?.hasMore === true };
 }
 
-export async function getAdminDisputes(token: string): Promise<AdminDispute[]> {
-  const response = await fetch(`${API_BASE_URL}/disputes`, {
+/** Single-resource responses are wrapped once: `{ data: AdminDispute }`. */
+function unwrapDispute(json: unknown): AdminDispute {
+  return (json as { data: AdminDispute }).data;
+}
+
+export function buildAdminDisputesSearchParams(query: AdminDisputesQuery): URLSearchParams {
+  const params = new URLSearchParams();
+  if (query.status !== "ALL") params.set("status", query.status);
+  if (query.openedBy !== "ALL") params.set("openedBy", query.openedBy);
+  params.set("page", String(query.page));
+  params.set("limit", String(query.limit));
+  return params;
+}
+
+export async function getAdminDisputes(token: string, query: AdminDisputesQuery): Promise<AdminDisputesPage> {
+  const response = await fetch(`${API_BASE_URL}/disputes?${buildAdminDisputesSearchParams(query).toString()}`, {
     headers: authHeaders(token),
   });
 
@@ -48,14 +61,10 @@ export async function getAdminDisputes(token: string): Promise<AdminDispute[]> {
     throw await parseApiError(response, "Failed to fetch disputes");
   }
 
-  const json = await response.json();
-  return unwrapDisputesList(json);
+  return unwrapDisputesPage(await response.json());
 }
 
-export async function getAdminDisputeById(
-  token: string,
-  disputeId: string
-): Promise<AdminDispute> {
+export async function getAdminDispute(token: string, disputeId: string): Promise<AdminDispute> {
   const response = await fetch(`${API_BASE_URL}/disputes/${disputeId}`, {
     headers: authHeaders(token),
   });
@@ -64,35 +73,31 @@ export async function getAdminDisputeById(
     throw await parseApiError(response, "Failed to fetch dispute");
   }
 
-  const json = await response.json();
-  return unwrapApiResponse<AdminDispute>(json);
+  return unwrapDispute(await response.json());
 }
 
-export async function updateDisputeStatus(
-  token: string,
-  disputeId: string,
-  payload: UpdateDisputeStatusPayload
-): Promise<AdminDispute> {
-  const response = await fetch(`${API_BASE_URL}/admin/disputes/${disputeId}/status`, {
-    method: "PATCH",
+/** OPEN → UNDER_REVIEW. `assignedTo` is the reviewing admin's user id. */
+export async function assignDispute(token: string, disputeId: string, assignedTo: string): Promise<AdminDispute> {
+  const response = await fetch(`${API_BASE_URL}/disputes/${disputeId}/assign`, {
+    method: "POST",
     headers: authHeaders(token),
-    body: JSON.stringify(payload),
+    body: JSON.stringify({ assignedTo }),
   });
 
   if (!response.ok) {
-    throw await parseApiError(response, "Failed to update dispute status");
+    throw await parseApiError(response, "Failed to assign dispute");
   }
 
-  const data = await response.json();
-  return data.data as AdminDispute;
+  return unwrapDispute(await response.json());
 }
 
+/** UNDER_REVIEW → RESOLVED, executing the escrow release / refund / split. */
 export async function resolveDispute(
   token: string,
   disputeId: string,
   payload: ResolveDisputePayload
 ): Promise<AdminDispute> {
-  const response = await fetch(`${API_BASE_URL}/admin/disputes/${disputeId}/resolve`, {
+  const response = await fetch(`${API_BASE_URL}/disputes/${disputeId}/resolve`, {
     method: "POST",
     headers: authHeaders(token),
     body: JSON.stringify(payload),
@@ -102,44 +107,5 @@ export async function resolveDispute(
     throw await parseApiError(response, "Failed to resolve dispute");
   }
 
-  const data = await response.json();
-  return data.data as AdminDispute;
-}
-
-export async function addInternalNote(
-  token: string,
-  disputeId: string,
-  payload: AddDisputeNotePayload
-): Promise<AdminDispute> {
-  const response = await fetch(`${API_BASE_URL}/admin/disputes/${disputeId}/notes`, {
-    method: "POST",
-    headers: authHeaders(token),
-    body: JSON.stringify(payload),
-  });
-
-  if (!response.ok) {
-    throw await parseApiError(response, "Failed to add note");
-  }
-
-  const data = await response.json();
-  return data.data as AdminDispute;
-}
-
-export async function addAdminComment(
-  token: string,
-  disputeId: string,
-  content: string
-): Promise<AdminDispute> {
-  const response = await fetch(`${API_BASE_URL}/admin/disputes/${disputeId}/comments`, {
-    method: "POST",
-    headers: authHeaders(token),
-    body: JSON.stringify({ content }),
-  });
-
-  if (!response.ok) {
-    throw await parseApiError(response, "Failed to add comment");
-  }
-
-  const data = await response.json();
-  return data.data as AdminDispute;
+  return unwrapDispute(await response.json());
 }

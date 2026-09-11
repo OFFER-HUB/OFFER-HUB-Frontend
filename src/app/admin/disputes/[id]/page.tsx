@@ -1,428 +1,227 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { cn } from "@/lib/cn";
-import { useAuthStore } from "@/stores/auth-store";
 import { useAdminGuard } from "@/hooks/useAdminGuard";
-import { Icon, ICON_PATHS } from "@/components/ui/Icon";
+import { useAdminDispute } from "@/hooks/useAdminDispute";
+import { Icon, ICON_PATHS, LoadingSpinner } from "@/components/ui/Icon";
 import { LoadingState } from "@/components/ui/LoadingState";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { Modal } from "@/components/ui/Modal";
-import { DisputeTimeline } from "@/components/disputes/DisputeTimeline";
+import { NEUMORPHIC_CARD, NEUMORPHIC_INSET } from "@/lib/styles";
+import { formatDateTime } from "@/lib/date-formatters";
+import { StatusBadge } from "@/components/admin/disputes/DisputesTable";
 import { DisputePartyCard } from "@/components/admin/disputes/DisputePartyCard";
-import { DisputeCommentThread } from "@/components/admin/disputes/DisputeCommentThread";
-import { InternalNotesPanel } from "@/components/admin/disputes/InternalNotesPanel";
-import { DisputeQuickInfoSidebar } from "@/components/admin/disputes/DisputeQuickInfoSidebar";
+import { DisputeMilestones } from "@/components/admin/disputes/DisputeMilestones";
+import { DisputeResolutionForm } from "@/components/admin/disputes/DisputeResolutionForm";
+import { ORDER_STATUS_CONFIG } from "@/types/order.types";
 import {
-  DisputeResolutionForm,
-  StatusChangeForm,
-} from "@/components/admin/disputes/DisputeResolutionForm";
-import {
-  getAdminDisputeById,
-  resolveDispute,
-  updateDisputeStatus,
-  addInternalNote,
-  addAdminComment,
-} from "@/lib/api/admin-disputes";
-import { formatDate, formatDateTime, formatResolutionTime } from "@/lib/date-formatters";
-import {
-  NEUMORPHIC_CARD,
-  NEUMORPHIC_INSET,
-  ICON_BUTTON,
-} from "@/lib/styles";
-import {
-  ADMIN_DISPUTE_STATUS_CONFIG,
-  ADMIN_DISPUTE_PRIORITY_CONFIG,
-  ADMIN_DISPUTE_OUTCOME_CONFIG,
-  type AdminDispute,
-  type DisputeResolutionOutcome,
+  ADMIN_DISPUTE_REASON_LABELS,
+  DISPUTE_OPENED_BY_LABELS,
+  RESOLUTION_DECISION_CONFIG,
 } from "@/types/admin.types";
-import { DISPUTE_REASON_LABELS } from "@/types/dispute.types";
 
-const FILLED_PRIMARY_BUTTON = cn(
-  "px-5 py-2.5 rounded-xl font-medium cursor-pointer flex items-center gap-2 text-sm",
-  "bg-primary text-white",
-  "shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]",
-  "hover:bg-primary-hover",
-  "disabled:opacity-50 disabled:cursor-not-allowed",
-  "transition-all duration-200"
+const PRIMARY_BUTTON = cn(
+  "w-full py-3 px-5 rounded-xl font-bold text-sm text-white bg-primary hover:bg-primary-hover",
+  "shadow-[3px_3px_8px_#cbd5e1] active:scale-[0.99] transition-all flex items-center justify-center gap-2",
+  "disabled:opacity-60 disabled:cursor-not-allowed"
 );
 
 export default function AdminDisputeDetailPage(): React.JSX.Element | null {
   const params = useParams();
-  const { token } = useAuthStore();
+  const disputeId = typeof params.id === "string" ? params.id : null;
   const isAuthorized = useAdminGuard();
-
-  const [dispute, setDispute] = useState<AdminDispute | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [refreshKey, setRefreshKey] = useState(0);
-
-  // ── Modal states ──
-  const [showResolveModal, setShowResolveModal] = useState(false);
-  const [showStatusModal, setShowStatusModal] = useState(false);
-
-  const disputeId = params.id as string;
-
-  // ── Fetch ─────────────────────────────────────────────────────────────────
-  useEffect(() => {
-    if (!isAuthorized || !token) return;
-
-    async function fetchDispute() {
-      setIsLoading(true);
-      setError(null);
-      try {
-        const data = await getAdminDisputeById(token!, disputeId);
-        setDispute(data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load dispute");
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    fetchDispute();
-  }, [isAuthorized, token, disputeId, refreshKey]);
-
-  // ── Resolve handler ───────────────────────────────────────────────────────
-  const handleResolve = useCallback(
-    async (outcome: DisputeResolutionOutcome, resolution: string) => {
-      if (!token || !dispute) return;
-      const updated = await resolveDispute(token, dispute.id, { outcome, resolution });
-      setDispute(updated);
-      setShowResolveModal(false);
-    },
-    [token, dispute]
-  );
-
-  // ── Status change handler ─────────────────────────────────────────────────
-  const handleStatusChange = useCallback(
-    async (newStatus: string) => {
-      if (!token || !dispute) return;
-      const updated = await updateDisputeStatus(token, dispute.id, {
-        status: newStatus as AdminDispute["status"],
-      });
-      setDispute(updated);
-      setShowStatusModal(false);
-    },
-    [token, dispute]
-  );
-
-  // ── Add admin comment ─────────────────────────────────────────────────────
-  const handleSubmitComment = useCallback(
-    async (content: string) => {
-      if (!token || !dispute) return;
-      const updated = await addAdminComment(token, dispute.id, content);
-      setDispute(updated);
-    },
-    [token, dispute]
-  );
-
-  // ── Add internal note ─────────────────────────────────────────────────────
-  const handleSubmitNote = useCallback(
-    async (content: string) => {
-      if (!token || !dispute) return;
-      const updated = await addInternalNote(token, dispute.id, { content });
-      setDispute(updated);
-    },
-    [token, dispute]
-  );
-
-  // ─────────────────────────────────────────────────────────────────────────
+  const detail = useAdminDispute(disputeId, isAuthorized);
+  const [isResolveOpen, setIsResolveOpen] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   if (!isAuthorized) {
     return <LoadingState variant="fullscreen" message="Checking permissions..." />;
   }
-
-  if (isLoading) {
+  if (detail.isLoading) {
     return <LoadingState message="Loading dispute..." />;
   }
-
-  if (error) {
+  if (detail.error || !detail.dispute) {
     return (
-      <ErrorState message={error} onRetry={() => setRefreshKey((k) => k + 1)} />
-    );
-  }
-
-  if (!dispute) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <div className={cn(NEUMORPHIC_CARD, "text-center max-w-md")}>
-          <div className="w-20 h-20 mx-auto mb-4 rounded-full flex items-center justify-center bg-background shadow-[inset_4px_4px_8px_#d1d5db,inset_-4px_-4px_8px_#ffffff]">
-            <Icon path={ICON_PATHS.flag} size="xl" className="text-text-secondary" />
-          </div>
-          <h2 className="text-xl font-bold text-text-primary mb-2">Dispute not found</h2>
-          <p className="text-text-secondary mb-4">
-            The dispute you are looking for does not exist or has been removed.
-          </p>
-          <Link href="/admin/disputes" className={FILLED_PRIMARY_BUTTON + " justify-center"}>
-            Back to Disputes
-          </Link>
-        </div>
+      <div className="space-y-4">
+        <Link href="/admin/disputes" className="text-sm text-primary hover:underline flex items-center gap-1">
+          <Icon path={ICON_PATHS.arrowLeft} size="sm" /> Back to disputes
+        </Link>
+        <ErrorState title="Dispute not found" message={detail.error ?? "This dispute does not exist."} onRetry={detail.refetch} />
       </div>
     );
   }
 
-  const statusCfg = ADMIN_DISPUTE_STATUS_CONFIG[dispute.status];
-  const priorityCfg = ADMIN_DISPUTE_PRIORITY_CONFIG[dispute.priority];
-  const isResolvable = dispute.status === "open" || dispute.status === "under_review";
-  const ageMs = Date.now() - new Date(dispute.createdAt).getTime();
-  const ageDays = Math.floor(ageMs / (1000 * 60 * 60 * 24));
+  const dispute = detail.dispute;
+  const { order } = dispute;
+  const orderStatus = ORDER_STATUS_CONFIG[order.status];
+
+  async function handleTakeForReview() {
+    setActionError(null);
+    try {
+      await detail.takeForReview();
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : "Failed to take the dispute for review.");
+    }
+  }
 
   return (
-    <div className="space-y-4 pb-8">
+    <div className="space-y-6 pb-16">
+      <Link href="/admin/disputes" className="text-sm text-primary hover:underline inline-flex items-center gap-1">
+        <Icon path={ICON_PATHS.arrowLeft} size="sm" /> Back to disputes
+      </Link>
+
       {/* Header */}
-      <div className="flex items-start gap-4">
-        <Link href="/admin/disputes" className={cn(ICON_BUTTON, "shrink-0 mt-1")}>
-          <Icon path={ICON_PATHS.chevronLeft} size="md" className="text-text-primary" />
-        </Link>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-3 flex-wrap">
-            <h1 className="text-2xl font-bold text-text-primary truncate">
-              {dispute.offerTitle}
-            </h1>
-            <span
-              className={cn(
-                "px-3 py-1 rounded-lg text-sm font-semibold shrink-0",
-                statusCfg.color,
-                statusCfg.bg
-              )}
-            >
-              {statusCfg.label}
-            </span>
-            <span
-              className={cn(
-                "px-3 py-1 rounded-lg text-sm font-semibold shrink-0",
-                priorityCfg.color,
-                priorityCfg.bg
-              )}
-            >
-              {priorityCfg.label}
+      <div className={cn(NEUMORPHIC_CARD, "p-6 flex flex-col md:flex-row md:items-start md:justify-between gap-4")}>
+        <div className="min-w-0">
+          <div className="flex items-center gap-2 mb-1">
+            <StatusBadge status={dispute.status} />
+            <span className="text-xs text-text-secondary">
+              {DISPUTE_OPENED_BY_LABELS[dispute.openedBy]} · {ADMIN_DISPUTE_REASON_LABELS[dispute.reason]}
             </span>
           </div>
-          <p className="text-text-secondary mt-1 text-sm">
-            Dispute #{dispute.id} · Opened {formatDate(dispute.createdAt)}
-            {ageDays > 0 && (
-              <span className={cn("ml-2 font-medium", ageDays >= 7 ? "text-error" : "text-warning")}>
-                ({ageDays} days ago)
-              </span>
-            )}
+          <h1 className="text-2xl font-bold text-text-primary truncate">{order.title}</h1>
+          <p className="text-xs text-text-secondary font-mono mt-1">
+            {dispute.id} · order {order.id}
           </p>
+          <p className="text-xs text-text-secondary mt-1">Opened {formatDateTime(dispute.createdAt)}</p>
         </div>
-
-        {/* Action buttons */}
-        <div className="flex items-center gap-2 shrink-0">
-          {isResolvable && (
-            <>
-              <button
-                type="button"
-                onClick={() => setShowStatusModal(true)}
-                className={cn(
-                  "px-4 py-2 rounded-xl font-medium text-sm flex items-center gap-2",
-                  "bg-white shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]",
-                  "hover:shadow-[2px_2px_4px_#d1d5db,-2px_-2px_4px_#ffffff]",
-                  "text-primary transition-all duration-200"
-                )}
-              >
-                <Icon path={ICON_PATHS.refresh} size="sm" />
-                Status
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowResolveModal(true)}
-                className={FILLED_PRIMARY_BUTTON}
-              >
-                <Icon path={ICON_PATHS.check} size="sm" />
-                Resolve
-              </button>
-            </>
-          )}
+        <div className="text-right shrink-0">
+          <p className="text-xs uppercase tracking-wider text-text-secondary">In escrow</p>
+          <p className="text-2xl font-bold text-primary">
+            ${Number(order.amount).toFixed(2)} <span className="text-sm text-text-secondary">{order.currency}</span>
+          </p>
+          <span className={cn("text-[11px] font-semibold px-2 py-0.5 rounded-full", orderStatus.color, orderStatus.bg)}>
+            Order {orderStatus.label}
+          </span>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
-        {/* ── Left column ── */}
-        <div className="xl:col-span-2 space-y-4">
-          {/* Dispute details */}
-          <div className={NEUMORPHIC_CARD}>
-            <h2 className="text-lg font-semibold text-text-primary mb-4">Dispute Details</h2>
-            <div className="space-y-4">
-              <div className="flex flex-wrap gap-6">
-                <div className="flex-1 min-w-[140px]">
-                  <p className="text-text-secondary text-xs mb-1">Reason</p>
-                  <p className="text-text-primary font-medium text-sm">
-                    {DISPUTE_REASON_LABELS[dispute.reason]}
-                  </p>
-                </div>
-                <div className="flex-1 min-w-[140px]">
-                  <p className="text-text-secondary text-xs mb-1">Disputed Amount</p>
-                  <p className="text-text-primary font-semibold text-sm">
-                    ${dispute.amount.toLocaleString("en-US", { minimumFractionDigits: 2 })}
-                  </p>
-                </div>
-                <div className="flex-1 min-w-[140px]">
-                  <p className="text-text-secondary text-xs mb-1">Related Offer</p>
-                  <p className="text-text-primary text-sm font-medium">
-                    #{dispute.offerId}
-                  </p>
-                </div>
-              </div>
-              <div>
-                <p className="text-text-secondary text-xs mb-1">Description</p>
-                <p className="text-text-primary text-sm">{dispute.description}</p>
-              </div>
-
-              {dispute.resolution && (
-                <div className={cn("p-4 rounded-xl", NEUMORPHIC_INSET)}>
-                  <div className="flex items-center gap-2 mb-2">
-                    <Icon path={ICON_PATHS.check} size="sm" className="text-success" />
-                    <p className="text-sm font-semibold text-success">Resolution</p>
-                    {dispute.resolutionOutcome && (
-                      <span
-                        className={cn(
-                          "text-xs px-2 py-0.5 rounded-full font-medium",
-                          ADMIN_DISPUTE_OUTCOME_CONFIG[dispute.resolutionOutcome].color,
-                          "bg-current/10"
-                        )}
-                      >
-                        {ADMIN_DISPUTE_OUTCOME_CONFIG[dispute.resolutionOutcome].label}
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-text-primary text-sm">{dispute.resolution}</p>
-                  {dispute.resolvedAt && dispute.resolvedBy && (
-                    <p className="text-xs text-text-secondary mt-2">
-                      Resolved by <span className="font-medium">{dispute.resolvedBy}</span> on{" "}
-                      {formatDateTime(dispute.resolvedAt)}
-                      {" · "}
-                      <span className="font-medium">
-                        {formatResolutionTime(dispute.createdAt, dispute.resolvedAt)}
-                      </span>{" "}
-                      resolution time
-                    </p>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Evidence */}
-          {dispute.evidence.length > 0 && (
-            <div className={NEUMORPHIC_CARD}>
-              <h2 className="text-lg font-semibold text-text-primary mb-4">
-                Evidence ({dispute.evidence.length} files)
-              </h2>
-              <div className="space-y-2">
-                {dispute.evidence.map((file) => (
-                  <div
-                    key={file.id}
-                    className="flex items-center justify-between p-3 rounded-lg bg-background"
-                  >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <Icon
-                        path={
-                          file.type.startsWith("image/")
-                            ? ICON_PATHS.image
-                            : file.type.startsWith("video/")
-                            ? ICON_PATHS.video
-                            : ICON_PATHS.file
-                        }
-                        size="md"
-                        className="text-text-secondary shrink-0"
-                      />
-                      <div className="min-w-0">
-                        <p className="text-text-primary text-sm font-medium truncate">{file.name}</p>
-                        <p className="text-text-secondary text-xs">
-                          {(file.size / 1024).toFixed(0)} KB · Uploaded{" "}
-                          {formatDate(file.uploadedAt)}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left column */}
+        <div className="lg:col-span-2 space-y-6">
+          <section className={cn(NEUMORPHIC_CARD, "p-6")}>
+            <h2 className="text-lg font-semibold text-text-primary mb-4">Evidence</h2>
+            {dispute.evidence.length === 0 ? (
+              <p className="text-sm text-text-secondary">No evidence was attached when the dispute was opened.</p>
+            ) : (
+              <ul className="space-y-2">
+                {dispute.evidence.map((url) => (
+                  <li key={url} className={cn(NEUMORPHIC_INSET, "p-3 rounded-xl")}>
+                    <a
+                      href={url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm text-primary hover:underline break-all flex items-center gap-2"
+                    >
+                      <Icon path={ICON_PATHS.externalLink} size="sm" />
+                      {url}
+                    </a>
+                  </li>
                 ))}
-              </div>
-            </div>
+              </ul>
+            )}
+          </section>
+
+          <section className={cn(NEUMORPHIC_CARD, "p-6")}>
+            <h2 className="text-lg font-semibold text-text-primary mb-4">Order milestones</h2>
+            <DisputeMilestones milestones={order.milestones} currency={order.currency} />
+          </section>
+
+          {order.description && (
+            <section className={cn(NEUMORPHIC_CARD, "p-6")}>
+              <h2 className="text-lg font-semibold text-text-primary mb-3">Order brief</h2>
+              <p className="text-sm text-text-secondary whitespace-pre-wrap">{order.description}</p>
+            </section>
           )}
-
-          {/* Comments */}
-          <div className={NEUMORPHIC_CARD}>
-            <h2 className="text-lg font-semibold text-text-primary mb-4">
-              Discussion ({dispute.comments.length})
-            </h2>
-            <DisputeCommentThread comments={dispute.comments} onSubmit={handleSubmitComment} />
-          </div>
-
-          {/* Internal Notes */}
-          <div className={NEUMORPHIC_CARD}>
-            <div className="flex items-center gap-2 mb-4">
-              <Icon path={ICON_PATHS.lock} size="md" className="text-warning" />
-              <h2 className="text-lg font-semibold text-text-primary">
-                Internal Notes ({dispute.internalNotes.length})
-              </h2>
-              <span className="text-xs px-2 py-0.5 rounded bg-warning/10 text-warning font-medium">
-                Admin only
-              </span>
-            </div>
-            <InternalNotesPanel notes={dispute.internalNotes} onSubmit={handleSubmitNote} />
-          </div>
         </div>
 
-        {/* ── Right column ── */}
-        <div className="space-y-4">
-          {/* Quick info */}
-          <div className={NEUMORPHIC_CARD}>
-            <h2 className="text-lg font-semibold text-text-primary mb-4">Quick Info</h2>
-            <DisputeQuickInfoSidebar
-              dispute={dispute}
-              isResolvable={isResolvable}
-              ageDays={ageDays}
-              onChangeStatus={() => setShowStatusModal(true)}
-              onResolve={() => setShowResolveModal(true)}
-            />
-          </div>
+        {/* Right column */}
+        <div className="space-y-6">
+          <section className={cn(NEUMORPHIC_CARD, "p-6")}>
+            <h2 className="text-lg font-semibold text-text-primary mb-4">Resolution</h2>
 
-          {/* Parties */}
-          <div className={NEUMORPHIC_CARD}>
+            {dispute.status === "OPEN" && (
+              <div className="space-y-3">
+                <p className="text-sm text-text-secondary">
+                  Take this dispute for review to freeze it under your name; you can resolve it once it is under review.
+                </p>
+                <button type="button" onClick={handleTakeForReview} disabled={detail.isActing} className={PRIMARY_BUTTON}>
+                  {detail.isActing ? <LoadingSpinner size="sm" className="text-white" /> : <Icon path={ICON_PATHS.eye} size="sm" />}
+                  Take for review
+                </button>
+              </div>
+            )}
+
+            {dispute.status === "UNDER_REVIEW" && (
+              <div className="space-y-3">
+                <p className="text-sm text-text-secondary">
+                  Decide who the escrow goes to. The decision executes on-chain and cannot be undone.
+                </p>
+                <button type="button" onClick={() => setIsResolveOpen(true)} disabled={detail.isActing} className={PRIMARY_BUTTON}>
+                  <Icon path={ICON_PATHS.check} size="sm" />
+                  Resolve dispute
+                </button>
+              </div>
+            )}
+
+            {dispute.status === "RESOLVED" && dispute.resolutionDecision && (
+              <div className={cn(NEUMORPHIC_INSET, "p-4 rounded-xl space-y-2")}>
+                <span
+                  className={cn(
+                    "inline-block text-xs font-semibold px-2 py-1 rounded-full",
+                    RESOLUTION_DECISION_CONFIG[dispute.resolutionDecision].color,
+                    RESOLUTION_DECISION_CONFIG[dispute.resolutionDecision].bg
+                  )}
+                >
+                  {RESOLUTION_DECISION_CONFIG[dispute.resolutionDecision].label}
+                </span>
+                <p className="text-sm text-text-primary whitespace-pre-wrap">{dispute.decisionNote ?? "No decision note."}</p>
+                <p className="text-xs text-text-secondary">Resolved {formatDateTime(dispute.updatedAt)}</p>
+              </div>
+            )}
+
+            {actionError && (
+              <div className="mt-3 flex items-center gap-2 p-3 rounded-xl bg-error/10 text-error text-sm">
+                <Icon path={ICON_PATHS.alertCircle} size="sm" />
+                <span>{actionError}</span>
+              </div>
+            )}
+          </section>
+
+          <section className={cn(NEUMORPHIC_CARD, "p-6")}>
             <h2 className="text-lg font-semibold text-text-primary mb-4">Parties</h2>
             <div className="space-y-3">
-              <DisputePartyCard role="Buyer" party={dispute.buyer} />
-              <DisputePartyCard role="Seller" party={dispute.seller} />
+              <DisputePartyCard role="Buyer" party={order.buyer} openedDispute={dispute.openedBy === "BUYER"} />
+              <DisputePartyCard role="Seller" party={order.seller} openedDispute={dispute.openedBy === "SELLER"} />
             </div>
-          </div>
+          </section>
 
-          {/* Timeline */}
-          <div className={NEUMORPHIC_CARD}>
-            <h2 className="text-lg font-semibold text-text-primary mb-4">Timeline</h2>
-            <DisputeTimeline events={dispute.events} />
-          </div>
+          <section className={cn(NEUMORPHIC_CARD, "p-6")}>
+            <h2 className="text-lg font-semibold text-text-primary mb-3">Escrow</h2>
+            {order.escrow ? (
+              <p className="text-sm text-text-primary">
+                <span className="text-text-secondary">Status </span>
+                {order.escrow.status}
+                <span className="block text-xs text-text-secondary font-mono mt-1">{order.escrow.id}</span>
+              </p>
+            ) : (
+              <p className="text-sm text-text-secondary">No escrow record on this order.</p>
+            )}
+          </section>
         </div>
       </div>
 
-      {/* Resolve modal */}
-      <Modal
-        isOpen={showResolveModal}
-        title="Resolve Dispute"
-        onClose={() => setShowResolveModal(false)}
-      >
+      <Modal isOpen={isResolveOpen} title="Resolve dispute" onClose={() => setIsResolveOpen(false)}>
         <DisputeResolutionForm
           dispute={dispute}
-          onSubmit={handleResolve}
-          onCancel={() => setShowResolveModal(false)}
-        />
-      </Modal>
-
-      {/* Status change modal */}
-      <Modal
-        isOpen={showStatusModal}
-        title="Change Dispute Status"
-        onClose={() => setShowStatusModal(false)}
-      >
-        <StatusChangeForm
-          dispute={dispute}
-          onSubmit={handleStatusChange}
-          onCancel={() => setShowStatusModal(false)}
+          onSubmit={async (payload) => {
+            await detail.resolve(payload);
+            setIsResolveOpen(false);
+          }}
+          onCancel={() => setIsResolveOpen(false)}
         />
       </Modal>
     </div>

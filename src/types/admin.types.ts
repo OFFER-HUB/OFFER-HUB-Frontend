@@ -147,142 +147,146 @@ export function adminUserDisplayName(user: Pick<AdminUser, "email" | "profession
 }
 
 // ─── Admin Disputes ───────────────────────────────────────────────────────────
+//
+// Mirrors the backend's `DisputeWithRelations` (apps/api resolution.types.ts):
+// the dispute row plus its order with both parties, milestones and escrow.
+// Enum values are the Prisma ones, uppercase — not the buyer-side
+// `dispute.types.ts` vocabulary.
 
-import type { DisputeStatus, DisputeReason, DisputeEvidence, DisputeEvent, DisputeComment } from "@/types/dispute.types";
+import type { OrderStatus } from "@/types/order.types";
 
-export type DisputePriority = "low" | "medium" | "high" | "critical";
-export type DisputeResolutionOutcome = "buyer_wins" | "seller_wins" | "split" | "dismissed";
+export type AdminDisputeStatus = "OPEN" | "UNDER_REVIEW" | "RESOLVED";
+export type AdminDisputeReason = "NOT_DELIVERED" | "QUALITY_ISSUE" | "OTHER";
+export type DisputeOpenedBy = "BUYER" | "SELLER";
+export type ResolutionDecision = "FULL_RELEASE" | "FULL_REFUND" | "SPLIT";
 
 export interface AdminDisputeParty {
   id: string;
-  username: string;
-  email: string;
-  avatarUrl?: string;
-  totalDisputes: number;
-  previousDisputes: AdminDisputeSummary[];
+  email: string | null;
 }
 
-export interface AdminDisputeSummary {
+export interface AdminDisputeMilestone {
   id: string;
-  offerTitle: string;
-  status: DisputeStatus;
-  outcome?: DisputeResolutionOutcome;
-  createdAt: string;
+  title: string;
+  description?: string | null;
+  /** Decimal string, e.g. "50.00" */
+  amount: string;
+  status: "OPEN" | "COMPLETED";
+  completedAt?: string | null;
 }
 
-export interface AdminDisputeNote {
+export interface AdminDisputeOrder {
   id: string;
-  content: string;
-  adminUsername: string;
+  title: string;
+  description?: string | null;
+  /** Decimal string, e.g. "220.00" */
+  amount: string;
+  currency: string;
+  status: OrderStatus;
+  buyerId: string;
+  sellerId: string;
+  buyer: AdminDisputeParty;
+  seller: AdminDisputeParty;
+  service: { id: string; title: string } | null;
+  escrow: { id: string; status: string } | null;
+  milestones: AdminDisputeMilestone[];
   createdAt: string;
 }
 
 export interface AdminDispute {
   id: string;
-  offerId: string;
-  offerTitle: string;
-  /** Dispute amount in dollars, e.g. 350.00 */
-  amount: number;
-  reason: DisputeReason;
-  description: string;
-  status: DisputeStatus;
-  priority: DisputePriority;
-  evidence: DisputeEvidence[];
-  events: DisputeEvent[];
-  comments: DisputeComment[];
-  /** The buyer/client party */
-  buyer: AdminDisputeParty;
-  /** The seller/freelancer party */
-  seller: AdminDisputeParty;
-  resolution?: string;
-  resolutionOutcome?: DisputeResolutionOutcome;
-  resolvedAt?: string;
-  resolvedBy?: string;
-  internalNotes: AdminDisputeNote[];
+  orderId: string;
+  openedBy: DisputeOpenedBy;
+  reason: AdminDisputeReason;
+  /** Evidence URLs as stored — the backend keeps a JSON array of strings. */
+  evidence: string[];
+  status: AdminDisputeStatus;
+  resolutionDecision: ResolutionDecision | null;
+  decisionNote: string | null;
   createdAt: string;
   updatedAt: string;
+  order: AdminDisputeOrder;
 }
 
-// ─── Admin Dispute Sorting ────────────────────────────────────────────────────
+// ─── Listing ──────────────────────────────────────────────────────────────────
 
-export type AdminDisputeSortField =
-  | "createdAt"
-  | "updatedAt"
-  | "amount"
-  | "priority"
-  | "status";
-
-export interface AdminDisputesSort {
-  field: AdminDisputeSortField;
-  direction: SortDirection;
+/** `GET /disputes` pages with a cursor-less `hasMore`, no total. */
+export interface AdminDisputesPage {
+  disputes: AdminDispute[];
+  hasMore: boolean;
 }
 
-// ─── Admin Dispute Filters ────────────────────────────────────────────────────
+export type AdminDisputeStatusFilter = AdminDisputeStatus | "ALL";
+export type AdminDisputeOpenedByFilter = DisputeOpenedBy | "ALL";
 
-export type AdminDisputeStatusFilter = DisputeStatus | "ALL";
-export type AdminDisputePriorityFilter = DisputePriority | "ALL";
-
+/** The filters `GET /disputes` actually supports. */
 export interface AdminDisputesFilters {
-  search: string;
   status: AdminDisputeStatusFilter;
-  priority: AdminDisputePriorityFilter;
-  reason: DisputeReason | "ALL";
-  openedAfter: string;
-  openedBefore: string;
+  openedBy: AdminDisputeOpenedByFilter;
 }
 
-// ─── Admin Dispute API Payloads ───────────────────────────────────────────────
+export interface AdminDisputesQuery extends AdminDisputesFilters {
+  page: number;
+  limit: number;
+}
 
+// ─── API Payloads ─────────────────────────────────────────────────────────────
+
+/** `ResolveDisputeDto` — amounts are decimal strings with two places and must sum to the order amount for SPLIT. */
 export interface ResolveDisputePayload {
-  outcome: DisputeResolutionOutcome;
-  resolution: string;
-}
-
-export interface AddDisputeNotePayload {
-  content: string;
-}
-
-export interface UpdateDisputeStatusPayload {
-  status: DisputeStatus;
+  decision: ResolutionDecision;
+  releaseAmount?: string;
+  refundAmount?: string;
+  note?: string;
 }
 
 // ─── Config Maps ─────────────────────────────────────────────────────────────
 
 export const ADMIN_DISPUTE_STATUS_CONFIG: Record<
-  DisputeStatus,
+  AdminDisputeStatus,
   { label: string; color: string; bg: string }
 > = {
-  open: { label: "Open", color: "text-warning", bg: "bg-warning/10" },
-  under_review: { label: "Under Review", color: "text-primary", bg: "bg-primary/10" },
-  resolved: { label: "Resolved", color: "text-success", bg: "bg-success/10" },
-  closed: { label: "Closed", color: "text-text-secondary", bg: "bg-gray-100" },
+  OPEN: { label: "Open", color: "text-warning", bg: "bg-warning/10" },
+  UNDER_REVIEW: { label: "Under Review", color: "text-primary", bg: "bg-primary/10" },
+  RESOLVED: { label: "Resolved", color: "text-success", bg: "bg-success/10" },
 };
 
-export const ADMIN_DISPUTE_PRIORITY_CONFIG: Record<
-  DisputePriority,
-  { label: string; color: string; bg: string }
+export const ADMIN_DISPUTE_REASON_LABELS: Record<AdminDisputeReason, string> = {
+  NOT_DELIVERED: "Not delivered",
+  QUALITY_ISSUE: "Quality issue",
+  OTHER: "Other",
+};
+
+export const DISPUTE_OPENED_BY_LABELS: Record<DisputeOpenedBy, string> = {
+  BUYER: "Buyer",
+  SELLER: "Seller",
+};
+
+export const RESOLUTION_DECISION_CONFIG: Record<
+  ResolutionDecision,
+  { label: string; description: string; color: string; bg: string }
 > = {
-  low: { label: "Low", color: "text-text-secondary", bg: "bg-gray-100" },
-  medium: { label: "Medium", color: "text-primary", bg: "bg-primary/10" },
-  high: { label: "High", color: "text-warning", bg: "bg-warning/10" },
-  critical: { label: "Critical", color: "text-error", bg: "bg-error/10" },
+  FULL_RELEASE: {
+    label: "Release to seller",
+    description: "The work stands. The full escrow amount goes to the seller.",
+    color: "text-success",
+    bg: "bg-success/10",
+  },
+  FULL_REFUND: {
+    label: "Refund buyer",
+    description: "Nothing usable was delivered. The full amount goes back to the buyer.",
+    color: "text-error",
+    bg: "bg-error/10",
+  },
+  SPLIT: {
+    label: "Split",
+    description: "Pay the seller for completed work and refund the rest to the buyer.",
+    color: "text-primary",
+    bg: "bg-primary/10",
+  },
 };
 
-export const ADMIN_DISPUTE_OUTCOME_CONFIG: Record<
-  DisputeResolutionOutcome,
-  { label: string; color: string }
-> = {
-  buyer_wins: { label: "Buyer Wins", color: "text-primary" },
-  seller_wins: { label: "Seller Wins", color: "text-success" },
-  split: { label: "Split", color: "text-warning" },
-  dismissed: { label: "Dismissed", color: "text-text-secondary" },
-};
-
-export const RESOLUTION_TEMPLATES: string[] = [
-  "After reviewing all evidence, we find in favor of the buyer. A full refund will be issued.",
-  "After reviewing all evidence, we find in favor of the seller. Payment will be released.",
-  "Both parties have agreed to a 50/50 split of the disputed amount.",
-  "This dispute has been dismissed as the issue was resolved directly between parties.",
-  "The work delivered meets the agreed specifications. Payment will be released to the seller.",
-  "The delivered work does not meet agreed standards. A partial refund of 50% will be issued.",
-];
+/** What to call a party in admin UI — rows only carry id and email. */
+export function disputePartyName(party: AdminDisputeParty): string {
+  return party.email ?? party.id;
+}
