@@ -38,6 +38,12 @@ interface BuyerActionPanelProps {
   status: OrderStatus;
   amount?: string;
   isWorkCompleted: boolean;
+  /**
+   * The backend will answer a direct refund with `REFUND_REQUIRES_DISPUTE`
+   * (delivered, or a milestone already completed). Hide the one-click refund
+   * and point the buyer at a dispute instead. Implied by `status === "DELIVERED"`.
+   */
+  refundRequiresDispute?: boolean;
   isProcessing: boolean;
   isExternalWallet?: boolean;
   onConfirmOrder: () => void;
@@ -53,6 +59,7 @@ export function BuyerActionPanel({
   status,
   amount,
   isWorkCompleted,
+  refundRequiresDispute = false,
   isProcessing,
   isExternalWallet = false,
   onConfirmOrder,
@@ -64,6 +71,8 @@ export function BuyerActionPanel({
   onRequestRefund,
 }: BuyerActionPanelProps): React.JSX.Element {
   const formattedAmount = amount ? `$${Number(amount).toFixed(2)} USD` : null;
+  const isDelivered = status === "DELIVERED" || isWorkCompleted;
+  const refundGoesThroughDispute = status === "DELIVERED" || refundRequiresDispute;
 
   return (
     <div className={cn(NEUMORPHIC_CARD, "p-6 border border-white/80 space-y-5")}>
@@ -255,25 +264,53 @@ export function BuyerActionPanel({
         )
       )}
 
-      {status === "IN_PROGRESS" && (
+      {(status === "IN_PROGRESS" || status === "DELIVERED") && (
         <div className="space-y-4">
           <OrderStatusCallout
-            tone={isWorkCompleted ? "warning" : "success"}
-            iconPath={isWorkCompleted ? ICON_PATHS.alertCircle : ICON_PATHS.check}
-            title={isWorkCompleted ? "Deliverables Ready for Review" : "Payment Secured in Escrow"}
+            tone={isDelivered ? "warning" : "success"}
+            iconPath={isDelivered ? ICON_PATHS.alertCircle : ICON_PATHS.check}
+            title={isDelivered ? "Deliverables Ready for Review" : "Payment Secured in Escrow"}
             description={
-              isWorkCompleted
+              isDelivered
                 ? "The specialist has marked work as completed. Please inspect all files and deliverables before releasing payment."
                 : "Funds are safely protected in escrow. The specialist is currently working on your order."
             }
           />
 
-          {isWorkCompleted && (
+          {isDelivered ? (
+            /* Delivered: releasing is the expected outcome; a refund is no
+               longer a one-click action because the specialist did the work
+               and gets to respond through a dispute. */
             <div className="p-4 rounded-xl bg-background border border-black/5 space-y-3">
               <h3 className="text-xs font-bold uppercase tracking-wider text-text-secondary">
                 Order Review Actions
               </h3>
-              <div className="grid grid-cols-3 gap-2">
+              <button type="button" onClick={onRequestRelease} className={SOLID_PRIMARY_BUTTON}>
+                <Icon path={ICON_PATHS.check} size="sm" />
+                <span>Release Funds{formattedAmount ? ` · ${formattedAmount}` : ""}</span>
+              </button>
+              <button
+                type="button"
+                onClick={onRequestDispute}
+                className={cn(NEUMORPHIC_SECONDARY_BUTTON, "hover:text-rose-700")}
+              >
+                <Icon path={ICON_PATHS.flag} size="sm" />
+                <span>Open Dispute</span>
+              </button>
+              <p className="text-[11px] text-text-secondary leading-relaxed">
+                Not satisfied with the delivery? Refunds on delivered work are decided through a
+                dispute, so the specialist can respond before any funds move.
+              </p>
+            </div>
+          ) : (
+            /* Still in progress: nothing has been delivered, so a refund is a
+               quick, low-friction way out — unless a milestone was already
+               completed, in which case the backend routes it to a dispute too. */
+            <div className="p-4 rounded-xl bg-background border border-black/5 space-y-3">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-text-secondary">
+                Order Actions
+              </h3>
+              <div className={cn("grid gap-2", refundGoesThroughDispute ? "grid-cols-2" : "grid-cols-3")}>
                 <button
                   type="button"
                   onClick={onRequestRelease}
@@ -282,14 +319,16 @@ export function BuyerActionPanel({
                   <Icon path={ICON_PATHS.check} size="sm" className="text-emerald-600" />
                   <span>Release Funds</span>
                 </button>
-                <button
-                  type="button"
-                  onClick={onRequestRefund}
-                  className={cn(REVIEW_ACTION_BUTTON, "text-amber-700 hover:text-amber-800")}
-                >
-                  <Icon path={ICON_PATHS.currency} size="sm" className="text-amber-600" />
-                  <span>Request Refund</span>
-                </button>
+                {!refundGoesThroughDispute && (
+                  <button
+                    type="button"
+                    onClick={onRequestRefund}
+                    className={cn(REVIEW_ACTION_BUTTON, "text-amber-700 hover:text-amber-800")}
+                  >
+                    <Icon path={ICON_PATHS.currency} size="sm" className="text-amber-600" />
+                    <span>Request Refund</span>
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={onRequestDispute}
@@ -299,6 +338,12 @@ export function BuyerActionPanel({
                   <span>Open Dispute</span>
                 </button>
               </div>
+              {refundGoesThroughDispute && (
+                <p className="text-[11px] text-text-secondary leading-relaxed">
+                  A milestone has already been completed, so a refund is decided through a dispute
+                  rather than returned in full automatically.
+                </p>
+              )}
             </div>
           )}
         </div>

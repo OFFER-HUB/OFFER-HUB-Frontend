@@ -18,6 +18,12 @@ export interface UseOrderRolesResult {
   isSeller: boolean;
   /** Freelancer has flagged the work as delivered. */
   isWorkCompleted: boolean;
+  /**
+   * A direct refund would be rejected by the backend (`REFUND_REQUIRES_DISPUTE`):
+   * once work is delivered, or any milestone is already completed, the refund
+   * has to go through a dispute so the freelancer gets a say.
+   */
+  refundRequiresDispute: boolean;
   /** Order reached a terminal, paid-out state. */
   isOrderComplete: boolean;
   /** The other side of the order, from the signed-in user's point of view. */
@@ -46,7 +52,10 @@ export function useOrderRoles({
   return useMemo(() => {
     const isBuyer = Boolean(user?.id) && user?.id === order?.buyerId;
     const isSeller = Boolean(user?.id) && user?.id === order?.sellerId;
-    const isWorkCompleted = order?.metadata?.completedBySeller === true;
+    const isWorkCompleted =
+      order?.status === "DELIVERED" || order?.metadata?.completedBySeller === true;
+    const hasCompletedMilestone = order?.milestones?.some((m) => m.status === "COMPLETED") ?? false;
+    const refundRequiresDispute = order?.status === "DELIVERED" || hasCompletedMilestone;
     const isOrderComplete = order?.status === "RELEASED" || order?.status === "CLOSED";
 
     const canLeaveReview = isBuyer && isOrderComplete && !review;
@@ -58,6 +67,7 @@ export function useOrderRoles({
       isBuyer,
       isSeller,
       isWorkCompleted,
+      refundRequiresDispute,
       isOrderComplete,
       counterparty: isBuyer ? order?.seller : order?.buyer,
       canLeaveReview,

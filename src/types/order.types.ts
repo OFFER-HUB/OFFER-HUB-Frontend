@@ -5,6 +5,7 @@ export type OrderStatus =
   | 'ESCROW_FUNDING'
   | 'ESCROW_FUNDED'
   | 'IN_PROGRESS'
+  | 'DELIVERED'
   | 'RELEASE_REQUESTED'
   | 'RELEASED'
   | 'REFUND_REQUESTED'
@@ -148,6 +149,7 @@ export const ORDER_STATUS_CONFIG: Record<OrderStatus, { label: string; color: st
   ESCROW_FUNDING: { label: 'Funding Escrow', color: 'text-warning', bg: 'bg-warning/10' },
   ESCROW_FUNDED: { label: 'Escrow Funded', color: 'text-success', bg: 'bg-success/10' },
   IN_PROGRESS: { label: 'In Progress', color: 'text-primary', bg: 'bg-primary/10' },
+  DELIVERED: { label: 'Delivered', color: 'text-warning', bg: 'bg-warning/10' },
   RELEASE_REQUESTED: { label: 'Release Requested', color: 'text-warning', bg: 'bg-warning/10' },
   RELEASED: { label: 'Released', color: 'text-success', bg: 'bg-success/10' },
   REFUND_REQUESTED: { label: 'Refund Requested', color: 'text-warning', bg: 'bg-warning/10' },

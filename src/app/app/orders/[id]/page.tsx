@@ -175,6 +175,7 @@ export default function OrderDetailPage(): React.JSX.Element {
               status={order.status}
               amount={order.amount}
               isWorkCompleted={roles.isWorkCompleted}
+              refundRequiresDispute={roles.refundRequiresDispute}
               isProcessing={actions.isProcessing}
               isExternalWallet={isExternalWallet}
               onConfirmOrder={actions.handleReserveFunds}

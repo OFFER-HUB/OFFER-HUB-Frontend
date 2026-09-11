@@ -395,6 +395,7 @@ export default function ServiceDetailsPage({ params }: PageProps): React.JSX.Ele
 
   const activeOrders = orders.filter((o) =>
     o.status === "IN_PROGRESS" ||
+    o.status === "DELIVERED" ||
     o.status === "ORDER_CREATED" ||
     o.status === "FUNDS_RESERVED" ||
     o.status === "ESCROW_CREATING" ||

@@ -40,6 +40,7 @@ export function OrderDeliverablesCard({
 
   const isInProgress = [
     "IN_PROGRESS",
+    "DELIVERED",
     "ESCROW_FUNDED",
     "RELEASE_REQUESTED",
     "RELEASED",

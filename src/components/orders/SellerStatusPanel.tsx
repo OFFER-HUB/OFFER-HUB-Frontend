@@ -77,7 +77,7 @@ export function SellerStatusPanel({
         </div>
       )}
 
-      {status === "IN_PROGRESS" && (
+      {(status === "IN_PROGRESS" || status === "DELIVERED") && (
         <div className="space-y-4">
           <OrderStatusCallout
             tone={isWorkCompleted ? "success" : "primary"}

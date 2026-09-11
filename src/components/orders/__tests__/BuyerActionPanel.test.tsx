@@ -128,11 +128,63 @@ describe("BuyerActionPanel — ESCROW_FUNDING (external wallet / non-custodial)"
 
 // ── IN_PROGRESS ───────────────────────────────────────────────────────────────
 
-describe("BuyerActionPanel — IN_PROGRESS (work delivered)", () => {
-  it("shows the three review actions when work is completed", () => {
-    render(<BuyerActionPanel {...BASE_PROPS} status="IN_PROGRESS" isWorkCompleted />);
+describe("BuyerActionPanel — IN_PROGRESS (nothing delivered yet)", () => {
+  it("offers Release / Request Refund / Open Dispute as equal quick actions", () => {
+    render(<BuyerActionPanel {...BASE_PROPS} status="IN_PROGRESS" />);
     expect(screen.getByRole("button", { name: /release funds/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /request refund/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /open dispute/i })).toBeInTheDocument();
+    expect(screen.getByText(/payment secured in escrow/i)).toBeInTheDocument();
+  });
+
+  it("calls onRequestRefund directly — pre-delivery refund stays low-friction", async () => {
+    const onRequestRefund = vi.fn();
+    render(<BuyerActionPanel {...BASE_PROPS} status="IN_PROGRESS" onRequestRefund={onRequestRefund} />);
+    await userEvent.click(screen.getByRole("button", { name: /request refund/i }));
+    expect(onRequestRefund).toHaveBeenCalledTimes(1);
+  });
+
+  it("drops the one-click refund once a milestone is completed (backend would answer REFUND_REQUIRES_DISPUTE)", () => {
+    render(<BuyerActionPanel {...BASE_PROPS} status="IN_PROGRESS" refundRequiresDispute />);
+    expect(screen.queryByRole("button", { name: /request refund/i })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /release funds/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /open dispute/i })).toBeInTheDocument();
+    expect(screen.getByText(/milestone has already been completed/i)).toBeInTheDocument();
+  });
+});
+
+describe("BuyerActionPanel — DELIVERED", () => {
+  it("keeps Release Funds as the direct action and removes Request Refund", () => {
+    render(<BuyerActionPanel {...BASE_PROPS} status="DELIVERED" amount="150" />);
+    expect(screen.getByRole("button", { name: /release funds · \$150\.00 usd/i })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /request refund/i })).not.toBeInTheDocument();
+    expect(screen.getByText(/deliverables ready for review/i)).toBeInTheDocument();
+  });
+
+  it("still lets the buyer escalate through Open Dispute", async () => {
+    const onRequestDispute = vi.fn();
+    render(<BuyerActionPanel {...BASE_PROPS} status="DELIVERED" onRequestDispute={onRequestDispute} />);
+    await userEvent.click(screen.getByRole("button", { name: /open dispute/i }));
+    expect(onRequestDispute).toHaveBeenCalledTimes(1);
+  });
+
+  it("explains that refunds on delivered work go through a dispute", () => {
+    render(<BuyerActionPanel {...BASE_PROPS} status="DELIVERED" />);
+    expect(screen.getByText(/refunds on delivered work are decided through a dispute/i)).toBeInTheDocument();
+  });
+
+  it("calls onRequestRelease when Release Funds is clicked", async () => {
+    const onRequestRelease = vi.fn();
+    render(<BuyerActionPanel {...BASE_PROPS} status="DELIVERED" onRequestRelease={onRequestRelease} />);
+    await userEvent.click(screen.getByRole("button", { name: /release funds/i }));
+    expect(onRequestRelease).toHaveBeenCalledTimes(1);
+  });
+
+  it("treats a legacy IN_PROGRESS order flagged completedBySeller the same as DELIVERED", () => {
+    // Orders delivered before DELIVERED existed as a status only carry the metadata flag.
+    render(<BuyerActionPanel {...BASE_PROPS} status="IN_PROGRESS" isWorkCompleted />);
+    expect(screen.queryByRole("button", { name: /request refund/i })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /release funds/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /open dispute/i })).toBeInTheDocument();
   });
 });

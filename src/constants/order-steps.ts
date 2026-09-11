@@ -43,6 +43,7 @@ export const ORDER_STEP_LABELS: Partial<Record<OrderStatus, OrderStepInfo>> = {
   ESCROW_CREATING: { step: 3, label: "Setting up...", action: "Processing", nextLabel: null },
   ESCROW_FUNDING: { step: 4, label: "Processing...", action: "Processing", nextLabel: null },
   IN_PROGRESS: { step: 5, label: "Work in Progress", action: null, nextLabel: null },
+  DELIVERED: { step: 5, label: "Delivered", action: null, nextLabel: null },
   RELEASED: { step: 6, label: "Payment Released", action: null, nextLabel: null },
   REFUNDED: { step: 6, label: "Refunded", action: null, nextLabel: null },
   CLOSED: { step: 7, label: "Completed", action: null, nextLabel: null },
