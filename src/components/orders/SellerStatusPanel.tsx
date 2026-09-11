@@ -8,7 +8,11 @@ import {
   OrderStatusCallout,
   orderCalloutBorder,
 } from "@/components/orders/OrderStatusCallout";
-import type { OrderStatus } from "@/types/order.types";
+import {
+  resolveMilestonePaymentStatus,
+  type OrderStatus,
+  type Milestone,
+} from "@/types/order.types";
 
 /** Tonal button base shared by the two seller actions, which differ only in size. */
 const SELLER_ACTION_BUTTON = cn(
@@ -27,6 +31,8 @@ interface SellerStatusPanelProps {
   isProcessing: boolean;
   onMarkCompleted: () => void;
   onRequestDispute: () => void;
+  /** Optional milestones breakdown for incremental payout visibility */
+  milestones?: Milestone[];
 }
 
 /**
@@ -42,7 +48,21 @@ export function SellerStatusPanel({
   isProcessing,
   onMarkCompleted,
   onRequestDispute,
+  milestones,
 }: SellerStatusPanelProps): React.JSX.Element {
+  const hasMilestones = Boolean(milestones && milestones.length > 0);
+  const releasedMilestones = (milestones || []).filter(
+    (m) => resolveMilestonePaymentStatus(m, status) === "RELEASED"
+  );
+  const releasedAmount = releasedMilestones.reduce(
+    (sum, m) => sum + (parseFloat(m.amount) || 0),
+    0
+  );
+  const totalMilestonesAmount = (milestones || []).reduce(
+    (sum, m) => sum + (parseFloat(m.amount) || 0),
+    0
+  );
+
   return (
     <div className={NEUMORPHIC_CARD}>
       <h2 className="text-lg font-semibold text-text-primary mb-4">Order Status</h2>
@@ -89,6 +109,40 @@ export function SellerStatusPanel({
                 : "Payment is secured. You can now start working on this order! When finished, mark as completed."
             }
           />
+
+          {hasMilestones && (
+            <div
+              className={cn(
+                "p-4 rounded-xl border-l-4 space-y-1.5 text-xs",
+                NEUMORPHIC_INSET,
+                releasedMilestones.length === milestones!.length
+                  ? "border-success bg-success/5"
+                  : releasedMilestones.length > 0
+                    ? "border-emerald-600 bg-emerald-500/5"
+                    : "border-primary bg-primary/5"
+              )}
+            >
+              <div className="flex items-center justify-between font-semibold text-text-primary">
+                <span className="flex items-center gap-1.5 text-emerald-700 font-medium">
+                  <Icon
+                    path={
+                      releasedMilestones.length === milestones!.length
+                        ? ICON_PATHS.check
+                        : ICON_PATHS.lock
+                    }
+                    size="sm"
+                  />
+                  Incremental Payout Active
+                </span>
+                <span className="font-mono text-emerald-700 font-bold">
+                  ${releasedAmount.toFixed(2)} / ${totalMilestonesAmount.toFixed(2)} USD
+                </span>
+              </div>
+              <p className="text-text-secondary leading-relaxed">
+                {releasedMilestones.length} of {milestones!.length} milestones released. Completing and getting each milestone approved releases funds incrementally — you don&apos;t have to wait for the whole order to be completed.
+              </p>
+            </div>
+          )}
 
           {!isWorkCompleted && (
             <div className={cn("p-3 rounded-lg", NEUMORPHIC_INSET)}>

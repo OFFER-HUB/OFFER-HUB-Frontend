@@ -89,6 +89,12 @@ export interface OrderProjectNote {
   createdAt: string;
 }
 
+export type MilestonePaymentStatus =
+  | 'PENDING'
+  | 'AWAITING_APPROVAL'
+  | 'RELEASED'
+  | 'REFUNDED';
+
 export interface Milestone {
   id: string;
   orderId: string;
@@ -96,9 +102,67 @@ export interface Milestone {
   description: string;
   amount: string;
   status: 'OPEN' | 'COMPLETED';
+  paymentStatus?: MilestonePaymentStatus;
+  payment_status?: MilestonePaymentStatus;
   dueDate?: string;
   completedAt?: string;
 }
+
+export const MILESTONE_STATUS_CONFIG: Record<
+  MilestonePaymentStatus,
+  { label: string; color: string; bg: string; description: string }
+> = {
+  PENDING: {
+    label: 'Pending',
+    color: 'text-text-secondary',
+    bg: 'bg-text-secondary/10',
+    description: 'Work has not yet been submitted for this milestone.',
+  },
+  AWAITING_APPROVAL: {
+    label: 'Awaiting Approval',
+    color: 'text-warning',
+    bg: 'bg-warning/10',
+    description: 'Work completed and submitted. Awaiting client review and milestone fund release.',
+  },
+  RELEASED: {
+    label: 'Released',
+    color: 'text-success',
+    bg: 'bg-success/10',
+    description: 'Milestone approved and payment released to the freelancer.',
+  },
+  REFUNDED: {
+    label: 'Refunded',
+    color: 'text-error',
+    bg: 'bg-error/10',
+    description: 'Milestone funds refunded.',
+  },
+};
+
+/**
+ * Resolves the effective payment status for a milestone.
+ * Checks explicit paymentStatus first, then infers based on milestone status and order status.
+ */
+export function resolveMilestonePaymentStatus(
+  milestone: Milestone,
+  orderStatus?: OrderStatus
+): MilestonePaymentStatus {
+  const explicit = milestone.paymentStatus || milestone.payment_status;
+  if (explicit) return explicit;
+
+  if (orderStatus === 'REFUNDED') {
+    return 'REFUNDED';
+  }
+
+  if (milestone.status === 'COMPLETED') {
+    if (orderStatus === 'RELEASED') {
+      return 'RELEASED';
+    }
+    return 'AWAITING_APPROVAL';
+  }
+
+  return 'PENDING';
+}
+
 
 export type PayoutStatus =
   | 'PENDING'

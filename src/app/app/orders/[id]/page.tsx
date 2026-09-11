@@ -12,6 +12,7 @@ import { BuyerActionPanel } from "@/components/orders/BuyerActionPanel";
 import { EscrowDetailsCard } from "@/components/orders/EscrowDetailsCard";
 import { OpenDisputeModal } from "@/components/orders/OpenDisputeModal";
 import { OrderDescriptionCard } from "@/components/orders/OrderDescriptionCard";
+import { OrderMilestonesCard } from "@/components/orders/OrderMilestonesCard";
 import { OrderDeliverablesCard } from "@/components/orders/OrderDeliverablesCard";
 import { OrderDetailLoading } from "@/components/orders/OrderDetailLoading";
 import { OrderNotFoundCard } from "@/components/orders/OrderNotFoundCard";
@@ -136,6 +137,14 @@ export default function OrderDetailPage(): React.JSX.Element {
 
           <OrderDescriptionCard description={order.description} />
 
+          <OrderMilestonesCard
+            orderId={order.id}
+            orderStatus={order.status}
+            milestones={order.milestones}
+            isBuyer={roles.isBuyer}
+            isSeller={roles.isSeller}
+          />
+
           <OrderDeliverablesCard
             orderId={order.id}
             orderStatus={order.status}
@@ -195,6 +204,7 @@ export default function OrderDetailPage(): React.JSX.Element {
               isProcessing={actions.isProcessing}
               onMarkCompleted={actions.handleMarkCompleted}
               onRequestDispute={modals.openDisputeModal}
+              milestones={order.milestones}
             />
           )}
 
