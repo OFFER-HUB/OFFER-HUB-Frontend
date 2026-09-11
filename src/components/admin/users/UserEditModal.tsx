@@ -25,7 +25,7 @@ export interface UserEditModalProps {
 }
 
 /** Mirrors `AdminUpdateUserDto` — these are the only fields the backend will change here. */
-interface FormData {
+export interface UserEditFormData {
   email: string;
   type: AdminUserRole;
   professionalTitle: string;
@@ -34,7 +34,7 @@ interface FormData {
   bio: string;
 }
 
-function formFromUser(user: AdminUser): FormData {
+function formFromUser(user: AdminUser): UserEditFormData {
   return {
     email: user.email ?? "",
     type: user.type,
@@ -43,6 +43,24 @@ function formFromUser(user: AdminUser): FormData {
     timezone: user.timezone ?? "",
     bio: user.bio ?? "",
   };
+}
+
+/**
+ * Only what the admin actually changed. `AdminUpdateUserDto` accepts "" for
+ * its optional strings, so sending every field would turn untouched nulls
+ * into empty strings on a plain role change.
+ */
+export function diffUserPayload(user: AdminUser, form: UserEditFormData): UpdateAdminUserPayload {
+  const original = formFromUser(user);
+  const payload: UpdateAdminUserPayload = {};
+  const email = form.email.trim();
+  if (email !== original.email) payload.email = email;
+  if (form.type !== original.type) payload.type = form.type;
+  for (const key of ["professionalTitle", "location", "timezone", "bio"] as const) {
+    const next = form[key].trim();
+    if (next !== original[key]) payload[key] = next;
+  }
+  return payload;
 }
 
 // ─── Stats Grid sub-component ─────────────────────────────────────────────────
@@ -129,7 +147,7 @@ function StatsGrid({
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export function UserEditModal({ isOpen, user, onClose, onSave, onBan }: UserEditModalProps) {
-  const [form, setForm] = useState<FormData>({
+  const [form, setForm] = useState<UserEditFormData>({
     email: "",
     type: "BUYER",
     professionalTitle: "",
@@ -163,9 +181,17 @@ export function UserEditModal({ isOpen, user, onClose, onSave, onBan }: UserEdit
   async function handleSave() {
     if (!user) return;
 
-    const trimmedEmail = form.email.trim();
-    if (!trimmedEmail || !trimmedEmail.includes("@")) {
+    const payload = diffUserPayload(user, form);
+
+    // A wallet-first account may legitimately have no email; only validate
+    // when the admin is actually setting one.
+    if (payload.email !== undefined && (!payload.email || !payload.email.includes("@"))) {
       setError("Please enter a valid email address.");
+      return;
+    }
+
+    if (Object.keys(payload).length === 0) {
+      onClose();
       return;
     }
 
@@ -173,14 +199,7 @@ export function UserEditModal({ isOpen, user, onClose, onSave, onBan }: UserEdit
     setIsSubmitting(true);
 
     try {
-      await onSave(user.id, {
-        email: trimmedEmail,
-        type: form.type,
-        professionalTitle: form.professionalTitle.trim(),
-        location: form.location.trim(),
-        timezone: form.timezone.trim(),
-        bio: form.bio.trim(),
-      });
+      await onSave(user.id, payload);
       onClose();
     } catch {
       setError("Failed to save changes. Please try again.");
