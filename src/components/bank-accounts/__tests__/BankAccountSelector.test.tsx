@@ -7,6 +7,7 @@ import type { BankAccount } from "@/lib/api/bank-accounts";
 const mockListBankAccounts = vi.fn();
 const mockSetDefaultBankAccount = vi.fn();
 const mockDeleteBankAccount = vi.fn();
+const mockGetMyKyc = vi.fn();
 
 vi.mock("@/lib/api/bank-accounts", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/lib/api/bank-accounts")>();
@@ -15,6 +16,14 @@ vi.mock("@/lib/api/bank-accounts", async (importOriginal) => {
     listBankAccounts: (...args: unknown[]) => mockListBankAccounts(...args),
     setDefaultBankAccount: (...args: unknown[]) => mockSetDefaultBankAccount(...args),
     deleteBankAccount: (...args: unknown[]) => mockDeleteBankAccount(...args),
+  };
+});
+
+vi.mock("@/lib/api/kyc", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/api/kyc")>();
+  return {
+    ...actual,
+    getMyKyc: (...args: unknown[]) => mockGetMyKyc(...args),
   };
 });
 
@@ -79,9 +88,58 @@ const SECONDARY_ACCOUNT: BankAccount = {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  // By default, KYC is approved so account operations work normally
+  mockGetMyKyc.mockResolvedValue({
+    id: "kyc_1",
+    country: "MX",
+    blindpayTosId: "tos_12345",
+  });
 });
 
-describe("BankAccountSelector", () => {
+describe("BankAccountSelector KYC Gate", () => {
+  it("locks adding accounts and displays gate when KYC is not submitted", async () => {
+    mockGetMyKyc.mockResolvedValue(null);
+    mockListBankAccounts.mockResolvedValue([]);
+    render(<BankAccountSelector />);
+
+    expect(await screen.findByText("Identity verification required")).toBeInTheDocument();
+    expect(screen.getByText("KYC Required")).toBeInTheDocument();
+    const addButton = screen.getByRole("button", { name: "Add new account" });
+    expect(addButton).toBeDisabled();
+  });
+
+  it("locks adding accounts and displays in-review gate when KYC ToS is pending", async () => {
+    mockGetMyKyc.mockResolvedValue({
+      id: "kyc_co",
+      country: "CO",
+      blindpayTosId: null, // Pending ToS
+    });
+    mockListBankAccounts.mockResolvedValue([]);
+    render(<BankAccountSelector />);
+
+    expect(await screen.findByText("Identity verification in review")).toBeInTheDocument();
+    expect(screen.getByText("In Review")).toBeInTheDocument();
+    const addButton = screen.getByRole("button", { name: "Add new account" });
+    expect(addButton).toBeDisabled();
+  });
+
+  it("unlocks accounts and allows adding accounts when KYC is approved", async () => {
+    mockGetMyKyc.mockResolvedValue({
+      id: "kyc_approved",
+      country: "MX",
+      blindpayTosId: "tos_accepted_123",
+    });
+    mockListBankAccounts.mockResolvedValue([]);
+    render(<BankAccountSelector />);
+
+    expect(await screen.findByText("Verified")).toBeInTheDocument();
+    expect(screen.getByText("No bank accounts yet")).toBeInTheDocument();
+    const addButton = screen.getByRole("button", { name: "Add new account" });
+    expect(addButton).not.toBeDisabled();
+  });
+});
+
+describe("BankAccountSelector Account Management", () => {
   it("lists accounts with rail label, masked account number and the default badge", async () => {
     mockListBankAccounts.mockResolvedValue([DEFAULT_ACCOUNT, SECONDARY_ACCOUNT]);
     render(<BankAccountSelector />);
@@ -117,8 +175,6 @@ describe("BankAccountSelector", () => {
     render(<BankAccountSelector onSelect={onSelect} />);
 
     await screen.findByText("Banco do Brasil");
-    // The default account already renders as "Selected"; only the
-    // non-default one still shows the "Use this account" call to action.
     await user.click(screen.getByRole("button", { name: "Use this account" }));
 
     expect(onSelect).toHaveBeenCalledWith(SECONDARY_ACCOUNT);

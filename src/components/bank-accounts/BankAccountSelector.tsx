@@ -3,7 +3,12 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { cn } from "@/lib/cn";
-import { NEUMORPHIC_CARD, NEUMORPHIC_INSET, ACTION_BUTTON_DEFAULT, ACTION_BUTTON_DANGER } from "@/lib/styles";
+import {
+  NEUMORPHIC_CARD,
+  NEUMORPHIC_INSET,
+  ACTION_BUTTON_DEFAULT,
+  ACTION_BUTTON_DANGER,
+} from "@/lib/styles";
 import { Icon, ICON_PATHS, LoadingSpinner } from "@/components/ui/Icon";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 import { Toast } from "@/components/ui/Toast";
@@ -15,6 +20,7 @@ import {
   SUPPORTED_CORRIDORS,
   type BankAccount,
 } from "@/lib/api/bank-accounts";
+import { getMyKyc, type KycProfile } from "@/lib/api/kyc";
 import { BankAccountForm, COUNTRY_FLAGS } from "@/components/bank-accounts/BankAccountForm";
 
 const RAIL_LABELS: Record<string, string> = Object.fromEntries(
@@ -49,10 +55,6 @@ function AddBankAccountModal({ isOpen, onClose, onAdded }: AddBankAccountModalPr
   if (!isOpen || typeof document === "undefined") return null;
 
   return createPortal(
-    // items-start, not items-center: centering a flex child taller than the
-    // viewport makes its top overflow unreachable by scroll in every major
-    // browser. Anchoring to the top keeps tall forms (many rail-specific
-    // detail fields) fully scrollable — same fix as KycStatusCard's modal.
     <div className="fixed inset-0 z-50 flex items-start justify-center p-4 overflow-y-auto">
       <button
         type="button"
@@ -69,13 +71,23 @@ function AddBankAccountModal({ isOpen, onClose, onAdded }: AddBankAccountModalPr
         aria-labelledby={titleId}
         className={cn(
           NEUMORPHIC_CARD,
-          "relative w-full max-w-lg my-8 outline-none bg-white animate-scale-in"
+          "relative w-full max-w-xl my-8 outline-none bg-white animate-scale-in"
         )}
       >
         <div className="flex items-start justify-between mb-5">
-          <h2 id={titleId} className="text-lg font-bold text-text-primary">
-            Add bank account
-          </h2>
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+              <Icon path={ICON_PATHS.creditCard} size="sm" />
+            </div>
+            <div>
+              <h2 id={titleId} className="text-lg font-bold text-text-primary">
+                Add Payout Bank Account
+              </h2>
+              <p className="text-xs text-text-secondary">
+                Configure your destination bank details for off-ramping USDC
+              </p>
+            </div>
+          </div>
           <button
             type="button"
             onClick={onClose}
@@ -121,7 +133,7 @@ function BankAccountRow({
   const flag = COUNTRY_FLAGS[account.country] ?? "";
 
   const content = (
-    <div className={cn(NEUMORPHIC_INSET, "rounded-2xl p-4 flex flex-col gap-3")}>
+    <div className={cn(NEUMORPHIC_INSET, "rounded-2xl p-4 flex flex-col gap-3 transition-all duration-200")}>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2.5 min-w-0">
           <span className="text-xl leading-none" aria-hidden="true">
@@ -193,9 +205,15 @@ export interface BankAccountSelectorProps {
   selectedId?: string | null;
   /** Present only in picker contexts (e.g. order completion) — omit to use this purely for management. */
   onSelect?: (account: BankAccount) => void;
-  /** Card heading — callers embedding this in a named section (e.g. settings' "Payment Accounts") override the generic default. */
+  /** Card heading — callers embedding this in a named section override the generic default. */
   title?: string;
   className?: string;
+  /** Optional pre-loaded KYC profile to evaluate gate condition */
+  kycProfile?: KycProfile | null;
+  /** Explicit override for KYC approval status */
+  isKycApproved?: boolean;
+  /** Callback triggered when user clicks to start KYC from the gate */
+  onStartKyc?: () => void;
 }
 
 export function BankAccountSelector({
@@ -203,6 +221,9 @@ export function BankAccountSelector({
   onSelect,
   title = "Bank accounts",
   className,
+  kycProfile: propKycProfile,
+  isKycApproved: propIsKycApproved,
+  onStartKyc,
 }: BankAccountSelectorProps): React.JSX.Element {
   const token = useAuthStore((state) => state.token);
 
@@ -213,6 +234,48 @@ export function BankAccountSelector({
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<BankAccount | null>(null);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+
+  // KYC compliance gate state
+  const [kycProfile, setKycProfile] = useState<KycProfile | null | undefined>(propKycProfile);
+  const [isCheckingKyc, setIsCheckingKyc] = useState<boolean>(propKycProfile === undefined && propIsKycApproved === undefined);
+
+  useEffect(() => {
+    if (propKycProfile !== undefined) {
+      setKycProfile(propKycProfile);
+      setIsCheckingKyc(false);
+      return;
+    }
+
+    if (propIsKycApproved !== undefined) {
+      setIsCheckingKyc(false);
+      return;
+    }
+
+    if (!token) {
+      setIsCheckingKyc(false);
+      return;
+    }
+
+    let cancelled = false;
+    getMyKyc(token)
+      .then((profile) => {
+        if (!cancelled) {
+          setKycProfile(profile);
+          setIsCheckingKyc(false);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          // If unmocked in test or offline, set to null
+          setKycProfile(null);
+          setIsCheckingKyc(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [token, propKycProfile, propIsKycApproved]);
 
   useEffect(() => {
     if (!token) return;
@@ -282,25 +345,100 @@ export function BankAccountSelector({
     }
   }
 
+  // --- KYC Gate Evaluation ---
+  // A user is verified when they have completed KYC and accepted BlindPay ToS (blindpayTosId set)
+  const isKycApproved =
+    propIsKycApproved !== undefined
+      ? propIsKycApproved
+      : Boolean(kycProfile?.blindpayTosId);
+
+  const isKycSubmitted = Boolean(kycProfile);
+  const isKycPending = isKycSubmitted && !isKycApproved;
+
   return (
     <div className={cn(NEUMORPHIC_CARD, className)}>
       <div className="flex items-center justify-between mb-1 gap-3 flex-wrap">
-        <h2 className="text-lg font-semibold text-text-primary flex items-center gap-2">
+        <div className="flex items-center gap-2">
           <Icon path={ICON_PATHS.creditCard} size="md" className="text-primary" />
-          {title}
-        </h2>
+          <h2 className="text-lg font-semibold text-text-primary">{title}</h2>
+          {isKycApproved ? (
+            <span className="inline-flex items-center gap-1 rounded-full bg-success/10 px-2 py-0.5 text-[11px] font-semibold text-success">
+              <Icon path={ICON_PATHS.check} size="sm" />
+              Verified
+            </span>
+          ) : isKycPending ? (
+            <span className="inline-flex items-center gap-1 rounded-full bg-warning/10 px-2 py-0.5 text-[11px] font-semibold text-warning">
+              <Icon path={ICON_PATHS.clock} size="sm" />
+              In Review
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1 rounded-full bg-error/10 px-2 py-0.5 text-[11px] font-semibold text-error">
+              <Icon path={ICON_PATHS.lock} size="sm" />
+              KYC Required
+            </span>
+          )}
+        </div>
+
         <button
           type="button"
+          disabled={!isKycApproved}
           onClick={() => setIsAddModalOpen(true)}
-          className={cn(ACTION_BUTTON_DEFAULT, "w-auto px-4 py-2 text-xs cursor-pointer")}
+          title={!isKycApproved ? "Complete identity verification first" : "Add bank account"}
+          className={cn(
+            ACTION_BUTTON_DEFAULT,
+            "w-auto px-4 py-2 text-xs transition-all duration-200",
+            !isKycApproved && "opacity-50 cursor-not-allowed hover:shadow-none pointer-events-auto"
+          )}
         >
-          <Icon path={ICON_PATHS.plus} size="sm" />
+          <Icon path={isKycApproved ? ICON_PATHS.plus : ICON_PATHS.lock} size="sm" />
           Add new account
         </button>
       </div>
-      <p className="text-sm text-text-secondary mb-5">Where your USDC settles as local currency.</p>
 
-      {loadError !== null ? (
+      <p className="text-sm text-text-secondary mb-5">
+        Where your USDC settles as local fiat currency via BlindPay.
+      </p>
+
+      {/* --- KYC Gate Notice when not approved --- */}
+      {isCheckingKyc ? (
+        <div role="status" className="flex items-center justify-center gap-2.5 py-8 text-sm text-text-secondary">
+          <LoadingSpinner size="sm" />
+          Checking compliance status...
+        </div>
+      ) : !isKycApproved ? (
+        <div className={cn(NEUMORPHIC_INSET, "rounded-2xl p-6 text-center animate-scale-in")}>
+          <div className="w-12 h-12 rounded-2xl mx-auto mb-3 flex items-center justify-center bg-white shadow-[3px_3px_6px_#d1d5db,-3px_-3px_6px_#ffffff]">
+            <Icon
+              path={isKycPending ? ICON_PATHS.clock : ICON_PATHS.shield}
+              size="lg"
+              className={isKycPending ? "text-warning" : "text-primary"}
+            />
+          </div>
+
+          <h3 className="text-base font-bold text-text-primary mb-1">
+            {isKycPending
+              ? "Identity verification in review"
+              : "Identity verification required"}
+          </h3>
+
+          <p className="text-sm text-text-secondary max-w-md mx-auto mb-4">
+            {isKycPending
+              ? "Your KYC documents have been submitted to BlindPay and are under review. Bank accounts can be linked as soon as your customer profile is approved."
+              : "Before registering a payout account, BlindPay requires you to complete your identity verification (KYC) to create your compliance profile."}
+          </p>
+
+          {!isKycPending && onStartKyc && (
+            <button
+              type="button"
+              onClick={onStartKyc}
+              className={cn(ACTION_BUTTON_DEFAULT, "w-auto mx-auto px-4 py-2 text-xs")}
+            >
+              <Icon path={ICON_PATHS.shield} size="sm" />
+              Complete Identity Verification
+            </button>
+          )}
+        </div>
+      ) : loadError !== null ? (
         <p role="alert" className="text-sm text-error">
           {loadError}
         </p>
@@ -310,7 +448,7 @@ export function BankAccountSelector({
           Loading bank accounts...
         </div>
       ) : accounts.length === 0 ? (
-        <div className={cn(NEUMORPHIC_INSET, "rounded-2xl p-6 text-center")}>
+        <div className={cn(NEUMORPHIC_INSET, "rounded-2xl p-6 text-center animate-scale-in")}>
           <Icon path={ICON_PATHS.creditCard} size="lg" className="mx-auto mb-2 text-text-secondary" />
           <p className="text-sm font-medium text-text-primary">No bank accounts yet</p>
           <p className="mt-1 text-sm text-text-secondary">
@@ -318,7 +456,7 @@ export function BankAccountSelector({
           </p>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-3 animate-scale-in">
           {accounts.map((account) => (
             <BankAccountRow
               key={account.id}

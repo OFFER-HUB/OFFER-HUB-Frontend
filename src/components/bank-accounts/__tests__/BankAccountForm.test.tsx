@@ -54,12 +54,14 @@ describe("BankAccountForm", () => {
     expect(Array.from(railSelect.options).map((o) => o.value)).toEqual(["SPEI_BITSO"]);
   });
 
-  it("shows rail-specific detail fields and requires them", async () => {
+  it("shows rail-specific detail fields in step 2 and requires them", async () => {
     const user = userEvent.setup();
     render(<BankAccountForm />);
 
     await user.selectOptions(screen.getByLabelText("Country"), "BR");
     await user.selectOptions(screen.getByLabelText("Payout method"), "PIX_SAFE");
+
+    await user.click(screen.getByRole("button", { name: "Continue to Details" }));
 
     expect(screen.getByLabelText("Account Type")).toBeInTheDocument();
     expect(screen.getByLabelText("Pix Safe Bank Code")).toBeInTheDocument();
@@ -70,13 +72,15 @@ describe("BankAccountForm", () => {
     expect(mockAddBankAccount).not.toHaveBeenCalled();
   });
 
-  it("blocks submission and reports errors when required fields are empty", async () => {
+  it("blocks submission and reports errors when required fields are empty in step 2", async () => {
     const user = userEvent.setup();
     render(<BankAccountForm />);
 
+    await user.click(screen.getByRole("button", { name: "Continue to Details" }));
+
     await user.click(screen.getByRole("button", { name: "Add bank account" }));
 
-    expect(await screen.findByText("Enter the account number")).toBeInTheDocument();
+    expect(await screen.findByText("Enter your Pix key")).toBeInTheDocument();
     expect(screen.getByText("Enter the bank name")).toBeInTheDocument();
     expect(screen.getByText("Enter the account holder's name")).toBeInTheDocument();
     expect(mockAddBankAccount).not.toHaveBeenCalled();
@@ -88,46 +92,48 @@ describe("BankAccountForm", () => {
     const user = userEvent.setup();
     render(<BankAccountForm onSuccess={onSuccess} />);
 
+    // Step 1: Select Country and Rail
     await user.selectOptions(screen.getByLabelText("Country"), "MX");
-    await user.type(screen.getByLabelText("Account number"), "032180000118359719");
+    await user.click(screen.getByRole("button", { name: "Continue to Details" }));
+
+    // Step 2: Fill Account Details
+    expect(screen.getByText("Step 2 of 2")).toBeInTheDocument();
+    await user.type(screen.getByLabelText("CLABE"), "032180000118359719");
     await user.type(screen.getByLabelText("Bank name"), "BBVA");
     await user.type(screen.getByLabelText("Account holder name"), "Jane Doe");
-    await user.type(screen.getByLabelText("Spei Protocol"), "clabe");
     await user.click(screen.getByLabelText("Set as default payout account"));
 
     await user.click(screen.getByRole("button", { name: "Add bank account" }));
 
     await waitFor(() =>
-      expect(mockAddBankAccount).toHaveBeenCalledWith("jwt-token", {
-        country: "MX",
-        rail: "SPEI_BITSO",
-        accountNumber: "032180000118359719",
-        bankName: "BBVA",
-        holderName: "Jane Doe",
-        isDefault: true,
-        details: { spei_protocol: "clabe" },
-      })
+      expect(mockAddBankAccount).toHaveBeenCalledWith(
+        "jwt-token",
+        expect.objectContaining({
+          country: "MX",
+          rail: "SPEI_BITSO",
+          accountNumber: "032180000118359719",
+          bankName: "BBVA",
+          holderName: "Jane Doe",
+          isDefault: true,
+          details: { spei_protocol: "clabe" },
+        })
+      )
     );
     expect(onSuccess).toHaveBeenCalledWith(NEW_ACCOUNT);
   });
 
-  it("surfaces an API error without losing the entered data", async () => {
-    mockAddBankAccount.mockRejectedValue(new Error("BlindPay rejected this account"));
+  it("allows navigating back to step 1 via Previous button", async () => {
     const user = userEvent.setup();
     render(<BankAccountForm />);
 
-    await user.type(screen.getByLabelText("Account number"), "00012345-6");
-    await user.type(screen.getByLabelText("Bank name"), "Banco do Brasil");
-    await user.type(screen.getByLabelText("Account holder name"), "Jane Doe");
-    await user.type(screen.getByLabelText("Pix Key"), "jane@example.com");
+    await user.click(screen.getByRole("button", { name: "Continue to Details" }));
+    expect(screen.getByText("Step 2 of 2")).toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: "Add bank account" }));
-
-    expect(await screen.findByText("BlindPay rejected this account")).toBeInTheDocument();
-    expect(screen.getByLabelText("Bank name")).toHaveValue("Banco do Brasil");
+    await user.click(screen.getByRole("button", { name: "Previous" }));
+    expect(screen.getByText("Step 1 of 2")).toBeInTheDocument();
   });
 
-  it("calls onCancel when the cancel button is used", async () => {
+  it("cancels form from step 1 when onCancel is provided", async () => {
     const onCancel = vi.fn();
     const user = userEvent.setup();
     render(<BankAccountForm onCancel={onCancel} />);

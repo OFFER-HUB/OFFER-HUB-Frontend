@@ -178,11 +178,17 @@ export async function submitKyc(token: string, data: SubmitKycData): Promise<Kyc
  * fixed server-side to this app's own callback route.
  * POST /users/me/kyc/tos-url
  */
-export async function generateTosUrl(token: string): Promise<string> {
+export async function generateTosUrl(token: string, redirectUrl?: string): Promise<string> {
+  const targetRedirectUrl =
+    redirectUrl ??
+    (typeof window !== "undefined"
+      ? `${window.location.origin}/app/kyc/tos-callback`
+      : undefined);
+
   const response = await fetch(`${API_URL}/users/me/kyc/tos-url`, {
     method: "POST",
     headers: authHeaders(token),
-    body: JSON.stringify({}),
+    body: JSON.stringify(targetRedirectUrl ? { redirectUrl: targetRedirectUrl } : {}),
   });
 
   if (!response.ok) {
