@@ -4,11 +4,20 @@ import { useEffect, useState } from "react";
 import { cn } from "@/lib/cn";
 import { Icon, ICON_PATHS, LoadingSpinner } from "@/components/ui/Icon";
 import { NEUMORPHIC_CARD, NEUMORPHIC_INSET } from "@/lib/styles";
-import type { AdminUser } from "@/types/admin.types";
+
+/**
+ * Who is being banned. Decoupled from `AdminUser` so a bulk ban can show
+ * "3 users" without fabricating a row.
+ */
+export interface BanSubject {
+  id: string;
+  name: string;
+  email: string | null;
+}
 
 export interface BanUserModalProps {
   isOpen: boolean;
-  user: AdminUser | null;
+  user: BanSubject | null;
   onClose: () => void;
   /** Called with userId and reason after validation passes */
   onConfirm: (userId: string, reason: string) => Promise<void>;
@@ -110,11 +119,11 @@ export function BanUserModal({ isOpen, user, onClose, onConfirm }: BanUserModalP
         {/* User info */}
         <div className={cn(NEUMORPHIC_INSET, "flex items-center gap-3 p-3 rounded-xl mb-5")}>
           <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs shrink-0">
-            {user.username.slice(0, 2).toUpperCase()}
+            {user.name.slice(0, 2).toUpperCase()}
           </div>
           <div className="min-w-0">
-            <p className="text-sm font-semibold text-text-primary truncate">{user.username}</p>
-            <p className="text-xs text-text-secondary truncate">{user.email}</p>
+            <p className="text-sm font-semibold text-text-primary truncate">{user.name}</p>
+            {user.email && <p className="text-xs text-text-secondary truncate">{user.email}</p>}
           </div>
         </div>
 

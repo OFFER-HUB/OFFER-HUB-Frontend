@@ -98,7 +98,6 @@ export function UsersFilters({ filters, onFiltersChange, className }: UsersFilte
         >
           <option value="ALL">All Statuses</option>
           <option value="ACTIVE">Active</option>
-          <option value="BANNED">Banned</option>
           <option value="SUSPENDED">Suspended</option>
           <option value="PENDING_VERIFICATION">Pending</option>
         </select>

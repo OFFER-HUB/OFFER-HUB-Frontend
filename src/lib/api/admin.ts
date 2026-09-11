@@ -1,6 +1,9 @@
 import { API_URL } from "@/config/api";
 import type {
   AdminUser,
+  AdminUserDetail,
+  AdminUsersPage,
+  AdminUsersQuery,
   UpdateAdminUserPayload,
   BanUserPayload,
 } from "@/types/admin.types";
@@ -25,17 +28,50 @@ function authHeaders(token: string): HeadersInit {
   };
 }
 
-export async function getAdminUsers(token: string): Promise<AdminUser[]> {
-  const response = await fetch(`${API_BASE_URL}/admin/users`, {
-    headers: authHeaders(token),
-  });
+/**
+ * Translate the UI query into the params `AdminUsersQueryDto` validates.
+ * "ALL" and empty strings mean "no filter" and are simply not sent.
+ */
+export function buildAdminUsersSearchParams(query: AdminUsersQuery): URLSearchParams {
+  const params = new URLSearchParams();
+  const search = query.search.trim();
+  if (search) params.set("search", search);
+  if (query.status !== "ALL") params.set("status", query.status);
+  if (query.role !== "ALL") params.set("role", query.role);
+  if (query.registeredAfter) params.set("registeredFrom", query.registeredAfter);
+  if (query.registeredBefore) params.set("registeredTo", query.registeredBefore);
+  params.set("page", String(query.page));
+  params.set("limit", String(query.limit));
+  params.set("sortBy", query.sort.field);
+  params.set("sortOrder", query.sort.direction);
+  return params;
+}
+
+export async function getAdminUsers(token: string, query: AdminUsersQuery): Promise<AdminUsersPage> {
+  const response = await fetch(
+    `${API_BASE_URL}/admin/users?${buildAdminUsersSearchParams(query).toString()}`,
+    { headers: authHeaders(token) }
+  );
 
   if (!response.ok) {
     throw await parseApiError(response, "Failed to fetch users");
   }
 
-  const data = await response.json();
-  return data.data as AdminUser[];
+  const json = (await response.json()) as { data: AdminUser[]; meta: AdminUsersPage["meta"] };
+  return { users: json.data, meta: json.meta };
+}
+
+export async function getAdminUserDetail(token: string, userId: string): Promise<AdminUserDetail> {
+  const response = await fetch(`${API_BASE_URL}/admin/users/${userId}`, {
+    headers: authHeaders(token),
+  });
+
+  if (!response.ok) {
+    throw await parseApiError(response, "Failed to fetch user");
+  }
+
+  const json = (await response.json()) as { data: AdminUserDetail };
+  return json.data;
 }
 
 export async function updateAdminUser(
@@ -53,8 +89,8 @@ export async function updateAdminUser(
     throw await parseApiError(response, "Failed to update user");
   }
 
-  const data = await response.json();
-  return data.data as AdminUser;
+  const json = (await response.json()) as { data: AdminUser };
+  return json.data;
 }
 
 export async function banUser(
@@ -63,7 +99,7 @@ export async function banUser(
   payload: BanUserPayload
 ): Promise<AdminUser> {
   const response = await fetch(`${API_BASE_URL}/admin/users/${userId}/ban`, {
-    method: "PATCH",
+    method: "POST",
     headers: authHeaders(token),
     body: JSON.stringify(payload),
   });
@@ -72,16 +108,13 @@ export async function banUser(
     throw await parseApiError(response, "Failed to ban user");
   }
 
-  const data = await response.json();
-  return data.data as AdminUser;
+  const json = (await response.json()) as { data: AdminUser };
+  return json.data;
 }
 
-export async function unbanUser(
-  token: string,
-  userId: string
-): Promise<AdminUser> {
+export async function unbanUser(token: string, userId: string): Promise<AdminUser> {
   const response = await fetch(`${API_BASE_URL}/admin/users/${userId}/unban`, {
-    method: "PATCH",
+    method: "POST",
     headers: authHeaders(token),
   });
 
@@ -89,20 +122,6 @@ export async function unbanUser(
     throw await parseApiError(response, "Failed to unban user");
   }
 
-  const data = await response.json();
-  return data.data as AdminUser;
-}
-
-export async function deleteUser(
-  token: string,
-  userId: string
-): Promise<void> {
-  const response = await fetch(`${API_BASE_URL}/admin/users/${userId}`, {
-    method: "DELETE",
-    headers: authHeaders(token),
-  });
-
-  if (!response.ok) {
-    throw await parseApiError(response, "Failed to delete user");
-  }
+  const json = (await response.json()) as { data: AdminUser };
+  return json.data;
 }

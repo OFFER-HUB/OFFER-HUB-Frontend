@@ -1,96 +1,68 @@
 // ─── Status & Role ────────────────────────────────────────────────────────────
 
-export type AdminUserStatus =
-  | "ACTIVE"
-  | "BANNED"
-  | "SUSPENDED"
-  | "PENDING_VERIFICATION";
+/** Prisma `UserStatus`. A banned account is `SUSPENDED` — there is no separate BANNED value. */
+export type AdminUserStatus = "ACTIVE" | "SUSPENDED" | "PENDING_VERIFICATION";
 
 export type AdminUserRole = "BUYER" | "SELLER" | "BOTH";
 
-// ─── Activity Log ─────────────────────────────────────────────────────────────
-
-export type UserActivityType =
-  | "ACCOUNT_CREATED"
-  | "PROFILE_UPDATED"
-  | "ROLE_CHANGED"
-  | "STATUS_CHANGED"
-  | "BAN"
-  | "UNBAN";
-
-export interface UserActivityRecord {
-  id: string;
-  type: UserActivityType;
-  /** Human-readable description, e.g. "Role changed from BUYER to SELLER" */
-  description: string;
-  /** "system" | admin username | "user" */
-  performedBy: string;
-  createdAt: string; // ISO 8601
-}
-
-/** Color class per activity type — icon is resolved in the component via ICON_PATHS */
-export const USER_ACTIVITY_COLOR: Record<UserActivityType, string> = {
-  ACCOUNT_CREATED: "text-text-secondary",
-  PROFILE_UPDATED: "text-primary",
-  ROLE_CHANGED: "text-primary",
-  STATUS_CHANGED: "text-warning",
-  BAN: "text-error",
-  UNBAN: "text-success",
-};
-
-// ─── Ban History ──────────────────────────────────────────────────────────────
-
-export interface BanRecord {
-  id: string;
-  adminId: string;
-  adminUsername: string;
-  /** BAN when the user was banned, UNBAN when the ban was lifted */
-  action: "BAN" | "UNBAN";
-  reason: string;
-  createdAt: string; // ISO 8601
-}
-
-// ─── User Statistics ──────────────────────────────────────────────────────────
-
-export interface AdminUserStats {
-  totalOrders: number;
-  completedOrders: number;
-  /** Pre-formatted, e.g. "$12,340.00" */
-  totalEarnings: string;
-  /** Pre-formatted, e.g. "$3,200.00" */
-  totalSpent: string;
-  /** 0.0 – 5.0 */
-  averageRating: number;
-  ratingCount: number;
-  joinedDaysAgo: number;
-}
-
 // ─── Admin User ───────────────────────────────────────────────────────────────
 
+/** One row of `GET /admin/users` — the backend's `USER_SELECT`, nothing derived. */
 export interface AdminUser {
   id: string;
-  email: string;
-  username: string;
-  avatarUrl?: string;
+  externalUserId: string;
+  /** Wallet-first accounts may have no email yet. */
+  email: string | null;
   type: AdminUserRole;
   status: AdminUserStatus;
-  registeredAt: string; // ISO 8601
-  lastActiveAt: string; // ISO 8601
-  stats: AdminUserStats;
-  banHistory: BanRecord[];
-  activityHistory: UserActivityRecord[];
+  emailVerified: boolean;
+  emailVerifiedAt: string | null; // ISO 8601
+  avatarUrl: string | null;
+  bio: string | null;
+  professionalTitle: string | null;
+  location: string | null;
+  timezone: string | null;
+  createdAt: string; // ISO 8601
+  updatedAt: string; // ISO 8601
+}
+
+/** `GET /admin/users/:id` — the row plus the aggregates the backend computes for one user. */
+export interface AdminUserDetail extends AdminUser {
+  skills: { name: string; level: string | null }[];
+  balance: { available: string; reserved: string; currency: string } | null;
+  _count: {
+    buyerOrders: number;
+    sellerOrders: number;
+    services: number;
+    applications: number;
+  };
+  stats: {
+    completedOrders: number;
+    /** Decimal string, e.g. "1250.00" */
+    totalEarnings: string;
+    /** Decimal string 0–5, or null when the user has no rated services */
+    averageRating: string | null;
+  };
+}
+
+// ─── Listing ──────────────────────────────────────────────────────────────────
+
+export interface AdminUsersMeta {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+export interface AdminUsersPage {
+  users: AdminUser[];
+  meta: AdminUsersMeta;
 }
 
 // ─── Sorting ──────────────────────────────────────────────────────────────────
 
-export type AdminUserSortField =
-  | "username"
-  | "email"
-  | "registeredAt"
-  | "lastActiveAt"
-  | "totalOrders"
-  | "totalEarnings"
-  | "averageRating";
+/** The only `sortBy` values `AdminUsersQueryDto` accepts. */
+export type AdminUserSortField = "createdAt" | "email" | "status";
 
 export type SortDirection = "asc" | "desc";
 
@@ -114,17 +86,27 @@ export interface AdminUsersFilters {
   registeredBefore: string;
 }
 
+/** Everything the list endpoint is asked for; filtering, sorting and paging happen server-side. */
+export interface AdminUsersQuery extends AdminUsersFilters {
+  sort: AdminUsersSort;
+  page: number;
+  limit: number;
+}
+
 // ─── API Payloads ─────────────────────────────────────────────────────────────
 
+/** Fields `AdminUpdateUserDto` accepts. Status changes go through ban/unban, not here. */
 export interface UpdateAdminUserPayload {
-  username?: string;
   email?: string;
   type?: AdminUserRole;
-  status?: AdminUserStatus;
+  bio?: string;
+  professionalTitle?: string;
+  location?: string;
+  timezone?: string;
 }
 
 export interface BanUserPayload {
-  reason: string;
+  reason?: string;
 }
 
 // ─── Config Maps (UI display helpers) ────────────────────────────────────────
@@ -138,15 +120,10 @@ export const ADMIN_USER_STATUS_CONFIG: Record<
     color: "text-success",
     bg: "bg-success/10",
   },
-  BANNED: {
-    label: "Banned",
-    color: "text-error",
-    bg: "bg-error/10",
-  },
   SUSPENDED: {
     label: "Suspended",
-    color: "text-warning",
-    bg: "bg-warning/10",
+    color: "text-error",
+    bg: "bg-error/10",
   },
   PENDING_VERIFICATION: {
     label: "Pending",
@@ -160,6 +137,14 @@ export const ADMIN_USER_ROLE_LABELS: Record<AdminUserRole, string> = {
   SELLER: "Seller",
   BOTH: "Both",
 };
+
+/**
+ * What to call a user in admin UI. There is no username on the row, so fall
+ * back through the fields that are actually there.
+ */
+export function adminUserDisplayName(user: Pick<AdminUser, "email" | "professionalTitle" | "externalUserId">): string {
+  return user.email ?? user.professionalTitle ?? user.externalUserId;
+}
 
 // ─── Admin Disputes ───────────────────────────────────────────────────────────
 

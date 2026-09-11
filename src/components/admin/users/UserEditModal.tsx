@@ -4,17 +4,15 @@ import { useEffect, useState } from "react";
 import { cn } from "@/lib/cn";
 import { Icon, ICON_PATHS, LoadingSpinner } from "@/components/ui/Icon";
 import { NEUMORPHIC_CARD, NEUMORPHIC_INSET, NEUMORPHIC_INPUT } from "@/lib/styles";
+import { useAdminUserDetail } from "@/hooks/useAdminUserDetail";
 import {
   ADMIN_USER_STATUS_CONFIG,
   ADMIN_USER_ROLE_LABELS,
-  USER_ACTIVITY_COLOR,
+  adminUserDisplayName,
   type AdminUser,
+  type AdminUserDetail,
   type UpdateAdminUserPayload,
   type AdminUserRole,
-  type AdminUserStatus,
-  type BanRecord,
-  type UserActivityRecord,
-  type UserActivityType,
 } from "@/types/admin.types";
 
 export interface UserEditModalProps {
@@ -26,225 +24,104 @@ export interface UserEditModalProps {
   onBan: (user: AdminUser) => void;
 }
 
+/** Mirrors `AdminUpdateUserDto` — these are the only fields the backend will change here. */
 interface FormData {
-  username: string;
   email: string;
   type: AdminUserRole;
-  status: AdminUserStatus;
+  professionalTitle: string;
+  location: string;
+  timezone: string;
+  bio: string;
 }
 
-// ─── Ban History sub-component ────────────────────────────────────────────────
-
-function BanHistorySection({ records }: { records: BanRecord[] }) {
-  const [isOpen, setIsOpen] = useState(false);
-
-  return (
-    <div className="border-t border-gray-100 pt-4">
-      <button
-        type="button"
-        onClick={() => setIsOpen((v) => !v)}
-        className="flex items-center justify-between w-full text-sm font-medium text-text-primary hover:text-primary transition-colors"
-      >
-        <span>
-          Ban History{" "}
-          <span className="text-text-secondary font-normal">({records.length})</span>
-        </span>
-        <Icon
-          path={ICON_PATHS.chevronDown}
-          size="sm"
-          className={cn("transition-transform duration-200", isOpen && "rotate-180")}
-        />
-      </button>
-
-      {isOpen && (
-        <div className="mt-3 space-y-2">
-          {records.length === 0 ? (
-            <p className="text-xs text-text-secondary text-center py-3">No ban history.</p>
-          ) : (
-            [...records].reverse().map((record) => (
-              <div
-                key={record.id}
-                className={cn(NEUMORPHIC_INSET, "rounded-xl p-3 text-xs space-y-1")}
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <span
-                    className={cn(
-                      "font-semibold px-2 py-0.5 rounded-full text-[10px] uppercase tracking-wide",
-                      record.action === "BAN"
-                        ? "bg-error/10 text-error"
-                        : "bg-success/10 text-success"
-                    )}
-                  >
-                    {record.action === "BAN" ? "Banned" : "Unbanned"}
-                  </span>
-                  <span className="text-text-secondary shrink-0">
-                    {new Date(record.createdAt).toLocaleDateString("en-US", {
-                      year: "numeric",
-                      month: "short",
-                      day: "numeric",
-                    })}
-                  </span>
-                </div>
-                <p className="text-text-secondary">{record.reason}</p>
-                <p className="text-text-secondary/70">
-                  by{" "}
-                  <span className="font-medium text-text-secondary">{record.adminUsername}</span>
-                </p>
-              </div>
-            ))
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ─── Activity Log sub-component ──────────────────────────────────────────────
-
-const ACTIVITY_ICON: Record<UserActivityType, string> = {
-  ACCOUNT_CREATED: ICON_PATHS.user,
-  PROFILE_UPDATED: ICON_PATHS.edit,
-  ROLE_CHANGED: ICON_PATHS.shield,
-  STATUS_CHANGED: ICON_PATHS.alertCircle,
-  BAN: ICON_PATHS.flag,
-  UNBAN: ICON_PATHS.lock,
-};
-
-const ACTIVITY_LABEL: Record<UserActivityType, string> = {
-  ACCOUNT_CREATED: "Created",
-  PROFILE_UPDATED: "Profile",
-  ROLE_CHANGED: "Role",
-  STATUS_CHANGED: "Status",
-  BAN: "Banned",
-  UNBAN: "Unbanned",
-};
-
-function ActivityLogSection({ records }: { records: UserActivityRecord[] }) {
-  const [isOpen, setIsOpen] = useState(false);
-
-  return (
-    <div className="border-t border-gray-100 pt-4">
-      <button
-        type="button"
-        onClick={() => setIsOpen((v) => !v)}
-        className="flex items-center justify-between w-full text-sm font-medium text-text-primary hover:text-primary transition-colors"
-      >
-        <span>
-          Activity Log{" "}
-          <span className="text-text-secondary font-normal">({records.length})</span>
-        </span>
-        <Icon
-          path={ICON_PATHS.chevronDown}
-          size="sm"
-          className={cn("transition-transform duration-200", isOpen && "rotate-180")}
-        />
-      </button>
-
-      {isOpen && (
-        <div className="mt-3 space-y-2">
-          {records.length === 0 ? (
-            <p className="text-xs text-text-secondary text-center py-3">No activity recorded.</p>
-          ) : (
-            [...records].reverse().map((record) => (
-              <div
-                key={record.id}
-                className={cn(NEUMORPHIC_INSET, "rounded-xl p-3 text-xs flex items-start gap-3")}
-              >
-                <div
-                  className={cn(
-                    "w-7 h-7 rounded-lg flex items-center justify-center shrink-0 mt-0.5",
-                    USER_ACTIVITY_COLOR[record.type].replace("text-", "bg-") + "/10"
-                  )}
-                >
-                  <Icon
-                    path={ACTIVITY_ICON[record.type]}
-                    size="sm"
-                    className={USER_ACTIVITY_COLOR[record.type]}
-                  />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center justify-between gap-2 mb-0.5">
-                    <span
-                      className={cn(
-                        "font-semibold text-[10px] uppercase tracking-wide",
-                        USER_ACTIVITY_COLOR[record.type]
-                      )}
-                    >
-                      {ACTIVITY_LABEL[record.type]}
-                    </span>
-                    <span className="text-text-secondary shrink-0">
-                      {new Date(record.createdAt).toLocaleDateString("en-US", {
-                        year: "numeric",
-                        month: "short",
-                        day: "numeric",
-                      })}
-                    </span>
-                  </div>
-                  <p className="text-text-secondary leading-snug">{record.description}</p>
-                  <p className="text-text-secondary/60 mt-0.5">
-                    by{" "}
-                    <span className="font-medium text-text-secondary">{record.performedBy}</span>
-                  </p>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-      )}
-    </div>
-  );
+function formFromUser(user: AdminUser): FormData {
+  return {
+    email: user.email ?? "",
+    type: user.type,
+    professionalTitle: user.professionalTitle ?? "",
+    location: user.location ?? "",
+    timezone: user.timezone ?? "",
+    bio: user.bio ?? "",
+  };
 }
 
 // ─── Stats Grid sub-component ─────────────────────────────────────────────────
 
-function StatsGrid({ user }: { user: AdminUser }) {
-  const { stats } = user;
-  const statItems = [
-    {
-      icon: ICON_PATHS.shoppingCart,
-      label: "Orders",
-      value: `${stats.completedOrders}/${stats.totalOrders}`,
-    },
-    {
-      icon: ICON_PATHS.currency,
-      label: "Earnings",
-      value: stats.totalEarnings,
-    },
-    {
-      icon: ICON_PATHS.star,
-      label: "Rating",
-      value:
-        stats.ratingCount > 0
-          ? `${stats.averageRating.toFixed(1)} (${stats.ratingCount})`
-          : "No ratings",
-    },
-    {
-      icon: ICON_PATHS.calendar,
-      label: "Member for",
-      value: `${stats.joinedDaysAgo} days`,
-    },
-  ];
+function StatsGrid({
+  detail,
+  isLoading,
+  error,
+}: {
+  detail: AdminUserDetail | null;
+  isLoading: boolean;
+  error: string | null;
+}) {
+  const statItems = detail
+    ? [
+        {
+          icon: ICON_PATHS.shoppingCart,
+          label: "Orders (bought / sold)",
+          value: `${detail._count.buyerOrders} / ${detail._count.sellerOrders}`,
+        },
+        {
+          icon: ICON_PATHS.check,
+          label: "Completed as seller",
+          value: String(detail.stats.completedOrders),
+        },
+        {
+          icon: ICON_PATHS.currency,
+          label: "Earnings",
+          value: `$${detail.stats.totalEarnings}`,
+        },
+        {
+          icon: ICON_PATHS.star,
+          label: "Rating",
+          value: detail.stats.averageRating ?? "No ratings",
+        },
+        {
+          icon: ICON_PATHS.briefcase,
+          label: "Services",
+          value: String(detail._count.services),
+        },
+        {
+          icon: ICON_PATHS.creditCard,
+          label: "Balance",
+          value: detail.balance
+            ? `${detail.balance.available} ${detail.balance.currency}`
+            : "—",
+        },
+      ]
+    : [];
 
   return (
     <div className={cn(NEUMORPHIC_INSET, "rounded-xl p-4")}>
       <p className="text-xs font-semibold text-text-secondary uppercase tracking-wider mb-3">
         Statistics
       </p>
-      <div className="grid grid-cols-2 gap-3">
-        {statItems.map(({ icon, label, value }) => (
-          <div key={label} className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-              <Icon path={icon} size="sm" className="text-primary" />
+      {isLoading ? (
+        <div className="flex items-center gap-2 text-xs text-text-secondary">
+          <LoadingSpinner size="sm" />
+          Loading…
+        </div>
+      ) : error ? (
+        <p className="text-xs text-error">{error}</p>
+      ) : (
+        <div className="grid grid-cols-2 gap-3">
+          {statItems.map(({ icon, label, value }) => (
+            <div key={label} className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                <Icon path={icon} size="sm" className="text-primary" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-[10px] text-text-secondary uppercase tracking-wide leading-none mb-0.5">
+                  {label}
+                </p>
+                <p className="text-xs font-semibold text-text-primary truncate">{value}</p>
+              </div>
             </div>
-            <div className="min-w-0">
-              <p className="text-[10px] text-text-secondary uppercase tracking-wide leading-none mb-0.5">
-                {label}
-              </p>
-              <p className="text-xs font-semibold text-text-primary truncate">{value}</p>
-            </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -253,23 +130,21 @@ function StatsGrid({ user }: { user: AdminUser }) {
 
 export function UserEditModal({ isOpen, user, onClose, onSave, onBan }: UserEditModalProps) {
   const [form, setForm] = useState<FormData>({
-    username: "",
     email: "",
     type: "BUYER",
-    status: "ACTIVE",
+    professionalTitle: "",
+    location: "",
+    timezone: "",
+    bio: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const detail = useAdminUserDetail(isOpen && user ? user.id : null);
 
   // Sync form when user changes
   useEffect(() => {
     if (user) {
-      setForm({
-        username: user.username,
-        email: user.email,
-        type: user.type,
-        status: user.status,
-      });
+      setForm(formFromUser(user));
       setError(null);
     }
   }, [user]);
@@ -288,13 +163,7 @@ export function UserEditModal({ isOpen, user, onClose, onSave, onBan }: UserEdit
   async function handleSave() {
     if (!user) return;
 
-    const trimmedUsername = form.username.trim();
     const trimmedEmail = form.email.trim();
-
-    if (!trimmedUsername) {
-      setError("Username cannot be empty.");
-      return;
-    }
     if (!trimmedEmail || !trimmedEmail.includes("@")) {
       setError("Please enter a valid email address.");
       return;
@@ -305,10 +174,12 @@ export function UserEditModal({ isOpen, user, onClose, onSave, onBan }: UserEdit
 
     try {
       await onSave(user.id, {
-        username: trimmedUsername,
         email: trimmedEmail,
         type: form.type,
-        status: form.status,
+        professionalTitle: form.professionalTitle.trim(),
+        location: form.location.trim(),
+        timezone: form.timezone.trim(),
+        bio: form.bio.trim(),
       });
       onClose();
     } catch {
@@ -365,7 +236,7 @@ export function UserEditModal({ isOpen, user, onClose, onSave, onBan }: UserEdit
               Edit User
             </h2>
             <div className="flex items-center gap-2 mt-0.5">
-              <span className="text-xs text-text-secondary">{user.email}</span>
+              <span className="text-xs text-text-secondary">{adminUserDisplayName(user)}</span>
               <span
                 className={cn(
                   "text-[10px] font-semibold px-1.5 py-0.5 rounded-full",
@@ -381,19 +252,6 @@ export function UserEditModal({ isOpen, user, onClose, onSave, onBan }: UserEdit
 
         {/* Form fields */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
-          <div>
-            <label htmlFor="edit-username" className="block text-sm font-medium text-text-primary mb-1.5">
-              Username
-            </label>
-            <input
-              id="edit-username"
-              type="text"
-              value={form.username}
-              onChange={(e) => setForm((f) => ({ ...f, username: e.target.value }))}
-              disabled={isSubmitting}
-              className={cn(NEUMORPHIC_INPUT, "disabled:opacity-50")}
-            />
-          </div>
           <div>
             <label htmlFor="edit-email" className="block text-sm font-medium text-text-primary mb-1.5">
               Email
@@ -428,41 +286,66 @@ export function UserEditModal({ isOpen, user, onClose, onSave, onBan }: UserEdit
               <Icon path={ICON_PATHS.chevronDown} size="sm" />
             </span>
           </div>
-          <div className="relative">
-            <label htmlFor="edit-status" className="block text-sm font-medium text-text-primary mb-1.5">
-              Status
+          <div>
+            <label htmlFor="edit-title" className="block text-sm font-medium text-text-primary mb-1.5">
+              Professional title
             </label>
-            <select
-              id="edit-status"
-              value={form.status}
-              onChange={(e) => setForm((f) => ({ ...f, status: e.target.value as AdminUserStatus }))}
+            <input
+              id="edit-title"
+              type="text"
+              maxLength={100}
+              value={form.professionalTitle}
+              onChange={(e) => setForm((f) => ({ ...f, professionalTitle: e.target.value }))}
               disabled={isSubmitting}
-              className={cn(NEUMORPHIC_INPUT, "appearance-none pr-10 cursor-pointer disabled:opacity-50")}
-            >
-              <option value="ACTIVE">Active</option>
-              <option value="BANNED">Banned</option>
-              <option value="SUSPENDED">Suspended</option>
-              <option value="PENDING_VERIFICATION">Pending Verification</option>
-            </select>
-            <span className="absolute right-3 bottom-3 text-text-secondary pointer-events-none">
-              <Icon path={ICON_PATHS.chevronDown} size="sm" />
-            </span>
+              className={cn(NEUMORPHIC_INPUT, "disabled:opacity-50")}
+            />
+          </div>
+          <div>
+            <label htmlFor="edit-location" className="block text-sm font-medium text-text-primary mb-1.5">
+              Location
+            </label>
+            <input
+              id="edit-location"
+              type="text"
+              value={form.location}
+              onChange={(e) => setForm((f) => ({ ...f, location: e.target.value }))}
+              disabled={isSubmitting}
+              className={cn(NEUMORPHIC_INPUT, "disabled:opacity-50")}
+            />
+          </div>
+          <div>
+            <label htmlFor="edit-timezone" className="block text-sm font-medium text-text-primary mb-1.5">
+              Timezone
+            </label>
+            <input
+              id="edit-timezone"
+              type="text"
+              placeholder="America/Costa_Rica"
+              value={form.timezone}
+              onChange={(e) => setForm((f) => ({ ...f, timezone: e.target.value }))}
+              disabled={isSubmitting}
+              className={cn(NEUMORPHIC_INPUT, "disabled:opacity-50")}
+            />
+          </div>
+          <div className="sm:col-span-2">
+            <label htmlFor="edit-bio" className="block text-sm font-medium text-text-primary mb-1.5">
+              Bio
+            </label>
+            <textarea
+              id="edit-bio"
+              rows={3}
+              maxLength={500}
+              value={form.bio}
+              onChange={(e) => setForm((f) => ({ ...f, bio: e.target.value }))}
+              disabled={isSubmitting}
+              className={cn(NEUMORPHIC_INPUT, "resize-none disabled:opacity-50")}
+            />
           </div>
         </div>
 
         {/* User statistics */}
         <div className="mb-5">
-          <StatsGrid user={user} />
-        </div>
-
-        {/* Activity log */}
-        <div className="mb-2">
-          <ActivityLogSection records={user.activityHistory} />
-        </div>
-
-        {/* Ban history */}
-        <div className="mb-5">
-          <BanHistorySection records={user.banHistory} />
+          <StatsGrid detail={detail.detail} isLoading={detail.isLoading} error={detail.error} />
         </div>
 
         {/* Error */}
@@ -484,7 +367,7 @@ export function UserEditModal({ isOpen, user, onClose, onSave, onBan }: UserEdit
             Cancel
           </button>
 
-          {user.status !== "BANNED" && (
+          {user.status !== "SUSPENDED" && (
             <button
               type="button"
               onClick={handleBan}

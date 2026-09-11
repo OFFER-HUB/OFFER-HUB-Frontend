@@ -8,10 +8,13 @@ import { formatDate } from "@/lib/date-formatters";
 import {
   ADMIN_USER_STATUS_CONFIG,
   ADMIN_USER_ROLE_LABELS,
+  adminUserDisplayName,
   type AdminUser,
   type AdminUsersSort,
   type AdminUserSortField,
 } from "@/types/admin.types";
+
+const COLUMN_COUNT = 7;
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -26,7 +29,6 @@ export interface UsersTableProps {
   onEdit: (user: AdminUser) => void;
   onBan: (user: AdminUser) => void;
   onUnban: (user: AdminUser) => void;
-  onDelete: (user: AdminUser) => void;
 }
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
@@ -63,12 +65,12 @@ function SortableHeader({
 function TableRowSkeleton() {
   return (
     <tr className="border-t border-gray-100 animate-pulse">
-      {Array.from({ length: 9 }).map((_, i) => (
+      {Array.from({ length: COLUMN_COUNT }).map((_, i) => (
         <td key={i} className="px-4 py-4">
           <div
             className={cn(
               "h-4 rounded bg-gray-200",
-              i === 0 ? "w-5" : i === 1 ? "w-32" : i === 8 ? "w-20" : "w-16"
+              i === 0 ? "w-5" : i === 1 ? "w-32" : i === COLUMN_COUNT - 1 ? "w-20" : "w-16"
             )}
           />
         </td>
@@ -77,19 +79,19 @@ function TableRowSkeleton() {
   );
 }
 
-function UserAvatar({ username, avatarUrl }: { username: string; avatarUrl?: string }) {
+function UserAvatar({ name, avatarUrl }: { name: string; avatarUrl: string | null }) {
   if (avatarUrl) {
     return (
       <img
         src={avatarUrl}
-        alt={username}
+        alt={name}
         className="w-8 h-8 rounded-full object-cover"
       />
     );
   }
   return (
     <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs shrink-0">
-      {username.slice(0, 2).toUpperCase()}
+      {name.slice(0, 2).toUpperCase()}
     </div>
   );
 }
@@ -107,7 +109,6 @@ export function UsersTable({
   onEdit,
   onBan,
   onUnban,
-  onDelete,
 }: UsersTableProps) {
   const allPageSelected = users.length > 0 && users.every((u) => selectedIds.has(u.id));
   const somePageSelected = users.some((u) => selectedIds.has(u.id));
@@ -132,22 +133,20 @@ export function UsersTable({
               />
             </th>
 
-            <SortableHeader field="username" label="User" currentSort={sort} onSort={onSortChange} />
+            <SortableHeader field="email" label="User" currentSort={sort} onSort={onSortChange} />
 
-            {/* Role — not sortable */}
+            {/* Role — the backend does not sort by it */}
             <th className="px-4 py-3 text-left text-xs font-semibold text-text-secondary uppercase tracking-wider whitespace-nowrap">
               Role
             </th>
 
-            {/* Status — not sortable */}
+            <SortableHeader field="status" label="Status" currentSort={sort} onSort={onSortChange} />
+
             <th className="px-4 py-3 text-left text-xs font-semibold text-text-secondary uppercase tracking-wider whitespace-nowrap">
-              Status
+              Email
             </th>
 
-            <SortableHeader field="registeredAt" label="Registered" currentSort={sort} onSort={onSortChange} />
-            <SortableHeader field="lastActiveAt" label="Last Active" currentSort={sort} onSort={onSortChange} />
-            <SortableHeader field="totalOrders" label="Orders" currentSort={sort} onSort={onSortChange} />
-            <SortableHeader field="averageRating" label="Rating" currentSort={sort} onSort={onSortChange} />
+            <SortableHeader field="createdAt" label="Registered" currentSort={sort} onSort={onSortChange} />
 
             <th className="px-4 py-3 text-left text-xs font-semibold text-text-secondary uppercase tracking-wider whitespace-nowrap">
               Actions
@@ -161,7 +160,7 @@ export function UsersTable({
             Array.from({ length: 5 }).map((_, i) => <TableRowSkeleton key={i} />)
           ) : users.length === 0 ? (
             <tr>
-              <td colSpan={9} className="py-8">
+              <td colSpan={COLUMN_COUNT} className="py-8">
                 <EmptyState
                   icon={ICON_PATHS.users}
                   title="No users found"
@@ -173,6 +172,7 @@ export function UsersTable({
             users.map((user) => {
               const statusCfg = ADMIN_USER_STATUS_CONFIG[user.status];
               const isSelected = selectedIds.has(user.id);
+              const name = adminUserDisplayName(user);
               return (
                 <tr
                   key={user.id}
@@ -188,19 +188,19 @@ export function UsersTable({
                       checked={isSelected}
                       onChange={() => onToggleSelect(user.id)}
                       className="w-4 h-4 rounded accent-primary cursor-pointer"
-                      aria-label={`Select ${user.username}`}
+                      aria-label={`Select ${name}`}
                     />
                   </td>
 
                   {/* User */}
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
-                      <UserAvatar username={user.username} avatarUrl={user.avatarUrl} />
+                      <UserAvatar name={name} avatarUrl={user.avatarUrl} />
                       <div className="min-w-0">
-                        <p className="text-sm font-semibold text-text-primary truncate">
-                          {user.username}
+                        <p className="text-sm font-semibold text-text-primary truncate">{name}</p>
+                        <p className="text-xs text-text-secondary truncate">
+                          {user.professionalTitle ?? user.externalUserId}
                         </p>
-                        <p className="text-xs text-text-secondary truncate">{user.email}</p>
                       </div>
                     </div>
                   </td>
@@ -225,35 +225,23 @@ export function UsersTable({
                     </span>
                   </td>
 
-                  {/* Registered */}
-                  <td className="px-4 py-3 text-xs text-text-secondary whitespace-nowrap">
-                    {formatDate(user.registeredAt)}
-                  </td>
-
-                  {/* Last Active */}
-                  <td className="px-4 py-3 text-xs text-text-secondary whitespace-nowrap">
-                    {formatDate(user.lastActiveAt)}
-                  </td>
-
-                  {/* Orders */}
-                  <td className="px-4 py-3 text-xs text-text-primary whitespace-nowrap">
-                    <span className="font-semibold">{user.stats.completedOrders}</span>
-                    <span className="text-text-secondary">/{user.stats.totalOrders}</span>
-                  </td>
-
-                  {/* Rating */}
+                  {/* Email verification */}
                   <td className="px-4 py-3 whitespace-nowrap">
-                    {user.stats.ratingCount > 0 ? (
-                      <span className="flex items-center gap-1 text-xs">
-                        <Icon path={ICON_PATHS.star} size="sm" className="text-warning" />
-                        <span className="font-semibold text-text-primary">
-                          {user.stats.averageRating.toFixed(1)}
-                        </span>
-                        <span className="text-text-secondary">({user.stats.ratingCount})</span>
+                    {user.email === null ? (
+                      <span className="text-xs text-text-secondary">—</span>
+                    ) : user.emailVerified ? (
+                      <span className="flex items-center gap-1 text-xs text-success">
+                        <Icon path={ICON_PATHS.check} size="sm" />
+                        Verified
                       </span>
                     ) : (
-                      <span className="text-xs text-text-secondary">—</span>
+                      <span className="text-xs text-text-secondary">Unverified</span>
                     )}
+                  </td>
+
+                  {/* Registered */}
+                  <td className="px-4 py-3 text-xs text-text-secondary whitespace-nowrap">
+                    {formatDate(user.createdAt)}
                   </td>
 
                   {/* Actions */}
@@ -265,19 +253,19 @@ export function UsersTable({
                         onClick={() => onEdit(user)}
                         className={cn(ICON_BUTTON, "w-8 h-8")}
                         title="Edit user"
-                        aria-label={`Edit ${user.username}`}
+                        aria-label={`Edit ${name}`}
                       >
                         <Icon path={ICON_PATHS.edit} size="sm" className="text-text-secondary" />
                       </button>
 
                       {/* Ban / Unban */}
-                      {user.status === "BANNED" ? (
+                      {user.status === "SUSPENDED" ? (
                         <button
                           type="button"
                           onClick={() => onUnban(user)}
                           className={cn(ICON_BUTTON, "w-8 h-8")}
                           title="Unban user"
-                          aria-label={`Unban ${user.username}`}
+                          aria-label={`Unban ${name}`}
                         >
                           <Icon path={ICON_PATHS.lock} size="sm" className="text-warning" />
                         </button>
@@ -287,22 +275,11 @@ export function UsersTable({
                           onClick={() => onBan(user)}
                           className={cn(ICON_BUTTON, "w-8 h-8")}
                           title="Ban user"
-                          aria-label={`Ban ${user.username}`}
+                          aria-label={`Ban ${name}`}
                         >
                           <Icon path={ICON_PATHS.flag} size="sm" className="text-text-secondary hover:text-error" />
                         </button>
                       )}
-
-                      {/* Delete */}
-                      <button
-                        type="button"
-                        onClick={() => onDelete(user)}
-                        className={cn(ICON_BUTTON, "w-8 h-8")}
-                        title="Delete user"
-                        aria-label={`Delete ${user.username}`}
-                      >
-                        <Icon path={ICON_PATHS.trash} size="sm" className="text-error/70 hover:text-error" />
-                      </button>
                     </div>
                   </td>
                 </tr>
