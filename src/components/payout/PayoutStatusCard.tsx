@@ -1,14 +1,19 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { cn } from "@/lib/cn";
-import { NEUMORPHIC_CARD, NEUMORPHIC_INSET } from "@/lib/styles";
+import { NEUMORPHIC_CARD, NEUMORPHIC_INSET, PRIMARY_BUTTON } from "@/lib/styles";
 import { Icon, ICON_PATHS, LoadingSpinner } from "@/components/ui/Icon";
 import { useAuthStore } from "@/stores/auth-store";
+import { useWalletKit } from "@/hooks/use-wallet-kit";
 import { getPayoutStatus, type PayoutApiError } from "@/lib/api/orders";
 import { SUPPORTED_CORRIDORS } from "@/lib/api/bank-accounts";
 import type { Payout, PayoutStatus } from "@/types/order.types";
+import { usePayoutSigning } from "@/hooks/usePayoutSigning";
+import { currentWalletName } from "@/hooks/useEscrowSigningAction";
+import { EscrowSigningModal } from "@/components/escrow/EscrowSigningModal";
+import { WalletConnectModal } from "@/components/wallet/WalletConnectModal";
 
 const POLL_INTERVAL_MS = 5000;
 
@@ -17,6 +22,14 @@ const STEPS: Array<{ status: PayoutStatus; label: string }> = [
   { status: "PROCESSING", label: "Processing" },
   { status: "COMPLETED", label: "Completed" },
 ];
+
+function formatCountdown(expiresAt: number): string {
+  const remainingMs = expiresAt - Date.now();
+  if (remainingMs <= 0) return "expired";
+  const minutes = Math.floor(remainingMs / 60_000);
+  const seconds = Math.floor((remainingMs % 60_000) / 1000);
+  return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+}
 
 function corridorLabel(corridor: string): string {
   const [country, rail] = corridor.split("/");
@@ -52,6 +65,17 @@ function StepIndicator({ status }: { status: PayoutStatus }): React.JSX.Element 
           <Icon path={ICON_PATHS.arrowLeft} size="md" />
         </div>
         <span className="font-semibold">Payout refunded</span>
+      </div>
+    );
+  }
+
+  if (status === "AWAITING_SIGNATURE") {
+    return (
+      <div className="flex items-center gap-3 text-primary">
+        <div className="w-10 h-10 rounded-full flex items-center justify-center bg-primary/10 shrink-0">
+          <Icon path={ICON_PATHS.creditCard} size="md" />
+        </div>
+        <span className="font-semibold">Your signature is needed</span>
       </div>
     );
   }
@@ -143,50 +167,71 @@ export function PayoutStatusCard({ orderId, className }: PayoutStatusCardProps):
   const token = useAuthStore((state) => state.token);
   const [state, setState] = useState<CardState>({ kind: "loading" });
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const cancelledRef = useRef(false);
+
+  const { address: connectedWalletAddress } = useWalletKit();
+  const signing = usePayoutSigning();
+  const [isWalletConnectOpen, setIsWalletConnectOpen] = useState(false);
+
+  const stopPolling = useCallback(() => {
+    if (pollRef.current !== null) {
+      clearInterval(pollRef.current);
+      pollRef.current = null;
+    }
+  }, []);
+
+  const fetchPayout = useCallback(async () => {
+    if (!token) return;
+    try {
+      const result = await getPayoutStatus(token, orderId);
+      if (cancelledRef.current) return;
+      setState({ kind: "ready", payout: result });
+      if (result.status === "COMPLETED" || result.status === "FAILED" || result.status === "REFUNDED") {
+        stopPolling();
+      }
+    } catch (err) {
+      if (cancelledRef.current) return;
+      const status = (err as PayoutApiError).status;
+      if (status === 404) {
+        // Off-ramp job hasn't created the row yet — keep polling silently.
+        setState({ kind: "waiting" });
+        return;
+      }
+      setState({
+        kind: "error",
+        message: err instanceof Error ? err.message : "Could not load payout status.",
+      });
+      stopPolling();
+    }
+  }, [token, orderId, stopPolling]);
 
   useEffect(() => {
     if (!token) return;
-    let cancelled = false;
+    cancelledRef.current = false;
 
-    function stopPolling() {
-      if (pollRef.current !== null) {
-        clearInterval(pollRef.current);
-        pollRef.current = null;
-      }
-    }
-
-    async function poll() {
-      try {
-        const result = await getPayoutStatus(token as string, orderId);
-        if (cancelled) return;
-        setState({ kind: "ready", payout: result });
-        if (result.status === "COMPLETED" || result.status === "FAILED" || result.status === "REFUNDED") {
-          stopPolling();
-        }
-      } catch (err) {
-        if (cancelled) return;
-        const status = (err as PayoutApiError).status;
-        if (status === 404) {
-          // Off-ramp job hasn't created the row yet — keep polling silently.
-          setState({ kind: "waiting" });
-          return;
-        }
-        setState({
-          kind: "error",
-          message: err instanceof Error ? err.message : "Could not load payout status.",
-        });
-        stopPolling();
-      }
-    }
-
-    void poll();
-    pollRef.current = setInterval(() => void poll(), POLL_INTERVAL_MS);
+    void fetchPayout();
+    pollRef.current = setInterval(() => void fetchPayout(), POLL_INTERVAL_MS);
 
     return () => {
-      cancelled = true;
+      cancelledRef.current = true;
       stopPolling();
     };
-  }, [token, orderId]);
+  }, [token, fetchPayout, stopPolling]);
+
+  const handleSignClick = useCallback(() => {
+    if (!connectedWalletAddress) {
+      setIsWalletConnectOpen(true);
+      return;
+    }
+    void signing.sign(orderId);
+  }, [connectedWalletAddress, orderId, signing]);
+
+  const isSigningModalOpen =
+    signing.state === "building" ||
+    signing.state === "awaiting_signature" ||
+    signing.state === "submitting" ||
+    signing.state === "confirmed" ||
+    signing.state === "error";
 
   if (state.kind === "loading" || state.kind === "waiting") {
     return (
@@ -264,6 +309,25 @@ export function PayoutStatusCard({ orderId, className }: PayoutStatusCardProps):
               Contact Support
             </Link>
           </>
+        ) : payout.status === "AWAITING_SIGNATURE" ? (
+          <div className="space-y-3">
+            <p className="text-sm text-text-primary">
+              Your signature is needed to send the funds — your connected wallet is non-custodial, so
+              OfferHub can't sign this transfer on your behalf.
+            </p>
+            {signing.prepared?.fiatAmount && (
+              <p className="text-xs text-text-secondary">
+                Sending as {formatFiat(signing.prepared.fiatAmount, signing.prepared.fiatCurrency)}
+                {signing.prepared.expiresAt && (
+                  <> — quote valid for {formatCountdown(signing.prepared.expiresAt)}</>
+                )}
+              </p>
+            )}
+            <button type="button" onClick={handleSignClick} className={cn(PRIMARY_BUTTON, "justify-center")}>
+              <Icon path={ICON_PATHS.creditCard} size="sm" />
+              <span>Sign & Send</span>
+            </button>
+          </div>
         ) : payout.status === "ON_HOLD" ? (
           <p className="text-sm text-text-secondary">
             {payout.failureReason
@@ -280,6 +344,35 @@ export function PayoutStatusCard({ orderId, className }: PayoutStatusCardProps):
           </p>
         )}
       </div>
+
+      <EscrowSigningModal
+        isOpen={isSigningModalOpen}
+        state={signing.state}
+        error={signing.error}
+        transactionHash={null}
+        walletName={currentWalletName()}
+        copy={{
+          actionTitle: "Send Funds to BlindPay",
+          actionExplanation:
+            "You are authorizing the transfer of your released USDC from your own wallet to BlindPay, which converts and deposits it to your bank account.",
+          confirmedMessage: "Transfer sent — BlindPay is now processing your payout.",
+        }}
+        onRetry={() => void signing.sign(orderId)}
+        onClose={() => {
+          const wasConfirmed = signing.state === "confirmed";
+          signing.reset();
+          if (wasConfirmed) void fetchPayout();
+        }}
+      />
+
+      <WalletConnectModal
+        isOpen={isWalletConnectOpen}
+        onClose={() => setIsWalletConnectOpen(false)}
+        onConnected={() => {
+          setIsWalletConnectOpen(false);
+          void signing.sign(orderId);
+        }}
+      />
     </div>
   );
 }

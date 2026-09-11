@@ -29,6 +29,18 @@ export interface EscrowSigningModalProps {
    */
   operation?: EscrowOperation;
   step?: EscrowStepName | null;
+  /**
+   * Overrides the `operation`/`step` copy lookup below. For flows this modal
+   * didn't originally know about (e.g. the BlindPay payout transfer, which
+   * has no `operation`/`step` of its own) — passing this instead of widening
+   * `EscrowOperation` keeps that union honest about what it actually names.
+   */
+  copy?: {
+    position?: string;
+    confirmedMessage: string;
+    actionTitle: string;
+    actionExplanation: string;
+  };
   /** Re-runs the same operation from scratch (a fresh XDR is fetched). */
   onRetry: () => void;
   /** Dismisses the modal. Has no effect while a wallet or submission is in flight. */
@@ -132,8 +144,12 @@ const OPERATION_FALLBACK_INFO: Record<EscrowOperation, StepDetail> = {
 
 function getStepInfo(
   operation: EscrowOperation | undefined,
-  step: EscrowStepName | null | undefined
+  step: EscrowStepName | null | undefined,
+  copyOverride: EscrowSigningModalProps["copy"]
 ): StepDetail | null {
+  if (copyOverride) {
+    return { position: copyOverride.position ?? "", ...copyOverride };
+  }
   if (!operation) return null;
   if (step && STEP_INFO[operation]?.[step]) {
     return STEP_INFO[operation]![step]!;
@@ -243,6 +259,7 @@ export function EscrowSigningModal({
   walletName,
   operation,
   step,
+  copy,
   onRetry,
   onClose,
 }: EscrowSigningModalProps): React.JSX.Element | null {
@@ -309,8 +326,8 @@ export function EscrowSigningModal({
   }
 
   const title = stateTitle(state, error);
-  const stepInfo = getStepInfo(operation, step);
-  const showStepBadge = stepInfo && state !== "error";
+  const stepInfo = getStepInfo(operation, step, copy);
+  const showStepBadge = Boolean(stepInfo?.position) && state !== "error";
 
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -385,7 +402,7 @@ export function EscrowSigningModal({
         {showStepBadge && (
           <div className="flex items-center gap-2">
             <span className="text-[11px] font-semibold uppercase tracking-wider text-primary bg-primary/10 border border-primary/20 rounded-full px-3 py-1">
-              {stepInfo.position}
+              {stepInfo?.position}
             </span>
           </div>
         )}

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, act } from "@testing-library/react";
+import { render, screen, act, fireEvent } from "@testing-library/react";
 import { PayoutStatusCard } from "@/components/payout/PayoutStatusCard";
 
 const mockGetPayoutStatus = vi.fn();
@@ -10,6 +10,37 @@ vi.mock("@/lib/api/orders", () => ({
 
 vi.mock("@/stores/auth-store", () => ({
   useAuthStore: (selector: (s: { token: string | null }) => unknown) => selector({ token: "jwt-token" }),
+}));
+
+let mockConnectedWalletAddress: string | null = "GSELLERADDRESS";
+vi.mock("@/hooks/use-wallet-kit", () => ({
+  useWalletKit: () => ({ address: mockConnectedWalletAddress }),
+}));
+
+const mockSign = vi.fn();
+const mockReset = vi.fn();
+let mockSigningState: "idle" | "building" | "awaiting_signature" | "submitting" | "confirmed" | "error" = "idle";
+let mockPrepared: { fiatAmount: string; fiatCurrency: string; expiresAt: number } | null = null;
+
+vi.mock("@/hooks/usePayoutSigning", () => ({
+  usePayoutSigning: () => ({
+    state: mockSigningState,
+    sign: mockSign,
+    reset: mockReset,
+    prepared: mockPrepared,
+    error: null,
+  }),
+}));
+
+vi.mock("@/hooks/useEscrowSigningAction", () => ({
+  currentWalletName: () => null,
+}));
+
+// Neither the escrow nor the wallet-connect modal is under test here — both
+// depend on the real Stellar Wallets Kit tree, which this suite otherwise
+// avoids importing (see useEscrowSigningAction.test.ts for the same pattern).
+vi.mock("@creit.tech/stellar-wallets-kit", () => ({
+  StellarWalletsKit: {},
 }));
 
 const PENDING_PAYOUT = {
@@ -32,6 +63,9 @@ const PENDING_PAYOUT = {
 beforeEach(() => {
   vi.clearAllMocks();
   vi.useFakeTimers();
+  mockConnectedWalletAddress = "GSELLERADDRESS";
+  mockSigningState = "idle";
+  mockPrepared = null;
 });
 
 afterEach(() => {
@@ -134,6 +168,33 @@ describe("PayoutStatusCard", () => {
       await vi.advanceTimersByTimeAsync(10000);
     });
     expect(mockGetPayoutStatus).toHaveBeenCalledTimes(1);
+  });
+
+  it("shows a Sign & Send CTA with the quoted fiat amount for AWAITING_SIGNATURE", async () => {
+    mockGetPayoutStatus.mockResolvedValue({ ...PENDING_PAYOUT, status: "AWAITING_SIGNATURE" });
+    mockPrepared = { fiatAmount: "1850.00", fiatCurrency: "MXN", expiresAt: Date.now() + 90_000 };
+
+    render(<PayoutStatusCard orderId="order_1" />);
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(screen.getByText("Your signature is needed")).toBeInTheDocument();
+    expect(screen.getByText(/Sending as/)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Sign & Send/ })).toBeInTheDocument();
+  });
+
+  it("signs directly when a wallet is already connected", async () => {
+    mockGetPayoutStatus.mockResolvedValue({ ...PENDING_PAYOUT, status: "AWAITING_SIGNATURE" });
+
+    render(<PayoutStatusCard orderId="order_1" />);
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: /Sign & Send/ }));
+
+    expect(mockSign).toHaveBeenCalledWith("order_1");
   });
 
   it("clears the interval on unmount", async () => {

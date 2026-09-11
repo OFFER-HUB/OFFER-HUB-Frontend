@@ -99,7 +99,15 @@ export interface Milestone {
   completedAt?: string;
 }
 
-export type PayoutStatus = 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED' | 'REFUNDED' | 'ON_HOLD';
+export type PayoutStatus =
+  | 'PENDING'
+  | 'PROCESSING'
+  | 'COMPLETED'
+  | 'FAILED'
+  | 'REFUNDED'
+  | 'ON_HOLD'
+  /** Authorized BlindPay quote parked, waiting for a non-custodial seller to sign the transfer client-side. */
+  | 'AWAITING_SIGNATURE';
 
 /** BlindPay off-ramp for a released escrow. Mirrors the `Payout` Prisma model. */
 export interface Payout {
