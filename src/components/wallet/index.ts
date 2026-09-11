@@ -5,6 +5,7 @@ export { TransactionFilters } from "./TransactionFilters";
 export { TransactionHistorySkeleton } from "./TransactionHistorySkeleton";
 export { TransactionItem } from "./TransactionItem";
 export { TransactionList } from "./TransactionList";
+export { UsdbTestnetFundingCard } from "./UsdbTestnetFundingCard";
 export { WalletAssetBalances } from "./WalletAssetBalances";
 export { WalletConnectButton } from "./WalletConnectButton";
 export { WalletConnectModal } from "./WalletConnectModal";

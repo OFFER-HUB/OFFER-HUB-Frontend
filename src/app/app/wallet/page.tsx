@@ -7,12 +7,14 @@ import { cn } from "@/lib/cn";
 import { Icon, ICON_PATHS } from "@/components/ui/Icon";
 import { useWalletBalance } from "@/hooks/useWalletBalance";
 import { getWalletDashboard, type WalletDashboardData } from "@/lib/api/wallet";
+import { STELLAR_NETWORK } from "@/config/wallet";
 import {
   BalanceCard,
   BalanceChart,
   RecentTransactions,
   WithdrawModal,
   WalletPageSkeleton,
+  UsdbTestnetFundingCard,
 } from "@/components/wallet";
 
 function parseMoney(s: string): number {
@@ -34,6 +36,7 @@ function formatPct(p: number): string {
 
 export default function WalletPage(): React.JSX.Element {
   const token = useAuthStore((s) => s.token);
+  const isExternalWallet = useAuthStore((s) => s.user?.wallet)?.type === "EXTERNAL";
   const hasHydrated = useAuthStore((s) => s.hasHydrated);
   const [data, setData] = useState<WalletDashboardData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -272,6 +275,12 @@ export default function WalletPage(): React.JSX.Element {
           }
         />
       </div>
+
+      {STELLAR_NETWORK === "testnet" && isExternalWallet && (
+        <div className="mb-6">
+          <UsdbTestnetFundingCard />
+        </div>
+      )}
 
       {/* 3-Card Metric KPI Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-6">
