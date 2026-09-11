@@ -54,12 +54,12 @@ export function ServiceCard({ service, className }: ServiceCardProps): React.JSX
         id={service.id}
         isFavorited={isFavorited}
         onToggle={() => toggleService(service)}
-        className="absolute top-6 right-6 z-10"
+        className="absolute top-5 right-5 z-10"
       />
       <Link
         href={`/marketplace/services/${service.id}`}
         className={cn(
-          "group flex flex-col h-full p-7 rounded-[28px] transition-all duration-300",
+          "group flex flex-col h-full p-6 rounded-[28px] transition-all duration-300",
           "bg-white",
           "shadow-[6px_6px_14px_#d1d5db,-6px_-6px_14px_#ffffff]",
           "hover:shadow-[10px_10px_20px_#cbd5e1,-10px_-10px_20px_#ffffff]",
@@ -68,18 +68,18 @@ export function ServiceCard({ service, className }: ServiceCardProps): React.JSX
         )}
       >
         {/* Header: Avatar with Status + Name, Handle & Verified Badge */}
-        <div className="flex items-start gap-4 mb-5 pr-12">
+        <div className="flex items-start gap-3.5 mb-4 pr-10">
           <div className="relative flex-shrink-0">
             <div className="p-1 rounded-2xl shadow-[3px_3px_6px_#d1d5db,-3px_-3px_6px_#ffffff] bg-white">
               {service.user?.avatarUrl ? (
                 <img
                   src={service.user.avatarUrl}
                   alt={displayName}
-                  className="w-14 h-14 rounded-xl object-cover"
+                  className="w-12 h-12 rounded-xl object-cover"
                 />
               ) : (
-                <div className="w-14 h-14 rounded-xl bg-background shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff] flex items-center justify-center">
-                  <span className="text-primary font-bold text-lg tracking-wider">
+                <div className="w-12 h-12 rounded-xl bg-background shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff] flex items-center justify-center">
+                  <span className="text-primary font-bold text-base tracking-wider">
                     {initials}
                   </span>
                 </div>
@@ -87,7 +87,7 @@ export function ServiceCard({ service, className }: ServiceCardProps): React.JSX
             </div>
             {service.status === "ACTIVE" && (
               <span
-                className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-500 border-2 border-white rounded-full shadow-sm"
+                className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full shadow-sm"
                 title="Online & Available"
               />
             )}
@@ -95,7 +95,7 @@ export function ServiceCard({ service, className }: ServiceCardProps): React.JSX
 
           <div className="flex-1 min-w-0 pt-0.5">
             <div className="flex items-center gap-1.5">
-              <h3 className="font-bold text-text-primary text-lg leading-snug group-hover:text-primary transition-colors truncate">
+              <h3 className="font-bold text-text-primary text-base leading-snug group-hover:text-primary transition-colors truncate">
                 {displayName}
               </h3>
               <div
@@ -117,24 +117,24 @@ export function ServiceCard({ service, className }: ServiceCardProps): React.JSX
         </div>
 
         {/* Professional Metrics Line: Rating + Location */}
-        <div className="flex items-center gap-3 mb-4 text-xs">
-          <div className="flex items-center gap-1 font-bold text-text-primary bg-amber-500/10 text-amber-700 px-2 py-0.5 rounded-lg">
+        <div className="flex items-center gap-2.5 mb-3.5 text-xs">
+          <div className="flex items-center gap-1 font-bold text-text-primary bg-amber-500/10 text-amber-700 px-2 py-0.5 rounded-lg shrink-0">
             <Icon path={ICON_PATHS.star} size="sm" className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
             <span>{rating.toFixed(1)}</span>
           </div>
           <span className="text-text-secondary/30">•</span>
           <div className="flex items-center gap-1 text-text-secondary font-medium truncate">
             <Icon path={ICON_PATHS.mapPin} size="sm" className="w-3.5 h-3.5 text-text-secondary/60 flex-shrink-0" />
-            <span>{location}</span>
+            <span className="truncate">{location}</span>
           </div>
-          <span className="text-text-secondary/30">•</span>
-          <span className="text-emerald-700 font-semibold text-xs">
+          <span className="text-text-secondary/30 shrink-0">•</span>
+          <span className="text-emerald-700 font-semibold text-xs shrink-0">
             Verified Pro
           </span>
         </div>
 
         {/* Category & Delivery Highlights */}
-        <div className="flex flex-wrap items-center gap-2 mb-4">
+        <div className="flex flex-wrap items-center gap-2 mb-3.5">
           <span
             className={cn(
               "px-3 py-1 text-xs font-bold uppercase tracking-wider rounded-xl",
@@ -151,22 +151,24 @@ export function ServiceCard({ service, className }: ServiceCardProps): React.JSX
         </div>
 
         {/* Service Scope Description */}
-        <p className="text-sm text-text-secondary/85 leading-relaxed line-clamp-2 mb-6">
+        <p className="text-sm text-text-secondary/85 leading-relaxed line-clamp-2 mb-5">
           {service.description}
         </p>
 
         {/* Footer: Rate / Price & View Service Button */}
-        <div className="mt-auto pt-5 border-t border-border-light flex items-center justify-between gap-3">
-          <div>
-            <span className="text-2xl font-black text-text-primary tracking-tight">
+        <div className="mt-auto pt-4 border-t border-border-light flex items-center justify-between gap-3">
+          <div className="flex flex-col min-w-0">
+            <span className="text-[11px] font-semibold text-text-secondary uppercase tracking-wider leading-none mb-1">
+              Starting at
+            </span>
+            <span className="text-2xl font-black text-text-primary tracking-tight leading-none">
               ${price.toLocaleString()}
             </span>
-            <span className="text-xs text-text-secondary font-medium ml-1">starting at</span>
           </div>
 
           <div
             className={cn(
-              "flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all duration-200",
+              "flex items-center gap-1.5 px-4 py-2.5 rounded-xl font-bold text-sm transition-all duration-200 shrink-0",
               "bg-primary text-white",
               "shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]",
               "group-hover:shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff]",
