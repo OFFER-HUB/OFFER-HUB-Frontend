@@ -263,6 +263,7 @@ export default function OrderDetailPage(): React.JSX.Element {
       <RefundModal
         isOpen={modals.isRefundModalOpen && !actions.refundSigning.isSigningModalOpen}
         amount={order.amount}
+        milestones={order.milestones}
         isProcessing={actions.isProcessing}
         error={actions.refundSigning.inlineError}
         onCancel={modals.closeRefundModal}
