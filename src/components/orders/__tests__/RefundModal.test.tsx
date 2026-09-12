@@ -114,6 +114,30 @@ describe("RefundModal — milestone breakdown (#446)", () => {
     expect(screen.queryByText("Order total")).not.toBeInTheDocument();
     expect(screen.getByLabelText(/reason for refund/i)).toBeInTheDocument();
   });
+
+  it("navigates back to breakdown step when Back is clicked from the reason form", async () => {
+    setup({ amount: "150.00", milestones: MILESTONES });
+
+    await userEvent.click(screen.getByRole("button", { name: /continue/i }));
+    expect(screen.getByLabelText(/reason for refund/i)).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole("button", { name: /back/i }));
+    expect(screen.getByText("Order total")).toBeInTheDocument();
+    expect(screen.queryByLabelText(/reason for refund/i)).not.toBeInTheDocument();
+  });
+
+  it("calculates 100% refundable when milestones exist but none are completed", () => {
+    const ALL_OPEN = [
+      { id: "m1", orderId: "ord_1", title: "Design", description: "", amount: "60.00", status: "OPEN" as const },
+      { id: "m2", orderId: "ord_1", title: "Build", description: "", amount: "140.00", status: "OPEN" as const },
+    ];
+    setup({ amount: "200.00", milestones: ALL_OPEN });
+
+    expect(screen.getByText("Order total")).toBeInTheDocument();
+    expect(screen.getAllByText("$200.00")).toHaveLength(2); // Order total and Refundable to you
+    expect(screen.getByText("−$0.00")).toBeInTheDocument();
+    expect(screen.getByText(/0 of 2 already completed/)).toBeInTheDocument();
+  });
 });
 
 describe("RefundModal — error and processing", () => {

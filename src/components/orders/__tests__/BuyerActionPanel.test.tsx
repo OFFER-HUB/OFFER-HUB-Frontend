@@ -151,6 +151,19 @@ describe("BuyerActionPanel — IN_PROGRESS (nothing delivered yet)", () => {
     expect(screen.getByRole("button", { name: /open dispute/i })).toBeInTheDocument();
     expect(screen.getByText(/milestone has already been completed/i)).toBeInTheDocument();
   });
+  it("calls onRequestRelease when 'Release Funds' is clicked", async () => {
+    const onRequestRelease = vi.fn();
+    render(<BuyerActionPanel {...BASE_PROPS} status="IN_PROGRESS" onRequestRelease={onRequestRelease} />);
+    await userEvent.click(screen.getByRole("button", { name: /release funds/i }));
+    expect(onRequestRelease).toHaveBeenCalledTimes(1);
+  });
+
+  it("calls onRequestDispute when 'Open Dispute' is clicked", async () => {
+    const onRequestDispute = vi.fn();
+    render(<BuyerActionPanel {...BASE_PROPS} status="IN_PROGRESS" onRequestDispute={onRequestDispute} />);
+    await userEvent.click(screen.getByRole("button", { name: /open dispute/i }));
+    expect(onRequestDispute).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe("BuyerActionPanel — DELIVERED", () => {
@@ -159,6 +172,13 @@ describe("BuyerActionPanel — DELIVERED", () => {
     expect(screen.getByRole("button", { name: /release funds · \$150\.00 usd/i })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /request refund/i })).not.toBeInTheDocument();
     expect(screen.getByText(/deliverables ready for review/i)).toBeInTheDocument();
+  });
+
+  it("never shows 'Request Refund' even if refundRequiresDispute is explicitly false", () => {
+    render(<BuyerActionPanel {...BASE_PROPS} status="DELIVERED" refundRequiresDispute={false} />);
+    expect(screen.queryByRole("button", { name: /request refund/i })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /release funds/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /open dispute/i })).toBeInTheDocument();
   });
 
   it("still lets the buyer escalate through Open Dispute", async () => {
@@ -186,5 +206,35 @@ describe("BuyerActionPanel — DELIVERED", () => {
     expect(screen.queryByRole("button", { name: /request refund/i })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: /release funds/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /open dispute/i })).toBeInTheDocument();
+  });
+});
+
+describe("BuyerActionPanel — IN_PROGRESS vs DELIVERED action comparison (#448)", () => {
+  it("contrasts pre-delivery 3-action grid with post-delivery review action hierarchy", () => {
+    const { unmount } = render(<BuyerActionPanel {...BASE_PROPS} status="IN_PROGRESS" amount="200" />);
+    expect(screen.getByRole("button", { name: /release funds/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /request refund/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /open dispute/i })).toBeInTheDocument();
+    expect(screen.getByText(/payment secured in escrow/i)).toBeInTheDocument();
+    unmount();
+
+    render(<BuyerActionPanel {...BASE_PROPS} status="DELIVERED" amount="200" />);
+    expect(screen.getByRole("button", { name: /release funds · \$200\.00 usd/i })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /request refund/i })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /open dispute/i })).toBeInTheDocument();
+    expect(screen.getByText(/deliverables ready for review/i)).toBeInTheDocument();
+  });
+
+  it("handles transition when a milestone is completed before delivery vs full delivery", () => {
+    // In progress with milestone completed: refund button hidden, explanation shown
+    const { unmount } = render(<BuyerActionPanel {...BASE_PROPS} status="IN_PROGRESS" refundRequiresDispute />);
+    expect(screen.queryByRole("button", { name: /request refund/i })).not.toBeInTheDocument();
+    expect(screen.getByText(/milestone has already been completed/i)).toBeInTheDocument();
+    unmount();
+
+    // Delivered: refund button hidden, delivered dispute explanation shown
+    render(<BuyerActionPanel {...BASE_PROPS} status="DELIVERED" />);
+    expect(screen.queryByRole("button", { name: /request refund/i })).not.toBeInTheDocument();
+    expect(screen.getByText(/refunds on delivered work are decided through a dispute/i)).toBeInTheDocument();
   });
 });
