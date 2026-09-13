@@ -13,4 +13,12 @@ describe("isNewUser", () => {
   it("returns false when firstName is a non-empty string", () => {
     expect(isNewUser({ firstName: "Ada" })).toBe(false);
   });
+
+  it("returns false for an admin even with no firstName — admins don't go through marketplace onboarding", () => {
+    expect(isNewUser({ firstName: null, isAdmin: true })).toBe(false);
+  });
+
+  it("still applies the marketplace onboarding check to a non-admin", () => {
+    expect(isNewUser({ firstName: null, isAdmin: false })).toBe(true);
+  });
 });
