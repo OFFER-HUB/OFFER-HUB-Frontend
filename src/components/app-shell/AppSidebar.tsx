@@ -14,6 +14,7 @@ import { useAuthStore } from "@/stores/auth-store";
 import { useChatStore } from "@/stores/chat-store";
 
 const ADMIN_NAV_ITEMS = [
+  { href: "/admin", label: "Dashboard", icon: ICON_PATHS.home },
   { href: "/admin/analytics", label: "Analytics", icon: ICON_PATHS.chartBar },
   { href: "/admin/users", label: "Users", icon: ICON_PATHS.users },
   { href: "/admin/disputes", label: "Disputes", icon: ICON_PATHS.flag },
@@ -83,7 +84,10 @@ export function AppSidebar({ isOpen, onClose }: AppSidebarProps): React.JSX.Elem
   }, [conversations.length, fetchConversations]);
 
   const currentMode = hydrated ? mode : "freelancer";
-  const navItems = getNavigationItems(currentMode);
+  // An admin has no marketplace role to switch between — they're never
+  // hiring, never finding work, never publishing a service. Their sidebar
+  // shows only the admin section below, nothing from the buyer/seller nav.
+  const navItems = isAdmin ? [] : getNavigationItems(currentMode);
   const totalUnreadMessages = conversations.reduce(
     (total, conversation) => total + conversation.unreadCount,
     0
@@ -95,7 +99,11 @@ export function AppSidebar({ isOpen, onClose }: AppSidebarProps): React.JSX.Elem
     const isSubRoute = pathname.startsWith(href + "/");
     if (!isSubRoute) return false;
 
-    const hasMoreSpecificMatch = navItems.some(
+    // navItems is empty for an admin (see above) — the "more specific match"
+    // check needs the admin's own list too, or e.g. /admin/users would light
+    // up both "Dashboard" (/admin) and "Users" (/admin/users) at once.
+    const allItems = isAdmin ? ADMIN_NAV_ITEMS : navItems;
+    const hasMoreSpecificMatch = allItems.some(
       (item) => item.href !== href && pathname.startsWith(item.href) && item.href.startsWith(href)
     );
 
@@ -162,8 +170,8 @@ export function AppSidebar({ isOpen, onClose }: AppSidebarProps): React.JSX.Elem
         </button>
       </div>
 
-      {/* Mode Toggle - Only show when expanded */}
-      {!isCollapsed && (
+      {/* Mode Toggle - Only show when expanded, and never for an admin */}
+      {!isAdmin && !isCollapsed && (
         <>
           <div className="px-4 pb-2">
             <div
@@ -209,7 +217,7 @@ export function AppSidebar({ isOpen, onClose }: AppSidebarProps): React.JSX.Elem
       )}
 
       {/* Collapsed Mode Indicator */}
-      {isCollapsed && (
+      {!isAdmin && isCollapsed && (
         <div className="flex justify-center pb-2">
           <span
             className={cn(
@@ -267,17 +275,16 @@ export function AppSidebar({ isOpen, onClose }: AppSidebarProps): React.JSX.Elem
           );
         })}
 
-        {/* Admin section */}
+        {/* Admin section — the ENTIRE nav for an admin, not an addition to it */}
         {isAdmin && (
           <>
             {!isCollapsed && (
-              <div className="pt-3 pb-1">
+              <div className="pb-1">
                 <p className="px-4 text-xs font-semibold text-text-secondary uppercase tracking-wider">
                   Admin
                 </p>
               </div>
             )}
-            {isCollapsed && <div className="my-2 border-t border-gray-100" />}
             {ADMIN_NAV_ITEMS.map((item) => (
               <Link
                 key={item.href}
@@ -303,9 +310,11 @@ export function AppSidebar({ isOpen, onClose }: AppSidebarProps): React.JSX.Elem
         navbar's mobile menu, so the two surfaces stay consistent and exactly
         one entry point exists at every width.
       */}
-      <div className="sm:hidden border-t border-gray-100 p-4">
-        <WalletConnectButton variant="inline" />
-      </div>
+      {!isAdmin && (
+        <div className="sm:hidden border-t border-gray-100 p-4">
+          <WalletConnectButton variant="inline" />
+        </div>
+      )}
     </aside>
   );
 }
