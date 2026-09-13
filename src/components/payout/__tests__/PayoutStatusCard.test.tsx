@@ -154,6 +154,23 @@ describe("PayoutStatusCard", () => {
     expect(mockGetPayoutStatus).toHaveBeenCalledTimes(1);
   });
 
+  it("offers Retry & Sign on FAILED so a non-custodial seller isn't stuck waiting on support", async () => {
+    mockGetPayoutStatus.mockResolvedValue({
+      ...PENDING_PAYOUT,
+      status: "FAILED",
+      failureReason: "Blind Pay Signer Unavailable Exception",
+    });
+
+    render(<PayoutStatusCard orderId="order_1" />);
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: /Retry & Sign/ }));
+
+    expect(mockSign).toHaveBeenCalledWith("order_1");
+  });
+
   it("shows an inline error and stops polling on a non-404 failure", async () => {
     mockGetPayoutStatus.mockRejectedValue(new Error("Network error"));
 

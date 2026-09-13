@@ -198,11 +198,9 @@ export default function OrderDetailPage(): React.JSX.Element {
             />
           )}
 
-          {/* Counterparty Card (Freelancer / Client) */}
-          <OrderParticipantCard
-            title={roles.isBuyer ? "Freelancer" : "Client"}
-            participant={roles.counterparty}
-          />
+          {roles.isSeller && roles.isOrderComplete && (
+            <PayoutStatusCard orderId={order.id} />
+          )}
 
           {/* Order Financial & Security Overview */}
           <div className={cn(NEUMORPHIC_CARD, "p-6 border border-white/80 space-y-4")}>
@@ -236,9 +234,11 @@ export default function OrderDetailPage(): React.JSX.Element {
             </div>
           </div>
 
-          {roles.isSeller && roles.isOrderComplete && (
-            <PayoutStatusCard orderId={order.id} />
-          )}
+          {/* Counterparty Card (Freelancer / Client) */}
+          <OrderParticipantCard
+            title={roles.isBuyer ? "Freelancer" : "Client"}
+            participant={roles.counterparty}
+          />
         </div>
 
       </div>
