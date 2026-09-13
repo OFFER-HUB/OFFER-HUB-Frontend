@@ -63,6 +63,34 @@ describe("DisputeResolutionForm", () => {
     expect(onSubmit).not.toHaveBeenCalled();
   });
 
+  it("normalizes a plain integer like '250' to '250.00' on blur, instead of rejecting it as not adding up", async () => {
+    // Reported live: typing "250"/"250" for a $500 order looked correct but
+    // failed AMOUNT_PATTERN (which requires exactly two decimals), showing
+    // the misleading "must add up to $500.00" message even though it does.
+    const onSubmit = setup({ ...DISPUTE, order: { ...DISPUTE.order, amount: "500.00", milestones: [] } });
+    const releaseInput = screen.getByLabelText(/release to seller \(usd\)/i);
+    const refundInput = screen.getByLabelText(/refund to buyer \(usd\)/i);
+
+    await userEvent.clear(releaseInput);
+    await userEvent.type(releaseInput, "250");
+    await userEvent.clear(refundInput);
+    await userEvent.type(refundInput, "250");
+    await userEvent.tab();
+
+    expect(releaseInput).toHaveValue("250.00");
+    expect(refundInput).toHaveValue("250.00");
+    expect(screen.getByText(/adds up to \$500\.00/i)).toBeInTheDocument();
+
+    await userEvent.type(screen.getByLabelText(/decision note/i), "Split evenly.");
+    expect(screen.getByRole("button", { name: /resolve dispute/i })).toBeEnabled();
+    await userEvent.click(screen.getByRole("button", { name: /resolve dispute/i }));
+    await waitFor(() =>
+      expect(onSubmit).toHaveBeenCalledWith({
+        decision: "SPLIT", releaseAmount: "250.00", refundAmount: "250.00", note: "Split evenly.",
+      })
+    );
+  });
+
   it("sends only decision + note for a full release / refund", async () => {
     const onSubmit = setup();
     await userEvent.click(screen.getByLabelText(/refund buyer/i));

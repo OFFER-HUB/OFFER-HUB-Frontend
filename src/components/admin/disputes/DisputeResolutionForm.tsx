@@ -22,6 +22,21 @@ const DECISIONS: ResolutionDecision[] = ["FULL_RELEASE", "FULL_REFUND", "SPLIT"]
 const AMOUNT_PATTERN = /^\d+\.\d{2}$/;
 
 /**
+ * The backend rejects anything but an exact "X.YY" string, but nobody types
+ * trailing zeros by habit — typing "250" for $250.00 reads as correct to an
+ * admin and there is nothing in the UI telling them the format is what's
+ * wrong, so it silently fails the same "doesn't add up" check as a genuine
+ * math error. Reformatting on blur fixes it before that check ever runs.
+ */
+function normalizeAmount(value: string): string {
+  const trimmed = value.trim();
+  if (trimmed.length === 0) return value;
+  const parsed = Number(trimmed);
+  if (!Number.isFinite(parsed) || parsed < 0) return value;
+  return parsed.toFixed(2);
+}
+
+/**
  * Builds the `ResolveDisputeDto`. SPLIT amounts start from the proportional
  * suggestion (completed milestones → seller, the rest → buyer) and the admin
  * can override them; the backend rejects a split that doesn't sum to the
@@ -37,10 +52,9 @@ export function DisputeResolutionForm({ dispute, onSubmit, onCancel }: DisputeRe
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const splitValid =
-    AMOUNT_PATTERN.test(releaseAmount) &&
-    AMOUNT_PATTERN.test(refundAmount) &&
-    amountsSumTo(releaseAmount, refundAmount, order.amount);
+  const splitFormatValid = AMOUNT_PATTERN.test(releaseAmount) && AMOUNT_PATTERN.test(refundAmount);
+  const splitSumValid = splitFormatValid && amountsSumTo(releaseAmount, refundAmount, order.amount);
+  const splitValid = splitFormatValid && splitSumValid;
   const canSubmit = note.trim().length > 0 && (decision !== "SPLIT" || splitValid);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -116,6 +130,7 @@ export function DisputeResolutionForm({ dispute, onSubmit, onCancel }: DisputeRe
                 inputMode="decimal"
                 value={releaseAmount}
                 onChange={(e) => setReleaseAmount(e.target.value)}
+                onBlur={(e) => setReleaseAmount(normalizeAmount(e.target.value))}
                 className={NEUMORPHIC_INPUT}
               />
             </div>
@@ -128,12 +143,17 @@ export function DisputeResolutionForm({ dispute, onSubmit, onCancel }: DisputeRe
                 inputMode="decimal"
                 value={refundAmount}
                 onChange={(e) => setRefundAmount(e.target.value)}
+                onBlur={(e) => setRefundAmount(normalizeAmount(e.target.value))}
                 className={NEUMORPHIC_INPUT}
               />
             </div>
           </div>
           <p className={cn("text-xs", splitValid ? "text-success" : "text-error")}>
-            {splitValid ? `Adds up to $${order.amount}.` : `Must add up to the order amount, $${order.amount}.`}
+            {splitValid
+              ? `Adds up to $${order.amount}.`
+              : !splitFormatValid
+                ? "Enter both amounts with two decimal places (e.g. 250.00)."
+                : `Must add up to the order amount, $${order.amount}.`}
           </p>
         </div>
       )}
