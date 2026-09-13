@@ -23,20 +23,30 @@ export function DisputeMilestones({ milestones, currency }: DisputeMilestonesPro
   return (
     <ul className="space-y-2">
       {milestones.map((m) => {
-        const done = m.status === "COMPLETED";
+        const released = m.status === "RELEASED";
+        const completed = m.status === "COMPLETED";
         return (
           <li key={m.id} className={cn(NEUMORPHIC_INSET, "p-3 rounded-xl flex items-center gap-3")}>
             <span
               className={cn(
                 "w-7 h-7 rounded-lg flex items-center justify-center shrink-0",
-                done ? "bg-success/10 text-success" : "bg-gray-100 text-text-secondary"
+                released
+                  ? "bg-success/10 text-success"
+                  : completed
+                    ? "bg-warning/10 text-warning"
+                    : "bg-gray-100 text-text-secondary"
               )}
             >
-              <Icon path={done ? ICON_PATHS.check : ICON_PATHS.clock} size="sm" />
+              <Icon
+                path={released ? ICON_PATHS.currency : completed ? ICON_PATHS.check : ICON_PATHS.clock}
+                size="sm"
+              />
             </span>
             <div className="min-w-0 flex-1">
               <p className="text-sm font-semibold text-text-primary truncate">{m.title}</p>
-              <p className="text-xs text-text-secondary">{done ? "Completed" : "Open"}</p>
+              <p className="text-xs text-text-secondary">
+                {released ? "Paid" : completed ? "Completed — awaiting release" : "Open"}
+              </p>
             </div>
             <span className="text-sm font-semibold text-text-primary whitespace-nowrap">
               ${Number(m.amount).toFixed(2)} {currency}

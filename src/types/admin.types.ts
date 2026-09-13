@@ -171,7 +171,8 @@ export interface AdminDisputeMilestone {
   description?: string | null;
   /** Decimal string, e.g. "50.00" */
   amount: string;
-  status: "OPEN" | "COMPLETED";
+  /** RELEASED means funds already left escrow — see OFFER-HUB-API#281. */
+  status: "OPEN" | "COMPLETED" | "RELEASED";
   completedAt?: string | null;
 }
 

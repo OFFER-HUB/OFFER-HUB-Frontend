@@ -13,6 +13,7 @@ import { EscrowDetailsCard } from "@/components/orders/EscrowDetailsCard";
 import { OpenDisputeModal } from "@/components/orders/OpenDisputeModal";
 import { OrderDescriptionCard } from "@/components/orders/OrderDescriptionCard";
 import { OrderDeliverablesCard } from "@/components/orders/OrderDeliverablesCard";
+import { MilestonePaymentStatusCard } from "@/components/orders/MilestonePaymentStatusCard";
 import { OrderDetailLoading } from "@/components/orders/OrderDetailLoading";
 import { OrderNotFoundCard } from "@/components/orders/OrderNotFoundCard";
 import { OrderParticipantCard } from "@/components/orders/OrderParticipantCard";
@@ -144,6 +145,8 @@ export default function OrderDetailPage(): React.JSX.Element {
             isSeller={roles.isSeller}
             onOrderUpdated={setOrder}
           />
+
+          {order.milestones && <MilestonePaymentStatusCard milestones={order.milestones} />}
 
           {order.escrow && (
             <EscrowDetailsCard
