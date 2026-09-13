@@ -75,11 +75,11 @@ export function DisputeCard({ dispute, detailHref }: DisputeCardProps): React.JS
         />
       </div>
 
-      {dispute.evidence.length > 0 && (
+      {(dispute.evidence?.length ?? 0) > 0 && (
         <div className="mt-4 pt-4 border-t border-border-light">
           <div className="flex items-center gap-2 text-text-secondary text-sm">
             <Icon path={ICON_PATHS.file} size="sm" />
-            <span>{dispute.evidence.length} file(s) attached</span>
+            <span>{dispute.evidence?.length} file(s) attached</span>
           </div>
         </div>
       )}

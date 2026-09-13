@@ -21,6 +21,16 @@ export interface DisputeResolutionFormProps {
 const DECISIONS: ResolutionDecision[] = ["FULL_RELEASE", "FULL_REFUND", "SPLIT"];
 const AMOUNT_PATTERN = /^\d+\.\d{2}$/;
 
+function toCents(decimal: string): number {
+  const parsed = parseFloat(decimal);
+  if (!Number.isFinite(parsed)) return 0;
+  return Math.round(parsed * 100);
+}
+
+function fromCents(cents: number): string {
+  return (cents / 100).toFixed(2);
+}
+
 /**
  * The backend rejects anything but an exact "X.YY" string, but nobody types
  * trailing zeros by habit — typing "250" for $250.00 reads as correct to an
@@ -39,15 +49,24 @@ function normalizeAmount(value: string): string {
 /**
  * Builds the `ResolveDisputeDto`. SPLIT amounts start from the proportional
  * suggestion (completed milestones → seller, the rest → buyer) and the admin
- * can override them; the backend rejects a split that doesn't sum to the
- * order amount, so that is validated here too.
+ * can override them with an interactive slider or text inputs; the backend
+ * rejects a split that doesn't sum to the order amount, so that is validated here too.
  */
 export function DisputeResolutionForm({ dispute, onSubmit, onCancel }: DisputeResolutionFormProps) {
   const { order } = dispute;
+  const totalCents = toCents(order.amount);
   const suggestion = suggestRefundSplit(order);
   const [decision, setDecision] = useState<ResolutionDecision>("SPLIT");
   const [releaseAmount, setReleaseAmount] = useState(suggestion.releaseAmount);
   const [refundAmount, setRefundAmount] = useState(suggestion.refundAmount);
+
+  // Slider represents freelancer (seller/release) percentage: 0% = 100% Client, 100% = 100% Freelancer
+  const initialPercent =
+    totalCents > 0
+      ? Math.min(Math.max(Math.round((toCents(suggestion.releaseAmount) / totalCents) * 100), 0), 100)
+      : 0;
+  const [sliderPercent, setSliderPercent] = useState<number>(initialPercent);
+
   const [note, setNote] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -56,6 +75,59 @@ export function DisputeResolutionForm({ dispute, onSubmit, onCancel }: DisputeRe
   const splitSumValid = splitFormatValid && amountsSumTo(releaseAmount, refundAmount, order.amount);
   const splitValid = splitFormatValid && splitSumValid;
   const canSubmit = note.trim().length > 0 && (decision !== "SPLIT" || splitValid);
+
+  function handleSliderChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const newPercent = Math.min(Math.max(Number(e.target.value), 0), 100);
+    setSliderPercent(newPercent);
+    const sellerCents = Math.round((newPercent / 100) * totalCents);
+    const buyerCents = totalCents - sellerCents;
+    setReleaseAmount(fromCents(sellerCents));
+    setRefundAmount(fromCents(buyerCents));
+  }
+
+  function handleReleaseChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const val = e.target.value;
+    setReleaseAmount(val);
+    const parsed = parseFloat(val);
+    if (Number.isFinite(parsed) && totalCents > 0) {
+      const cents = Math.round(parsed * 100);
+      const pct = Math.min(Math.max(Math.round((cents / totalCents) * 100), 0), 100);
+      setSliderPercent(pct);
+    }
+  }
+
+  function handleRefundChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const val = e.target.value;
+    setRefundAmount(val);
+    const parsed = parseFloat(val);
+    if (Number.isFinite(parsed) && totalCents > 0) {
+      const cents = Math.round(parsed * 100);
+      const pct = Math.min(Math.max(Math.round(((totalCents - cents) / totalCents) * 100), 0), 100);
+      setSliderPercent(pct);
+    }
+  }
+
+  function handleReleaseBlur(e: React.FocusEvent<HTMLInputElement>) {
+    const normalized = normalizeAmount(e.target.value);
+    setReleaseAmount(normalized);
+    const parsed = parseFloat(normalized);
+    if (Number.isFinite(parsed) && totalCents > 0) {
+      const cents = Math.round(parsed * 100);
+      const pct = Math.min(Math.max(Math.round((cents / totalCents) * 100), 0), 100);
+      setSliderPercent(pct);
+    }
+  }
+
+  function handleRefundBlur(e: React.FocusEvent<HTMLInputElement>) {
+    const normalized = normalizeAmount(e.target.value);
+    setRefundAmount(normalized);
+    const parsed = parseFloat(normalized);
+    if (Number.isFinite(parsed) && totalCents > 0) {
+      const cents = Math.round(parsed * 100);
+      const pct = Math.min(Math.max(Math.round(((totalCents - cents) / totalCents) * 100), 0), 100);
+      setSliderPercent(pct);
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -70,10 +142,12 @@ export function DisputeResolutionForm({ dispute, onSubmit, onCancel }: DisputeRe
     setError(null);
     setIsSubmitting(true);
     try {
+      const finalRelease = normalizeAmount(releaseAmount);
+      const finalRefund = normalizeAmount(refundAmount);
       await onSubmit({
         decision,
         note: note.trim(),
-        ...(decision === "SPLIT" ? { releaseAmount, refundAmount } : {}),
+        ...(decision === "SPLIT" ? { releaseAmount: finalRelease, refundAmount: finalRefund } : {}),
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to resolve the dispute.");
@@ -81,6 +155,9 @@ export function DisputeResolutionForm({ dispute, onSubmit, onCancel }: DisputeRe
       setIsSubmitting(false);
     }
   }
+
+  const clientPercent = 100 - sliderPercent;
+  const freelancerPercent = sliderPercent;
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
@@ -115,11 +192,43 @@ export function DisputeResolutionForm({ dispute, onSubmit, onCancel }: DisputeRe
       </fieldset>
 
       {decision === "SPLIT" && (
-        <div className={cn(NEUMORPHIC_INSET, "p-4 rounded-xl space-y-3")}>
+        <div className={cn(NEUMORPHIC_INSET, "p-4 rounded-xl space-y-4")}>
           <p className="text-xs text-text-secondary">
             Suggested from the order&apos;s milestones: {suggestion.completedMilestones} of {suggestion.totalMilestones} completed →
             seller ${suggestion.releaseAmount}, buyer ${suggestion.refundAmount}. Adjust if the evidence warrants it.
           </p>
+
+          {/* Interactive Split Allocation Slider */}
+          <div className="space-y-2 pt-1">
+            <div className="flex items-center justify-between text-xs font-semibold text-text-secondary">
+              <span>100% Client (Refund)</span>
+              <span className="text-text-primary font-bold">Split Allocation</span>
+              <span>100% Freelancer (Release)</span>
+            </div>
+
+            <div className="relative py-1">
+              <input
+                id="split-allocation-slider"
+                type="range"
+                min={0}
+                max={100}
+                step={1}
+                value={sliderPercent}
+                onChange={handleSliderChange}
+                aria-label="Split allocation between client and freelancer"
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={sliderPercent}
+                aria-valuetext={`Client: ${clientPercent}%, Freelancer: ${freelancerPercent}%`}
+                className="range-neumorphic w-full"
+              />
+            </div>
+
+            <div className="text-center text-xs text-text-secondary font-medium">
+              Client: ${refundAmount} ({clientPercent}%) · Freelancer: ${releaseAmount} ({freelancerPercent}%)
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label htmlFor="release-amount" className="block text-xs font-semibold text-text-primary mb-1">
@@ -129,8 +238,8 @@ export function DisputeResolutionForm({ dispute, onSubmit, onCancel }: DisputeRe
                 id="release-amount"
                 inputMode="decimal"
                 value={releaseAmount}
-                onChange={(e) => setReleaseAmount(e.target.value)}
-                onBlur={(e) => setReleaseAmount(normalizeAmount(e.target.value))}
+                onChange={handleReleaseChange}
+                onBlur={handleReleaseBlur}
                 className={NEUMORPHIC_INPUT}
               />
             </div>
@@ -142,8 +251,8 @@ export function DisputeResolutionForm({ dispute, onSubmit, onCancel }: DisputeRe
                 id="refund-amount"
                 inputMode="decimal"
                 value={refundAmount}
-                onChange={(e) => setRefundAmount(e.target.value)}
-                onBlur={(e) => setRefundAmount(normalizeAmount(e.target.value))}
+                onChange={handleRefundChange}
+                onBlur={handleRefundBlur}
                 className={NEUMORPHIC_INPUT}
               />
             </div>

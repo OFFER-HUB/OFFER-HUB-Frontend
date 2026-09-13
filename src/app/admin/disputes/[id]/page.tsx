@@ -347,14 +347,14 @@ export default function AdminDisputeDetailPage(): React.JSX.Element | null {
                   Uploaded documentation and proofs submitted with this claim
                 </p>
               </div>
-              {dispute.evidence && dispute.evidence.length > 0 && (
+              {Array.isArray(dispute.evidence) && dispute.evidence.length > 0 && (
                 <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-primary/10 text-primary">
                   {dispute.evidence.length} {dispute.evidence.length === 1 ? "file" : "files"}
                 </span>
               )}
             </div>
 
-            {!dispute.evidence || dispute.evidence.length === 0 ? (
+            {!Array.isArray(dispute.evidence) || dispute.evidence.length === 0 ? (
               <div className={cn(NEUMORPHIC_INSET, "p-6 rounded-2xl text-center space-y-2")}>
                 <div className="w-10 h-10 rounded-xl mx-auto flex items-center justify-center text-text-secondary bg-white shadow-[2px_2px_4px_#d1d5db,-2px_-2px_4px_#ffffff]">
                   <Icon path={ICON_PATHS.paperclip} size="sm" />

@@ -301,10 +301,10 @@ export default function DisputeDetailPage(): React.JSX.Element {
             )}
           </div>
 
-          {dispute.evidence.length > 0 && (
+          {(dispute.evidence?.length ?? 0) > 0 && (
             <div className={NEUMORPHIC_CARD}>
               <h2 className="text-lg font-semibold text-text-primary mb-4">
-                Evidence ({dispute.evidence.length})
+                Evidence ({dispute.evidence?.length ?? 0})
               </h2>
               <EvidenceList items={toEvidenceUploadItems(dispute)} />
             </div>
@@ -405,7 +405,7 @@ export default function DisputeDetailPage(): React.JSX.Element {
               </InfoRow>
               <InfoRow label="Evidence Files">
                 <span className="text-text-primary text-sm">
-                  {dispute.evidence.length}
+                  {dispute.evidence?.length ?? 0}
                 </span>
               </InfoRow>
               <InfoRow label="Comments">
