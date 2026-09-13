@@ -141,6 +141,18 @@ export default function OrderDetailPage(): React.JSX.Element {
 
           <OrderProgressStepper currentStep={step.step} />
 
+          {/* On mobile screens (< lg), show the compact smart contract card right here above the fold */}
+          {order.escrow && (
+            <div className="lg:hidden">
+              <EscrowDetailsCard
+                escrow={order.escrow}
+                orderStatus={order.status}
+                onNotifySuccess={actions.showSuccess}
+                onNotifyError={actions.showError}
+              />
+            </div>
+          )}
+
           <OrderDescriptionCard description={order.description} />
 
           <OrderDeliverablesCard
@@ -153,15 +165,6 @@ export default function OrderDetailPage(): React.JSX.Element {
           />
 
           {order.milestones && <MilestonePaymentStatusCard milestones={order.milestones} />}
-
-          {order.escrow && (
-            <EscrowDetailsCard
-              escrow={order.escrow}
-              orderStatus={order.status}
-              onNotifySuccess={actions.showSuccess}
-              onNotifyError={actions.showError}
-            />
-          )}
 
           {roles.isReviewSectionVisible && (
             <OrderReviewSection
@@ -211,9 +214,21 @@ export default function OrderDetailPage(): React.JSX.Element {
             <PayoutStatusCard orderId={order.id} />
           )}
 
+          {/* Secure Payment Contract (Escrow Details) - Sticky on Desktop */}
+          {order.escrow && (
+            <div className="hidden lg:block">
+              <EscrowDetailsCard
+                escrow={order.escrow}
+                orderStatus={order.status}
+                onNotifySuccess={actions.showSuccess}
+                onNotifyError={actions.showError}
+              />
+            </div>
+          )}
+
           {/* Order Financial & Security Overview */}
-          <div className={cn(NEUMORPHIC_CARD, "p-6 border border-white/80 space-y-4")}>
-            <div className="flex items-center justify-between pb-3 border-b border-black/5">
+          <div className={cn(NEUMORPHIC_CARD, "p-6 space-y-4")}>
+            <div className="flex items-center justify-between pb-3">
               <span className="text-xs font-bold uppercase tracking-wider text-text-secondary">
                 Financial Summary
               </span>
@@ -237,7 +252,7 @@ export default function OrderDetailPage(): React.JSX.Element {
               </div>
             </div>
 
-            <div className="pt-3 border-t border-black/5 flex items-start gap-2 text-[11px] text-text-secondary leading-relaxed">
+            <div className="pt-3 flex items-start gap-2 text-[11px] text-text-secondary leading-relaxed">
               <Icon path={ICON_PATHS.lock} size="sm" className="text-primary flex-shrink-0 mt-0.5" />
               <span>Funds remain safely held in smart escrow until the order is signed off.</span>
             </div>
