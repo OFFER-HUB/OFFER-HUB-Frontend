@@ -95,7 +95,13 @@ export interface Milestone {
   title: string;
   description: string;
   amount: string;
-  status: 'OPEN' | 'COMPLETED';
+  /**
+   * COMPLETED means the seller marked the work done — RELEASED means the
+   * funds actually left escrow and paid the seller (see
+   * OFFER-HUB-API#281). A milestone can be COMPLETED for a while before
+   * it's RELEASED.
+   */
+  status: 'OPEN' | 'COMPLETED' | 'RELEASED';
   dueDate?: string;
   completedAt?: string;
 }
