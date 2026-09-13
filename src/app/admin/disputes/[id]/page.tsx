@@ -104,7 +104,7 @@ export default function AdminDisputeDetailPage(): React.JSX.Element | null {
         <div className="lg:col-span-2 space-y-6">
           <section className={cn(NEUMORPHIC_CARD, "p-6")}>
             <h2 className="text-lg font-semibold text-text-primary mb-4">Evidence</h2>
-            {dispute.evidence.length === 0 ? (
+            {!dispute.evidence || dispute.evidence.length === 0 ? (
               <p className="text-sm text-text-secondary">No evidence was attached when the dispute was opened.</p>
             ) : (
               <ul className="space-y-2">

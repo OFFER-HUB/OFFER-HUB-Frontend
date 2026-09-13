@@ -199,8 +199,8 @@ export interface AdminDispute {
   orderId: string;
   openedBy: DisputeOpenedBy;
   reason: AdminDisputeReason;
-  /** Evidence URLs as stored — the backend keeps a JSON array of strings. */
-  evidence: string[];
+  /** Evidence URLs as stored — the backend keeps a JSON array of strings, or null when none were attached. */
+  evidence: string[] | null;
   status: AdminDisputeStatus;
   resolutionDecision: ResolutionDecision | null;
   decisionNote: string | null;
