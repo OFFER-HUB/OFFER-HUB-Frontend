@@ -36,6 +36,7 @@ export type EscrowSigningErrorCode =
   | "XDR_EXPIRED"
   | "NO_WALLET_CONNECTED"
   | "WRONG_SIGNER"
+  | "STALE_TRANSACTION"
   | "API_ERROR";
 
 export interface EscrowSigningError {
@@ -98,7 +99,17 @@ function toApiError(cause: unknown): EscrowSigningError {
     cause && typeof cause === "object" && "message" in cause && typeof cause.message === "string"
       ? cause.message
       : "The request failed. Please try again.";
-  return { code: "API_ERROR", message };
+
+  // STELLAR_NETWORK_ERROR names a specific, known cause (the signed XDR went
+  // stale — a newer one was already prepared for the same step) rather than
+  // an unclassified failure. Carrying the real code through lets the modal
+  // show that instead of its generic "check your connection/XLM" copy.
+  const code =
+    cause && typeof cause === "object" && "code" in cause && cause.code === "STELLAR_NETWORK_ERROR"
+      ? "STALE_TRANSACTION"
+      : "API_ERROR";
+
+  return { code, message };
 }
 
 /**

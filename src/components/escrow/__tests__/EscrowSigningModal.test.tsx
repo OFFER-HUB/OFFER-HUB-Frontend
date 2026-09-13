@@ -194,6 +194,21 @@ describe("EscrowSigningModal — error states", () => {
     expect(screen.queryByRole("button", { name: /cancel/i })).not.toBeInTheDocument();
   });
 
+  it("STALE_TRANSACTION shows a specific outdated-transaction copy instead of the generic connectivity hint", () => {
+    setup({
+      state: "error",
+      error: {
+        code: "STALE_TRANSACTION",
+        message: "Stellar rejected this transaction. It may be stale because a newer request was already prepared for the same step — please retry to sign a fresh transaction.",
+      },
+    });
+
+    expect(screen.getAllByText("Transaction outdated").length).toBeGreaterThan(0);
+    expect(screen.getByText(/Stellar rejected this transaction/i)).toBeInTheDocument();
+    expect(screen.getByText(/started twice/i)).toBeInTheDocument();
+    expect(screen.queryByText(/ensure your wallet has enough XLM/i)).not.toBeInTheDocument();
+  });
+
   it("a generic API error shows its own message with Retry and Cancel", () => {
     setup({
       state: "error",

@@ -193,6 +193,13 @@ function errorCopy(error: EscrowSigningError): {
         actionHint:
           "Please wait for the other party to complete their on-chain step before you can proceed with this signature.",
       };
+    case "STALE_TRANSACTION":
+      return {
+        title: "Transaction outdated",
+        message: error.message,
+        actionHint:
+          "This can happen if the same action was started twice — for example, if the page was reopened while a signature was still pending. Click Retry to fetch a fresh transaction and sign it.",
+      };
     case "NO_WALLET_CONNECTED":
       return {
         title: "No wallet connected",
