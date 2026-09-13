@@ -258,6 +258,7 @@ export default function OrderDetailPage(): React.JSX.Element {
         amount={order.amount}
         isProcessing={actions.isProcessing}
         error={actions.releaseSigning.inlineError}
+        isEarlyRelease={!roles.isWorkCompleted}
         onCancel={modals.closeReleaseModal}
         onConfirm={actions.handleReleaseFunds}
       />

@@ -20,6 +20,13 @@ interface ReleaseFundsModalProps {
   isProcessing: boolean;
   /** Set by the caller after a failed attempt; cleared automatically on the next confirm. */
   error?: string | null;
+  /**
+   * True when the freelancer hasn't marked the work as delivered yet.
+   * Nothing stops a buyer from releasing early — some do it as a show of
+   * good faith once they're satisfied — but they should know that's what
+   * they're doing before confirming.
+   */
+  isEarlyRelease?: boolean;
   onCancel: () => void;
   onConfirm: () => void;
 }
@@ -34,6 +41,7 @@ export function ReleaseFundsModal({
   amount,
   isProcessing,
   error,
+  isEarlyRelease = false,
   onCancel,
   onConfirm,
 }: ReleaseFundsModalProps): React.JSX.Element | null {
@@ -55,6 +63,27 @@ export function ReleaseFundsModal({
           <span className="font-semibold text-primary">${payout.toFixed(2)}</span> to the
           freelancer. This action cannot be undone.
         </p>
+        {isEarlyRelease && (
+          <div
+            className={cn(
+              "mb-6 rounded-xl p-4 flex gap-3",
+              "bg-background shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]"
+            )}
+          >
+            <Icon
+              path={ICON_PATHS.alertCircle}
+              size="sm"
+              className="text-warning shrink-0 mt-0.5"
+            />
+            <p className="text-xs text-text-secondary leading-relaxed">
+              <span className="font-semibold text-text-primary">
+                The freelancer hasn&apos;t marked this order as delivered yet.
+              </span>{" "}
+              That&apos;s completely fine if releasing early is something you both agreed on — just
+              make sure it really is before confirming.
+            </p>
+          </div>
+        )}
         {error && (
           <div role="alert" className="mb-4 rounded-xl bg-error/10 p-3 text-sm text-error">
             {error}
