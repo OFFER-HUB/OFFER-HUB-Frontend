@@ -18,11 +18,19 @@ function resolveStatusStyle(status: OrderStatus): { color: string; bg: string } 
 interface OrderSummaryHeaderProps {
   order: Order;
   statusLabel: string;
+  /** The other party's uploads/notes/status changes only show up after a
+   * refresh — this lets the buyer/seller pull the latest without reloading
+   * the whole page. Optional so this component still works wherever the
+   * caller doesn't have a refetch to offer. */
+  onRefresh?: () => void;
+  isRefreshing?: boolean;
 }
 
 export function OrderSummaryHeader({
   order,
   statusLabel,
+  onRefresh,
+  isRefreshing = false,
 }: OrderSummaryHeaderProps): React.JSX.Element {
   const [copiedId, setCopiedId] = useState(false);
   const statusStyle = resolveStatusStyle(order.status);
@@ -71,6 +79,26 @@ export function OrderSummaryHeader({
               <Icon path={ICON_PATHS.calendar} size="sm" className="w-3.5 h-3.5" />
               <span>Created {createdDate}</span>
             </span>
+
+            {onRefresh && (
+              <button
+                type="button"
+                onClick={onRefresh}
+                disabled={isRefreshing}
+                className={cn(
+                  "inline-flex items-center justify-center w-6 h-6 rounded-full text-text-secondary",
+                  "bg-background shadow-[2px_2px_4px_#d1d5db,-2px_-2px_4px_#ffffff]",
+                  "hover:text-text-primary transition-colors disabled:opacity-60"
+                )}
+                title="Refresh order"
+              >
+                <Icon
+                  path={ICON_PATHS.refresh}
+                  size="sm"
+                  className={cn("w-3.5 h-3.5", isRefreshing && "animate-spin")}
+                />
+              </button>
+            )}
           </div>
 
           <h1 className="text-2xl sm:text-3xl font-extrabold text-[#111827] tracking-tight leading-snug">

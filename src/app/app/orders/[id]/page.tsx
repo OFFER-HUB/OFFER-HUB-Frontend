@@ -49,6 +49,7 @@ export default function OrderDetailPage(): React.JSX.Element {
     setOrder,
     setReview,
     refetch,
+    isRefetching,
   } = useOrderData(orderId);
 
   const roles = useOrderRoles({ order, review, isReviewLoading });
@@ -131,7 +132,12 @@ export default function OrderDetailPage(): React.JSX.Element {
         
         {/* Left Column: Order Documentation & Progress (8 Cols) */}
         <div className="lg:col-span-8 space-y-7">
-          <OrderSummaryHeader order={order} statusLabel={step.label} />
+          <OrderSummaryHeader
+            order={order}
+            statusLabel={step.label}
+            onRefresh={refetch}
+            isRefreshing={isRefetching}
+          />
 
           <OrderProgressStepper currentStep={step.step} />
 
