@@ -76,6 +76,10 @@ export function useLoginForm(): UseLoginFormReturn {
 
   function goToDashboardOrOnboarding(): void {
     const user = useAuthStore.getState().user;
+    if (user?.isAdmin) {
+      router.push(redirectPath ?? "/admin");
+      return;
+    }
     if (user && isNewUser(user)) {
       router.push("/onboarding");
       return;
