@@ -21,6 +21,13 @@ const SELLER_ACTION_BUTTON = cn(
 
 interface SellerStatusPanelProps {
   status: OrderStatus;
+  /**
+   * Terminal escrow outcome, when there is one. `order.status` alone
+   * settles on the same CLOSED value whether the order was released or
+   * refunded — this is what tells the two apart so the freelancer isn't
+   * left staring at an empty panel wondering what happened.
+   */
+  escrowStatus?: string;
   /** This freelancer has already flagged the work as delivered. */
   isWorkCompleted: boolean;
   /** An action is already running — the completion button is disabled. */
@@ -38,11 +45,13 @@ interface SellerStatusPanelProps {
  */
 export function SellerStatusPanel({
   status,
+  escrowStatus,
   isWorkCompleted,
   isProcessing,
   onMarkCompleted,
   onRequestDispute,
 }: SellerStatusPanelProps): React.JSX.Element {
+  const wasRefunded = escrowStatus === "REFUNDED";
   return (
     <div className={NEUMORPHIC_CARD}>
       <h2 className="text-lg font-semibold text-text-primary mb-4">Order Status</h2>
@@ -141,6 +150,50 @@ export function SellerStatusPanel({
           )}
         </div>
       )}
+
+      {status === "RELEASE_REQUESTED" && (
+        <OrderStatusCallout
+          tone="primary"
+          iconPath={ICON_PATHS.clock}
+          title="Release in Progress"
+          description="The client has released your payment. It's being finalized on-chain and should reflect shortly."
+        />
+      )}
+
+      {status === "REFUND_REQUESTED" && (
+        <OrderStatusCallout
+          tone="warning"
+          iconPath={ICON_PATHS.clock}
+          title="Refund in Progress"
+          description="The client has requested a refund for this order. It's being finalized on-chain."
+        />
+      )}
+
+      {status === "DISPUTED" && (
+        <OrderStatusCallout
+          tone="warning"
+          iconPath={ICON_PATHS.flag}
+          title="Order in Dispute"
+          description="This order is under review. An admin will resolve the dispute and you'll be notified of the outcome."
+        />
+      )}
+
+      {(status === "RELEASED" || status === "CLOSED") &&
+        (wasRefunded ? (
+          <OrderStatusCallout
+            tone="warning"
+            iconPath={ICON_PATHS.arrowLeft}
+            title="Order Refunded"
+            description="This order was closed after the client requested a refund. The funds were returned to the client, so no payout applies to this order."
+          />
+        ) : (
+          <OrderStatusCallout
+            tone="success"
+            iconPath={ICON_PATHS.check}
+            title="Order Completed"
+            description="The client released your payment. See the payout tracker below for its status."
+          />
+        ))}
     </div>
   );
 }
