@@ -63,3 +63,39 @@ describe("useOrderRoles — delivery and refund gating", () => {
     expect(r.isWorkCompleted).toBe(true);
   });
 });
+
+describe("useOrderRoles — payout tracker only follows a real release", () => {
+  it("a CLOSED order that was actually released expects a payout", () => {
+    const r = roles({
+      ...ORDER,
+      status: "CLOSED",
+      escrow: { id: "esc_1", status: "RELEASED" },
+    });
+    expect(r.isOrderComplete).toBe(true);
+    expect(r.isPayoutExpected).toBe(true);
+  });
+
+  it("a CLOSED order that was refunded does not expect a payout, even though it's complete", () => {
+    const r = roles({
+      ...ORDER,
+      status: "CLOSED",
+      escrow: { id: "esc_1", status: "REFUNDED" },
+    });
+    expect(r.isOrderComplete).toBe(true);
+    expect(r.isPayoutExpected).toBe(false);
+  });
+
+  it("still expects a payout while the release is in flight (RELEASING)", () => {
+    const r = roles({
+      ...ORDER,
+      status: "RELEASE_REQUESTED",
+      escrow: { id: "esc_1", status: "RELEASING" },
+    });
+    expect(r.isPayoutExpected).toBe(true);
+  });
+
+  it("no escrow yet means no payout expected", () => {
+    const r = roles({ ...ORDER, status: "CLOSED" });
+    expect(r.isPayoutExpected).toBe(false);
+  });
+});

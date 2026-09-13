@@ -26,6 +26,14 @@ export interface UseOrderRolesResult {
   refundRequiresDispute: boolean;
   /** Order reached a terminal, paid-out state. */
   isOrderComplete: boolean;
+  /**
+   * Escrow actually released to the seller — as opposed to a CLOSED order
+   * that got there via a refund. `order.status` alone can't tell these
+   * apart once it settles on CLOSED, but `escrow.status` keeps RELEASED and
+   * REFUNDED distinct forever, so the payout tracker (which only ever
+   * applies to a release) reads from there instead of `isOrderComplete`.
+   */
+  isPayoutExpected: boolean;
   /** The other side of the order, from the signed-in user's point of view. */
   counterparty: OrderParticipant | undefined;
   /** Buyer finished the order and has not reviewed it yet. */
@@ -57,6 +65,8 @@ export function useOrderRoles({
     const hasCompletedMilestone = order?.milestones?.some((m) => m.status === "COMPLETED") ?? false;
     const refundRequiresDispute = order?.status === "DELIVERED" || hasCompletedMilestone;
     const isOrderComplete = order?.status === "RELEASED" || order?.status === "CLOSED";
+    const isPayoutExpected =
+      order?.escrow?.status === "RELEASED" || order?.escrow?.status === "RELEASING";
 
     const canLeaveReview = isBuyer && isOrderComplete && !review;
     const canRespondToReview = Boolean(
@@ -69,6 +79,7 @@ export function useOrderRoles({
       isWorkCompleted,
       refundRequiresDispute,
       isOrderComplete,
+      isPayoutExpected,
       counterparty: isBuyer ? order?.seller : order?.buyer,
       canLeaveReview,
       canRespondToReview,

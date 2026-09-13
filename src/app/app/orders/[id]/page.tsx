@@ -210,7 +210,7 @@ export default function OrderDetailPage(): React.JSX.Element {
             />
           )}
 
-          {roles.isSeller && roles.isOrderComplete && (
+          {roles.isSeller && roles.isPayoutExpected && (
             <PayoutStatusCard orderId={order.id} />
           )}
 
