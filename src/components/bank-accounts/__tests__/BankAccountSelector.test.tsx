@@ -211,6 +211,28 @@ describe("BankAccountSelector Account Management", () => {
     expect(await screen.findByText("Bank account deleted")).toBeInTheDocument();
   });
 
+  it("shows a friendly message instead of the raw backend error when deletion is blocked by an existing payout", async () => {
+    // Reported live: the toast showed "Bank account ba_xxx cannot be
+    // deleted: 1 payout(s) reference it" verbatim from the backend.
+    mockListBankAccounts.mockResolvedValue([DEFAULT_ACCOUNT]);
+    const blockedError = Object.assign(new Error("Bank account ba_default cannot be deleted: 1 payout(s) reference it"), {
+      code: "BANK_ACCOUNT_HAS_PAYOUTS",
+    });
+    mockDeleteBankAccount.mockRejectedValue(blockedError);
+    const user = userEvent.setup();
+    render(<BankAccountSelector />);
+
+    await screen.findByText("BBVA");
+    await user.click(screen.getByRole("button", { name: "Delete BBVA account" }));
+    await user.click(screen.getByRole("button", { name: "Delete account" }));
+
+    expect(
+      (await screen.findAllByText(/can't be removed because a payout already references it/i)).length
+    ).toBeGreaterThan(0);
+    expect(screen.queryByText(/ba_default cannot be deleted/i)).not.toBeInTheDocument();
+    expect(screen.getByText("BBVA")).toBeInTheDocument();
+  });
+
   it("adds a new account through the modal, shows it in the list, and confirms via toast", async () => {
     mockListBankAccounts.mockResolvedValue([]);
     const user = userEvent.setup();
