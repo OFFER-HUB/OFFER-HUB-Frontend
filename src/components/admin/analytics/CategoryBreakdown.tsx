@@ -1,6 +1,7 @@
 "use client";
 
-import { Card } from "@/components/ui/Card";
+import { cn } from "@/lib/cn";
+import { NEUMORPHIC_CARD, NEUMORPHIC_INSET } from "@/lib/styles";
 import type { CategoryBreakdown as CategoryBreakdownType } from "@/types/admin-analytics.types";
 
 interface CategoryBreakdownProps {
@@ -9,7 +10,7 @@ interface CategoryBreakdownProps {
 
 export function CategoryBreakdown({ data }: CategoryBreakdownProps): React.JSX.Element {
   return (
-    <Card className="p-6">
+    <div className={cn(NEUMORPHIC_CARD, "p-6")}>
       <h3 className="text-lg font-semibold text-text-primary mb-4">Services by Category</h3>
 
       {data.length === 0 ? (
@@ -20,16 +21,16 @@ export function CategoryBreakdown({ data }: CategoryBreakdownProps): React.JSX.E
             <div key={category.category} className="space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-text-primary">{category.category}</span>
-                <span className="text-sm font-medium text-text-primary">
+                <span className="text-sm font-semibold text-text-primary">
                   {category.services} {category.services === 1 ? "service" : "services"}
                 </span>
               </div>
 
-              {/* Progress bar */}
-              <div className="w-full bg-background-secondary rounded-full h-2">
+              {/* Progress bar track with sunken neumorphic depth */}
+              <div className={cn("w-full rounded-full h-2.5 overflow-hidden", NEUMORPHIC_INSET)}>
                 <div
-                  className="bg-primary h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${category.percentage}%` }}
+                  className="bg-primary h-2.5 rounded-full transition-all duration-500 shadow-sm"
+                  style={{ width: `${Math.min(category.percentage, 100)}%` }}
                 />
               </div>
 
@@ -38,6 +39,7 @@ export function CategoryBreakdown({ data }: CategoryBreakdownProps): React.JSX.E
           ))}
         </div>
       )}
-    </Card>
+    </div>
   );
 }
+

@@ -43,19 +43,20 @@ interface TooltipProps {
 const CustomTooltip = ({ active, payload, label }: TooltipProps) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-background border border-border rounded-lg p-3 shadow-lg">
-        <p className="font-medium text-text-primary">{label}</p>
+      <div className="bg-white/95 backdrop-blur-md rounded-2xl p-3.5 shadow-[var(--shadow-neumorphic-light)] space-y-1">
+        <p className="text-xs font-semibold text-text-primary">{label}</p>
         {payload.map((entry, index) => (
-          <p key={index} className="text-sm" style={{ color: entry.color }}>
-            {entry.name}: {
-              entry.dataKey === 'volume'
-                ? new Intl.NumberFormat('en-US', {
-                    style: 'currency',
-                    currency: 'USD',
+          <p key={index} className="text-xs font-medium flex items-center justify-between gap-4" style={{ color: entry.color }}>
+            <span>{entry.name}:</span>
+            <span className="font-bold">
+              {entry.dataKey === "volume"
+                ? new Intl.NumberFormat("en-US", {
+                    style: "currency",
+                    currency: "USD",
                     minimumFractionDigits: 0,
                   }).format(entry.value)
-                : new Intl.NumberFormat('en-US').format(entry.value)
-            }
+                : new Intl.NumberFormat("en-US").format(entry.value)}
+            </span>
           </p>
         ))}
       </div>

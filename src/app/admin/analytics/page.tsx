@@ -7,7 +7,8 @@ import { TrendsChart } from "@/components/admin/analytics/TrendsChart";
 import { AnalyticsFilters } from "@/components/admin/analytics/AnalyticsFilters";
 import { CategoryBreakdown } from "@/components/admin/analytics/CategoryBreakdown";
 import { ExportControls } from "@/components/admin/analytics/ExportControls";
-import { Card } from "@/components/ui/Card";
+import { cn } from "@/lib/cn";
+import { NEUMORPHIC_CARD } from "@/lib/styles";
 import { LoadingState } from "@/components/ui/LoadingState";
 import { ErrorState } from "@/components/ui/ErrorState";
 
@@ -53,9 +54,9 @@ export default function AdminAnalyticsPage(): React.JSX.Element {
         <>
           <PlatformStats stats={analytics.data.stats} />
 
-          <Card className="p-6">
+          <div className={cn(NEUMORPHIC_CARD, "p-6")}>
             <TrendsChart data={analytics.data.trends} period={analytics.data.period} />
-          </Card>
+          </div>
 
           <CategoryBreakdown data={analytics.data.categories} />
         </>
