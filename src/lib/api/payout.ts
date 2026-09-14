@@ -99,3 +99,21 @@ export async function submitPayoutTransfer(
     throw await parsePayoutError(response, "Failed to submit signed payout transfer");
   }
 }
+
+/**
+ * Re-attempts a FAILED payout, re-resolving the seller's current default
+ * bank account for the corridor instead of whatever was frozen on the
+ * payout at its first (failed) attempt — the fix for a seller stuck on a
+ * broken or misconfigured account with no way to switch it.
+ * POST /orders/:orderId/payout/retry
+ */
+export async function retryPayout(token: string, orderId: string): Promise<void> {
+  const response = await fetch(`${API_URL}/orders/${orderId}/payout/retry`, {
+    method: "POST",
+    headers: authHeaders(token),
+  });
+
+  if (!response.ok) {
+    throw await parsePayoutError(response, "Failed to retry the payout");
+  }
+}

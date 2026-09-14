@@ -8,6 +8,7 @@ import { Icon, ICON_PATHS, LoadingSpinner } from "@/components/ui/Icon";
 import { useAuthStore } from "@/stores/auth-store";
 import { useWalletKit } from "@/hooks/use-wallet-kit";
 import { getPayoutStatus, type PayoutApiError } from "@/lib/api/orders";
+import { retryPayout } from "@/lib/api/payout";
 import { SUPPORTED_CORRIDORS } from "@/lib/api/bank-accounts";
 import type { Payout, PayoutStatus } from "@/types/order.types";
 import { usePayoutSigning } from "@/hooks/usePayoutSigning";
@@ -172,6 +173,8 @@ export function PayoutStatusCard({ orderId, className }: PayoutStatusCardProps):
   const { address: connectedWalletAddress } = useWalletKit();
   const signing = usePayoutSigning();
   const [isWalletConnectOpen, setIsWalletConnectOpen] = useState(false);
+  const [isRetrying, setIsRetrying] = useState(false);
+  const [retryError, setRetryError] = useState<string | null>(null);
 
   const stopPolling = useCallback(() => {
     if (pollRef.current !== null) {
@@ -205,17 +208,23 @@ export function PayoutStatusCard({ orderId, className }: PayoutStatusCardProps):
     }
   }, [token, orderId, stopPolling]);
 
+  const startPolling = useCallback(() => {
+    if (pollRef.current !== null) return;
+    pollRef.current = setInterval(() => void fetchPayout(), POLL_INTERVAL_MS);
+  }, [fetchPayout]);
+
   useEffect(() => {
     if (!token) return;
     cancelledRef.current = false;
 
     void fetchPayout();
-    pollRef.current = setInterval(() => void fetchPayout(), POLL_INTERVAL_MS);
+    startPolling();
 
     return () => {
       cancelledRef.current = true;
       stopPolling();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token, fetchPayout, stopPolling]);
 
   const handleSignClick = useCallback(() => {
@@ -225,6 +234,31 @@ export function PayoutStatusCard({ orderId, className }: PayoutStatusCardProps):
     }
     void signing.sign(orderId);
   }, [connectedWalletAddress, orderId, signing]);
+
+  /**
+   * Re-attempts a FAILED payout server-side, re-resolving the seller's
+   * current default bank account instead of whatever was frozen on the
+   * payout at its first attempt. Fixes the case that used to leave a seller
+   * stuck forever on a broken account: adding a new one and setting it
+   * default did nothing, because nothing ever re-read it until now.
+   */
+  const handleRetryPayout = useCallback(async () => {
+    if (!token) return;
+    setIsRetrying(true);
+    setRetryError(null);
+    try {
+      await retryPayout(token, orderId);
+      // Polling stopped when the card first saw FAILED — restart it so the
+      // now-PENDING (then, shortly, AWAITING_SIGNATURE or COMPLETED) status
+      // shows up without a manual page refresh.
+      await fetchPayout();
+      startPolling();
+    } catch (err) {
+      setRetryError(err instanceof Error ? err.message : "Failed to retry the payout.");
+    } finally {
+      setIsRetrying(false);
+    }
+  }, [token, orderId, fetchPayout, startPolling]);
 
   const isSigningModalOpen =
     signing.state === "building" ||
@@ -284,17 +318,32 @@ export function PayoutStatusCard({ orderId, className }: PayoutStatusCardProps):
               {payout.failureReason ?? "This payout could not be completed."}
             </p>
             <p className="text-xs text-text-secondary">
-              If your wallet is non-custodial, this can usually be retried by signing a fresh
-              transfer — no need to contact support first.
+              This usually resolves itself on retry — for example, if it failed because of an
+              issue with your bank account, add a new one, set it as your default, then retry.
             </p>
+            {retryError && (
+              <div role="alert" className="rounded-xl bg-error/10 p-3 text-xs text-error">
+                {retryError}
+              </div>
+            )}
             <div className="flex flex-wrap items-center gap-4">
               <button
                 type="button"
-                onClick={handleSignClick}
+                onClick={() => void handleRetryPayout()}
+                disabled={isRetrying}
                 className={cn(PRIMARY_BUTTON, "justify-center")}
               >
-                <Icon path={ICON_PATHS.creditCard} size="sm" />
-                <span>Retry & Sign</span>
+                {isRetrying ? (
+                  <>
+                    <LoadingSpinner size="sm" className="text-white" />
+                    <span>Retrying...</span>
+                  </>
+                ) : (
+                  <>
+                    <Icon path={ICON_PATHS.refresh} size="sm" />
+                    <span>Retry Payout</span>
+                  </>
+                )}
               </button>
               <Link
                 href="/app/chat"

@@ -3,9 +3,14 @@ import { render, screen, act, fireEvent } from "@testing-library/react";
 import { PayoutStatusCard } from "@/components/payout/PayoutStatusCard";
 
 const mockGetPayoutStatus = vi.fn();
+const mockRetryPayout = vi.fn();
 
 vi.mock("@/lib/api/orders", () => ({
   getPayoutStatus: (...args: unknown[]) => mockGetPayoutStatus(...args),
+}));
+
+vi.mock("@/lib/api/payout", () => ({
+  retryPayout: (...args: unknown[]) => mockRetryPayout(...args),
 }));
 
 vi.mock("@/stores/auth-store", () => ({
@@ -154,21 +159,64 @@ describe("PayoutStatusCard", () => {
     expect(mockGetPayoutStatus).toHaveBeenCalledTimes(1);
   });
 
-  it("offers Retry & Sign on FAILED so a non-custodial seller isn't stuck waiting on support", async () => {
-    mockGetPayoutStatus.mockResolvedValue({
-      ...PENDING_PAYOUT,
-      status: "FAILED",
-      failureReason: "Blind Pay Signer Unavailable Exception",
-    });
+  it("offers Retry Payout on FAILED, re-resolving the seller's bank account server-side instead of resigning a stale one", async () => {
+    // Reported live: a seller stuck on a broken bank account (e.g. BlindPay
+    // rejected registration) had no way to retry after fixing it — the old
+    // "Retry & Sign" button just resumed client-signing against whatever
+    // bank account was frozen on the payout at its first failed attempt.
+    mockGetPayoutStatus
+      .mockResolvedValueOnce({
+        ...PENDING_PAYOUT,
+        status: "FAILED",
+        failureReason: "internal_error",
+      })
+      .mockResolvedValueOnce({ ...PENDING_PAYOUT, status: "PENDING" });
+    mockRetryPayout.mockResolvedValue(undefined);
 
     render(<PayoutStatusCard orderId="order_1" />);
     await act(async () => {
       await Promise.resolve();
     });
 
-    fireEvent.click(screen.getByRole("button", { name: /Retry & Sign/ }));
+    expect(screen.queryByRole("button", { name: /Retry & Sign/ })).not.toBeInTheDocument();
 
-    expect(mockSign).toHaveBeenCalledWith("order_1");
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: /Retry Payout/ }));
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(mockRetryPayout).toHaveBeenCalledWith("jwt-token", "order_1");
+    expect(mockSign).not.toHaveBeenCalled();
+    // Polling had stopped on FAILED — a successful retry must restart it.
+    expect(screen.getByText("Pending")).toBeInTheDocument();
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(5000);
+    });
+    expect(mockGetPayoutStatus).toHaveBeenCalledTimes(3);
+  });
+
+  it("shows an inline error on the retry button when the retry itself fails, and does not lose the failure reason", async () => {
+    mockGetPayoutStatus.mockResolvedValue({
+      ...PENDING_PAYOUT,
+      status: "FAILED",
+      failureReason: "internal_error",
+    });
+    mockRetryPayout.mockRejectedValue(new Error("Seller has no active primary wallet"));
+
+    render(<PayoutStatusCard orderId="order_1" />);
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: /Retry Payout/ }));
+      await Promise.resolve();
+    });
+
+    expect(screen.getByText("Seller has no active primary wallet")).toBeInTheDocument();
+    expect(screen.getByText("internal_error")).toBeInTheDocument();
   });
 
   it("shows an inline error and stops polling on a non-404 failure", async () => {
