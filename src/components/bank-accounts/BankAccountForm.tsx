@@ -76,7 +76,17 @@ function maskAccountNumberByRail(value: string, rail: string): string {
   return value.slice(0, 64);
 }
 
+/** Friendlier labels for keys that would otherwise read like raw field names. */
+const DETAIL_KEY_LABELS: Record<string, string> = {
+  ach_cop_beneficiary_first_name: "Beneficiary first name",
+  ach_cop_beneficiary_last_name: "Beneficiary last name",
+  ach_cop_document_id: "Document number",
+  ach_cop_email: "Beneficiary email",
+  ach_cop_bank_code: "Bank code",
+};
+
 function humanizeDetailKey(key: string): string {
+  if (DETAIL_KEY_LABELS[key]) return DETAIL_KEY_LABELS[key];
   return key
     .split("_")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
@@ -655,6 +665,40 @@ export function BankAccountForm({ onSuccess, onCancel, className }: BankAccountF
                     );
                   }
 
+                  if (key === "ach_cop_document_type") {
+                    return (
+                      <div key={key}>
+                        <label htmlFor={detailId} className="block text-sm font-medium text-text-primary mb-2">
+                          Document type
+                        </label>
+                        <div className="relative">
+                          <select
+                            id={detailId}
+                            value={details[key] ?? ""}
+                            onChange={(e) => handleDetailChange(key, e.target.value)}
+                            className={cn(SELECT_STYLES, detailError && "ring-2 ring-error/50")}
+                            aria-invalid={Boolean(detailError)}
+                          >
+                            <option value="">Select document type...</option>
+                            <option value="CC">Cédula de Ciudadanía (CC)</option>
+                            <option value="CE">Cédula de Extranjería (CE)</option>
+                            <option value="NIT">NIT</option>
+                            <option value="PASS">Passport</option>
+                            <option value="PEP">Permiso Especial de Permanencia (PEP)</option>
+                          </select>
+                          <Icon
+                            path={ICON_PATHS.chevronDown}
+                            size="sm"
+                            className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-text-secondary"
+                          />
+                        </div>
+                        {detailError && (
+                          <p className="mt-1.5 text-xs text-error">{detailError}</p>
+                        )}
+                      </div>
+                    );
+                  }
+
                   if (key === "transfers_type") {
                     return (
                       <div key={key}>
@@ -688,12 +732,18 @@ export function BankAccountForm({ onSuccess, onCancel, className }: BankAccountF
                       </label>
                       <input
                         id={detailId}
-                        type="text"
+                        type={key === "ach_cop_email" ? "email" : "text"}
                         value={details[key] ?? ""}
                         onChange={(e) => handleDetailChange(key, e.target.value)}
                         placeholder={
                           key.includes("cpf_cnpj")
                             ? "000.000.000-00 or CNPJ"
+                            : key === "ach_cop_email"
+                            ? "beneficiary@email.com"
+                            : key === "ach_cop_document_id"
+                            ? "e.g. 1661105408"
+                            : key === "ach_cop_bank_code"
+                            ? "e.g. 007 (Bancolombia)"
                             : `Enter ${humanLabel.toLowerCase()}`
                         }
                         className={cn(NEUMORPHIC_INPUT, detailError && "ring-2 ring-error/50")}

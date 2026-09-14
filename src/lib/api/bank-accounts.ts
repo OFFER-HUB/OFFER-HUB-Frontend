@@ -70,7 +70,17 @@ export const SUPPORTED_CORRIDORS_REQUIRED_DETAILS: Record<string, readonly strin
   TED: ["account_type", "ted_bank_code", "ted_branch_code", "ted_cpf_cnpj"],
   SPEI_BITSO: ["spei_protocol"],
   TRANSFERS_BITSO: ["transfers_type"],
-  ACH_COP_BITSO: [],
+  // Confirmed against BlindPay's own OpenAPI spec — a Colombian account
+  // needs the beneficiary's split name, ID document, email, and the bank's
+  // routing code, not just the generic name/account number fields.
+  ACH_COP_BITSO: [
+    "ach_cop_beneficiary_first_name",
+    "ach_cop_beneficiary_last_name",
+    "ach_cop_document_type",
+    "ach_cop_document_id",
+    "ach_cop_email",
+    "ach_cop_bank_code",
+  ],
 };
 
 export type BankAccountApiError = Error & { code?: string; status?: number };

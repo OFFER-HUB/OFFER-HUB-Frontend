@@ -122,6 +122,54 @@ describe("BankAccountForm", () => {
     expect(onSuccess).toHaveBeenCalledWith(NEW_ACCOUNT);
   });
 
+  it("requires and submits the full beneficiary/document set for Colombia (ACH)", async () => {
+    // Reported live: registering a Colombian account with just the generic
+    // fields failed on BlindPay's side with an opaque "internal_error" —
+    // their schema requires these six fields for ach_cop_bitso specifically.
+    mockAddBankAccount.mockResolvedValue({ ...NEW_ACCOUNT, country: "CO", rail: "ACH_COP_BITSO" });
+    const user = userEvent.setup();
+    render(<BankAccountForm />);
+
+    await user.selectOptions(screen.getByLabelText("Country"), "CO");
+    await user.click(screen.getByRole("button", { name: "Continue to Details" }));
+
+    await user.type(screen.getByLabelText("Account number"), "12345678901");
+    await user.type(screen.getByLabelText("Bank name"), "Bancolombia");
+    await user.type(screen.getByLabelText("Account holder name"), "Andres Marin");
+
+    // Missing detail fields block submission first.
+    await user.click(screen.getByRole("button", { name: "Add bank account" }));
+    expect(await screen.findByText("Enter beneficiary first name")).toBeInTheDocument();
+    expect(mockAddBankAccount).not.toHaveBeenCalled();
+
+    await user.type(screen.getByLabelText("Beneficiary first name"), "Andres");
+    await user.type(screen.getByLabelText("Beneficiary last name"), "Marin");
+    await user.selectOptions(screen.getByLabelText("Document type"), "CC");
+    await user.type(screen.getByLabelText("Document number"), "1661105408");
+    await user.type(screen.getByLabelText("Beneficiary email"), "andres@example.com");
+    await user.type(screen.getByLabelText("Bank code"), "007");
+
+    await user.click(screen.getByRole("button", { name: "Add bank account" }));
+
+    await waitFor(() =>
+      expect(mockAddBankAccount).toHaveBeenCalledWith(
+        "jwt-token",
+        expect.objectContaining({
+          country: "CO",
+          rail: "ACH_COP_BITSO",
+          details: {
+            ach_cop_beneficiary_first_name: "Andres",
+            ach_cop_beneficiary_last_name: "Marin",
+            ach_cop_document_type: "CC",
+            ach_cop_document_id: "1661105408",
+            ach_cop_email: "andres@example.com",
+            ach_cop_bank_code: "007",
+          },
+        })
+      )
+    );
+  });
+
   it("allows navigating back to step 1 via Previous button", async () => {
     const user = userEvent.setup();
     render(<BankAccountForm />);
