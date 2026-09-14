@@ -162,6 +162,27 @@ describe("usePayoutSigning — guards", () => {
     expect(mockSubmitPayoutTransfer).not.toHaveBeenCalled();
   });
 
+  it("maps a STELLAR_NETWORK_ERROR submit failure to STALE_TRANSACTION instead of a generic error", async () => {
+    // Reported live: BlindPay rejected the signed transfer with
+    // "submit_transaction_failed"; the backend now surfaces that as
+    // STELLAR_NETWORK_ERROR with a real message.
+    const staleError = Object.assign(new Error("Stellar rejected this transfer. Please retry."), {
+      code: "STELLAR_NETWORK_ERROR",
+    });
+    mockSubmitPayoutTransfer.mockRejectedValue(staleError);
+    const { result } = renderHook(() => usePayoutSigning());
+
+    await act(async () => {
+      await result.current.sign(ORDER_ID);
+    });
+
+    expect(result.current.state).toBe("error");
+    expect(result.current.error).toMatchObject({
+      code: "STALE_TRANSACTION",
+      message: "Stellar rejected this transfer. Please retry.",
+    });
+  });
+
   it("does not resubmit while a sign call is already in flight", async () => {
     let resolvePrepare: (value: ReturnType<typeof preparedResult>) => void;
     mockPreparePayoutTransfer.mockReturnValue(

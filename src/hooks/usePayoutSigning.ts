@@ -110,7 +110,14 @@ export function usePayoutSigning(): UsePayoutSigningResult {
           cause && typeof cause === "object" && "message" in cause && typeof cause.message === "string"
             ? cause.message
             : "The request failed. Please try again.";
-        setError({ code: "API_ERROR", message });
+        // STELLAR_NETWORK_ERROR names a specific, known cause (the signed
+        // transfer went stale) rather than an unclassified failure — same
+        // treatment as useEscrowSigning's toApiError.
+        const code =
+          cause && typeof cause === "object" && "code" in cause && cause.code === "STELLAR_NETWORK_ERROR"
+            ? "STALE_TRANSACTION"
+            : "API_ERROR";
+        setError({ code, message });
         setState("error");
       } finally {
         inFlight.current = false;
