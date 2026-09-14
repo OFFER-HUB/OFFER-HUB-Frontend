@@ -142,6 +142,7 @@ describe("BankAccountForm", () => {
     expect(await screen.findByText("Enter beneficiary first name")).toBeInTheDocument();
     expect(mockAddBankAccount).not.toHaveBeenCalled();
 
+    await user.selectOptions(screen.getByLabelText("Account Type"), "savings");
     await user.type(screen.getByLabelText("Beneficiary first name"), "Andres");
     await user.type(screen.getByLabelText("Beneficiary last name"), "Marin");
     await user.selectOptions(screen.getByLabelText("Document type"), "CC");
@@ -158,6 +159,7 @@ describe("BankAccountForm", () => {
           country: "CO",
           rail: "ACH_COP_BITSO",
           details: {
+            account_type: "savings",
             ach_cop_beneficiary_first_name: "Andres",
             ach_cop_beneficiary_last_name: "Marin",
             ach_cop_document_type: "CC",

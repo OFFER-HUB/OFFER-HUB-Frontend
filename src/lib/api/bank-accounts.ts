@@ -74,6 +74,7 @@ export const SUPPORTED_CORRIDORS_REQUIRED_DETAILS: Record<string, readonly strin
   // needs the beneficiary's split name, ID document, email, and the bank's
   // routing code, not just the generic name/account number fields.
   ACH_COP_BITSO: [
+    "account_type",
     "ach_cop_beneficiary_first_name",
     "ach_cop_beneficiary_last_name",
     "ach_cop_document_type",
