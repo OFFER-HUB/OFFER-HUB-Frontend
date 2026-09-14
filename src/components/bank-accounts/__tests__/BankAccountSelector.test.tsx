@@ -211,9 +211,11 @@ describe("BankAccountSelector Account Management", () => {
     expect(await screen.findByText("Bank account deleted")).toBeInTheDocument();
   });
 
-  it("shows a friendly message instead of the raw backend error when deletion is blocked by an existing payout", async () => {
-    // Reported live: the toast showed "Bank account ba_xxx cannot be
-    // deleted: 1 payout(s) reference it" verbatim from the backend.
+  it("shows a friendly message inside the still-open modal instead of the raw backend error in a toast", async () => {
+    // Reported live: a failed delete showed the backend's raw log message
+    // ("Bank account ba_xxx cannot be deleted: 1 payout(s) reference it")
+    // as a floating toast, disconnected from the confirmation dialog the
+    // user was actually looking at.
     mockListBankAccounts.mockResolvedValue([DEFAULT_ACCOUNT]);
     const blockedError = Object.assign(new Error("Bank account ba_default cannot be deleted: 1 payout(s) reference it"), {
       code: "BANK_ACCOUNT_HAS_PAYOUTS",
@@ -224,11 +226,12 @@ describe("BankAccountSelector Account Management", () => {
 
     await screen.findByText("BBVA");
     await user.click(screen.getByRole("button", { name: "Delete BBVA account" }));
+    const dialog = screen.getByRole("alertdialog");
     await user.click(screen.getByRole("button", { name: "Delete account" }));
 
-    expect(
-      (await screen.findAllByText(/can't be removed because a payout already references it/i)).length
-    ).toBeGreaterThan(0);
+    const message = await screen.findByText(/can't be removed because a payout already references it/i);
+    expect(dialog).toContainElement(message);
+    expect(dialog).toBeInTheDocument();
     expect(screen.queryByText(/ba_default cannot be deleted/i)).not.toBeInTheDocument();
     expect(screen.getByText("BBVA")).toBeInTheDocument();
   });

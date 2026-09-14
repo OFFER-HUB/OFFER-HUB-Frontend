@@ -16,6 +16,8 @@ export interface ConfirmationModalProps {
   variant?: "danger" | "warning" | "info";
   icon?: string;
   isLoading?: boolean;
+  /** Shown inline, above the actions, when the confirmed action just failed — keeps the modal open so the user sees why without hunting for a toast. */
+  error?: string | null;
 }
 
 interface VariantConfig {
@@ -57,6 +59,7 @@ export function ConfirmationModal({
   variant = "danger",
   icon,
   isLoading,
+  error,
 }: ConfirmationModalProps): React.JSX.Element | null {
   const id = useId();
   const titleId = `confirmation-title-${id}`;
@@ -128,6 +131,16 @@ export function ConfirmationModal({
           <div id={descId} className="text-sm text-text-secondary mb-6 break-all [overflow-wrap:anywhere] w-full">
             {message}
           </div>
+
+          {error && (
+            <div
+              role="alert"
+              className="w-full mb-6 flex items-start gap-2.5 rounded-xl bg-error/10 p-3.5 text-left text-sm text-error"
+            >
+              <Icon path={ICON_PATHS.alertCircle} size="sm" className="mt-0.5 shrink-0" />
+              <span>{error}</span>
+            </div>
+          )}
 
           <div className="w-full flex gap-3">
             <button

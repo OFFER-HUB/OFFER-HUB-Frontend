@@ -248,6 +248,7 @@ export function BankAccountSelector({
   const [busyId, setBusyId] = useState<string | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<BankAccount | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
 
   // KYC compliance gate state
@@ -341,10 +342,20 @@ export function BankAccountSelector({
     }
   }
 
+  function handleOpenDelete(account: BankAccount) {
+    setDeleteError(null);
+    setPendingDelete(account);
+  }
+
+  function handleCloseDeleteModal() {
+    setPendingDelete(null);
+    setDeleteError(null);
+  }
+
   async function handleConfirmDelete() {
     if (!token || !pendingDelete) return;
     const account = pendingDelete;
-    setActionError(null);
+    setDeleteError(null);
     setBusyId(account.id);
     try {
       await deleteBankAccount(token, account.id);
@@ -352,9 +363,9 @@ export function BankAccountSelector({
       setPendingDelete(null);
       setToast({ type: "success", message: "Bank account deleted" });
     } catch (error) {
-      const message = friendlyDeleteError(error);
-      setActionError(message);
-      setToast({ type: "error", message });
+      // Shown inline in the confirmation modal (kept open) — not a toast:
+      // the whole point is the user is already looking right at it.
+      setDeleteError(friendlyDeleteError(error));
     } finally {
       setBusyId(null);
     }
@@ -480,7 +491,7 @@ export function BankAccountSelector({
               busy={busyId === account.id}
               onSelect={onSelect}
               onSetDefault={handleSetDefault}
-              onDelete={setPendingDelete}
+              onDelete={handleOpenDelete}
             />
           ))}
         </div>
@@ -500,7 +511,7 @@ export function BankAccountSelector({
 
       <ConfirmationModal
         isOpen={pendingDelete !== null}
-        onClose={() => setPendingDelete(null)}
+        onClose={handleCloseDeleteModal}
         onConfirm={handleConfirmDelete}
         title="Delete this bank account?"
         message={
@@ -511,6 +522,7 @@ export function BankAccountSelector({
         confirmText="Delete account"
         variant="danger"
         isLoading={pendingDelete !== null && busyId === pendingDelete.id}
+        error={deleteError}
       />
 
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
