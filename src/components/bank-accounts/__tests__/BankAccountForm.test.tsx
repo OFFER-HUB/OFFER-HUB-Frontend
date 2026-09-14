@@ -142,7 +142,7 @@ describe("BankAccountForm", () => {
     expect(await screen.findByText("Enter beneficiary first name")).toBeInTheDocument();
     expect(mockAddBankAccount).not.toHaveBeenCalled();
 
-    await user.selectOptions(screen.getByLabelText("Account Type"), "savings");
+    await user.selectOptions(screen.getByLabelText("Account Type"), "saving");
     await user.type(screen.getByLabelText("Beneficiary first name"), "Andres");
     await user.type(screen.getByLabelText("Beneficiary last name"), "Marin");
     await user.selectOptions(screen.getByLabelText("Document type"), "CC");
@@ -159,7 +159,7 @@ describe("BankAccountForm", () => {
           country: "CO",
           rail: "ACH_COP_BITSO",
           details: {
-            account_type: "savings",
+            account_type: "saving",
             ach_cop_beneficiary_first_name: "Andres",
             ach_cop_beneficiary_last_name: "Marin",
             ach_cop_document_type: "CC",
@@ -168,6 +168,34 @@ describe("BankAccountForm", () => {
             ach_cop_bank_code: "007",
           },
         })
+      )
+    );
+  });
+
+  it("sends transfers_type in the exact upper-case enum BlindPay requires for Argentina", async () => {
+    // Reported live: BlindPay rejected the account with "Invalid enum value.
+    // Expected 'CVU' | 'CBU' | 'ALIAS', received 'cbu'" — the form was
+    // sending its default lower-case, which is what real dropdown value was
+    // set to.
+    mockAddBankAccount.mockResolvedValue({ ...NEW_ACCOUNT, country: "AR", rail: "TRANSFERS_BITSO" });
+    const user = userEvent.setup();
+    render(<BankAccountForm />);
+
+    await user.selectOptions(screen.getByLabelText("Country"), "AR");
+    await user.click(screen.getByRole("button", { name: "Continue to Details" }));
+
+    expect(screen.getByLabelText("Transfers Type")).toHaveValue("CBU");
+
+    await user.type(screen.getByLabelText("CBU / CVU"), "0170099220000067797537");
+    await user.type(screen.getByLabelText("Bank name"), "Banco Galicia");
+    await user.type(screen.getByLabelText("Account holder name"), "Andres Marin");
+
+    await user.click(screen.getByRole("button", { name: "Add bank account" }));
+
+    await waitFor(() =>
+      expect(mockAddBankAccount).toHaveBeenCalledWith(
+        "jwt-token",
+        expect.objectContaining({ details: { transfers_type: "CBU" } })
       )
     );
   });

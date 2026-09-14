@@ -197,7 +197,7 @@ export function BankAccountForm({ onSuccess, onCancel, className }: BankAccountF
     const detailErrors: Record<string, string> = {};
     for (const key of requiredDetailKeys) {
       if (key === "pix_key") continue; // Handled via accountNumber
-      const val = details[key] ?? (key === "spei_protocol" ? "clabe" : key === "transfers_type" ? "cbu" : "");
+      const val = details[key] ?? (key === "spei_protocol" ? "clabe" : key === "transfers_type" ? "CBU" : "");
       if (!val.trim()) {
         detailErrors[key] = `Enter ${humanizeDetailKey(key).toLowerCase()}`;
       }
@@ -252,7 +252,7 @@ export function BankAccountForm({ onSuccess, onCancel, className }: BankAccountF
           requiredDetailKeys.map((key) => [
             key,
             details[key]?.trim() ||
-              (key === "spei_protocol" ? "clabe" : key === "transfers_type" ? "cbu" : ""),
+              (key === "spei_protocol" ? "clabe" : key === "transfers_type" ? "CBU" : ""),
           ])
         ),
       };
@@ -623,7 +623,7 @@ export function BankAccountForm({ onSuccess, onCancel, className }: BankAccountF
                           >
                             <option value="">Select account type...</option>
                             <option value="checking">Checking (Corriente)</option>
-                            <option value="savings">Savings (Ahorros)</option>
+                            <option value="saving">Savings (Ahorros)</option>
                           </select>
                           <Icon
                             path={ICON_PATHS.chevronDown}
@@ -652,8 +652,8 @@ export function BankAccountForm({ onSuccess, onCancel, className }: BankAccountF
                             className={cn(SELECT_STYLES, detailError && "ring-2 ring-error/50")}
                           >
                             <option value="clabe">CLABE (Standard)</option>
-                            <option value="debit_card">Debit Card</option>
-                            <option value="phone">Phone</option>
+                            <option value="debitcard">Debit Card</option>
+                            <option value="phonenum">Phone</option>
                           </select>
                           <Icon
                             path={ICON_PATHS.chevronDown}
@@ -708,12 +708,13 @@ export function BankAccountForm({ onSuccess, onCancel, className }: BankAccountF
                         <div className="relative">
                           <select
                             id={detailId}
-                            value={details[key] ?? "cbu"}
+                            value={details[key] ?? "CBU"}
                             onChange={(e) => handleDetailChange(key, e.target.value)}
                             className={cn(SELECT_STYLES, detailError && "ring-2 ring-error/50")}
                           >
-                            <option value="cbu">CBU (Bancaria)</option>
-                            <option value="cvu">CVU (Virtual / Fintech)</option>
+                            <option value="CBU">CBU (Bancaria)</option>
+                            <option value="CVU">CVU (Virtual / Fintech)</option>
+                            <option value="ALIAS">Alias</option>
                           </select>
                           <Icon
                             path={ICON_PATHS.chevronDown}
