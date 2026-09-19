@@ -40,6 +40,18 @@ const nextConfig = {
     optimizePackageImports: ["@/components/ui", "@/lib"],
   },
 
+  turbopack: {
+    // Pin the workspace root (a parent lockfile otherwise confuses detection).
+    root: __dirname,
+    resolveAlias: {
+      // `@sub-rosa/sdk` lazily imports this OPTIONAL OpenZeppelin relayer
+      // submitter, which we never use (we sign via the Stellar wallet). Alias
+      // it to a stub so Turbopack doesn't try to resolve an uninstalled dep.
+      "@openzeppelin/relayer-plugin-channels":
+        "./src/features/sub-rosa/live/stubs/oz-relayer-channels.js",
+    },
+  },
+
   async redirects() {
     return [
       {

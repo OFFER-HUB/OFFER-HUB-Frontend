@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { cn } from "@/lib/cn";
+import { formatLocalDateOnly } from "@/lib/date-only";
 import { useModeStore } from "@/stores/mode-store";
 import { useAuthStore } from "@/stores/auth-store";
 import {
@@ -18,6 +19,9 @@ import { AttachmentPreview } from "@/components/offers/AttachmentPreview";
 import { ImageUpload } from "@/components/ui/ImageUpload";
 import { DatePicker } from "@/components/ui/DatePicker";
 import { createOffer, uploadAttachment, type OfferCategory } from "@/lib/api/offers";
+import { useWalletKit } from "@/hooks/use-wallet-kit";
+import { useCreateSealedRound } from "@/features/sub-rosa/live/use-create-sealed-round";
+import { SealedProposalsToggle } from "@/features/sub-rosa/live/components/SealedProposalsToggle";
 import type { Attachment, FormErrors, OfferFormData } from "@/types/client-offer.types";
 import {
   INITIAL_FORM_DATA,
@@ -55,6 +59,19 @@ export default function CreateOfferPage(): React.JSX.Element {
   const [formData, setFormData] = useState<OfferFormData>(INITIAL_FORM_DATA);
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [attachmentError, setAttachmentError] = useState<string | null>(null);
+
+  // Sub Rosa: optional sealed-proposal round for this offer.
+  const [sealedEnabled, setSealedEnabled] = useState(false);
+  const [sealedDeadline, setSealedDeadline] = useState<Date | null>(null);
+  const { address: walletAddress } = useWalletKit();
+  const {
+    create: createSealed,
+    state: sealedState,
+    error: sealedError,
+  } = useCreateSealedRound();
+  // Remember an already-created offer so a retry after a sealed-round failure
+  // doesn't create a duplicate offer.
+  const createdOfferIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     setMode("client");
@@ -143,31 +160,63 @@ export default function CreateOfferPage(): React.JSX.Element {
       return;
     }
 
+    // Sub Rosa preconditions, checked before we create anything so the user
+    // fixes them without an orphaned offer.
+    if (sealedEnabled) {
+      if (!sealedDeadline) {
+        setApiError("Choose when sealed proposals should close.");
+        return;
+      }
+      if (!walletAddress) {
+        setApiError("Connect your Stellar wallet to open a sealed proposal round.");
+        return;
+      }
+    }
+
     setIsLoading(true);
 
     try {
-      const budgetValue = parseFloat(formData.budget);
-      const offer = await createOffer(token, {
-        title: formData.title.trim(),
-        description: formData.description.trim(),
-        category: formData.category as OfferCategory,
-        budget: budgetValue.toFixed(2),
-        deadline: formData.deadline,
-      });
+      // Reuse an already-created offer on a retry (e.g. after a sealed-round
+      // signature was declined) rather than creating a duplicate.
+      let offerId = createdOfferIdRef.current;
+      if (!offerId) {
+        const budgetValue = parseFloat(formData.budget);
+        const offer = await createOffer(token, {
+          title: formData.title.trim(),
+          description: formData.description.trim(),
+          category: formData.category as OfferCategory,
+          budget: budgetValue.toFixed(2),
+          deadline: formData.deadline,
+        });
+        offerId = offer.id;
+        createdOfferIdRef.current = offer.id;
 
-      if (attachments.length > 0) {
-        const uploadErrors: string[] = [];
-        for (const attachment of attachments) {
-          try {
-            await uploadAttachment(token, offer.id, attachment.file);
-          } catch (err) {
-            uploadErrors.push(
-              `Failed to upload "${attachment.file.name}": ${err instanceof Error ? err.message : "Unknown error"}`
-            );
+        if (attachments.length > 0) {
+          const uploadErrors: string[] = [];
+          for (const attachment of attachments) {
+            try {
+              await uploadAttachment(token, offer.id, attachment.file);
+            } catch (err) {
+              uploadErrors.push(
+                `Failed to upload "${attachment.file.name}": ${err instanceof Error ? err.message : "Unknown error"}`
+              );
+            }
+          }
+          if (uploadErrors.length > 0) {
+            console.warn("Some attachments failed to upload:", uploadErrors);
           }
         }
-        if (uploadErrors.length > 0) {
-          console.warn("Some attachments failed to upload:", uploadErrors);
+      }
+
+      if (sealedEnabled && sealedDeadline) {
+        const record = await createSealed(offerId, sealedDeadline);
+        if (!record) {
+          // The offer exists; only the on-chain round failed. Keep the user
+          // here so they can retry the signature without duplicating the offer.
+          setApiError(
+            "Your offer was created, but opening the sealed round failed. Fix the issue and submit again to retry."
+          );
+          return;
         }
       }
 
@@ -179,7 +228,7 @@ export default function CreateOfferPage(): React.JSX.Element {
     }
   }
 
-  const today = new Date().toISOString().split("T")[0];
+  const today = formatLocalDateOnly(new Date());
 
   return (
     <div className="w-full max-w-7xl mx-auto space-y-6 pb-16 transition-all duration-300 ease-in-out">
@@ -469,6 +518,16 @@ export default function CreateOfferPage(): React.JSX.Element {
                 />
                 {errors.deadline && <p className="text-xs text-error font-medium">{errors.deadline}</p>}
               </div>
+
+              {/* Sub Rosa: optional sealed / private proposals */}
+              <SealedProposalsToggle
+                enabled={sealedEnabled}
+                onEnabledChange={setSealedEnabled}
+                deadline={sealedDeadline}
+                onDeadlineChange={setSealedDeadline}
+                walletConnected={Boolean(walletAddress)}
+                disabled={isLoading || sealedState === "creating"}
+              />
             </div>
 
             {/* Live Job Offer Preview */}
@@ -608,6 +667,7 @@ export default function CreateOfferPage(): React.JSX.Element {
               {apiError && (
                 <div className="p-3 rounded-xl bg-error/10 text-error text-xs font-medium border border-error/20">
                   {apiError}
+                  {sealedError ? <span className="mt-1 block">{sealedError}</span> : null}
                 </div>
               )}
               <button
@@ -618,7 +678,9 @@ export default function CreateOfferPage(): React.JSX.Element {
                 {isLoading ? (
                   <span className="flex items-center gap-2 justify-center">
                     <LoadingSpinner size="sm" />
-                    Publishing Offer...
+                    {sealedState === "creating"
+                      ? "Opening sealed round — confirm in wallet…"
+                      : "Publishing Offer..."}
                   </span>
                 ) : (
                   "Publish Job Offer"

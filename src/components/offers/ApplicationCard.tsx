@@ -2,10 +2,10 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { cn } from "@/lib/cn";
 import { Icon, ICON_PATHS } from "@/components/ui/Icon";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
+import { applicationCoverLetterForDisplay } from "@/features/sub-rosa/live/application-link";
 import type { Application } from "@/types/application.types";
 import { APPLICATION_STATUS_CONFIG } from "@/types/application.types";
 
@@ -105,7 +105,9 @@ export function ApplicationCard({
             {/* Cover Letter */}
             <div className="mt-3">
               <p className="text-sm font-medium text-text-primary mb-1">Cover Letter:</p>
-              <p className="text-sm text-text-secondary line-clamp-3">{application.coverLetter}</p>
+              <p className="text-sm text-text-secondary line-clamp-3">
+                {applicationCoverLetterForDisplay(application)}
+              </p>
             </div>
 
             {/* Actions */}
