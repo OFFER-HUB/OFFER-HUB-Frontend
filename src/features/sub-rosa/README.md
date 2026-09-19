@@ -1,86 +1,58 @@
-# Sub Rosa — sealed proposals demo
+# Sub Rosa sealed proposals
 
-An **isolated, removable** evaluation page for [Sub Rosa](https://github.com/karagozemin/Sub-Rosa),
-a third-party protocol that offers an optional sealed-proposal layer for marketplaces: freelancers
-submit privately, everything is revealed together at a shared deadline, and only then does the
-client compare and pick.
+OFFER HUB has two Sub Rosa surfaces:
 
-Route: **`/labs/sub-rosa`** (disabled by default).
+- `live/` is the real Stellar integration used by offer creation, marketplace
+  applications, timed reveal, and provider selection.
+- the optional `/labs/sub-rosa` route is an isolated in-memory walkthrough.
 
-## How to enable it
+## Live flow
+
+1. The client enables **Private / Sealed Proposals** while creating an offer.
+2. The app creates a Core v2 `ReceiptOnly` round through `@sub-rosa/sdk` and
+   stores the offer-to-round coordinates in Supabase.
+3. Each freelancer seals and submits a proposal with their Stellar identity.
+   OFFER HUB stores only an application placeholder until reveal.
+4. Once the Drand round is available, the client runs **Reveal all proposals**.
+5. The decoded proposal, price, and timeline become visible together. The
+   client then accepts one provider through OFFER HUB's existing application
+   status flow; Sub Rosa does not choose a winner.
+
+Wallet transactions use the existing Stellar Wallets Kit connection. No
+secret key is handled by the frontend.
+
+## Local setup
+
+Install dependencies and copy the example environment:
 
 ```bash
-# .env.local
-NEXT_PUBLIC_SUBROSA_DEMO=true
+npm install
+cp .env.example .env.local
 ```
 
-With the flag unset or `false`, the route calls `notFound()` and behaves as if it does not exist.
-
-## How to remove it
+Set these values in `.env.local`:
 
 ```bash
-rm -rf src/features/sub-rosa src/app/labs
+NEXT_PUBLIC_STELLAR_NETWORK=testnet
+NEXT_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=YOUR_PUBLIC_ANON_KEY
 ```
 
-Then delete the `NEXT_PUBLIC_SUBROSA_DEMO` block from `.env.example`. That is the whole removal —
-there is no lockfile change to revert, no store or service to unwire, and no migration.
+Run [`docs/sub-rosa-round-registry.sql`](../../../docs/sub-rosa-round-registry.sql)
+in the Supabase SQL editor, then start the app with `npm run dev`.
 
-## Why it is isolated rather than integrated
+The registry contains only immutable round coordinates and evidence. Public
+read is intentional so marketplace visitors can discover a round. Anonymous
+insert supports the frontend-only hackathon setup; its primary key makes each
+offer write-once and UPDATE/DELETE are not granted. A production deployment
+should move round registration behind authenticated server-side authorization.
 
-This is an evaluation, not an adopted dependency. The reasons are concrete:
+If the Supabase variables are absent, the app uses `localStorage`. That is
+useful for development in one browser but cannot support two users or devices.
 
-| Concern | Evidence |
-| --- | --- |
-| No funds-handling audit | Sub Rosa's own [`docs/LIMITATIONS.md`](https://github.com/karagozemin/Sub-Rosa/blob/main/docs/LIMITATIONS.md): *"Core v2 … has no independent funds-handling audit yet"* |
-| Latest SDK is uninstallable with npm | `npm i @sub-rosa/sdk@0.2.2` fails with `EUNSUPPORTEDPROTOCOL` — it publishes `workspace:^` dependency specifiers. Only `0.2.1` resolves |
-| Stellar SDK version clash | `@sub-rosa/sdk` requires `@stellar/stellar-sdk@^15`; OFFER-HUB-API is on `14.4.3` |
-| Outside SCF scope | Sub Rosa is not a deliverable of T1, T2 or T3 of Build Award #44 |
-| Receipts do not verify chain state | Receipt verification is offline only — it checks internal consistency, not current on-chain state |
+## Optional labs walkthrough
 
-So the demo installs **nothing**: no `@sub-rosa/sdk`, no `@stellar/stellar-sdk`, no change to
-`package.json` or `package-lock.json`. The sealed-round lifecycle is simulated in memory.
-
-## Structure
-
-```
-sub-rosa.constants.ts   flag, copy, links
-sub-rosa.types.ts       SealedRound, SealedProposal, RoundPhase, …
-adapter/
-  sub-rosa-adapter.ts   the seam — interface only
-  mock-adapter.ts       the only implementation today (in memory)
-mocks/
-  sealed-round.mock.ts  sample job + three fictional providers
-hooks/
-  use-sealed-round.ts   lifecycle state machine
-components/             presentational only
-```
-
-Everything lives in one folder rather than being spread across `components/`, `hooks/`, `types/`
-and `mocks/` as the repo convention would normally have it. That is deliberate: removability is
-the point of this feature, and hunting pieces across five directories would defeat it. Naming
-rules from [`docs/naming.md`](../../../docs/naming.md) are still followed, and `page.tsx` is still
-a pure orchestrator.
-
-## The honesty rules
-
-Sub Rosa's [Offer-Hub pilot doc](https://github.com/karagozemin/Sub-Rosa/blob/main/docs/pilots/OFFER_HUB_PILOT.md)
-states that sample proposals must never be presented as on-chain evidence. This page holds to
-that:
-
-- no fabricated round ID, contract ID, transaction hash, signature or receipt — those fields read
-  `Sample only` / `Not claimed`;
-- `Protocol winner: None for ReceiptOnly`, because the client's choice is application state and
-  never a protocol result;
-- a persistent `DemoBanner` above the fold, so screenshots carry their own disclaimer.
-
-Keep these if you extend the demo.
-
-## If it ever goes real
-
-Write a `live-adapter.ts` against the `SubRosaAdapter` interface and swap the argument passed to
-`useSealedRound()`. The method names already mirror the real SDK surface
-(`createSealedProposalRound`, `sealProposal` + `submitV2`, `open_reveal_v2`, `reveal_v2`). No UI
-component would change.
-
-That step means installing an unaudited dependency and signing real transactions, so it belongs in
-its own reviewed PR — not here.
+Set `NEXT_PUBLIC_SUBROSA_DEMO=true` to enable `/labs/sub-rosa`. The route uses
+sample data only and makes no network or on-chain claims. It remains separate
+from the live integration so the educational walkthrough cannot be confused
+with real evidence.

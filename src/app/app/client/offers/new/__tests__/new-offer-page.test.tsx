@@ -36,6 +36,20 @@ vi.mock("@/lib/api/offers", () => ({
   uploadAttachment: vi.fn(),
 }));
 
+// Keep this page test at the form-orchestration boundary. Browser wallet
+// modules are covered separately and cannot be initialized in happy-dom.
+vi.mock("@/hooks/use-wallet-kit", () => ({
+  useWalletKit: () => ({ address: null }),
+}));
+
+vi.mock("@/features/sub-rosa/live/use-create-sealed-round", () => ({
+  useCreateSealedRound: () => ({
+    create: vi.fn(),
+    state: "idle",
+    error: null,
+  }),
+}));
+
 import CreateOfferPage from "@/app/app/client/offers/new/page";
 
 describe("Create Client Offer Page", () => {

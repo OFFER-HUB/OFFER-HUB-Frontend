@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import { cn } from "@/lib/cn";
+import { formatLocalDateOnly } from "@/lib/date-only";
 import { BACKEND_URL } from "@/config/api";
 import { useModeStore } from "@/stores/mode-store";
 import { useAuthStore } from "@/stores/auth-store";
@@ -331,7 +332,7 @@ export default function EditOfferPage(): React.JSX.Element {
     );
   }
 
-  const today = new Date().toISOString().split("T")[0];
+  const today = formatLocalDateOnly(new Date());
   const totalAttachments = existingAttachments.length + attachments.length;
   const canAddMoreFiles = totalAttachments < MAX_ATTACHMENTS;
   const detailHref = `/app/client/offers/${offerId}`;

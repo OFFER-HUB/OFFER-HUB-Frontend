@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useRef } from "react";
 import { cn } from "@/lib/cn";
+import { formatLocalDateOnly, parseLocalDateOnly } from "@/lib/date-only";
 import { Icon, ICON_PATHS } from "@/components/ui/Icon";
-import { NEUMORPHIC_INSET } from "@/lib/styles";
 
 interface DatePickerProps {
   value: string;
@@ -31,7 +31,7 @@ export function DatePicker({
   const [isOpen, setIsOpen] = useState(false);
   const [currentMonth, setCurrentMonth] = useState(() => {
     if (value) {
-      const date = new Date(value);
+      const date = parseLocalDateOnly(value);
       return new Date(date.getFullYear(), date.getMonth(), 1);
     }
     return new Date(new Date().getFullYear(), new Date().getMonth(), 1);
@@ -49,8 +49,8 @@ export function DatePicker({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const selectedDate = value ? new Date(value) : null;
-  const minDateObj = minDate ? new Date(minDate) : null;
+  const selectedDate = value ? parseLocalDateOnly(value) : null;
+  const minDateObj = minDate ? parseLocalDateOnly(minDate) : null;
 
   function getDaysInMonth(date: Date): Date[] {
     const year = date.getFullYear();
@@ -110,7 +110,7 @@ export function DatePicker({
 
   function handleDateClick(date: Date) {
     if (isDateDisabled(date)) return;
-    const formattedDate = date.toISOString().split("T")[0];
+    const formattedDate = formatLocalDateOnly(date);
     onChange(formattedDate);
     setIsOpen(false);
   }
@@ -124,7 +124,7 @@ export function DatePicker({
   }
 
   function formatDisplayDate(dateStr: string): string {
-    const date = new Date(dateStr);
+    const date = parseLocalDateOnly(dateStr);
     return date.toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
