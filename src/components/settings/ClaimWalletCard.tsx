@@ -16,6 +16,9 @@ import {
   type BlockingEscrow,
   type ClaimWalletResult,
 } from "@/lib/api/wallet-claim";
+import { StepHeading } from "@/components/settings/StepHeading";
+import { EscrowBlocker } from "@/components/settings/EscrowBlocker";
+import { SuccessState } from "@/components/settings/SuccessState";
 
 /** What the user is waiting on, so the button can say so. */
 type ClaimStep = "idle" | "requesting-challenge" | "signing" | "claiming";
@@ -25,99 +28,6 @@ const STEP_LABEL: Record<Exclude<ClaimStep, "idle">, string> = {
   signing: "Check your wallet to sign",
   claiming: "Transferring authority...",
 };
-
-function StepHeading({ n, title }: { n: number; title: string }): React.JSX.Element {
-  return (
-    <div className="flex items-center gap-2.5 mb-1.5">
-      <span
-        className={cn(
-          "w-6 h-6 rounded-lg shrink-0 flex items-center justify-center",
-          "bg-primary/10 text-primary text-xs font-bold"
-        )}
-      >
-        {n}
-      </span>
-      <h3 className="text-sm font-semibold text-text-primary">{title}</h3>
-    </div>
-  );
-}
-
-/**
- * Blocking escrows, named rather than counted.
- *
- * "You have 2 active escrows" leaves the user hunting; the order ids let them
- * go straight to what has to finish first.
- */
-function EscrowBlocker({ escrows }: { escrows: BlockingEscrow[] }): React.JSX.Element {
-  return (
-    <div role="alert" className="rounded-2xl border border-warning/30 bg-warning/10 p-4">
-      <div className="flex items-start gap-2.5">
-        <Icon path={ICON_PATHS.alertTriangle} size="md" className="text-warning shrink-0 mt-0.5" />
-        <div className="min-w-0">
-          <p className="text-sm font-semibold text-text-primary">
-            Finish your active escrows first
-          </p>
-          <p className="mt-1 text-sm text-text-secondary">
-            The platform still signs releases and refunds with the custodial key. Moving that
-            authority now would leave these funds stuck, so the migration stays closed until they
-            settle.
-          </p>
-
-          {escrows.length > 0 && (
-            <ul className="mt-3 space-y-1.5">
-              {escrows.map((escrow) => (
-                <li
-                  key={escrow.escrowId}
-                  className="flex items-center justify-between gap-3 text-xs"
-                >
-                  <span className="font-mono text-text-secondary truncate">{escrow.orderId}</span>
-                  <span className="shrink-0 rounded-md bg-background px-2 py-0.5 font-medium text-text-secondary">
-                    {escrow.status}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function SuccessState({ result }: { result: ClaimWalletResult }): React.JSX.Element {
-  return (
-    <div className="rounded-2xl border border-success/30 bg-success/10 p-4">
-      <div className="flex items-start gap-2.5">
-        <Icon path={ICON_PATHS.check} size="md" className="text-success shrink-0 mt-0.5" />
-        <div className="min-w-0">
-          <p className="text-sm font-semibold text-text-primary">
-            Your wallet is now non-custodial
-          </p>
-          <p className="mt-1 text-sm text-text-secondary">
-            Signing authority belongs to your key. The account and its balances are unchanged —
-            nothing moved on-chain except who is allowed to sign.
-          </p>
-
-          <div className="mt-3">
-            <WalletAddress address={result.newSignerPublicKey} showFull />
-          </div>
-
-          {result.transactionHash !== null && (
-            <a
-              href={`https://stellar.expert/explorer/testnet/tx/${result.transactionHash}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:text-primary-hover"
-            >
-              View the transaction
-              <Icon path={ICON_PATHS.externalLink} size="sm" />
-            </a>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
 
 /**
  * "Claim Your Wallet" — hands a server-held wallet over to its owner.
