@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { AuthLayout } from "@/components/auth/AuthLayout";
 import { AuthInput } from "@/components/auth/AuthInput";
+import { StepIndicator as ExtractedStepIndicator } from "@/components/onboarding/StepIndicator";
 import { WalletConnectModal } from "@/components/wallet/WalletConnectModal";
 import { cn } from "@/lib/cn";
 import { updateProfile, ProfileApiError } from "@/lib/api/profile";
@@ -254,7 +255,7 @@ export function WalletOnboardingForm() {
         </div>
       )}
 
-      <StepIndicator current={step} total={totalSteps} />
+      <ExtractedStepIndicator current={step} total={totalSteps} />
 
       {step === 1 && (
         <form onSubmit={handleStep1Submit} className="space-y-3">
