@@ -4,15 +4,13 @@ import { useMemo, useState } from "react";
 import { changePassword } from "@/lib/api/auth";
 import { cn } from "@/lib/cn";
 import { getPasswordChecks, getPasswordStrength, isPasswordValid } from "@/lib/validation";
-import { NEUMORPHIC_CARD, NEUMORPHIC_INPUT, PRIMARY_BUTTON } from "@/lib/styles";
+import { NEUMORPHIC_CARD, PRIMARY_BUTTON } from "@/lib/styles";
 import { useAuthStore } from "@/stores/auth-store";
-import { FormField } from "@/components/ui/FormField";
 import { Toast } from "@/components/ui/Toast";
 import { Icon, ICON_PATHS, LoadingSpinner } from "@/components/ui/Icon";
+import { PasswordInput, type FieldName } from "@/components/settings/PasswordInput";
 
 const MIN_PASSWORD_LENGTH = 8;
-
-type FieldName = "currentPassword" | "newPassword" | "confirmPassword";
 
 interface FormState {
   currentPassword: string;
@@ -27,12 +25,6 @@ interface FormErrors {
   confirmPassword?: string;
   general?: string;
 }
-
-const PASSWORD_VISIBILITY_LABELS: Record<FieldName, string> = {
-  currentPassword: "Current password",
-  newPassword: "New password",
-  confirmPassword: "Confirm password",
-};
 
 const STRENGTH_STYLES = {
   weak: {
@@ -54,44 +46,6 @@ const STRENGTH_STYLES = {
     width: "w-full",
   },
 } as const;
-
-function PasswordInput({
-  label,
-  name,
-  value,
-  onChange,
-  error,
-}: {
-  label: string;
-  name: FieldName;
-  value: string;
-  onChange: (name: FieldName, value: string) => void;
-  error?: string;
-}): React.JSX.Element {
-  const [visible, setVisible] = useState(false);
-
-  return (
-    <FormField label={label} error={error}>
-      <div className="relative">
-        <input
-          type={visible ? "text" : "password"}
-          value={value}
-          onChange={(event) => onChange(name, event.target.value)}
-          className={cn(NEUMORPHIC_INPUT, "pr-16")}
-          autoComplete={name === "currentPassword" ? "current-password" : "new-password"}
-        />
-        <button
-          type="button"
-          onClick={() => setVisible((prev) => !prev)}
-          className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-medium text-text-secondary transition-colors hover:text-text-primary"
-          aria-label={`${visible ? "Hide" : "Show"} ${PASSWORD_VISIBILITY_LABELS[name]}`}
-        >
-          {visible ? "Hide" : "Show"}
-        </button>
-      </div>
-    </FormField>
-  );
-}
 
 export function ChangePasswordForm(): React.JSX.Element {
   const token = useAuthStore((state) => state.token);
@@ -233,7 +187,7 @@ export function ChangePasswordForm(): React.JSX.Element {
               label="Current password"
               name="currentPassword"
               value={form.currentPassword}
-              onChange={setField}
+              onChange={(name, value) => setField(name, value)}
               error={errors.currentPassword}
             />
 
@@ -243,7 +197,7 @@ export function ChangePasswordForm(): React.JSX.Element {
                   label="New password"
                   name="newPassword"
                   value={form.newPassword}
-                  onChange={setField}
+                  onChange={(name, value) => setField(name, value)}
                   error={errors.newPassword}
                 />
 
@@ -270,7 +224,7 @@ export function ChangePasswordForm(): React.JSX.Element {
                 label="Confirm new password"
                 name="confirmPassword"
                 value={form.confirmPassword}
-                onChange={setField}
+                onChange={(name, value) => setField(name, value)}
                 error={errors.confirmPassword}
               />
             </div>
