@@ -1,114 +1,31 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
-import Link from "next/link";
+import { Suspense } from "react";
 import { cn } from "@/lib/cn";
-import { useModeStore } from "@/stores/mode-store";
-import { useAuthStore } from "@/stores/auth-store";
 import { Icon, ICON_PATHS, LoadingSpinner } from "@/components/ui/Icon";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { LoadingState } from "@/components/ui/LoadingState";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { DisputeCard } from "@/components/disputes/DisputeCard";
-import { listDisputes } from "@/lib/api/disputes";
+import { DisputesListLoadingFallback } from "@/components/disputes/DisputesListLoadingFallback";
+import { useDisputeList } from "@/hooks/useDisputeList";
+import { DISPUTE_STATUS_FILTERS, getTabLabel } from "@/lib/disputes/dispute-status";
 import { NEUMORPHIC_CARD, PRIMARY_BUTTON } from "@/lib/styles";
-import type { Dispute, DisputeStatus } from "@/types/dispute.types";
-
-const STATUS_FILTERS = ["all", "open", "under_review", "resolved", "closed"] as const;
-type StatusFilter = (typeof STATUS_FILTERS)[number];
-
-function getTabLabel(status: StatusFilter): string {
-  if (status === "all") return "All";
-  if (status === "under_review") return "Under Review";
-  return status.charAt(0).toUpperCase() + status.slice(1);
-}
 
 function DisputesContent(): React.JSX.Element {
-  const searchParams = useSearchParams();
-  const { setMode } = useModeStore();
-  const token = useAuthStore((state) => state.token);
-  const userId = useAuthStore((state) => state.user?.id);
-
-  const [mounted, setMounted] = useState(false);
-  const [filter, setFilter] = useState<StatusFilter>("all");
-  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
-  const [disputes, setDisputes] = useState<Dispute[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(false);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [refreshKey, setRefreshKey] = useState(0);
-
-  useEffect(() => {
-    setMounted(true);
-    setMode("freelancer");
-    if (searchParams.get("created") === "true") {
-      setShowSuccessMessage(true);
-      setTimeout(() => setShowSuccessMessage(false), 5000);
-    }
-  }, [setMode, searchParams]);
-
-  useEffect(() => {
-    if (!mounted) return;
-
-    async function fetchDisputes(): Promise<void> {
-      setIsLoading(true);
-      setError(null);
-      setPage(1);
-      setDisputes([]);
-      try {
-        const result = await listDisputes(
-          token,
-          {
-            status: filter === "all" ? undefined : filter,
-            page: 1,
-            limit: 10,
-          },
-          userId
-        );
-        setDisputes(result.data);
-        setHasMore(result.hasMore);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load disputes");
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    fetchDisputes();
-  }, [mounted, token, filter, refreshKey, userId]);
-
-  async function handleLoadMore(): Promise<void> {
-    if (isLoadingMore) return;
-    const nextPage = page + 1;
-    setIsLoadingMore(true);
-    try {
-      const result = await listDisputes(
-        token,
-        {
-          status: filter === "all" ? undefined : filter,
-          page: nextPage,
-          limit: 10,
-        },
-        userId
-      );
-      setDisputes((prev) => [...prev, ...result.data]);
-      setHasMore(result.hasMore);
-      setPage(nextPage);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load more disputes");
-    } finally {
-      setIsLoadingMore(false);
-    }
-  }
-
-  function handleFilterChange(status: StatusFilter): void {
-    if (status !== filter) {
-      setFilter(status as DisputeStatus | "all");
-    }
-  }
+  const {
+    disputes,
+    isLoading,
+    error,
+    filter,
+    hasMore,
+    isLoadingMore,
+    showSuccessMessage,
+    dismissSuccessMessage,
+    handleFilterChange,
+    handleLoadMore,
+    refetch,
+  } = useDisputeList({ mode: "freelancer" });
 
   return (
     <div className="flex flex-col h-full">
@@ -124,7 +41,7 @@ function DisputesContent(): React.JSX.Element {
             Your dispute has been submitted successfully. We will review it shortly.
           </p>
           <button
-            onClick={() => setShowSuccessMessage(false)}
+            onClick={dismissSuccessMessage}
             className="ml-auto text-success hover:text-success/80 cursor-pointer"
           >
             <Icon path={ICON_PATHS.close} size="sm" />
@@ -143,7 +60,7 @@ function DisputesContent(): React.JSX.Element {
 
       <div className={cn(NEUMORPHIC_CARD, "mb-4 flex-shrink-0")}>
         <div className="flex flex-wrap gap-2">
-          {STATUS_FILTERS.map((status) => (
+          {DISPUTE_STATUS_FILTERS.map((status) => (
             <button
               key={status}
               type="button"
@@ -174,7 +91,7 @@ function DisputesContent(): React.JSX.Element {
         ) : error ? (
           <ErrorState
             message={error}
-            onRetry={() => setRefreshKey((k) => k + 1)}
+            onRetry={refetch}
           />
         ) : disputes.length === 0 ? (
           <div className="flex items-center justify-center h-full">
@@ -200,7 +117,7 @@ function DisputesContent(): React.JSX.Element {
               <div className="flex justify-center pt-2">
                 <button
                   type="button"
-                  onClick={handleLoadMore}
+                  onClick={() => void handleLoadMore()}
                   disabled={isLoadingMore}
                   className={cn(PRIMARY_BUTTON, "disabled:opacity-50")}
                 >
@@ -218,25 +135,9 @@ function DisputesContent(): React.JSX.Element {
   );
 }
 
-function LoadingFallback(): React.JSX.Element {
-  return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="space-y-2">
-          <div className="h-8 w-32 bg-background rounded animate-pulse" />
-          <div className="h-5 w-48 bg-background rounded animate-pulse" />
-        </div>
-      </div>
-      <div className={cn(NEUMORPHIC_CARD, "h-14 animate-pulse")} />
-      <div className={cn(NEUMORPHIC_CARD, "h-32 animate-pulse")} />
-      <div className={cn(NEUMORPHIC_CARD, "h-32 animate-pulse")} />
-    </div>
-  );
-}
-
 export default function FreelancerDisputesPage(): React.JSX.Element {
   return (
-    <Suspense fallback={<LoadingFallback />}>
+    <Suspense fallback={<DisputesListLoadingFallback />}>
       <DisputesContent />
     </Suspense>
   );
