@@ -21,55 +21,20 @@ import {
   MIN_DELIVERY_DAYS,
   MAX_DELIVERY_DAYS,
 } from "@/data/service.data";
+import {
+  PRICE_PRESETS,
+  DELIVERY_PRESETS,
+  validateServiceForm,
+  getServiceFormChecklist,
+  toServiceCategory,
+} from "@/data/service-form.data";
 import { getServiceById, updateService } from "@/lib/api/services";
 import { useAuthStore } from "@/stores/auth-store";
+import { ServiceFormField } from "@/components/services/ServiceFormField";
 import type { Service, ServiceFormData, ServiceFormErrors } from "@/types/service.types";
 
 interface PageProps {
   params: Promise<{ id: string }>;
-}
-
-const PRICE_PRESETS = [25, 50, 100, 250, 500, 1000];
-const DELIVERY_PRESETS = [
-  { days: 1, label: "1 day (Express)" },
-  { days: 3, label: "3 days" },
-  { days: 7, label: "7 days" },
-  { days: 14, label: "14 days" },
-  { days: 30, label: "30 days" },
-];
-
-function validateForm(data: ServiceFormData): ServiceFormErrors {
-  const errors: ServiceFormErrors = {};
-
-  if (!data.title.trim()) {
-    errors.title = "Title is required";
-  } else if (data.title.trim().length < MIN_TITLE_LENGTH) {
-    errors.title = `Title must be at least ${MIN_TITLE_LENGTH} characters`;
-  }
-
-  if (!data.description.trim()) {
-    errors.description = "Description is required";
-  } else if (data.description.trim().length < MIN_DESCRIPTION_LENGTH) {
-    errors.description = `Description must be at least ${MIN_DESCRIPTION_LENGTH} characters`;
-  } else if (data.description.trim().length > MAX_DESCRIPTION_LENGTH) {
-    errors.description = `Description must be less than ${MAX_DESCRIPTION_LENGTH} characters`;
-  }
-
-  if (!data.category) {
-    errors.category = "Please select a category";
-  }
-
-  if (!data.price || data.price < MIN_PRICE) {
-    errors.price = `Price must be at least $${MIN_PRICE}`;
-  }
-
-  if (!data.deliveryDays || data.deliveryDays < MIN_DELIVERY_DAYS) {
-    errors.deliveryDays = `Delivery time must be at least ${MIN_DELIVERY_DAYS} day`;
-  } else if (data.deliveryDays > MAX_DELIVERY_DAYS) {
-    errors.deliveryDays = `Delivery time cannot exceed ${MAX_DELIVERY_DAYS} days`;
-  }
-
-  return errors;
 }
 
 export default function EditServicePage({ params }: PageProps): React.JSX.Element {
@@ -131,7 +96,7 @@ export default function EditServicePage({ params }: PageProps): React.JSX.Elemen
 
     setFormData(nextData);
 
-    const validationErrors = validateForm(nextData);
+    const validationErrors = validateServiceForm(nextData);
     setErrors((prev) => ({
       ...prev,
       [name]: validationErrors[name as keyof ServiceFormErrors],
@@ -142,24 +107,13 @@ export default function EditServicePage({ params }: PageProps): React.JSX.Elemen
     return SERVICE_CATEGORIES.find((c) => c.value === formData.category)?.label || "Select Category";
   }, [formData.category]);
 
-  const checklist = useMemo(() => {
-    return {
-      title: formData.title.trim().length >= MIN_TITLE_LENGTH,
-      category: Boolean(formData.category),
-      description:
-        formData.description.trim().length >= MIN_DESCRIPTION_LENGTH &&
-        formData.description.trim().length <= MAX_DESCRIPTION_LENGTH,
-      price: formData.price >= MIN_PRICE,
-      delivery: formData.deliveryDays >= MIN_DELIVERY_DAYS && formData.deliveryDays <= MAX_DELIVERY_DAYS,
-    };
-  }, [formData]);
-
+  const checklist = useMemo(() => getServiceFormChecklist(formData), [formData]);
   const allChecksPassed = Object.values(checklist).every(Boolean);
 
   async function handleSubmit(e: React.FormEvent): Promise<void> {
     e.preventDefault();
 
-    const validationErrors = validateForm(formData);
+    const validationErrors = validateServiceForm(formData);
     setErrors(validationErrors);
 
     if (Object.keys(validationErrors).length > 0) {
@@ -177,7 +131,7 @@ export default function EditServicePage({ params }: PageProps): React.JSX.Elemen
       const payload = {
         title: formData.title.trim(),
         description: formData.description.trim(),
-        category: formData.category as any,
+        category: toServiceCategory(formData.category),
         price: formData.price.toFixed(2),
         deliveryDays: formData.deliveryDays,
       };
@@ -282,11 +236,12 @@ export default function EditServicePage({ params }: PageProps): React.JSX.Elemen
               </div>
 
               {/* Title Field */}
-              <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <label htmlFor="service-title" className="text-sm font-semibold text-text-primary">
-                    Service Title <span className="text-error">*</span>
-                  </label>
+              <ServiceFormField
+                label="Service Title"
+                htmlFor="service-title"
+                required
+                error={errors.title}
+                aside={
                   <span
                     className={cn(
                       "text-xs font-medium",
@@ -297,7 +252,8 @@ export default function EditServicePage({ params }: PageProps): React.JSX.Elemen
                   >
                     {formData.title.length}/{MIN_TITLE_LENGTH} min chars
                   </span>
-                </div>
+                }
+              >
                 <input
                   id="service-title"
                   type="text"
@@ -307,14 +263,15 @@ export default function EditServicePage({ params }: PageProps): React.JSX.Elemen
                   className={cn(NEUMORPHIC_INPUT, errors.title && INPUT_ERROR_STYLES)}
                   placeholder="e.g., Professional Next.js Web Development & Redesign"
                 />
-                {errors.title && <p className="mt-1.5 text-xs text-error font-medium">{errors.title}</p>}
-              </div>
+              </ServiceFormField>
 
               {/* Category Field */}
-              <div>
-                <label htmlFor="service-category" className="block text-sm font-semibold text-text-primary mb-1.5">
-                  Category <span className="text-error">*</span>
-                </label>
+              <ServiceFormField
+                label="Category"
+                htmlFor="service-category"
+                required
+                error={errors.category}
+              >
                 <div className="relative">
                   <select
                     id="service-category"
@@ -339,8 +296,7 @@ export default function EditServicePage({ params }: PageProps): React.JSX.Elemen
                     <Icon path={ICON_PATHS.chevronDown} size="sm" />
                   </div>
                 </div>
-                {errors.category && <p className="mt-1.5 text-xs text-error font-medium">{errors.category}</p>}
-              </div>
+              </ServiceFormField>
             </div>
 
             {/* Scope & Description Card */}
@@ -360,11 +316,12 @@ export default function EditServicePage({ params }: PageProps): React.JSX.Elemen
                 </div>
               </div>
 
-              <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <label htmlFor="service-description" className="text-sm font-semibold text-text-primary">
-                    Detailed Description <span className="text-error">*</span>
-                  </label>
+              <ServiceFormField
+                label="Detailed Description"
+                htmlFor="service-description"
+                required
+                error={errors.description}
+                aside={
                   <span
                     className={cn(
                       "text-xs font-medium",
@@ -377,7 +334,8 @@ export default function EditServicePage({ params }: PageProps): React.JSX.Elemen
                   >
                     {formData.description.length} / {MIN_DESCRIPTION_LENGTH} min ({MAX_DESCRIPTION_LENGTH} max)
                   </span>
-                </div>
+                }
+              >
                 <textarea
                   id="service-description"
                   name="description"
@@ -391,10 +349,7 @@ export default function EditServicePage({ params }: PageProps): React.JSX.Elemen
                   )}
                   placeholder="Describe your service in detail..."
                 />
-                {errors.description && (
-                  <p className="mt-1.5 text-xs text-error font-medium">{errors.description}</p>
-                )}
-              </div>
+              </ServiceFormField>
             </div>
 
             {/* Pricing & Timeline Card */}
