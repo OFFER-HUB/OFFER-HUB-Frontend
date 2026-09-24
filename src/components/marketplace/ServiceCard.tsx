@@ -6,6 +6,11 @@ import { Icon, ICON_PATHS } from "@/components/ui/Icon";
 import type { MarketplaceService } from "@/lib/api/marketplace";
 import { FavoriteButton } from "@/components/favorites/FavoriteButton";
 import { useFavoritesStore } from "@/stores/favorites-store";
+import {
+  getCategoryLabel,
+  parseMoneyAmount,
+  parseAverageRating,
+} from "@/lib/marketplace-helpers";
 
 interface ServiceCardProps {
   service: MarketplaceService;
@@ -13,22 +18,10 @@ interface ServiceCardProps {
   highlightQuery?: string;
 }
 
-const CATEGORY_MAP: Record<string, string> = {
-  WEB_DEVELOPMENT: "Web Development",
-  MOBILE_DEVELOPMENT: "Mobile Development",
-  DESIGN: "Design & Creative",
-  WRITING: "Writing & Translation",
-  MARKETING: "Marketing & Sales",
-  VIDEO: "Video & Animation",
-  MUSIC: "Music & Audio",
-  DATA: "Data & Analytics",
-  OTHER: "Other",
-};
-
 export function ServiceCard({ service, className }: ServiceCardProps): React.JSX.Element {
-  const price = parseFloat(service.price);
-  const categoryLabel = CATEGORY_MAP[service.category] || service.category;
-  const rating = service.averageRating ? parseFloat(service.averageRating) : 5.0;
+  const price = parseMoneyAmount(service.price);
+  const categoryLabel = getCategoryLabel(service.category);
+  const rating = parseAverageRating(service.averageRating) ?? 5.0;
 
   const displayName =
     service.user?.firstName && service.user?.lastName

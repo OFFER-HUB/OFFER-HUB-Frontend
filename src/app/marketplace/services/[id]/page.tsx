@@ -12,18 +12,13 @@ import { Navbar } from "@/components/landing/Navbar";
 import { HireServiceModal } from "@/components/marketplace/HireServiceModal";
 import { useAuthStore } from "@/stores/auth-store";
 import { cn } from "@/lib/cn";
-
-const CATEGORY_MAP: Record<string, string> = {
-  WEB_DEVELOPMENT: "Web Development",
-  MOBILE_DEVELOPMENT: "Mobile Development",
-  DESIGN: "Design & Creative",
-  WRITING: "Writing & Translation",
-  MARKETING: "Marketing & Sales",
-  VIDEO: "Video & Animation",
-  MUSIC: "Music & Audio",
-  DATA: "Data & Analytics",
-  OTHER: "Other Services",
-};
+import {
+  getCategoryLabel,
+  parseMoneyAmount,
+  parseAverageRating,
+  formatMarketplaceDate,
+  formatMemberSince,
+} from "@/lib/marketplace-helpers";
 
 interface FAQItem {
   question: string;
@@ -155,21 +150,14 @@ export default function ServiceDetailPage(): React.JSX.Element {
     );
   }
 
-  const price = parseFloat(service.price);
-  const averageRating = service.averageRating ? parseFloat(service.averageRating) : null;
-  const category = CATEGORY_MAP[service.category] || service.category;
-  
-  const createdDate = new Date(service.createdAt).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
+  const price = parseMoneyAmount(service.price);
+  const averageRating = parseAverageRating(service.averageRating);
+  const category = getCategoryLabel(service.category);
+
+  const createdDate = formatMarketplaceDate(service.createdAt);
 
   const memberSince = service.user?.createdAt
-    ? new Date(service.user.createdAt).toLocaleDateString("en-US", {
-        month: "short",
-        year: "numeric",
-      })
+    ? formatMemberSince(service.user.createdAt)
     : null;
 
   const freelancerFullName = [service.user?.firstName, service.user?.lastName].filter(Boolean).join(" ");
