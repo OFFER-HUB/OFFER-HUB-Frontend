@@ -1,0 +1,381 @@
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+import { cn } from "@/lib/cn";
+import { MOCK_API_DELAY } from "@/lib/constants";
+import { Icon, ICON_PATHS, LoadingSpinner } from "@/components/ui/Icon";
+import { ToggleSwitch } from "@/components/ui/ToggleSwitch";
+import { NEUMORPHIC_CARD, PRIMARY_BUTTON, DANGER_BUTTON } from "@/lib/styles";
+import { ClaimWalletCard } from "@/components/settings/ClaimWalletCard";
+import { WalletManagementCard } from "@/components/settings/WalletManagementCard";
+import { BankAccountSelector } from "@/components/bank-accounts/BankAccountSelector";
+import { KycStatusCard } from "@/components/kyc/KycStatusCard";
+import { useOnboardingStore } from "@/stores/onboarding-store";
+import { useAuthStore } from "@/stores/auth-store";
+
+interface NotificationSettings {
+  emailNotifications: boolean;
+  pushNotifications: boolean;
+  marketingEmails: boolean;
+  projectUpdates: boolean;
+  messageAlerts: boolean;
+}
+
+interface PrivacySettings {
+  profileVisibility: "public" | "private" | "connections";
+  showEmail: boolean;
+  showPhone: boolean;
+  allowMessages: boolean;
+}
+
+const INITIAL_NOTIFICATIONS: NotificationSettings = {
+  emailNotifications: true,
+  pushNotifications: true,
+  marketingEmails: false,
+  projectUpdates: true,
+  messageAlerts: true,
+};
+
+const INITIAL_PRIVACY: PrivacySettings = {
+  profileVisibility: "public",
+  showEmail: false,
+  showPhone: false,
+  allowMessages: true,
+};
+
+const SUCCESS_MESSAGE_DURATION = 3000;
+
+export default function SettingsPage(): React.JSX.Element {
+  const [notifications, setNotifications] = useState<NotificationSettings>(INITIAL_NOTIFICATIONS);
+  const [privacy, setPrivacy] = useState<PrivacySettings>(INITIAL_PRIVACY);
+  const [isLoading, setIsLoading] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const { hasCompletedTour, resetTour } = useOnboardingStore();
+  const userType = useAuthStore((state) => state.user?.type);
+  const canReceivePayouts = userType === "SELLER" || userType === "BOTH";
+
+  function handleRestartTour(): void {
+    resetTour();
+    localStorage.setItem("show-onboarding-tour", "true");
+    window.location.href = "/app/freelancer/dashboard";
+  }
+
+  function toggleNotification(key: keyof NotificationSettings): void {
+    setNotifications((prev) => ({ ...prev, [key]: !prev[key] }));
+  }
+
+  function togglePrivacy(key: keyof Omit<PrivacySettings, "profileVisibility">): void {
+    setPrivacy((prev) => ({ ...prev, [key]: !prev[key] }));
+  }
+
+  function handleVisibilityChange(value: PrivacySettings["profileVisibility"]): void {
+    setPrivacy((prev) => ({ ...prev, profileVisibility: value }));
+  }
+
+  async function handleSave(): Promise<void> {
+    setIsLoading(true);
+    await new Promise((resolve) => setTimeout(resolve, MOCK_API_DELAY));
+    setIsLoading(false);
+    setShowSuccess(true);
+    setTimeout(() => setShowSuccess(false), SUCCESS_MESSAGE_DURATION);
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-text-primary">Settings</h1>
+          <p className="text-text-secondary text-sm">Manage your account preferences</p>
+        </div>
+        {showSuccess && (
+          <div
+            className={cn(
+              "px-4 py-2 rounded-xl",
+              "bg-success/10 border border-success/20",
+              "animate-scale-in"
+            )}
+          >
+            <div className="flex items-center gap-2">
+              <Icon path={ICON_PATHS.check} size="sm" className="text-success shrink-0" />
+              <p className="text-sm text-success font-medium">Settings saved!</p>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        <Link
+          href="/app/settings/preferences"
+          className={cn(
+            NEUMORPHIC_CARD,
+            "transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[8px_8px_16px_#d1d5db,-8px_-8px_16px_#ffffff]"
+          )}
+        >
+          <div className="flex items-start gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <Icon path={ICON_PATHS.settings} size="md" />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-text-primary">Preferences</h2>
+              <p className="mt-1 text-sm text-text-secondary">
+                Configure regional settings, theme, and display defaults.
+              </p>
+            </div>
+          </div>
+        </Link>
+
+        <Link
+          href="/app/settings/security"
+          className={cn(
+            NEUMORPHIC_CARD,
+            "transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[8px_8px_16px_#d1d5db,-8px_-8px_16px_#ffffff]"
+          )}
+        >
+          <div className="flex items-start gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <Icon path={ICON_PATHS.lock} size="md" />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-text-primary">Security</h2>
+              <p className="mt-1 text-sm text-text-secondary">
+                Change your password and review account access protections.
+              </p>
+            </div>
+          </div>
+        </Link>
+
+        <Link
+          href="/app/settings/sessions"
+          className={cn(
+            NEUMORPHIC_CARD,
+            "transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[8px_8px_16px_#d1d5db,-8px_-8px_16px_#ffffff]"
+          )}
+        >
+          <div className="flex items-start gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <Icon path={ICON_PATHS.desktop} size="md" />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-text-primary">Sessions</h2>
+              <p className="mt-1 text-sm text-text-secondary">
+                View and manage your active login sessions across all devices.
+              </p>
+            </div>
+          </div>
+        </Link>
+      </div>
+
+      <div className={NEUMORPHIC_CARD}>
+        <h2 className="text-lg font-semibold text-text-primary mb-4 flex items-center gap-2">
+          <Icon path={ICON_PATHS.bell} size="md" className="text-primary" />
+          Notifications
+        </h2>
+        <div className="divide-y divide-border-light">
+          <ToggleSwitch
+            enabled={notifications.emailNotifications}
+            onChange={() => toggleNotification("emailNotifications")}
+            label="Email Notifications"
+            description="Receive notifications via email"
+          />
+          <ToggleSwitch
+            enabled={notifications.pushNotifications}
+            onChange={() => toggleNotification("pushNotifications")}
+            label="Push Notifications"
+            description="Receive push notifications in your browser"
+          />
+          <ToggleSwitch
+            enabled={notifications.projectUpdates}
+            onChange={() => toggleNotification("projectUpdates")}
+            label="Project Updates"
+            description="Get notified about project milestones and updates"
+          />
+          <ToggleSwitch
+            enabled={notifications.messageAlerts}
+            onChange={() => toggleNotification("messageAlerts")}
+            label="Message Alerts"
+            description="Receive alerts for new messages"
+          />
+          <ToggleSwitch
+            enabled={notifications.marketingEmails}
+            onChange={() => toggleNotification("marketingEmails")}
+            label="Marketing Emails"
+            description="Receive promotional emails and offers"
+          />
+        </div>
+      </div>
+
+      <div className={NEUMORPHIC_CARD}>
+        <h2 className="text-lg font-semibold text-text-primary mb-4 flex items-center gap-2">
+          <Icon path={ICON_PATHS.eye} size="md" className="text-primary" />
+          Privacy
+        </h2>
+
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-text-primary mb-2">
+            Profile Visibility
+          </label>
+          <div className="flex gap-2">
+            {(["public", "connections", "private"] as const).map((option) => (
+              <button
+                key={option}
+                type="button"
+                onClick={() => handleVisibilityChange(option)}
+                className={cn(
+                  "px-4 py-2 text-sm font-medium rounded-xl transition-all duration-200",
+                  privacy.profileVisibility === option
+                    ? "bg-primary text-white shadow-[inset_2px_2px_4px_rgba(0,0,0,0.1)]"
+                    : "bg-background text-text-secondary shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff] hover:shadow-[2px_2px_4px_#d1d5db,-2px_-2px_4px_#ffffff]"
+                )}
+              >
+                {option.charAt(0).toUpperCase() + option.slice(1)}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="divide-y divide-border-light">
+          <ToggleSwitch
+            enabled={privacy.showEmail}
+            onChange={() => togglePrivacy("showEmail")}
+            label="Show Email Address"
+            description="Allow others to see your email address"
+          />
+          <ToggleSwitch
+            enabled={privacy.showPhone}
+            onChange={() => togglePrivacy("showPhone")}
+            label="Show Phone Number"
+            description="Allow others to see your phone number"
+          />
+          <ToggleSwitch
+            enabled={privacy.allowMessages}
+            onChange={() => togglePrivacy("allowMessages")}
+            label="Allow Direct Messages"
+            description="Let others send you direct messages"
+          />
+        </div>
+      </div>
+
+      <div className={NEUMORPHIC_CARD}>
+        <h2 className="text-lg font-semibold text-text-primary mb-4 flex items-center gap-2">
+          <Icon path={ICON_PATHS.help} size="md" className="text-primary" />
+          Help & Support
+        </h2>
+
+        <div className="space-y-4">
+          <div className="flex items-center justify-between py-2">
+            <div className="flex-1">
+              <p className="text-sm font-medium text-text-primary">Platform Tour</p>
+              <p className="text-xs text-text-secondary mt-0.5">
+                {hasCompletedTour
+                  ? "You have completed the tour. Restart to see it again."
+                  : "Take a guided tour to learn how to use OFFER-HUB."}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={handleRestartTour}
+              className={cn(
+                "px-4 py-2 text-sm font-medium rounded-xl transition-all duration-200",
+                "bg-primary/10 text-primary hover:bg-primary/20",
+                "shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]"
+              )}
+            >
+              {hasCompletedTour ? "Restart Tour" : "Start Tour"}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className={NEUMORPHIC_CARD}>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-lg font-semibold text-text-primary mb-1 flex items-center gap-2">
+              <Icon path={ICON_PATHS.settings} size="md" className="text-primary" />
+              Preferences
+            </h2>
+            <p className="text-sm text-text-secondary">
+              Customize language, timezone, currency, and theme from a dedicated preferences page.
+            </p>
+          </div>
+
+          <Link
+            href="/app/settings/preferences"
+            className={cn(PRIMARY_BUTTON, "justify-center py-2 px-5")}
+          >
+            Open Preferences
+          </Link>
+        </div>
+      </div>
+
+      <div className={NEUMORPHIC_CARD}>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-lg font-semibold text-text-primary mb-1 flex items-center gap-2">
+              <Icon path={ICON_PATHS.bell} size="md" className="text-primary" />
+              Notification Preferences
+            </h2>
+            <p className="text-sm text-text-secondary">
+              Customize notification channels and delivery frequency in a dedicated matrix.
+            </p>
+          </div>
+
+          <Link
+            href="/app/settings/notifications"
+            className={cn(PRIMARY_BUTTON, "justify-center py-2 px-5")}
+          >
+            Open Notifications
+          </Link>
+        </div>
+      </div>
+
+      {/* Custodial → non-custodial migration. Sits above the account section
+          because it is a one-way change to who holds the keys, not a preference. */}
+      <ClaimWalletCard />
+
+      <WalletManagementCard />
+
+      {/* Only sellers ever get paid out, so buyers with no seller side never see a section asking them to register a payout destination. */}
+      {canReceivePayouts && <KycStatusCard />}
+      {canReceivePayouts && <BankAccountSelector title="Payment Accounts" />}
+
+      <div className={cn(NEUMORPHIC_CARD, "border border-error/20")}>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-lg font-semibold text-error mb-1 flex items-center gap-2">
+              <Icon path={ICON_PATHS.alertCircle} size="md" className="text-error" />
+              Account
+            </h2>
+            <p className="text-sm text-text-secondary">
+              Manage account details, linked services, and account deletion.
+            </p>
+          </div>
+          <Link
+            href="/app/settings/account"
+            className={cn(DANGER_BUTTON, "justify-center py-2 px-5")}
+          >
+            Manage Account
+          </Link>
+        </div>
+      </div>
+
+      <div className="flex justify-end">
+        <button
+          type="button"
+          onClick={handleSave}
+          disabled={isLoading}
+          className={cn(PRIMARY_BUTTON, "py-2 px-5")}
+        >
+          {isLoading ? (
+            <span className="flex items-center gap-2">
+              <LoadingSpinner />
+              Saving...
+            </span>
+          ) : (
+            "Save Settings"
+          )}
+        </button>
+      </div>
+    </div>
+  );
+}

@@ -1,0 +1,236 @@
+"use client";
+
+import { ICON_PATHS, Icon } from "@/components/ui/Icon";
+import { useCallback, useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+
+import { ChatHeader } from "@/components/chat/ChatHeader";
+import { ChatInfoPanel } from "@/components/chat/ChatInfoPanel";
+import { ConnectionStatus } from "@/components/chat/ConnectionStatus";
+import { ConversationList } from "@/components/chat/ConversationList";
+import { MOCK_SHARED_FILES } from "@/data/chat.data";
+import { MessageInput } from "@/components/chat/MessageInput";
+import { MessageThread } from "@/components/chat/MessageThread";
+import { cn } from "@/lib/cn";
+import { sendTypingStatus } from "@/lib/api/chat";
+import { useAuthStore } from "@/stores/auth-store";
+import { useChatSSE } from "@/hooks/use-chat-sse";
+import { useChatStore } from "@/stores/chat-store";
+import { useMarkAsRead } from "@/hooks/use-mark-as-read";
+import { useSidebarStore } from "@/stores/sidebar-store";
+
+const EMPTY_MESSAGES: never[] = [];
+const EMPTY_TYPING_USERS = new Set<string>();
+
+export default function ChatThreadPage(): React.JSX.Element {
+  const params = useParams();
+  const router = useRouter();
+  const { setCollapsed: setSidebarCollapsed } = useSidebarStore();
+  const currentUserId = useAuthStore((s) => s.user?.id);
+
+  const [showConversations, setShowConversations] = useState(false);
+  const [showInfo, setShowInfo] = useState(true);
+  const [conversationsCollapsed, setConversationsCollapsed] = useState(true);
+
+  const chatId = params.id as string;
+
+  // ── Store selectors ──────────────────────────────────────────────────────
+  const conversations = useChatStore((s) => s.conversations);
+  const messages = useChatStore((s) => s.messagesByConversation[chatId] ?? EMPTY_MESSAGES);
+  const isLoadingMessages = useChatStore((s) => s.messagesLoading[chatId] ?? false);
+  const hasMoreMessages = useChatStore((s) => s.messagesHasMore[chatId] ?? false);
+  const typingUsers = useChatStore((s) => s.typingUsers[chatId] ?? EMPTY_TYPING_USERS);
+  const connectionStatus = useChatStore((s) => s.connectionStatus[chatId] ?? "disconnected");
+
+  const { fetchConversations, fetchMessages, fetchMoreMessages, sendMessage } = useChatStore();
+
+  const activeConversation = conversations.find((c) => c.id === chatId);
+
+  // ── SSE subscription ─────────────────────────────────────────────────────
+  useChatSSE({ conversationId: chatId });
+  const { getMessageRef } = useMarkAsRead({
+    conversationId: chatId,
+    currentUserId,
+  });
+
+  // ── Bootstrap ────────────────────────────────────────────────────────────
+  useEffect(() => {
+    setSidebarCollapsed(true);
+  }, [setSidebarCollapsed]);
+
+  useEffect(() => {
+    if (conversations.length === 0) {
+      fetchConversations();
+    }
+  }, [conversations.length, fetchConversations]);
+
+  useEffect(() => {
+    if (chatId) {
+      fetchMessages(chatId);
+    }
+  }, [chatId, fetchMessages]);
+
+  // ── Handlers ─────────────────────────────────────────────────────────────
+  function handleToggleConversations(): void {
+    setConversationsCollapsed((prev) => !prev);
+  }
+
+  async function handleSendMessage(content: string): Promise<void> {
+    await sendMessage(chatId, content);
+  }
+
+  async function handleRetryMessage(tempId: string, content: string): Promise<void> {
+    await sendMessage(chatId, content, tempId);
+  }
+
+  const handleTypingChange = useCallback(
+    (isTyping: boolean) => {
+      sendTypingStatus(chatId, isTyping);
+    },
+    [chatId]
+  );
+
+  // ── Loading state (initial fetch) ────────────────────────────────────────
+  if (isLoadingMessages && messages.length === 0) {
+    return (
+      <div className="page-full-height flex items-center justify-center bg-white rounded-2xl shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff]">
+        <div className="text-center">
+          <div
+            className={cn(
+              "w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center",
+              "bg-background animate-pulse",
+              "shadow-[inset_4px_4px_8px_#d1d5db,inset_-4px_-4px_8px_#ffffff]"
+            )}
+          >
+            <Icon path={ICON_PATHS.chat} size="xl" className="text-primary/50" />
+          </div>
+          <p className="text-sm text-text-secondary">Loading messages…</p>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Not found (after conversations loaded) ───────────────────────────────
+  if (!isLoadingMessages && !activeConversation && conversations.length > 0) {
+    return (
+      <div className="page-full-height flex items-center justify-center bg-white rounded-2xl shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff]">
+        <div className="text-center">
+          <div
+            className={cn(
+              "w-20 h-20 mx-auto mb-4 rounded-full flex items-center justify-center",
+              "bg-background",
+              "shadow-[inset_4px_4px_8px_#d1d5db,inset_-4px_-4px_8px_#ffffff]"
+            )}
+          >
+            <Icon path={ICON_PATHS.chat} size="xl" className="text-primary" />
+          </div>
+          <h2 className="text-lg font-bold text-text-primary mb-2">Conversation not found</h2>
+          <button
+            type="button"
+            onClick={() => router.push("/app/messages")}
+            className={cn(
+              "px-5 py-2.5 rounded-xl cursor-pointer",
+              "bg-primary text-white text-sm font-medium",
+              "shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]",
+              "hover:shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff]",
+              "transition-all duration-200"
+            )}
+          >
+            Back to Messages
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const participant = activeConversation?.participant;
+  const isParticipantTyping = typingUsers.size > 0;
+
+  return (
+    <div className="page-full-height flex gap-4">
+      {showConversations && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={() => setShowConversations(false)}
+        />
+      )}
+
+      {/* Conversation list sidebar */}
+      <div
+        className={cn(
+          "shrink-0 bg-white rounded-2xl overflow-hidden",
+          "shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff]",
+          "transition-all duration-300 ease-in-out",
+          "hidden lg:block",
+          conversationsCollapsed ? "lg:w-20" : "lg:w-85",
+          showConversations &&
+            "fixed inset-y-0 left-0 z-50 w-85 m-0 rounded-none block lg:relative lg:rounded-2xl"
+        )}
+      >
+        <ConversationList
+          isCollapsed={conversationsCollapsed && !showConversations}
+          onToggleCollapse={handleToggleConversations}
+        />
+      </div>
+
+      {/* Main chat panel */}
+      <div
+        className={cn(
+          "flex-1 flex flex-col min-w-0 min-h-0",
+          "bg-white rounded-2xl overflow-hidden",
+          "shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff]"
+        )}
+      >
+        {/* Header row with connection status */}
+        <div className="flex items-center border-b border-border-light">
+          <div className="flex-1 min-w-0">
+            {participant && (
+              <ChatHeader
+                participant={participant}
+                onToggleSidebar={() => setShowConversations(true)}
+                onToggleInfo={() => setShowInfo(!showInfo)}
+                showInfoButton={true}
+              />
+            )}
+          </div>
+          <ConnectionStatus status={connectionStatus} className="mr-4 shrink-0" />
+        </div>
+
+        {/* Message history thread */}
+        <MessageThread
+          chatId={chatId}
+          messages={messages}
+          currentUserId={currentUserId}
+          participant={participant}
+          isLoading={isLoadingMessages}
+          hasMore={hasMoreMessages}
+          isTyping={isParticipantTyping}
+          onFetchMore={() => fetchMoreMessages(chatId)}
+          onRetryMessage={handleRetryMessage}
+          getMessageRef={getMessageRef}
+        />
+
+        <MessageInput onSendMessage={handleSendMessage} onTypingChange={handleTypingChange} />
+      </div>
+
+      {/* Info panel */}
+      <div
+        className={cn(
+          "shrink-0 bg-white rounded-2xl overflow-hidden",
+          "shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff]",
+          "transition-all duration-300 ease-in-out",
+          "hidden xl:block",
+          showInfo ? "xl:w-70" : "xl:w-0 xl:opacity-0"
+        )}
+      >
+        {participant && (
+          <ChatInfoPanel
+            participant={participant}
+            sharedFiles={MOCK_SHARED_FILES}
+            onClose={() => setShowInfo(false)}
+          />
+        )}
+      </div>
+    </div>
+  );
+}

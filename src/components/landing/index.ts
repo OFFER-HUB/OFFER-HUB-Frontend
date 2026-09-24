@@ -1,0 +1,9 @@
+export { CTASection } from "./CTASection";
+export { ExperienceSection } from "./ExperienceSection";
+export { FeaturesSection } from "./FeaturesSection";
+export { Footer } from "./Footer";
+export { HeroSection } from "./HeroSection";
+export { HeroShowcase } from "./HeroShowcase";
+export { HowItWorks } from "./HowItWorks";
+export { Navbar } from "./Navbar";
+export { TrustedBy } from "./TrustedBy";

@@ -1,0 +1,406 @@
+import type { Order, CreateOrderPayload, Milestone, Payout } from "@/types/order.types";
+import type { Dispute } from "@/types/dispute.types";
+import { API_URL } from "@/config/api";
+
+export async function createOrder(token: string, payload: CreateOrderPayload): Promise<Order> {
+  const response = await fetch(`${API_URL}/orders`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error?.message || "Failed to create order");
+  }
+
+  const data = await response.json();
+  return data.data || data;
+}
+
+export async function listOrders(
+  token: string,
+  userId: string,
+  filters?: {
+    role?: "buyer" | "seller";
+    status?: string;
+  }
+): Promise<Order[]> {
+  const query = new URLSearchParams();
+
+  // Convert role filter to buyer_id or seller_id query param
+  if (filters?.role === "buyer") {
+    query.append("buyer_id", userId);
+  } else if (filters?.role === "seller") {
+    query.append("seller_id", userId);
+  }
+
+  if (filters?.status) query.append("status", filters.status);
+
+  const response = await fetch(`${API_URL}/orders?${query.toString()}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error?.message || "Failed to fetch orders");
+  }
+
+  const responseData = await response.json();
+  // Backend wraps response: { data: { data: Order[], hasMore, nextCursor }, meta: {...} }
+  const paginatedResult = responseData.data;
+  return paginatedResult?.data || [];
+}
+
+export async function getOrderById(token: string, orderId: string): Promise<Order> {
+  const response = await fetch(`${API_URL}/orders/${orderId}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error?.message || "Failed to fetch order");
+  }
+
+  const data = await response.json();
+  return data.data || data;
+}
+
+export async function reserveFunds(token: string, orderId: string): Promise<Order> {
+  const response = await fetch(`${API_URL}/orders/${orderId}/reserve`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error?.message || "Failed to reserve funds");
+  }
+
+  const data = await response.json();
+  return data.data || data;
+}
+
+export async function cancelOrder(token: string, orderId: string): Promise<Order> {
+  const response = await fetch(`${API_URL}/orders/${orderId}/cancel`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error?.message || "Failed to cancel order");
+  }
+
+  const data = await response.json();
+  return data.data || data;
+}
+
+export async function createEscrow(token: string, orderId: string): Promise<Order> {
+  const response = await fetch(`${API_URL}/orders/${orderId}/escrow`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error?.message || "Failed to create escrow");
+  }
+
+  const data = await response.json();
+  return data.data || data;
+}
+
+export async function fundEscrow(token: string, orderId: string): Promise<Order> {
+  const response = await fetch(`${API_URL}/orders/${orderId}/escrow/fund`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error?.message || "Failed to fund escrow");
+  }
+
+  const data = await response.json();
+  return data.data || data;
+}
+
+export async function getMilestones(token: string, orderId: string): Promise<Milestone[]> {
+  const response = await fetch(`${API_URL}/orders/${orderId}/milestones`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error?.message || "Failed to fetch milestones");
+  }
+
+  const data = await response.json();
+  return data.data || data;
+}
+
+/** Carries the HTTP status so callers can tell "no payout yet" (404, keep polling) from a real failure. */
+export type PayoutApiError = Error & { status?: number };
+
+/**
+ * The BlindPay off-ramp status for an order's released escrow.
+ * GET /orders/:id/payout
+ *
+ * 404s (as a `PayoutApiError` with `status: 404`) until the escrow is
+ * released and the off-ramp job creates the Payout row — expected right
+ * after release, not necessarily a failure.
+ */
+export async function getPayoutStatus(token: string, orderId: string): Promise<Payout> {
+  const response = await fetch(`${API_URL}/orders/${orderId}/payout`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => null);
+    const apiError: PayoutApiError = new Error(error?.error?.message || "Failed to fetch payout status");
+    apiError.status = response.status;
+    throw apiError;
+  }
+
+  const data = await response.json();
+  return data.data || data;
+}
+
+export async function completeMilestone(token: string, milestoneId: string): Promise<Milestone> {
+  const response = await fetch(`${API_URL}/milestones/${milestoneId}/complete`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error?.message || "Failed to complete milestone");
+  }
+
+  const data = await response.json();
+  return data.data || data;
+}
+
+// =====================
+// Resolution Actions
+// =====================
+
+export async function releaseFunds(
+  token: string,
+  orderId: string,
+  reason?: string
+): Promise<Order> {
+  const response = await fetch(`${API_URL}/orders/${orderId}/resolution/release`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ reason }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error?.message || "Failed to release funds");
+  }
+
+  const data = await response.json();
+  return data.data || data;
+}
+
+export async function requestRefund(
+  token: string,
+  orderId: string,
+  reason: string
+): Promise<Order> {
+  const response = await fetch(`${API_URL}/orders/${orderId}/resolution/refund`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ reason }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error?.message || "Failed to request refund");
+  }
+
+  const data = await response.json();
+  return data.data || data;
+}
+
+export interface OpenDisputePayload {
+  orderId: string;
+  openedBy: "BUYER" | "SELLER";
+  reason: "NOT_DELIVERED" | "QUALITY_ISSUE" | "OTHER";
+  description?: string;
+  evidence?: string[];
+}
+
+export async function openDispute(token: string, payload: OpenDisputePayload): Promise<Dispute> {
+  const response = await fetch(`${API_URL}/orders/${payload.orderId}/resolution/dispute`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error?.message || "Failed to open dispute");
+  }
+
+  const data = await response.json();
+  return data.data || data;
+}
+
+export async function markOrderCompleted(token: string, orderId: string): Promise<Order> {
+  const response = await fetch(`${API_URL}/orders/${orderId}/complete`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({}),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error?.message || "Failed to mark order as completed");
+  }
+
+  const data = await response.json();
+  return data.data || data;
+}
+
+// =====================
+// My Purchases (Service Orders)
+// =====================
+
+export interface PurchasesResponse {
+  data: Order[];
+  hasMore: boolean;
+  nextCursor?: string;
+}
+
+export async function getMyPurchases(
+  token: string,
+  filters?: {
+    status?: string;
+    limit?: number;
+    cursor?: string;
+  }
+): Promise<PurchasesResponse> {
+  const query = new URLSearchParams();
+
+  if (filters?.status) query.append("status", filters.status);
+  if (filters?.limit) query.append("limit", filters.limit.toString());
+  if (filters?.cursor) query.append("cursor", filters.cursor);
+
+  const response = await fetch(`${API_URL}/orders/my-purchases?${query.toString()}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error?.message || "Failed to fetch purchases");
+  }
+
+  const responseData = await response.json();
+  // Backend wraps response: { data: { data: Order[], hasMore, nextCursor }, meta: {...} }
+  return responseData.data;
+}
+
+/**
+ * Upload an attachment (deliverable, project brief, reference, evidence) to an order.
+ * POST /orders/:id/attachments
+ */
+export async function uploadOrderAttachment(
+  token: string,
+  orderId: string,
+  file: File,
+  category?: string,
+  note?: string
+): Promise<Order> {
+  const formData = new FormData();
+  formData.append("file", file);
+  if (category) formData.append("category", category);
+  if (note) formData.append("note", note);
+
+  const response = await fetch(`${API_URL}/orders/${orderId}/attachments`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.error?.message || error.message || "Failed to upload file");
+  }
+
+  const data = await response.json();
+  return data.data || data;
+}
+
+/**
+ * Delete an attachment from an order.
+ * DELETE /orders/:id/attachments/:attachmentId
+ */
+export async function deleteOrderAttachment(
+  token: string,
+  orderId: string,
+  attachmentId: string
+): Promise<Order> {
+  const response = await fetch(`${API_URL}/orders/${orderId}/attachments/${attachmentId}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.error?.message || error.message || "Failed to delete file");
+  }
+
+  const data = await response.json();
+  return data.data || data;
+}
+
+/**
+ * Post a project note/update to an order.
+ * POST /orders/:id/notes
+ */
+export async function addOrderProjectNote(
+  token: string,
+  orderId: string,
+  message: string
+): Promise<Order> {
+  const response = await fetch(`${API_URL}/orders/${orderId}/notes`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ message }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.error?.message || error.message || "Failed to post note");
+  }
+
+  const data = await response.json();
+  return data.data || data;
+}
+

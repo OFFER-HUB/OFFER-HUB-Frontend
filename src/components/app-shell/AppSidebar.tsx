@@ -1,0 +1,320 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { cn } from "@/lib/cn";
+import { Icon, ICON_PATHS } from "@/components/ui/Icon";
+// Imported directly rather than through the wallet barrel: that barrel also
+// re-exports BalanceChart, which would pull recharts into the app shell.
+import { WalletConnectButton } from "@/components/wallet/WalletConnectButton";
+import { useModeStore, getNavigationItems, type UserMode } from "@/stores/mode-store";
+import { useSidebarStore } from "@/stores/sidebar-store";
+import { useAuthStore } from "@/stores/auth-store";
+import { useChatStore } from "@/stores/chat-store";
+
+const ADMIN_NAV_ITEMS = [
+  { href: "/admin", label: "Dashboard", icon: ICON_PATHS.home },
+  { href: "/admin/analytics", label: "Analytics", icon: ICON_PATHS.chartBar },
+  { href: "/admin/users", label: "Users", icon: ICON_PATHS.users },
+  { href: "/admin/disputes", label: "Disputes", icon: ICON_PATHS.flag },
+];
+
+interface AppSidebarProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+const MODE_TOGGLE_BASE = cn(
+  "flex-1 py-2 px-3 rounded-lg text-sm font-medium",
+  "transition-all duration-200 cursor-pointer"
+);
+
+const MODE_TOGGLE_ACTIVE =
+  "bg-primary text-white shadow-[2px_2px_4px_#d1d5db,-2px_-2px_4px_#ffffff]";
+const MODE_TOGGLE_INACTIVE = "text-text-secondary hover:text-text-primary";
+
+const NAV_LINK_BASE = cn(
+  "flex items-center gap-3 px-4 py-3 rounded-xl",
+  "transition-all duration-200"
+);
+
+const NAV_LINK_COLLAPSED = cn(
+  "flex items-center justify-center p-3 rounded-xl",
+  "transition-all duration-200"
+);
+
+const NAV_LINK_ACTIVE = "bg-primary text-white shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]";
+const NAV_LINK_INACTIVE =
+  "text-text-secondary hover:bg-background hover:text-text-primary hover:shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]";
+
+const MODE_LABELS: Record<UserMode, string> = {
+  freelancer: "Finding work",
+  client: "Hiring talent",
+};
+
+function getModeToggleStyles(isActive: boolean): string {
+  return cn(MODE_TOGGLE_BASE, isActive ? MODE_TOGGLE_ACTIVE : MODE_TOGGLE_INACTIVE);
+}
+
+function getNavLinkStyles(isActive: boolean, isCollapsed: boolean): string {
+  const base = isCollapsed ? NAV_LINK_COLLAPSED : NAV_LINK_BASE;
+  return cn(base, isActive ? NAV_LINK_ACTIVE : NAV_LINK_INACTIVE);
+}
+
+export function AppSidebar({ isOpen, onClose }: AppSidebarProps): React.JSX.Element {
+  const pathname = usePathname();
+  const router = useRouter();
+  const { mode, setMode } = useModeStore();
+  const { isCollapsed, toggleCollapsed } = useSidebarStore();
+  const { user } = useAuthStore();
+  const conversations = useChatStore((s) => s.conversations);
+  const fetchConversations = useChatStore((s) => s.fetchConversations);
+  const [hydrated, setHydrated] = useState(false);
+  const isAdmin = user?.isAdmin === true;
+
+  useEffect(() => {
+    setHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (conversations.length === 0) {
+      void fetchConversations();
+    }
+  }, [conversations.length, fetchConversations]);
+
+  const currentMode = hydrated ? mode : "freelancer";
+  // An admin has no marketplace role to switch between — they're never
+  // hiring, never finding work, never publishing a service. Their sidebar
+  // shows only the admin section below, nothing from the buyer/seller nav.
+  const navItems = isAdmin ? [] : getNavigationItems(currentMode);
+  const totalUnreadMessages = conversations.reduce(
+    (total, conversation) => total + conversation.unreadCount,
+    0
+  );
+
+  function isActiveLink(href: string): boolean {
+    if (pathname === href) return true;
+
+    const isSubRoute = pathname.startsWith(href + "/");
+    if (!isSubRoute) return false;
+
+    // navItems is empty for an admin (see above) — the "more specific match"
+    // check needs the admin's own list too, or e.g. /admin/users would light
+    // up both "Dashboard" (/admin) and "Users" (/admin/users) at once.
+    const allItems = isAdmin ? ADMIN_NAV_ITEMS : navItems;
+    const hasMoreSpecificMatch = allItems.some(
+      (item) => item.href !== href && pathname.startsWith(item.href) && item.href.startsWith(href)
+    );
+
+    return !hasMoreSpecificMatch;
+  }
+
+  function handleModeChange(newMode: UserMode): void {
+    setMode(newMode);
+    onClose();
+
+    // Redirect to the appropriate dashboard based on mode
+    if (newMode === "freelancer") {
+      router.push("/app/freelancer/dashboard");
+    } else if (newMode === "client") {
+      router.push("/app/client/dashboard");
+    }
+  }
+
+  return (
+    <aside
+      className={cn(
+        "bg-white",
+        "shrink-0",
+        "flex flex-col",
+        "transition-all duration-300 ease-in-out",
+        // Desktop styles:
+        "lg:m-6 lg:mr-0 lg:rounded-2xl lg:shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff] lg:flex lg:static lg:z-0",
+        isCollapsed ? "lg:w-20" : "lg:w-64",
+        // Mobile styles:
+        "fixed inset-y-0 left-0 z-50 w-64 rounded-none m-0 shadow-2xl",
+        isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+      )}
+    >
+      {/* Collapse/Close Toggle Button */}
+      <div className={cn("p-3 flex", isCollapsed ? "lg:justify-center" : "justify-end")}>
+        <button
+          type="button"
+          onClick={onClose}
+          className={cn(
+            "p-2 rounded-lg cursor-pointer",
+            "text-text-secondary hover:text-text-primary",
+            "hover:bg-background",
+            "transition-all duration-200",
+            "lg:hidden"
+          )}
+          title="Close sidebar"
+        >
+          <Icon path={ICON_PATHS.close} size="sm" />
+        </button>
+
+        <button
+          type="button"
+          onClick={toggleCollapsed}
+          className={cn(
+            "p-2 rounded-lg cursor-pointer",
+            "text-text-secondary hover:text-text-primary",
+            "hover:bg-background",
+            "transition-all duration-200",
+            "hidden lg:block"
+          )}
+          title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+        >
+          <Icon path={isCollapsed ? ICON_PATHS.chevronRight : ICON_PATHS.chevronLeft} size="sm" />
+        </button>
+      </div>
+
+      {/* Mode Toggle - Only show when expanded, and never for an admin */}
+      {!isAdmin && !isCollapsed && (
+        <>
+          <div className="px-4 pb-2">
+            <div
+              className={cn(
+                "p-2 rounded-xl",
+                "bg-background",
+                "shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]"
+              )}
+            >
+              <div className="flex items-center gap-1" data-tour="mode-switcher">
+                <button
+                  type="button"
+                  onClick={() => handleModeChange("freelancer")}
+                  className={getModeToggleStyles(hydrated && currentMode === "freelancer")}
+                  disabled={!hydrated}
+                >
+                  Freelancer
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleModeChange("client")}
+                  className={getModeToggleStyles(hydrated && currentMode === "client")}
+                  disabled={!hydrated}
+                >
+                  Client
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="px-4 py-2">
+            <div className="flex items-center gap-2 text-xs text-text-secondary">
+              <span
+                className={cn(
+                  "w-2 h-2 rounded-full",
+                  currentMode === "freelancer" ? "bg-primary" : "bg-secondary"
+                )}
+              />
+              <span>{MODE_LABELS[currentMode]}</span>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Collapsed Mode Indicator */}
+      {!isAdmin && isCollapsed && (
+        <div className="flex justify-center pb-2">
+          <span
+            className={cn(
+              "w-3 h-3 rounded-full",
+              currentMode === "freelancer" ? "bg-primary" : "bg-secondary"
+            )}
+            title={MODE_LABELS[currentMode]}
+          />
+        </div>
+      )}
+
+      {/* Navigation */}
+      <nav className={cn("flex-1 space-y-2 overflow-y-auto", isCollapsed ? "p-2" : "p-4 pt-2")}>
+        {navItems.map((item) => {
+          // Generate data-tour attribute based on route
+          const tourId = item.href.includes("services")
+            ? "nav-services"
+            : item.href.includes("orders")
+              ? "nav-orders"
+              : item.href.includes("profile")
+                ? "nav-profile"
+                : item.href.includes("marketplace")
+                  ? "nav-marketplace"
+                  : item.href.includes("dashboard")
+                    ? "nav-dashboard"
+                    : item.href.includes("analytics")
+                      ? "nav-analytics"
+                      : item.href.includes("wallet")
+                        ? "nav-wallet"
+                        : undefined;
+
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={getNavLinkStyles(isActiveLink(item.href), isCollapsed)}
+              title={isCollapsed ? item.label : undefined}
+              data-tour={tourId}
+              onClick={onClose}
+            >
+              <Icon path={item.icon} size="md" />
+              {!isCollapsed && <span className="font-medium">{item.label}</span>}
+              {!isCollapsed && item.href === "/app/messages" && totalUnreadMessages > 0 && (
+                <span
+                  className={cn(
+                    "ml-auto min-w-5 h-5 px-1.5",
+                    "rounded-full bg-primary text-white",
+                    "text-[10px] font-bold flex items-center justify-center"
+                  )}
+                >
+                  {totalUnreadMessages > 99 ? "99+" : totalUnreadMessages}
+                </span>
+              )}
+            </Link>
+          );
+        })}
+
+        {/* Admin section — the ENTIRE nav for an admin, not an addition to it */}
+        {isAdmin && (
+          <>
+            {!isCollapsed && (
+              <div className="pb-1">
+                <p className="px-4 text-xs font-semibold text-text-secondary uppercase tracking-wider">
+                  Admin
+                </p>
+              </div>
+            )}
+            {ADMIN_NAV_ITEMS.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={getNavLinkStyles(isActiveLink(item.href), isCollapsed)}
+                title={isCollapsed ? item.label : undefined}
+                onClick={onClose}
+              >
+                <Icon path={item.icon} size="md" />
+                {!isCollapsed && <span className="font-medium">{item.label}</span>}
+              </Link>
+            ))}
+          </>
+        )}
+      </nav>
+
+      {/*
+        Wallet entry point for narrow viewports only.
+
+        AppHeader carries the same control from `sm` up; below that its bar is
+        already full (menu toggle, wordmark, bell, avatar) and a fifth item
+        overflows it. The drawer is the app shell's equivalent of the landing
+        navbar's mobile menu, so the two surfaces stay consistent and exactly
+        one entry point exists at every width.
+      */}
+      {!isAdmin && (
+        <div className="sm:hidden border-t border-gray-100 p-4">
+          <WalletConnectButton variant="inline" />
+        </div>
+      )}
+    </aside>
+  );
+}

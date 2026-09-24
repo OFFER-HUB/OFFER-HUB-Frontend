@@ -1,0 +1,86 @@
+import { MapUser } from "./types";
+
+/**
+ * Mock data for testing the community map.
+ * Replace with real API call in production.
+ */
+// Test users for coordinate verification (purple markers)
+export const MOCK_MAP_USERS: MapUser[] = [
+  {
+    id: "test-1",
+    name: "Test China",
+    avatar: null,
+    userType: "FREELANCER",
+    country: "China",
+    countryCode: "CN",
+    region: "Beijing",
+    latitude: 39.9042,
+    longitude: 116.4074,
+  },
+  {
+    id: "test-2",
+    name: "Test Argentina",
+    avatar: null,
+    userType: "FREELANCER",
+    country: "Argentina",
+    countryCode: "AR",
+    region: "Buenos Aires",
+    latitude: -34.6037,
+    longitude: -58.3816,
+  },
+  {
+    id: "test-3",
+    name: "Test Costa Rica",
+    avatar: null,
+    userType: "FREELANCER",
+    country: "Costa Rica",
+    countryCode: "CR",
+    region: "San José",
+    latitude: 9.9281,
+    longitude: -84.0907,
+  },
+  {
+    id: "test-4",
+    name: "Test Mexico",
+    avatar: null,
+    userType: "FREELANCER",
+    country: "Mexico",
+    countryCode: "MX",
+    region: "Mexico City",
+    latitude: 19.4326,
+    longitude: -99.1332,
+  },
+  {
+    id: "test-5",
+    name: "Test Nigeria",
+    avatar: null,
+    userType: "FREELANCER",
+    country: "Nigeria",
+    countryCode: "NG",
+    region: "Lagos",
+    latitude: 6.5244,
+    longitude: 3.3792,
+  },
+  {
+    id: "test-6",
+    name: "Test Spain",
+    avatar: null,
+    userType: "FREELANCER",
+    country: "Spain",
+    countryCode: "ES",
+    region: "Madrid",
+    latitude: 40.4168,
+    longitude: -3.7038,
+  },
+  {
+    id: "test-7",
+    name: "Test Australia",
+    avatar: null,
+    userType: "FREELANCER",
+    country: "Australia",
+    countryCode: "AU",
+    region: "Sydney",
+    latitude: -33.8688,
+    longitude: 151.2093,
+  },
+];
