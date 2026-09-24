@@ -1,138 +1,25 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { Icon, ICON_PATHS } from "@/components/ui/Icon";
-import { getEmptyProfileViewsAnalytics } from "@/data/profile-views.data";
+import { useProfileViewsAnalytics } from "@/hooks/useProfileViewsAnalytics";
 import { cn } from "@/lib/cn";
-import { getProfileViewsAnalytics } from "@/lib/api/analytics";
+import {
+  getChangePercentage,
+  getChangeTone,
+  getProfileViewsSummaryCards,
+} from "@/lib/profile-views-utils";
 import { NEUMORPHIC_CARD, NEUMORPHIC_INSET } from "@/lib/styles";
-import type { ProfileViewsAnalytics, ProfileViewsSummary } from "@/types/profile-views.types";
+import { ProfileViewsSkeleton } from "@/components/analytics/ProfileViewsSkeleton";
 import { ViewsChart } from "@/components/analytics/ViewsChart";
 
 interface ProfileViewsCardProps {
   token: string | null;
 }
 
-function getChangePercentage(summary: ProfileViewsSummary): number {
-  if (summary.previous === 0) {
-    return summary.current > 0 ? 100 : 0;
-  }
-
-  return Math.round(((summary.current - summary.previous) / summary.previous) * 100);
-}
-
-function getChangeTone(change: number): {
-  label: string;
-  icon: string;
-  className: string;
-} {
-  if (change > 0) {
-    return {
-      label: `Up ${change}%`,
-      icon: ICON_PATHS.arrowUp,
-      className: "text-success",
-    };
-  }
-
-  if (change < 0) {
-    return {
-      label: `Down ${Math.abs(change)}%`,
-      icon: ICON_PATHS.arrowDown,
-      className: "text-warning",
-    };
-  }
-
-  return {
-    label: "No change",
-    icon: ICON_PATHS.infoCircle,
-    className: "text-text-secondary",
-  };
-}
-
-function ProfileViewsSkeleton(): React.JSX.Element {
-  return (
-    <div className={cn(NEUMORPHIC_CARD, "animate-pulse space-y-6")}>
-      <div className="flex items-center justify-between gap-4">
-        <div className="space-y-2">
-          <div className="h-6 w-44 rounded bg-gray-200" />
-          <div className="h-4 w-60 rounded bg-gray-200" />
-        </div>
-        <div className="h-12 w-32 rounded-2xl bg-gray-200" />
-      </div>
-
-      <div className="grid gap-4 lg:grid-cols-3">
-        {Array.from({ length: 3 }).map((_, index) => (
-          <div key={index} className="rounded-2xl bg-gray-200 p-5 h-28" />
-        ))}
-      </div>
-
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)]">
-        <div className="h-72 rounded-2xl bg-gray-200" />
-        <div className="space-y-3">
-          {Array.from({ length: 4 }).map((_, index) => (
-            <div key={index} className="h-16 rounded-2xl bg-gray-200" />
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export function ProfileViewsCard({ token }: ProfileViewsCardProps): React.JSX.Element {
-  const [analytics, setAnalytics] = useState<ProfileViewsAnalytics>(
-    getEmptyProfileViewsAnalytics()
-  );
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const loadAnalytics = useCallback(async (): Promise<void> => {
-    if (!token) {
-      setAnalytics(getEmptyProfileViewsAnalytics());
-      setError(null);
-      setIsLoading(false);
-      return;
-    }
-
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const data = await getProfileViewsAnalytics(token);
-      setAnalytics(data);
-    } catch (err) {
-      setAnalytics(getEmptyProfileViewsAnalytics());
-      setError(err instanceof Error ? err.message : "Failed to load profile views analytics");
-    } finally {
-      setIsLoading(false);
-    }
-  }, [token]);
-
-  useEffect(() => {
-    void loadAnalytics();
-  }, [loadAnalytics]);
-
-  const summaryCards = useMemo(
-    () => [
-      {
-        label: "Last 7 days",
-        value: analytics.week.current,
-        previous: analytics.week.previous,
-      },
-      {
-        label: "Last 30 days",
-        value: analytics.month.current,
-        previous: analytics.month.previous,
-      },
-      {
-        label: "All time",
-        value: analytics.allTime.current,
-        previous: analytics.allTime.previous,
-      },
-    ],
-    [analytics]
-  );
+  const { analytics, isLoading, error, refetch } = useProfileViewsAnalytics(token);
 
   if (isLoading) {
     return <ProfileViewsSkeleton />;
@@ -151,7 +38,7 @@ export function ProfileViewsCard({ token }: ProfileViewsCardProps): React.JSX.El
           variant="card"
           title="Failed to load profile views"
           message={error}
-          onRetry={() => void loadAnalytics()}
+          onRetry={() => void refetch()}
         />
       </div>
     );
@@ -177,6 +64,7 @@ export function ProfileViewsCard({ token }: ProfileViewsCardProps): React.JSX.El
   }
 
   const overallTrend = getChangeTone(analytics.trendPercentage);
+  const summaryCards = getProfileViewsSummaryCards(analytics);
 
   return (
     <section className={cn(NEUMORPHIC_CARD, "space-y-6 stagger-4 animate-fade-in-up")}>

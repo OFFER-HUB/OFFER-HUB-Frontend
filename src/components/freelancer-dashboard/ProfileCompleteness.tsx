@@ -1,27 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useProfileCompleteness } from "@/hooks/useProfileCompleteness";
 import { cn } from "@/lib/cn";
 import { NEUMORPHIC_CARD, NEUMORPHIC_INSET } from "@/lib/styles";
-import { Icon, ICON_PATHS, LoadingSpinner } from "@/components/ui/Icon";
-import { getProfileCompleteness, type ProfileCompletenessData } from "@/lib/api/profile";
-import { useAuthStore } from "@/stores/auth-store";
+import { LoadingSpinner } from "@/components/ui/Icon";
 
 export function ProfileCompleteness(): React.JSX.Element | null {
-  const token = useAuthStore((s) => s.token);
-  const [data, setData] = useState<ProfileCompletenessData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    if (!token) { setIsLoading(false); return; }
-    let active = true;
-    getProfileCompleteness(token)
-      .then((d) => { if (active) setData(d); })
-      .catch(() => {})
-      .finally(() => { if (active) setIsLoading(false); });
-    return () => { active = false; };
-  }, [token]);
+  const { data, isLoading } = useProfileCompleteness();
 
   if (isLoading) {
     return (
@@ -52,12 +38,18 @@ export function ProfileCompleteness(): React.JSX.Element | null {
 
       <div className="space-y-3">
         {(data.missingFields ?? []).slice(0, 3).map((item) => (
-          <div key={item.field} className={cn("flex items-center justify-between p-3 rounded-xl", NEUMORPHIC_INSET)}>
+          <div
+            key={item.field}
+            className={cn("flex items-center justify-between p-3 rounded-xl", NEUMORPHIC_INSET)}
+          >
             <div className="flex items-center gap-3">
               <div className="w-5 h-5 rounded-full bg-gray-200 flex-shrink-0" />
               <p className="text-sm text-text-primary">{item.label}</p>
             </div>
-            <Link href={item.href} className="text-primary hover:text-primary/80 text-sm font-semibold transition-colors">
+            <Link
+              href={item.href}
+              className="text-primary hover:text-primary/80 text-sm font-semibold transition-colors"
+            >
               Add +
             </Link>
           </div>
