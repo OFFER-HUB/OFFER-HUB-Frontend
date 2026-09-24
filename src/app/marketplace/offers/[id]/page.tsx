@@ -12,18 +12,12 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { Toast } from "@/components/ui/Toast";
 import { Navbar } from "@/components/landing/Navbar";
 import { cn } from "@/lib/cn";
-
-const CATEGORY_MAP: Record<string, string> = {
-  WEB_DEVELOPMENT: "Web Development",
-  MOBILE_DEVELOPMENT: "Mobile Development",
-  DESIGN: "Design & Creative",
-  WRITING: "Writing & Translation",
-  MARKETING: "Marketing & Sales",
-  VIDEO: "Video & Animation",
-  MUSIC: "Music & Audio",
-  DATA: "Data & Analytics",
-  OTHER: "Other Services",
-};
+import {
+  getCategoryLabel,
+  parseMoneyAmount,
+  formatMarketplaceDate,
+  formatMemberSince,
+} from "@/lib/marketplace-helpers";
 
 interface FAQItem {
   question: string;
@@ -190,25 +184,14 @@ export default function OfferDetailPage(): React.JSX.Element {
     );
   }
 
-  const budget = parseFloat(offer.budget);
-  const deadline = new Date(offer.deadline).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-  const category = CATEGORY_MAP[offer.category] || offer.category;
-  
-  const createdDate = new Date(offer.createdAt).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
+  const budget = parseMoneyAmount(offer.budget);
+  const deadline = formatMarketplaceDate(offer.deadline);
+  const category = getCategoryLabel(offer.category);
+
+  const createdDate = formatMarketplaceDate(offer.createdAt);
 
   const memberSince = offer.user?.createdAt
-    ? new Date(offer.user.createdAt).toLocaleDateString("en-US", {
-        month: "short",
-        year: "numeric",
-      })
+    ? formatMemberSince(offer.user.createdAt)
     : null;
 
   const clientFullName = [offer.user?.firstName, offer.user?.lastName].filter(Boolean).join(" ");
