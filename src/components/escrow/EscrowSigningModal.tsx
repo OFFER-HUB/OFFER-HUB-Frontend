@@ -1,10 +1,18 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { createPortal } from "react-dom";
 import { cn } from "@/lib/cn";
 import { Icon, ICON_PATHS, LoadingSpinner } from "@/components/ui/Icon";
 import { STELLAR_EXPLORER_URL } from "@/config/wallet";
+import { useFocusTrapModal } from "@/hooks/useFocusTrapModal";
+import {
+  getStepInfo,
+  errorCopy,
+  stateTitle,
+  truncateHash,
+  type EscrowSigningCopyOverride,
+} from "@/lib/escrow-signing-copy";
 import type { EscrowSigningState, EscrowSigningError } from "@/hooks/useEscrowSigning";
 import type { EscrowOperation, EscrowStepName } from "@/lib/api/escrow";
 
@@ -30,210 +38,19 @@ export interface EscrowSigningModalProps {
   operation?: EscrowOperation;
   step?: EscrowStepName | null;
   /**
-   * Overrides the `operation`/`step` copy lookup below. For flows this modal
+   * Overrides the `operation`/`step` copy lookup. For flows this modal
    * didn't originally know about (e.g. the BlindPay payout transfer, which
    * has no `operation`/`step` of its own) — passing this instead of widening
    * `EscrowOperation` keeps that union honest about what it actually names.
    */
-  copy?: {
-    position?: string;
-    confirmedMessage: string;
-    actionTitle: string;
-    actionExplanation: string;
-  };
+  copy?: EscrowSigningCopyOverride;
   /** Re-runs the same operation from scratch (a fresh XDR is fetched). */
   onRetry: () => void;
   /** Dismisses the modal. Has no effect while a wallet or submission is in flight. */
   onClose: () => void;
 }
 
-interface StepDetail {
-  position: string;
-  confirmedMessage: string;
-  actionTitle: string;
-  actionExplanation: string;
-}
-
-/**
- * Human framing for one on-chain step, keyed by (operation, step).
- */
-const STEP_INFO: Partial<
-  Record<EscrowOperation, Partial<Record<EscrowStepName, StepDetail>>>
-> = {
-  release: {
-    approve_milestone: {
-      position: "Step 1 of 2 — Approve delivery",
-      confirmedMessage:
-        "Delivery approved. Click “Release Funds” again to send the payment — that's a second, separate signature.",
-      actionTitle: "Approve Delivery (Milestone Review)",
-      actionExplanation:
-        "You are signing on-chain approval of the delivered work. This verifies milestone satisfaction before releasing payment.",
-    },
-    release: {
-      position: "Step 2 of 2 — Release funds",
-      confirmedMessage: "Funds released to the freelancer.",
-      actionTitle: "Release Escrow Payment",
-      actionExplanation:
-        "You are authorizing the smart contract to transfer locked funds directly to the freelancer's wallet address.",
-    },
-    complete_milestone: {
-      position: "Milestone completion",
-      confirmedMessage: "Milestone marked as completed on-chain. Awaiting buyer review.",
-      actionTitle: "Mark Milestone Completed",
-      actionExplanation:
-        "You are recording milestone completion on the Stellar smart contract so the buyer can inspect deliverables and release funds.",
-    },
-  },
-  refund: {
-    dispute: {
-      position: "Step 1 of 1 — Request refund",
-      confirmedMessage: "Refund request submitted on-chain.",
-      actionTitle: "Request Escrow Refund",
-      actionExplanation:
-        "You are submitting an on-chain refund request to the escrow smart contract.",
-    },
-  },
-  dispute: {
-    dispute: {
-      position: "Step 1 of 1 — Open dispute",
-      confirmedMessage: "Dispute recorded on-chain.",
-      actionTitle: "Open Escrow Dispute",
-      actionExplanation:
-        "You are recording an escrow dispute on the Stellar ledger. Funds will remain securely held until resolved.",
-    },
-  },
-};
-
-const OPERATION_FALLBACK_INFO: Record<EscrowOperation, StepDetail> = {
-  create: {
-    position: "Escrow initialization",
-    confirmedMessage: "Escrow contract initialized on-chain. Ready for funding.",
-    actionTitle: "Create Escrow Agreement",
-    actionExplanation:
-      "You are deploying a Soroban escrow contract on Stellar to safeguard payments for this order.",
-  },
-  fund: {
-    position: "Escrow funding",
-    confirmedMessage: "Funds are secured in smart escrow.",
-    actionTitle: "Deposit Funds into Escrow",
-    actionExplanation:
-      "You are authorizing the deposit of order funds into the smart contract escrow. Funds are locked until work is approved.",
-  },
-  release: {
-    position: "Escrow release",
-    confirmedMessage: "Funds released to the freelancer.",
-    actionTitle: "Release Escrow Funds",
-    actionExplanation:
-      "You are authorizing the release of escrowed payment.",
-  },
-  refund: {
-    position: "Escrow refund",
-    confirmedMessage: "Refund request submitted on-chain.",
-    actionTitle: "Request Escrow Refund",
-    actionExplanation:
-      "You are submitting an on-chain refund request.",
-  },
-  dispute: {
-    position: "Escrow dispute",
-    confirmedMessage: "Dispute recorded on-chain.",
-    actionTitle: "Open Escrow Dispute",
-    actionExplanation:
-      "You are opening a dispute on the Stellar blockchain.",
-  },
-};
-
-function getStepInfo(
-  operation: EscrowOperation | undefined,
-  step: EscrowStepName | null | undefined,
-  copyOverride: EscrowSigningModalProps["copy"]
-): StepDetail | null {
-  if (copyOverride) {
-    return { position: copyOverride.position ?? "", ...copyOverride };
-  }
-  if (!operation) return null;
-  if (step && STEP_INFO[operation]?.[step]) {
-    return STEP_INFO[operation]![step]!;
-  }
-  return OPERATION_FALLBACK_INFO[operation] ?? null;
-}
-
-const FOCUSABLE_SELECTOR =
-  'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])';
-
-function truncateHash(hash: string): string {
-  if (hash.length <= 16) return hash;
-  return `${hash.slice(0, 8)}…${hash.slice(-8)}`;
-}
-
-/** Text shown for named error codes with actionable next steps. */
-function errorCopy(error: EscrowSigningError): {
-  title: string;
-  message: string;
-  actionHint: string;
-} {
-  switch (error.code) {
-    case "USER_REJECTED":
-      return {
-        title: "Signing cancelled",
-        message: "You cancelled the signing. Try again?",
-        actionHint:
-          "No funds were moved and no smart contract state was altered. Click Retry whenever you are ready to sign again.",
-      };
-    case "XDR_EXPIRED":
-      return {
-        title: "Transaction expired",
-        message: "Transaction expired. Please try again.",
-        actionHint:
-          "Soroban transactions expire after 4 minutes for security reasons. Click Retry below to generate a fresh transaction for your wallet.",
-      };
-    case "WRONG_SIGNER":
-      return {
-        title: "Not your turn yet",
-        message: error.message,
-        actionHint:
-          "Please wait for the other party to complete their on-chain step before you can proceed with this signature.",
-      };
-    case "STALE_TRANSACTION":
-      return {
-        title: "Transaction outdated",
-        message: error.message,
-        actionHint:
-          "This can happen if the same action was started twice — for example, if the page was reopened while a signature was still pending. Click Retry to fetch a fresh transaction and sign it.",
-      };
-    case "NO_WALLET_CONNECTED":
-      return {
-        title: "No wallet connected",
-        message: error.message || "Your wallet was disconnected.",
-        actionHint:
-          "Please connect your Stellar wallet extension (such as Freighter) and try again.",
-      };
-    case "API_ERROR":
-    default:
-      return {
-        title: "Signing failed",
-        message: error.message,
-        actionHint:
-          "Please check your internet connection, ensure your wallet has enough XLM for the network fee (~0.00001 XLM), and try again.",
-      };
-  }
-}
-
-function stateTitle(state: EscrowSigningState, error: EscrowSigningError | null): string {
-  switch (state) {
-    case "building":
-      return "Preparing transaction";
-    case "awaiting_signature":
-      return "Check your wallet";
-    case "submitting":
-      return "Submitting to Stellar";
-    case "confirmed":
-      return "Transaction confirmed";
-    case "error":
-      return error ? errorCopy(error).title : "Signing failed";
-    case "idle":
-      return "Preparing transaction";
-  }
-}
+// ─── Local button style constants ─────────────────────────────────────────────
 
 const SOLID_PRIMARY_BUTTON = cn(
   "w-full py-2.5 px-4 rounded-xl font-bold text-xs text-white",
@@ -257,6 +74,9 @@ const NEUMORPHIC_SECONDARY_BUTTON = cn(
 
 /**
  * Detailed, informative dialog for client-side Stellar/Soroban escrow signing flow.
+ *
+ * All copy data lives in `src/lib/escrow-signing-copy.ts`.
+ * Keyboard a11y (Escape / Tab-cycling / focus-on-open) lives in `useFocusTrapModal`.
  */
 export function EscrowSigningModal({
   isOpen,
@@ -276,48 +96,10 @@ export function EscrowSigningModal({
     setLastHash(transactionHash);
     setCopied(false);
   }
-  const dialogRef = useRef<HTMLDivElement>(null);
 
   const isBlocking = state === "awaiting_signature" || state === "submitting";
 
-  const handleClose = useCallback(() => {
-    if (isBlocking) return;
-    onClose();
-  }, [isBlocking, onClose]);
-
-  useEffect(() => {
-    if (!isOpen) return;
-
-    function onKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape") {
-        handleClose();
-        return;
-      }
-
-      if (e.key === "Tab" && dialogRef.current) {
-        const focusable = Array.from(
-          dialogRef.current.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)
-        );
-        if (focusable.length === 0) return;
-
-        const first = focusable[0];
-        const last = focusable[focusable.length - 1];
-        const active = document.activeElement;
-
-        if (e.shiftKey && active === first) {
-          e.preventDefault();
-          last.focus();
-        } else if (!e.shiftKey && active === last) {
-          e.preventDefault();
-          first.focus();
-        }
-      }
-    }
-
-    window.addEventListener("keydown", onKeyDown);
-    dialogRef.current?.focus();
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [isOpen, handleClose]);
+  const { dialogRef } = useFocusTrapModal({ isOpen, onClose, isBlocking });
 
   if (!isOpen || typeof document === "undefined") return null;
 
@@ -342,12 +124,12 @@ export function EscrowSigningModal({
       <button
         type="button"
         className="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
-        onClick={handleClose}
+        onClick={isBlocking ? undefined : onClose}
         disabled={isBlocking}
         aria-label="Close"
       />
 
-      {/* Redesigned Neumorphic Modal Dialog */}
+      {/* Neumorphic Modal Dialog */}
       <div
         ref={dialogRef}
         tabIndex={-1}
@@ -390,7 +172,7 @@ export function EscrowSigningModal({
           {!isBlocking && (
             <button
               type="button"
-              onClick={handleClose}
+              onClick={onClose}
               aria-label="Close"
               className={cn(
                 "w-8 h-8 flex items-center justify-center rounded-xl shrink-0 ml-2",
@@ -542,7 +324,7 @@ export function EscrowSigningModal({
                 </div>
 
                 <p className="text-[11px] text-text-secondary leading-relaxed">
-                  Delivery has been approved on-chain. On Stellar, releasing escrow payment requires two separate cryptographic signatures for buyer security. Once you close this modal, click <strong className="text-text-primary">“Release Funds”</strong> again to finalize the payment transfer to the freelancer.
+                  Delivery has been approved on-chain. On Stellar, releasing escrow payment requires two separate cryptographic signatures for buyer security. Once you close this modal, click <strong className="text-text-primary">&ldquo;Release Funds&rdquo;</strong> again to finalize the payment transfer to the freelancer.
                 </p>
 
                 <div className="grid grid-cols-2 gap-2 pt-1">
