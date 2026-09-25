@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useRef } from "react";
 import { createPortal } from "react-dom";
 import { cn } from "@/lib/cn";
 import {
@@ -12,40 +12,21 @@ import {
 import { Icon, ICON_PATHS, LoadingSpinner } from "@/components/ui/Icon";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 import { Toast } from "@/components/ui/Toast";
-import { useAuthStore } from "@/stores/auth-store";
-import {
-  listBankAccounts,
-  setDefaultBankAccount,
-  deleteBankAccount,
-  SUPPORTED_CORRIDORS,
-  type BankAccount,
-  type BankAccountApiError,
-} from "@/lib/api/bank-accounts";
-import { getMyKyc, type KycProfile } from "@/lib/api/kyc";
+import { useBankAccounts } from "@/hooks/useBankAccounts";
+import { SUPPORTED_CORRIDORS, type BankAccount } from "@/lib/api/bank-accounts";
+import type { KycProfile } from "@/lib/api/kyc";
 import { BankAccountForm, COUNTRY_FLAGS } from "@/components/bank-accounts/BankAccountForm";
 
 const RAIL_LABELS: Record<string, string> = Object.fromEntries(
   SUPPORTED_CORRIDORS.map((corridor) => [corridor.rail, corridor.label])
 );
 
-/**
- * The backend's own message for BANK_ACCOUNT_HAS_PAYOUTS is written for logs
- * and API consumers (raw id, "1 payout(s)") — accurate, but not something to
- * hand a freelancer verbatim in a toast. Every other error code still shows
- * the backend's message as-is; this is the one case worth a real sentence.
- */
-function friendlyDeleteError(error: unknown): string {
-  const code = (error as BankAccountApiError | undefined)?.code;
-  if (code === "BANK_ACCOUNT_HAS_PAYOUTS") {
-    return "This account can't be removed because a payout already references it — that record needs to stay intact. Add a new account instead and set it as your default.";
-  }
-  return error instanceof Error ? error.message : "Could not delete this account.";
-}
-
 function maskAccountNumber(accountNumber: string): string {
   const last4 = accountNumber.slice(-4);
   return last4.length === accountNumber.length ? last4 : `•••• ${last4}`;
 }
+
+// ─── AddBankAccountModal (portal) ─────────────────────────────────────────────
 
 interface AddBankAccountModalProps {
   isOpen: boolean;
@@ -53,7 +34,11 @@ interface AddBankAccountModalProps {
   onAdded: (account: BankAccount) => void;
 }
 
-function AddBankAccountModal({ isOpen, onClose, onAdded }: AddBankAccountModalProps): React.JSX.Element | null {
+function AddBankAccountModal({
+  isOpen,
+  onClose,
+  onAdded,
+}: AddBankAccountModalProps): React.JSX.Element | null {
   const titleId = useId();
   const dialogRef = useRef<HTMLDivElement>(null);
 
@@ -127,6 +112,8 @@ function AddBankAccountModal({ isOpen, onClose, onAdded }: AddBankAccountModalPr
   );
 }
 
+// ─── BankAccountRow ────────────────────────────────────────────────────────────
+
 interface BankAccountRowProps {
   account: BankAccount;
   isSelected: boolean;
@@ -147,8 +134,13 @@ function BankAccountRow({
   const railLabel = RAIL_LABELS[account.rail] ?? account.rail;
   const flag = COUNTRY_FLAGS[account.country] ?? "";
 
-  const content = (
-    <div className={cn(NEUMORPHIC_INSET, "rounded-2xl p-4 flex flex-col gap-3 transition-all duration-200")}>
+  return (
+    <div
+      className={cn(
+        NEUMORPHIC_INSET,
+        "rounded-2xl p-4 flex flex-col gap-3 transition-all duration-200"
+      )}
+    >
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2.5 min-w-0">
           <span className="text-xl leading-none" aria-hidden="true">
@@ -184,7 +176,10 @@ function BankAccountRow({
             disabled={busy}
             onClick={() => onSelect(account)}
             aria-pressed={isSelected}
-            className={cn(ACTION_BUTTON_DEFAULT, "w-auto px-4 py-2 text-xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed")}
+            className={cn(
+              ACTION_BUTTON_DEFAULT,
+              "w-auto px-4 py-2 text-xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            )}
           >
             {isSelected ? "Selected" : "Use this account"}
           </button>
@@ -194,7 +189,10 @@ function BankAccountRow({
             type="button"
             disabled={busy}
             onClick={() => onSetDefault(account)}
-            className={cn(ACTION_BUTTON_DEFAULT, "w-auto px-4 py-2 text-xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed")}
+            className={cn(
+              ACTION_BUTTON_DEFAULT,
+              "w-auto px-4 py-2 text-xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            )}
           >
             Set as default
           </button>
@@ -204,30 +202,27 @@ function BankAccountRow({
           disabled={busy}
           onClick={() => onDelete(account)}
           aria-label={`Delete ${account.bankName} account`}
-          className={cn(ACTION_BUTTON_DANGER, "w-auto px-4 py-2 text-xs disabled:opacity-50 disabled:cursor-not-allowed")}
+          className={cn(
+            ACTION_BUTTON_DANGER,
+            "w-auto px-4 py-2 text-xs disabled:opacity-50 disabled:cursor-not-allowed"
+          )}
         >
           {busy ? <LoadingSpinner size="sm" /> : "Delete"}
         </button>
       </div>
     </div>
   );
-
-  return content;
 }
 
+// ─── BankAccountSelector ───────────────────────────────────────────────────────
+
 export interface BankAccountSelectorProps {
-  /** The id of the account currently chosen for this payout; omit outside a picker context. */
   selectedId?: string | null;
-  /** Present only in picker contexts (e.g. order completion) — omit to use this purely for management. */
   onSelect?: (account: BankAccount) => void;
-  /** Card heading — callers embedding this in a named section override the generic default. */
   title?: string;
   className?: string;
-  /** Optional pre-loaded KYC profile to evaluate gate condition */
   kycProfile?: KycProfile | null;
-  /** Explicit override for KYC approval status */
   isKycApproved?: boolean;
-  /** Callback triggered when user clicks to start KYC from the gate */
   onStartKyc?: () => void;
 }
 
@@ -240,146 +235,30 @@ export function BankAccountSelector({
   isKycApproved: propIsKycApproved,
   onStartKyc,
 }: BankAccountSelectorProps): React.JSX.Element {
-  const token = useAuthStore((state) => state.token);
-
-  const [accounts, setAccounts] = useState<BankAccount[] | null>(null);
-  const [loadError, setLoadError] = useState<string | null>(null);
-  const [actionError, setActionError] = useState<string | null>(null);
-  const [busyId, setBusyId] = useState<string | null>(null);
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [pendingDelete, setPendingDelete] = useState<BankAccount | null>(null);
-  const [deleteError, setDeleteError] = useState<string | null>(null);
-  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
-
-  // KYC compliance gate state
-  const [kycProfile, setKycProfile] = useState<KycProfile | null | undefined>(propKycProfile);
-  const [isCheckingKyc, setIsCheckingKyc] = useState<boolean>(propKycProfile === undefined && propIsKycApproved === undefined);
-
-  useEffect(() => {
-    if (propKycProfile !== undefined) {
-      setKycProfile(propKycProfile);
-      setIsCheckingKyc(false);
-      return;
-    }
-
-    if (propIsKycApproved !== undefined) {
-      setIsCheckingKyc(false);
-      return;
-    }
-
-    if (!token) {
-      setIsCheckingKyc(false);
-      return;
-    }
-
-    let cancelled = false;
-    getMyKyc(token)
-      .then((profile) => {
-        if (!cancelled) {
-          setKycProfile(profile);
-          setIsCheckingKyc(false);
-        }
-      })
-      .catch(() => {
-        if (!cancelled) {
-          // If unmocked in test or offline, set to null
-          setKycProfile(null);
-          setIsCheckingKyc(false);
-        }
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [token, propKycProfile, propIsKycApproved]);
-
-  useEffect(() => {
-    if (!token) return;
-    let cancelled = false;
-
-    listBankAccounts(token)
-      .then((result) => {
-        if (!cancelled) setAccounts(result);
-      })
-      .catch((error: unknown) => {
-        if (cancelled) return;
-        setLoadError(error instanceof Error ? error.message : "Could not load your bank accounts.");
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [token]);
-
-  function handleAdded(account: BankAccount) {
-    setAccounts((prev) => {
-      const withoutDuplicates = (prev ?? []).filter((existing) => existing.id !== account.id);
-      const next = account.isDefault
-        ? withoutDuplicates.map((existing) => ({ ...existing, isDefault: false }))
-        : withoutDuplicates;
-      return [account, ...next];
-    });
-    setIsAddModalOpen(false);
-    setToast({ type: "success", message: "Bank account added" });
-  }
-
-  async function handleSetDefault(account: BankAccount) {
-    if (!token) return;
-    setActionError(null);
-    setBusyId(account.id);
-    try {
-      const updated = await setDefaultBankAccount(token, account.id);
-      setAccounts((prev) =>
-        (prev ?? []).map((existing) => ({ ...existing, isDefault: existing.id === updated.id }))
-      );
-      setToast({ type: "success", message: "Default payout account updated" });
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Could not set this account as default.";
-      setActionError(message);
-      setToast({ type: "error", message });
-    } finally {
-      setBusyId(null);
-    }
-  }
-
-  function handleOpenDelete(account: BankAccount) {
-    setDeleteError(null);
-    setPendingDelete(account);
-  }
-
-  function handleCloseDeleteModal() {
-    setPendingDelete(null);
-    setDeleteError(null);
-  }
-
-  async function handleConfirmDelete() {
-    if (!token || !pendingDelete) return;
-    const account = pendingDelete;
-    setDeleteError(null);
-    setBusyId(account.id);
-    try {
-      await deleteBankAccount(token, account.id);
-      setAccounts((prev) => (prev ?? []).filter((existing) => existing.id !== account.id));
-      setPendingDelete(null);
-      setToast({ type: "success", message: "Bank account deleted" });
-    } catch (error) {
-      // Shown inline in the confirmation modal (kept open) — not a toast:
-      // the whole point is the user is already looking right at it.
-      setDeleteError(friendlyDeleteError(error));
-    } finally {
-      setBusyId(null);
-    }
-  }
-
-  // --- KYC Gate Evaluation ---
-  // A user is verified when they have completed KYC and accepted BlindPay ToS (blindpayTosId set)
-  const isKycApproved =
-    propIsKycApproved !== undefined
-      ? propIsKycApproved
-      : Boolean(kycProfile?.blindpayTosId);
-
-  const isKycSubmitted = Boolean(kycProfile);
-  const isKycPending = isKycSubmitted && !isKycApproved;
+  const {
+    accounts,
+    loadError,
+    actionError,
+    busyId,
+    isAddModalOpen,
+    openAddModal,
+    closeAddModal,
+    handleAdded,
+    pendingDelete,
+    deleteError,
+    openDeleteModal,
+    closeDeleteModal,
+    handleConfirmDelete,
+    handleSetDefault,
+    isCheckingKyc,
+    isKycApproved,
+    isKycPending,
+    toast,
+    clearToast,
+  } = useBankAccounts({
+    kycProfile: propKycProfile,
+    isKycApproved: propIsKycApproved,
+  });
 
   return (
     <div className={cn(NEUMORPHIC_CARD, className)}>
@@ -408,12 +287,13 @@ export function BankAccountSelector({
         <button
           type="button"
           disabled={!isKycApproved}
-          onClick={() => setIsAddModalOpen(true)}
+          onClick={openAddModal}
           title={!isKycApproved ? "Complete identity verification first" : "Add bank account"}
           className={cn(
             ACTION_BUTTON_DEFAULT,
             "w-auto px-4 py-2 text-xs transition-all duration-200",
-            !isKycApproved && "opacity-50 cursor-not-allowed hover:shadow-none pointer-events-auto"
+            !isKycApproved &&
+              "opacity-50 cursor-not-allowed hover:shadow-none pointer-events-auto"
           )}
         >
           <Icon path={isKycApproved ? ICON_PATHS.plus : ICON_PATHS.lock} size="sm" />
@@ -425,9 +305,12 @@ export function BankAccountSelector({
         Where your USDC settles as local fiat currency via BlindPay.
       </p>
 
-      {/* --- KYC Gate Notice when not approved --- */}
+      {/* KYC Gate */}
       {isCheckingKyc ? (
-        <div role="status" className="flex items-center justify-center gap-2.5 py-8 text-sm text-text-secondary">
+        <div
+          role="status"
+          className="flex items-center justify-center gap-2.5 py-8 text-sm text-text-secondary"
+        >
           <LoadingSpinner size="sm" />
           Checking compliance status...
         </div>
@@ -469,13 +352,20 @@ export function BankAccountSelector({
           {loadError}
         </p>
       ) : accounts === null ? (
-        <div role="status" className="flex items-center justify-center gap-2.5 py-8 text-sm text-text-secondary">
+        <div
+          role="status"
+          className="flex items-center justify-center gap-2.5 py-8 text-sm text-text-secondary"
+        >
           <LoadingSpinner size="sm" />
           Loading bank accounts...
         </div>
       ) : accounts.length === 0 ? (
         <div className={cn(NEUMORPHIC_INSET, "rounded-2xl p-6 text-center animate-scale-in")}>
-          <Icon path={ICON_PATHS.creditCard} size="lg" className="mx-auto mb-2 text-text-secondary" />
+          <Icon
+            path={ICON_PATHS.creditCard}
+            size="lg"
+            className="mx-auto mb-2 text-text-secondary"
+          />
           <p className="text-sm font-medium text-text-primary">No bank accounts yet</p>
           <p className="mt-1 text-sm text-text-secondary">
             Add a bank account so you can receive your payouts once a client releases funds.
@@ -491,7 +381,7 @@ export function BankAccountSelector({
               busy={busyId === account.id}
               onSelect={onSelect}
               onSetDefault={handleSetDefault}
-              onDelete={handleOpenDelete}
+              onDelete={openDeleteModal}
             />
           ))}
         </div>
@@ -505,13 +395,13 @@ export function BankAccountSelector({
 
       <AddBankAccountModal
         isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
+        onClose={closeAddModal}
         onAdded={handleAdded}
       />
 
       <ConfirmationModal
         isOpen={pendingDelete !== null}
-        onClose={handleCloseDeleteModal}
+        onClose={closeDeleteModal}
         onConfirm={handleConfirmDelete}
         title="Delete this bank account?"
         message={
@@ -525,7 +415,7 @@ export function BankAccountSelector({
         error={deleteError}
       />
 
-      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+      {toast && <Toast message={toast.message} type={toast.type} onClose={clearToast} />}
     </div>
   );
 }
