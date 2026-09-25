@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useMemo, useState } from "react";
+import { useId } from "react";
 import { cn } from "@/lib/cn";
 import {
   NEUMORPHIC_INPUT,
@@ -10,15 +10,8 @@ import {
   NEUMORPHIC_INSET,
 } from "@/lib/styles";
 import { Icon, ICON_PATHS, LoadingSpinner } from "@/components/ui/Icon";
-import { useAuthStore } from "@/stores/auth-store";
-import {
-  addBankAccount,
-  SUPPORTED_CORRIDORS,
-  SUPPORTED_CORRIDORS_REQUIRED_DETAILS,
-  type AddBankAccountData,
-  type BankAccount,
-} from "@/lib/api/bank-accounts";
-import { cleanLettersOnly } from "@/components/kyc/KycForm";
+import { useBankAccountForm } from "@/hooks/useBankAccountForm";
+import type { BankAccount } from "@/lib/api/bank-accounts";
 
 /** Emoji flag for each corridor country */
 export const COUNTRY_FLAGS: Record<string, string> = {
@@ -39,44 +32,38 @@ const CORRIDOR_COUNTRIES = ["BR", "MX", "AR", "CO"] as const;
 
 // Real-world examples for each rail
 const RAIL_DESCRIPTIONS: Record<string, { label: string; currency: string; hint: string }> = {
-  PIX: { label: "Pix Instant", currency: "BRL", hint: "Instant 24/7 transfers using your registered Pix key" },
-  PIX_SAFE: { label: "Pix Safe", currency: "BRL", hint: "Verified bank transfer through Central Bank of Brazil" },
-  TED: { label: "TED Wire", currency: "BRL", hint: "Same-day Brazilian interbank electronic transfer" },
-  SPEI_BITSO: { label: "SPEI (Bitso)", currency: "MXN", hint: "Mexican interbank system via 18-digit CLABE" },
-  TRANSFERS_BITSO: { label: "Transfers 3.0", currency: "ARS", hint: "Instant Argentine transfers via 22-digit CBU or CVU" },
-  ACH_COP_BITSO: { label: "ACH Colombia", currency: "COP", hint: "Automated Clearing House Colombian banking transfer" },
+  PIX: {
+    label: "Pix Instant",
+    currency: "BRL",
+    hint: "Instant 24/7 transfers using your registered Pix key",
+  },
+  PIX_SAFE: {
+    label: "Pix Safe",
+    currency: "BRL",
+    hint: "Verified bank transfer through Central Bank of Brazil",
+  },
+  TED: {
+    label: "TED Wire",
+    currency: "BRL",
+    hint: "Same-day Brazilian interbank electronic transfer",
+  },
+  SPEI_BITSO: {
+    label: "SPEI (Bitso)",
+    currency: "MXN",
+    hint: "Mexican interbank system via 18-digit CLABE",
+  },
+  TRANSFERS_BITSO: {
+    label: "Transfers 3.0",
+    currency: "ARS",
+    hint: "Instant Argentine transfers via 22-digit CBU or CVU",
+  },
+  ACH_COP_BITSO: {
+    label: "ACH Colombia",
+    currency: "COP",
+    hint: "Automated Clearing House Colombian banking transfer",
+  },
 };
 
-function maskCpfOrCnpj(value: string): string {
-  const digits = value.replace(/\D/g, "").slice(0, 14);
-  if (digits.length <= 11) {
-    // CPF: 000.000.000-00
-    if (digits.length <= 3) return digits;
-    if (digits.length <= 6) return `${digits.slice(0, 3)}.${digits.slice(3)}`;
-    if (digits.length <= 9) return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6)}`;
-    return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`;
-  }
-  // CNPJ: 00.000.000/0000-00
-  return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5, 8)}/${digits.slice(8, 12)}-${digits.slice(12)}`;
-}
-
-function maskAccountNumberByRail(value: string, rail: string): string {
-  if (rail === "SPEI_BITSO") {
-    // 18 digits CLABE
-    return value.replace(/\D/g, "").slice(0, 18);
-  }
-  if (rail === "TRANSFERS_BITSO") {
-    // 22 digits CBU / CVU
-    return value.replace(/\D/g, "").slice(0, 22);
-  }
-  if (rail === "PIX") {
-    // Pix key: can be email, phone, CPF, or UUID
-    return value.trim().slice(0, 77);
-  }
-  return value.slice(0, 64);
-}
-
-/** Friendlier labels for keys that would otherwise read like raw field names. */
 const DETAIL_KEY_LABELS: Record<string, string> = {
   ach_cop_beneficiary_first_name: "Beneficiary first name",
   ach_cop_beneficiary_last_name: "Beneficiary last name",
@@ -101,185 +88,40 @@ export interface BankAccountFormProps {
   className?: string;
 }
 
-interface FormErrors {
-  country?: string;
-  rail?: string;
-  accountNumber?: string;
-  bankName?: string;
-  holderName?: string;
-  details?: Record<string, string | undefined>;
-}
-
-export function BankAccountForm({ onSuccess, onCancel, className }: BankAccountFormProps): React.JSX.Element {
-  const token = useAuthStore((state) => state.token);
+export function BankAccountForm({
+  onSuccess,
+  onCancel,
+  className,
+}: BankAccountFormProps): React.JSX.Element {
   const formId = useId();
 
-  const [step, setStep] = useState<1 | 2>(1);
-  const [country, setCountry] = useState<string>("BR");
-
-  const railsForCountry = useMemo(
-    () => SUPPORTED_CORRIDORS.filter((corridor) => corridor.country === country),
-    [country]
-  );
-
-  const [rail, setRail] = useState<string>("PIX");
-  const [accountNumber, setAccountNumber] = useState("");
-  const [bankName, setBankName] = useState("");
-  const [holderName, setHolderName] = useState("");
-  const [isDefault, setIsDefault] = useState(false);
-  const [details, setDetails] = useState<Record<string, string>>({});
-  const [errors, setErrors] = useState<FormErrors>({});
-  const [submitError, setSubmitError] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const requiredDetailKeys = SUPPORTED_CORRIDORS_REQUIRED_DETAILS[rail] ?? [];
-  const isSingleRail = railsForCountry.length === 1;
-
-  function handleCountryChange(nextCountry: string) {
-    setCountry(nextCountry);
-    const available = SUPPORTED_CORRIDORS.filter((c) => c.country === nextCountry);
-    const firstRail = available[0]?.rail ?? "";
-    setRail(firstRail);
-    setAccountNumber("");
-    setDetails({});
-    setErrors({});
-  }
-
-  function handleRailChange(nextRail: string) {
-    setRail(nextRail);
-    setAccountNumber("");
-    setDetails({});
-    setErrors((prev) => ({ ...prev, rail: undefined, accountNumber: undefined, details: undefined }));
-  }
-
-  function handleDetailChange(key: string, value: string) {
-    let formatted = value;
-    if (key.includes("cpf_cnpj")) {
-      formatted = maskCpfOrCnpj(value);
-    }
-    setDetails((prev) => ({ ...prev, [key]: formatted }));
-    setErrors((prev) => {
-      if (!prev.details?.[key]) return prev;
-      const nextDetailErrors = { ...prev.details, [key]: undefined };
-      return { ...prev, details: nextDetailErrors };
-    });
-  }
-
-  function validateStep1(): boolean {
-    const next: FormErrors = {};
-    if (!country) next.country = "Select a country";
-    if (!rail) next.rail = "Select a payout method";
-    setErrors((prev) => ({ ...prev, ...next }));
-    return Object.keys(next).length === 0;
-  }
-
-  function validateStep2(): boolean {
-    const nextErrors: FormErrors = {};
-    const isPix = rail === "PIX";
-
-    if (!accountNumber.trim()) {
-      nextErrors.accountNumber = isPix
-        ? "Enter your Pix key"
-        : rail === "SPEI_BITSO"
-        ? "Enter the 18-digit CLABE"
-        : rail === "TRANSFERS_BITSO"
-        ? "Enter the 22-digit CBU/CVU"
-        : "Enter the account number";
-    } else if (rail === "SPEI_BITSO" && accountNumber.replace(/\D/g, "").length !== 18) {
-      nextErrors.accountNumber = "CLABE must be exactly 18 digits";
-    } else if (rail === "TRANSFERS_BITSO" && accountNumber.replace(/\D/g, "").length !== 22) {
-      nextErrors.accountNumber = "CBU / CVU must be exactly 22 digits";
-    }
-
-    if (!bankName.trim()) nextErrors.bankName = "Enter the bank name";
-    if (!holderName.trim()) nextErrors.holderName = "Enter the account holder's name";
-
-    const detailErrors: Record<string, string> = {};
-    for (const key of requiredDetailKeys) {
-      if (key === "pix_key") continue; // Handled via accountNumber
-      const val = details[key] ?? (key === "spei_protocol" ? "clabe" : key === "transfers_type" ? "CBU" : "");
-      if (!val.trim()) {
-        detailErrors[key] = `Enter ${humanizeDetailKey(key).toLowerCase()}`;
-      }
-    }
-    if (Object.keys(detailErrors).length > 0) nextErrors.details = detailErrors;
-
-    setErrors(nextErrors);
-    return Object.keys(nextErrors).length === 0;
-  }
-
-  function handleContinue() {
-    setSubmitError(null);
-    if (validateStep1()) {
-      setStep(2);
-    }
-  }
-
-  async function handleSubmit(event: React.FormEvent) {
-    event.preventDefault();
-
-    // Guards against submitting mid-transition: the step-1/step-2 footer
-    // buttons occupy the same JSX slot (button vs. submit), so without a
-    // `key` telling React to treat them as distinct elements, it would
-    // reuse the DOM node and flip its `type` attribute in place — a stray
-    // submit could then fire against a still-empty step 2 before the user
-    // ever saw it. The `key`s above fix the reuse; this is the second,
-    // cheap line of defense.
-    if (step !== 2) return;
-
-    setSubmitError(null);
-
-    if (!validateStep1()) {
-      setStep(1);
-      return;
-    }
-
-    if (!validateStep2()) {
-      setStep(2);
-      return;
-    }
-
-    if (!token) {
-      setSubmitError("Your session has expired. Please sign in again.");
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      const finalAccountNumber = accountNumber.trim();
-      const finalDetails: Record<string, unknown> = {
-        ...Object.fromEntries(
-          requiredDetailKeys.map((key) => [
-            key,
-            details[key]?.trim() ||
-              (key === "spei_protocol" ? "clabe" : key === "transfers_type" ? "CBU" : ""),
-          ])
-        ),
-      };
-
-      // For PIX, mirror the key into details.pix_key as required by BlindPay
-      if (rail === "PIX") {
-        finalDetails.pix_key = finalAccountNumber;
-      }
-
-      const payload: AddBankAccountData = {
-        country,
-        rail,
-        accountNumber: finalAccountNumber,
-        bankName: bankName.trim(),
-        holderName: holderName.trim(),
-        isDefault,
-        ...(requiredDetailKeys.length > 0 ? { details: finalDetails } : {}),
-      };
-
-      const account = await addBankAccount(token, payload);
-      onSuccess?.(account);
-    } catch (error) {
-      setSubmitError(error instanceof Error ? error.message : "Could not add this bank account.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  }
+  const {
+    step,
+    country,
+    rail,
+    accountNumber,
+    bankName,
+    holderName,
+    isDefault,
+    details,
+    errors,
+    submitError,
+    isSubmitting,
+    railsForCountry,
+    requiredDetailKeys,
+    isSingleRail,
+    isPix,
+    setAccountNumber,
+    setBankName,
+    setHolderName,
+    setIsDefault,
+    handleCountryChange,
+    handleRailChange,
+    handleDetailChange,
+    handleContinue,
+    handleBack,
+    handleSubmit,
+  } = useBankAccountForm({ onSuccess });
 
   const countryId = `${formId}-country`;
   const railId = `${formId}-rail`;
@@ -287,8 +129,6 @@ export function BankAccountForm({ onSuccess, onCancel, className }: BankAccountF
   const bankNameId = `${formId}-bank-name`;
   const holderNameId = `${formId}-holder-name`;
   const isDefaultId = `${formId}-is-default`;
-
-  const isPix = rail === "PIX";
 
   return (
     <form onSubmit={handleSubmit} className={cn("space-y-5", className)} noValidate>
@@ -306,7 +146,7 @@ export function BankAccountForm({ onSuccess, onCancel, className }: BankAccountF
           <div className="flex items-center gap-1.5">
             <button
               type="button"
-              onClick={() => setStep(1)}
+              onClick={() => handleBack()}
               className={cn(
                 "w-7 h-7 rounded-lg text-xs font-semibold transition-all duration-200 flex items-center justify-center",
                 step === 1
@@ -318,9 +158,7 @@ export function BankAccountForm({ onSuccess, onCancel, className }: BankAccountF
             </button>
             <button
               type="button"
-              onClick={() => {
-                if (validateStep1()) setStep(2);
-              }}
+              onClick={handleContinue}
               className={cn(
                 "w-7 h-7 rounded-lg text-xs font-semibold transition-all duration-200 flex items-center justify-center",
                 step === 2
@@ -377,7 +215,7 @@ export function BankAccountForm({ onSuccess, onCancel, className }: BankAccountF
               })}
             </div>
 
-            {/* Hidden native select to guarantee full accessibility and test compatibility */}
+            {/* Hidden native select for accessibility and test compatibility */}
             <select
               id={countryId}
               value={country}
@@ -392,9 +230,7 @@ export function BankAccountForm({ onSuccess, onCancel, className }: BankAccountF
               ))}
             </select>
 
-            {errors.country && (
-              <p className="mt-1 text-xs text-error">{errors.country}</p>
-            )}
+            {errors.country && <p className="mt-1 text-xs text-error">{errors.country}</p>}
           </div>
 
           <div>
@@ -403,7 +239,12 @@ export function BankAccountForm({ onSuccess, onCancel, className }: BankAccountF
             </label>
 
             {isSingleRail ? (
-              <div className={cn(NEUMORPHIC_INSET, "rounded-xl p-3.5 flex items-center justify-between gap-3")}>
+              <div
+                className={cn(
+                  NEUMORPHIC_INSET,
+                  "rounded-xl p-3.5 flex items-center justify-between gap-3"
+                )}
+              >
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-bold text-text-primary">
@@ -441,7 +282,9 @@ export function BankAccountForm({ onSuccess, onCancel, className }: BankAccountF
                     >
                       <div>
                         <div className="flex items-center gap-2">
-                          <p className="text-xs font-bold text-text-primary">{desc?.label ?? corridor.label}</p>
+                          <p className="text-xs font-bold text-text-primary">
+                            {desc?.label ?? corridor.label}
+                          </p>
                           <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-primary/10 text-primary uppercase">
                             {desc?.currency}
                           </span>
@@ -462,7 +305,7 @@ export function BankAccountForm({ onSuccess, onCancel, className }: BankAccountF
               </div>
             )}
 
-            {/* Native select to ensure test query support */}
+            {/* Native select for test query support */}
             <select
               id={railId}
               value={rail}
@@ -477,9 +320,7 @@ export function BankAccountForm({ onSuccess, onCancel, className }: BankAccountF
               ))}
             </select>
 
-            {errors.rail && (
-              <p className="mt-1 text-xs text-error">{errors.rail}</p>
-            )}
+            {errors.rail && <p className="mt-1 text-xs text-error">{errors.rail}</p>}
           </div>
         </div>
       )}
@@ -495,11 +336,13 @@ export function BankAccountForm({ onSuccess, onCancel, className }: BankAccountF
               </span>
               <span className="font-semibold text-text-primary">{COUNTRY_NAMES[country]}</span>
               <span className="text-text-secondary">·</span>
-              <span className="text-primary font-medium">{RAIL_DESCRIPTIONS[rail]?.label ?? rail}</span>
+              <span className="text-primary font-medium">
+                {RAIL_DESCRIPTIONS[rail]?.label ?? rail}
+              </span>
             </div>
             <button
               type="button"
-              onClick={() => setStep(1)}
+              onClick={handleBack}
               className="text-primary font-semibold text-xs hover:underline cursor-pointer"
             >
               Change
@@ -513,10 +356,10 @@ export function BankAccountForm({ onSuccess, onCancel, className }: BankAccountF
                 {isPix
                   ? "Pix Key"
                   : rail === "SPEI_BITSO"
-                  ? "CLABE"
-                  : rail === "TRANSFERS_BITSO"
-                  ? "CBU / CVU"
-                  : "Account number"}
+                    ? "CLABE"
+                    : rail === "TRANSFERS_BITSO"
+                      ? "CBU / CVU"
+                      : "Account number"}
               </label>
               {isPix && (
                 <span className="text-[11px] text-text-secondary">
@@ -529,15 +372,15 @@ export function BankAccountForm({ onSuccess, onCancel, className }: BankAccountF
               id={accountNumberId}
               type="text"
               value={accountNumber}
-              onChange={(e) => setAccountNumber(maskAccountNumberByRail(e.target.value, rail))}
+              onChange={(e) => setAccountNumber(e.target.value)}
               placeholder={
                 isPix
                   ? "e.g. user@email.com or 123.456.789-00"
                   : rail === "SPEI_BITSO"
-                  ? "18-digit CLABE number"
-                  : rail === "TRANSFERS_BITSO"
-                  ? "22-digit CBU or CVU"
-                  : "Bank account number"
+                    ? "18-digit CLABE number"
+                    : rail === "TRANSFERS_BITSO"
+                      ? "22-digit CBU or CVU"
+                      : "Bank account number"
               }
               className={cn(NEUMORPHIC_INPUT, errors.accountNumber && "ring-2 ring-error/50")}
               aria-invalid={Boolean(errors.accountNumber)}
@@ -551,7 +394,10 @@ export function BankAccountForm({ onSuccess, onCancel, className }: BankAccountF
           {/* Bank Name & Holder Name */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label htmlFor={bankNameId} className="block text-sm font-medium text-text-primary mb-2">
+              <label
+                htmlFor={bankNameId}
+                className="block text-sm font-medium text-text-primary mb-2"
+              >
                 Bank name
               </label>
               <input
@@ -564,10 +410,10 @@ export function BankAccountForm({ onSuccess, onCancel, className }: BankAccountF
                   country === "BR"
                     ? "e.g. Nubank / Itaú"
                     : country === "MX"
-                    ? "e.g. BBVA / Banorte"
-                    : country === "AR"
-                    ? "e.g. Banco Galicia"
-                    : "e.g. Bancolombia"
+                      ? "e.g. BBVA / Banorte"
+                      : country === "AR"
+                        ? "e.g. Banco Galicia"
+                        : "e.g. Bancolombia"
                 }
                 className={cn(NEUMORPHIC_INPUT, errors.bankName && "ring-2 ring-error/50")}
                 aria-invalid={Boolean(errors.bankName)}
@@ -578,7 +424,10 @@ export function BankAccountForm({ onSuccess, onCancel, className }: BankAccountF
             </div>
 
             <div>
-              <label htmlFor={holderNameId} className="block text-sm font-medium text-text-primary mb-2">
+              <label
+                htmlFor={holderNameId}
+                className="block text-sm font-medium text-text-primary mb-2"
+              >
                 Account holder name
               </label>
               <input
@@ -586,7 +435,7 @@ export function BankAccountForm({ onSuccess, onCancel, className }: BankAccountF
                 type="text"
                 value={holderName}
                 maxLength={120}
-                onChange={(e) => setHolderName(cleanLettersOnly(e.target.value))}
+                onChange={(e) => setHolderName(e.target.value)}
                 placeholder="Full legal name of recipient"
                 className={cn(NEUMORPHIC_INPUT, errors.holderName && "ring-2 ring-error/50")}
                 aria-invalid={Boolean(errors.holderName)}
@@ -610,7 +459,10 @@ export function BankAccountForm({ onSuccess, onCancel, className }: BankAccountF
                   if (key === "account_type") {
                     return (
                       <div key={key}>
-                        <label htmlFor={detailId} className="block text-sm font-medium text-text-primary mb-2">
+                        <label
+                          htmlFor={detailId}
+                          className="block text-sm font-medium text-text-primary mb-2"
+                        >
                           Account Type
                         </label>
                         <div className="relative">
@@ -618,7 +470,10 @@ export function BankAccountForm({ onSuccess, onCancel, className }: BankAccountF
                             id={detailId}
                             value={details[key] ?? ""}
                             onChange={(e) => handleDetailChange(key, e.target.value)}
-                            className={cn(SELECT_STYLES, detailError && "ring-2 ring-error/50")}
+                            className={cn(
+                              SELECT_STYLES,
+                              detailError && "ring-2 ring-error/50"
+                            )}
                             aria-invalid={Boolean(detailError)}
                           >
                             <option value="">Select account type...</option>
@@ -641,7 +496,10 @@ export function BankAccountForm({ onSuccess, onCancel, className }: BankAccountF
                   if (key === "spei_protocol") {
                     return (
                       <div key={key}>
-                        <label htmlFor={detailId} className="block text-sm font-medium text-text-primary mb-2">
+                        <label
+                          htmlFor={detailId}
+                          className="block text-sm font-medium text-text-primary mb-2"
+                        >
                           Spei Protocol
                         </label>
                         <div className="relative">
@@ -649,7 +507,7 @@ export function BankAccountForm({ onSuccess, onCancel, className }: BankAccountF
                             id={detailId}
                             value={details[key] ?? "clabe"}
                             onChange={(e) => handleDetailChange(key, e.target.value)}
-                            className={cn(SELECT_STYLES, detailError && "ring-2 ring-error/50")}
+                            className={cn(SELECT_STYLES)}
                           >
                             <option value="clabe">CLABE (Standard)</option>
                             <option value="debitcard">Debit Card</option>
@@ -668,7 +526,10 @@ export function BankAccountForm({ onSuccess, onCancel, className }: BankAccountF
                   if (key === "ach_cop_document_type") {
                     return (
                       <div key={key}>
-                        <label htmlFor={detailId} className="block text-sm font-medium text-text-primary mb-2">
+                        <label
+                          htmlFor={detailId}
+                          className="block text-sm font-medium text-text-primary mb-2"
+                        >
                           Document type
                         </label>
                         <div className="relative">
@@ -676,7 +537,10 @@ export function BankAccountForm({ onSuccess, onCancel, className }: BankAccountF
                             id={detailId}
                             value={details[key] ?? ""}
                             onChange={(e) => handleDetailChange(key, e.target.value)}
-                            className={cn(SELECT_STYLES, detailError && "ring-2 ring-error/50")}
+                            className={cn(
+                              SELECT_STYLES,
+                              detailError && "ring-2 ring-error/50"
+                            )}
                             aria-invalid={Boolean(detailError)}
                           >
                             <option value="">Select document type...</option>
@@ -702,7 +566,10 @@ export function BankAccountForm({ onSuccess, onCancel, className }: BankAccountF
                   if (key === "transfers_type") {
                     return (
                       <div key={key}>
-                        <label htmlFor={detailId} className="block text-sm font-medium text-text-primary mb-2">
+                        <label
+                          htmlFor={detailId}
+                          className="block text-sm font-medium text-text-primary mb-2"
+                        >
                           Transfers Type
                         </label>
                         <div className="relative">
@@ -710,7 +577,7 @@ export function BankAccountForm({ onSuccess, onCancel, className }: BankAccountF
                             id={detailId}
                             value={details[key] ?? "CBU"}
                             onChange={(e) => handleDetailChange(key, e.target.value)}
-                            className={cn(SELECT_STYLES, detailError && "ring-2 ring-error/50")}
+                            className={cn(SELECT_STYLES)}
                           >
                             <option value="CBU">CBU (Bancaria)</option>
                             <option value="CVU">CVU (Virtual / Fintech)</option>
@@ -728,7 +595,10 @@ export function BankAccountForm({ onSuccess, onCancel, className }: BankAccountF
 
                   return (
                     <div key={key}>
-                      <label htmlFor={detailId} className="block text-sm font-medium text-text-primary mb-2">
+                      <label
+                        htmlFor={detailId}
+                        className="block text-sm font-medium text-text-primary mb-2"
+                      >
                         {humanLabel}
                       </label>
                       <input
@@ -740,12 +610,12 @@ export function BankAccountForm({ onSuccess, onCancel, className }: BankAccountF
                           key.includes("cpf_cnpj")
                             ? "000.000.000-00 or CNPJ"
                             : key === "ach_cop_email"
-                            ? "beneficiary@email.com"
-                            : key === "ach_cop_document_id"
-                            ? "e.g. 1661105408"
-                            : key === "ach_cop_bank_code"
-                            ? "e.g. 007 (Bancolombia)"
-                            : `Enter ${humanLabel.toLowerCase()}`
+                              ? "beneficiary@email.com"
+                              : key === "ach_cop_document_id"
+                                ? "e.g. 1661105408"
+                                : key === "ach_cop_bank_code"
+                                  ? "e.g. 007 (Bancolombia)"
+                                  : `Enter ${humanLabel.toLowerCase()}`
                         }
                         className={cn(NEUMORPHIC_INPUT, detailError && "ring-2 ring-error/50")}
                         aria-invalid={Boolean(detailError)}
@@ -768,7 +638,10 @@ export function BankAccountForm({ onSuccess, onCancel, className }: BankAccountF
               onChange={(e) => setIsDefault(e.target.checked)}
               className="w-4 h-4 rounded accent-primary cursor-pointer"
             />
-            <label htmlFor={isDefaultId} className="text-sm text-text-primary cursor-pointer font-medium">
+            <label
+              htmlFor={isDefaultId}
+              className="text-sm text-text-primary cursor-pointer font-medium"
+            >
               Set as default payout account
             </label>
           </div>
@@ -776,7 +649,10 @@ export function BankAccountForm({ onSuccess, onCancel, className }: BankAccountF
       )}
 
       {submitError && (
-        <div role="alert" className="p-3 rounded-xl bg-error/10 border border-error/20 flex items-center gap-2 text-xs text-error">
+        <div
+          role="alert"
+          className="p-3 rounded-xl bg-error/10 border border-error/20 flex items-center gap-2 text-xs text-error"
+        >
           <Icon path={ICON_PATHS.alertCircle} size="sm" className="shrink-0" />
           <span>{submitError}</span>
         </div>
@@ -788,7 +664,7 @@ export function BankAccountForm({ onSuccess, onCancel, className }: BankAccountF
           {step === 2 ? (
             <button
               type="button"
-              onClick={() => setStep(1)}
+              onClick={handleBack}
               disabled={isSubmitting}
               className={cn(ACTION_BUTTON_DEFAULT, "w-auto px-4 py-2.5 text-xs")}
             >

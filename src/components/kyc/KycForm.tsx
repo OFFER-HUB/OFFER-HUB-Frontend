@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useMemo, useState } from "react";
+import { useId } from "react";
 import { cn } from "@/lib/cn";
 import {
   NEUMORPHIC_INPUT,
@@ -10,34 +10,34 @@ import {
   NEUMORPHIC_INSET,
 } from "@/lib/styles";
 import { Icon, ICON_PATHS, LoadingSpinner } from "@/components/ui/Icon";
-import { useAuthStore } from "@/stores/auth-store";
 import { COUNTRY_FLAGS } from "@/components/bank-accounts/BankAccountForm";
 import { KycFileUploadField } from "@/components/kyc/KycFileUploadField";
-import { getProfile } from "@/lib/api/profile";
-import {
-  submitKyc,
-  requiresEnhancedKyc,
-  type KycProfile,
-  type SubmitKycData,
-  type KycIdDocType,
-  type ProofOfAddressDocType,
-  type SourceOfFundsDocType,
-  type PurposeOfTransactions,
-} from "@/lib/api/kyc";
+import { useKycForm } from "@/hooks/useKycForm";
+import type { KycProfile } from "@/lib/api/kyc";
+
+// ─── Re-exported utilities & constants (used by BankAccountForm and tests) ───
+
+export { cleanLettersOnly, maskTaxId, maskPostalCode, isValidCpf, calculateAge } from "@/hooks/useKycForm";
 
 // Strictly the 4 BlindPay supported payout countries
 export const KYC_CORRIDORS = [
   { code: "BR", name: "Brazil", flag: "🇧🇷", tier: "standard", reviewTime: "Instant" },
   { code: "MX", name: "Mexico", flag: "🇲🇽", tier: "standard", reviewTime: "Instant" },
   { code: "AR", name: "Argentina", flag: "🇦🇷", tier: "standard", reviewTime: "Instant" },
-  { code: "CO", name: "Colombia", flag: "🇨🇴", tier: "enhanced", reviewTime: "Manual review (up to 1 business day)" },
+  {
+    code: "CO",
+    name: "Colombia",
+    flag: "🇨🇴",
+    tier: "enhanced",
+    reviewTime: "Manual review (up to 1 business day)",
+  },
 ] as const;
 
 export const KYC_COUNTRY_NAMES: Record<string, string> = Object.fromEntries(
   KYC_CORRIDORS.map((c) => [c.code, c.name])
 );
 
-// Comprehensive list of countries for ID Document Issuing Country (can be any country)
+// Comprehensive list of countries for ID Document Issuing Country
 const GLOBAL_COUNTRIES = [
   { code: "BR", name: "Brazil" },
   { code: "MX", name: "Mexico" },
@@ -69,6 +69,8 @@ const GLOBAL_COUNTRIES = [
   { code: "IN", name: "India" },
   { code: "OTHER", name: "Other" },
 ];
+
+import type { KycIdDocType, ProofOfAddressDocType, SourceOfFundsDocType, PurposeOfTransactions } from "@/lib/api/kyc";
 
 const ID_DOC_TYPES: { value: KycIdDocType; label: string; description: string }[] = [
   { value: "PASSPORT", label: "Passport", description: "International travel document" },
@@ -115,104 +117,7 @@ const PURPOSE_OF_TRANSACTIONS: { value: PurposeOfTransactions; label: string }[]
 
 const SELECT_STYLES = cn(NEUMORPHIC_INPUT, "appearance-none cursor-pointer pr-10");
 
-// --- Input Masking & Character Sanitization ---
-
-export function cleanLettersOnly(value: string): string {
-  // Allows letters, accents, spaces, hyphens, dots, and apostrophes
-  return value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s\-'.]/g, "");
-}
-
-export function maskTaxId(value: string, country: string): string {
-  switch (country) {
-    case "BR": {
-      // CPF: 000.000.000-00
-      const digits = value.replace(/\D/g, "").slice(0, 11);
-      if (digits.length <= 3) return digits;
-      if (digits.length <= 6) return `${digits.slice(0, 3)}.${digits.slice(3)}`;
-      if (digits.length <= 9) return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6)}`;
-      return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`;
-    }
-    case "AR": {
-      // CUIT: 00-00000000-0
-      const digits = value.replace(/\D/g, "").slice(0, 11);
-      if (digits.length <= 2) return digits;
-      if (digits.length <= 10) return `${digits.slice(0, 2)}-${digits.slice(2)}`;
-      return `${digits.slice(0, 2)}-${digits.slice(2, 10)}-${digits.slice(10)}`;
-    }
-    case "MX": {
-      // RFC: Up to 13 uppercase alphanumeric
-      return value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 13);
-    }
-    case "CO": {
-      // NIT / Cédula: Digits, max 15
-      return value.replace(/\D/g, "").slice(0, 15);
-    }
-    default:
-      return value.slice(0, 64);
-  }
-}
-
-export function maskPostalCode(value: string, country: string): string {
-  switch (country) {
-    case "BR": {
-      // CEP: 00000-000
-      const digits = value.replace(/\D/g, "").slice(0, 8);
-      if (digits.length <= 5) return digits;
-      return `${digits.slice(0, 5)}-${digits.slice(5)}`;
-    }
-    case "MX": {
-      // CP: 5 digits
-      return value.replace(/\D/g, "").slice(0, 5);
-    }
-    case "CO": {
-      // Postal Code: 6 digits
-      return value.replace(/\D/g, "").slice(0, 6);
-    }
-    case "AR": {
-      // Postal code: 4-8 alphanumeric
-      return value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 8);
-    }
-    default:
-      return value.slice(0, 20);
-  }
-}
-
-export function isValidCpf(cpf: string): boolean {
-  const digits = cpf.replace(/\D/g, "");
-  if (digits.length !== 11) return false;
-  if (/^(\d)\1{10}$/.test(digits)) return false;
-
-  let sum = 0;
-  for (let i = 0; i < 9; i++) {
-    sum += parseInt(digits[i], 10) * (10 - i);
-  }
-  let rev = 11 - (sum % 11);
-  if (rev >= 10) rev = 0;
-  if (rev !== parseInt(digits[9], 10)) return false;
-
-  sum = 0;
-  for (let i = 0; i < 10; i++) {
-    sum += parseInt(digits[i], 10) * (11 - i);
-  }
-  rev = 11 - (sum % 11);
-  if (rev >= 10) rev = 0;
-  if (rev !== parseInt(digits[10], 10)) return false;
-
-  return true;
-}
-
-export function calculateAge(dobString: string): number {
-  if (!dobString) return 0;
-  const dob = new Date(dobString);
-  if (isNaN(dob.getTime())) return 0;
-  const today = new Date();
-  let age = today.getFullYear() - dob.getFullYear();
-  const m = today.getMonth() - dob.getMonth();
-  if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
-    age--;
-  }
-  return age;
-}
+// ─── Component Props ──────────────────────────────────────────────────────────
 
 export interface KycFormProps {
   existingProfile?: KycProfile | null;
@@ -221,285 +126,34 @@ export interface KycFormProps {
   className?: string;
 }
 
-interface FormFields {
-  firstName: string;
-  lastName: string;
-  dateOfBirth: string;
-  country: string;
-  taxId: string;
-  addressLine1: string;
-  addressLine2: string;
-  city: string;
-  stateProvinceRegion: string;
-  postalCode: string;
-  idDocCountry: string;
-  idDocType: KycIdDocType;
-  selfieFileUrl: string;
-  idDocFrontFileUrl: string;
-  idDocBackFileUrl: string;
-  proofOfAddressDocType: ProofOfAddressDocType | "";
-  proofOfAddressDocFileUrl: string;
-  sourceOfFundsDocType: SourceOfFundsDocType | "";
-  sourceOfFundsDocFileUrl: string;
-  purposeOfTransactions: PurposeOfTransactions | "";
-  purposeOfTransactionsExplanation: string;
-}
+// ─── Component ────────────────────────────────────────────────────────────────
 
-interface CurrentUserNames {
-  firstName?: string | null;
-  lastName?: string | null;
-}
-
-function initialFields(existing?: KycProfile | null, currentUser?: CurrentUserNames | null): FormFields {
-  return {
-    firstName: currentUser?.firstName ?? "",
-    lastName: currentUser?.lastName ?? "",
-    dateOfBirth: "",
-    country: existing?.country ?? KYC_CORRIDORS[0].code,
-    taxId: existing?.taxId ?? "",
-    addressLine1: existing?.addressLine1 ?? "",
-    addressLine2: existing?.addressLine2 ?? "",
-    city: existing?.city ?? "",
-    stateProvinceRegion: existing?.stateProvinceRegion ?? "",
-    postalCode: existing?.postalCode ?? "",
-    idDocCountry: existing?.idDocCountry ?? "BR",
-    idDocType: existing?.idDocType ?? "PASSPORT",
-    selfieFileUrl: existing?.selfieFileUrl ?? "",
-    idDocFrontFileUrl: existing?.idDocFrontFileUrl ?? "",
-    idDocBackFileUrl: existing?.idDocBackFileUrl ?? "",
-    proofOfAddressDocType: existing?.proofOfAddressDocType ?? "",
-    proofOfAddressDocFileUrl: existing?.proofOfAddressDocFileUrl ?? "",
-    sourceOfFundsDocType: existing?.sourceOfFundsDocType ?? "",
-    sourceOfFundsDocFileUrl: existing?.sourceOfFundsDocFileUrl ?? "",
-    purposeOfTransactions: existing?.purposeOfTransactions ?? "",
-    purposeOfTransactionsExplanation: existing?.purposeOfTransactionsExplanation ?? "",
-  };
-}
-
-type FormErrors = Partial<Record<keyof FormFields, string>>;
-
-export function KycForm({ existingProfile, onSuccess, onCancel, className }: KycFormProps): React.JSX.Element {
-  const token = useAuthStore((state) => state.token);
-  const currentUser = useAuthStore((state) => state.user);
+export function KycForm({
+  existingProfile,
+  onSuccess,
+  onCancel,
+  className,
+}: KycFormProps): React.JSX.Element {
   const formId = useId();
 
-  const [fields, setFields] = useState<FormFields>(() => initialFields(existingProfile, currentUser));
-  const [errors, setErrors] = useState<FormErrors>({});
-  const [submitError, setSubmitError] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [currentStep, setCurrentStep] = useState<number>(1);
-
-  // Prefill profile names and birth date from account
-  useEffect(() => {
-    if (!token) return;
-    let cancelled = false;
-
-    getProfile(token)
-      .then((profile) => {
-        if (cancelled) return;
-        setFields((prev) => ({
-          ...prev,
-          firstName: prev.firstName || profile.firstName || "",
-          lastName: prev.lastName || profile.lastName || "",
-          dateOfBirth: prev.dateOfBirth || profile.dateOfBirth?.slice(0, 10) || "",
-        }));
-      })
-      .catch(() => {
-        /* best-effort prefill */
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [token]);
-
-  const isEnhanced = requiresEnhancedKyc(fields.country);
-  const totalSteps = isEnhanced ? 5 : 4;
-  const reviewStepIndex = totalSteps;
-
-  const stepTitles = useMemo(() => {
-    if (isEnhanced) {
-      return [
-        "Personal Details",
-        "Address & Tax",
-        "Identity Document",
-        "Enhanced Compliance",
-        "Review & Submit",
-      ];
-    }
-    return [
-      "Personal Details",
-      "Address & Tax",
-      "Identity Document",
-      "Review & Submit",
-    ];
-  }, [isEnhanced]);
-
-  function set<K extends keyof FormFields>(key: K, value: FormFields[K]) {
-    setFields((prev) => ({ ...prev, [key]: value }));
-    setErrors((prev) => (prev[key] ? { ...prev, [key]: undefined } : prev));
-  }
-
-  // --- Step Validation ---
-  function validateStep(step: number): boolean {
-    const nextErrors: FormErrors = {};
-
-    if (step === 1) {
-      if (!fields.firstName.trim()) nextErrors.firstName = "First name is required";
-      if (!fields.lastName.trim()) nextErrors.lastName = "Last name is required";
-      if (!fields.dateOfBirth) {
-        nextErrors.dateOfBirth = "Date of birth is required";
-      } else {
-        const age = calculateAge(fields.dateOfBirth);
-        const dobDate = new Date(fields.dateOfBirth);
-        if (dobDate > new Date()) {
-          nextErrors.dateOfBirth = "Date of birth cannot be in the future";
-        } else if (age < 18) {
-          nextErrors.dateOfBirth = "You must be at least 18 years old to complete verification";
-        }
-      }
-      if (!fields.country) nextErrors.country = "Select a payout country";
-    }
-
-    if (step === 2) {
-      if (!fields.taxId.trim()) {
-        nextErrors.taxId = "Tax identification number is required";
-      } else if (fields.country === "BR" && !isValidCpf(fields.taxId)) {
-        nextErrors.taxId = "Invalid CPF number. Please enter a valid 11-digit Brazilian CPF";
-      }
-      if (!fields.addressLine1.trim()) nextErrors.addressLine1 = "Street address is required";
-      if (!fields.city.trim()) nextErrors.city = "City is required";
-      if (!fields.stateProvinceRegion.trim()) nextErrors.stateProvinceRegion = "State / Province is required";
-      if (!fields.postalCode.trim()) nextErrors.postalCode = "Postal code is required";
-    }
-
-    if (step === 3) {
-      if (!fields.idDocType) nextErrors.idDocType = "Select an identity document type";
-      if (!fields.idDocCountry) nextErrors.idDocCountry = "Select the issuing country";
-      if (!fields.selfieFileUrl) nextErrors.selfieFileUrl = "A clear selfie photo is required";
-      if (!fields.idDocFrontFileUrl) nextErrors.idDocFrontFileUrl = "Front side of your ID document is required";
-      if (fields.idDocType !== "PASSPORT" && !fields.idDocBackFileUrl) {
-        nextErrors.idDocBackFileUrl = "Back side of your ID document is required";
-      }
-    }
-
-    if (isEnhanced && step === 4) {
-      if (!fields.proofOfAddressDocType) nextErrors.proofOfAddressDocType = "Select proof of address type";
-      if (!fields.proofOfAddressDocFileUrl) nextErrors.proofOfAddressDocFileUrl = "Upload a proof of address document";
-      if (!fields.sourceOfFundsDocType) nextErrors.sourceOfFundsDocType = "Select primary source of funds";
-      if (!fields.sourceOfFundsDocFileUrl) nextErrors.sourceOfFundsDocFileUrl = "Upload supporting source of funds document";
-      if (!fields.purposeOfTransactions) nextErrors.purposeOfTransactions = "Select expected purpose of transactions";
-      if (fields.purposeOfTransactions === "other" && !fields.purposeOfTransactionsExplanation.trim()) {
-        nextErrors.purposeOfTransactionsExplanation = "Please explain the purpose of your transactions";
-      }
-    }
-
-    setErrors(nextErrors);
-    return Object.keys(nextErrors).length === 0;
-  }
-
-  function handleNext() {
-    setSubmitError(null);
-    if (validateStep(currentStep)) {
-      setCurrentStep((prev) => Math.min(prev + 1, totalSteps));
-    }
-  }
-
-  function handleBack() {
-    setSubmitError(null);
-    setCurrentStep((prev) => Math.max(prev - 1, 1));
-  }
-
-  function goToStep(targetStep: number) {
-    setSubmitError(null);
-    setCurrentStep(targetStep);
-  }
-
-  async function handleSubmit(event: React.FormEvent) {
-    event.preventDefault();
-    setSubmitError(null);
-
-    // Validate all steps prior to submission
-    for (let s = 1; s < reviewStepIndex; s++) {
-      if (!validateStep(s)) {
-        setCurrentStep(s);
-        return;
-      }
-    }
-
-    if (!token) {
-      setSubmitError("Your session has expired. Please sign in again.");
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      const payload: SubmitKycData = {
-        firstName: fields.firstName.trim(),
-        lastName: fields.lastName.trim(),
-        dateOfBirth: fields.dateOfBirth,
-        country: fields.country,
-        taxId: fields.taxId.trim(),
-        addressLine1: fields.addressLine1.trim(),
-        addressLine2: fields.addressLine2.trim() || undefined,
-        city: fields.city.trim(),
-        stateProvinceRegion: fields.stateProvinceRegion.trim(),
-        postalCode: fields.postalCode.trim(),
-        idDocCountry: fields.idDocCountry,
-        idDocType: fields.idDocType,
-        selfieFileUrl: fields.selfieFileUrl,
-        idDocFrontFileUrl: fields.idDocFrontFileUrl,
-        idDocBackFileUrl: fields.idDocBackFileUrl || undefined,
-        ...(isEnhanced
-          ? {
-              proofOfAddressDocType: (fields.proofOfAddressDocType as ProofOfAddressDocType) || undefined,
-              proofOfAddressDocFileUrl: fields.proofOfAddressDocFileUrl || undefined,
-              sourceOfFundsDocType: (fields.sourceOfFundsDocType as SourceOfFundsDocType) || undefined,
-              sourceOfFundsDocFileUrl: fields.sourceOfFundsDocFileUrl || undefined,
-              purposeOfTransactions: (fields.purposeOfTransactions as PurposeOfTransactions) || undefined,
-              purposeOfTransactionsExplanation: fields.purposeOfTransactionsExplanation.trim() || undefined,
-            }
-          : {}),
-      };
-
-      const saved = await submitKyc(token, payload);
-      onSuccess?.(saved);
-    } catch (err) {
-      setSubmitError(err instanceof Error ? err.message : "Failed to submit your verification.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  }
-
-  const taxIdPlaceholder = useMemo(() => {
-    switch (fields.country) {
-      case "BR":
-        return "000.000.000-00 (CPF)";
-      case "MX":
-        return "RFC / CURP (e.g. ABCD123456XYZ)";
-      case "AR":
-        return "00-00000000-0 (CUIT)";
-      case "CO":
-        return "NIT / Cédula de Ciudadanía";
-      default:
-        return "Tax identification number";
-    }
-  }, [fields.country]);
-
-  const postalPlaceholder = useMemo(() => {
-    switch (fields.country) {
-      case "BR":
-        return "00000-000 (CEP)";
-      case "MX":
-        return "5-digit Postal Code";
-      case "AR":
-        return "e.g. C1024 / 1425";
-      case "CO":
-        return "6-digit Postal Code";
-      default:
-        return "Postal code";
-    }
-  }, [fields.country]);
+  const {
+    fields,
+    errors,
+    submitError,
+    isSubmitting,
+    currentStep,
+    totalSteps,
+    reviewStepIndex,
+    stepTitles,
+    isEnhanced,
+    taxIdPlaceholder,
+    postalPlaceholder,
+    setField,
+    handleNext,
+    handleBack,
+    goToStep,
+    handleSubmit,
+  } = useKycForm({ existingProfile, onSuccess });
 
   return (
     <form onSubmit={handleSubmit} className={cn("space-y-6", className)} noValidate>
@@ -532,7 +186,9 @@ export function KycForm({ existingProfile, onSuccess, onCancel, className }: Kyc
                     "w-7 h-7 rounded-lg text-xs font-semibold transition-all duration-200 flex items-center justify-center",
                     isCurrent && "bg-primary text-white shadow-[0_2px_8px_rgba(20,154,155,0.35)]",
                     isCompleted && "bg-success/15 text-success hover:bg-success/25 cursor-pointer",
-                    !isCurrent && !isCompleted && "bg-background text-text-secondary opacity-60 cursor-not-allowed"
+                    !isCurrent &&
+                      !isCompleted &&
+                      "bg-background text-text-secondary opacity-60 cursor-not-allowed"
                   )}
                 >
                   {isCompleted ? <Icon path={ICON_PATHS.check} size="sm" /> : stepNum}
@@ -542,7 +198,7 @@ export function KycForm({ existingProfile, onSuccess, onCancel, className }: Kyc
           </div>
         </div>
 
-        {/* Dynamic Progress Bar */}
+        {/* Progress bar */}
         <div className="w-full bg-background rounded-full h-1.5 overflow-hidden">
           <div
             className="bg-primary h-full transition-all duration-300 rounded-full"
@@ -550,14 +206,21 @@ export function KycForm({ existingProfile, onSuccess, onCancel, className }: Kyc
           />
         </div>
 
-        {/* Enhanced KYC Notice for Colombia */}
+        {/* Enhanced KYC notice for Colombia */}
         {fields.country === "CO" && (
           <div className="mt-3.5 p-3 rounded-xl bg-primary/5 border border-primary/20 flex items-start gap-2.5 text-xs text-text-primary">
-            <Icon path={ICON_PATHS.infoCircle} size="sm" className="text-primary shrink-0 mt-0.5" />
+            <Icon
+              path={ICON_PATHS.infoCircle}
+              size="sm"
+              className="text-primary shrink-0 mt-0.5"
+            />
             <div>
-              <span className="font-semibold text-primary">Colombia Enhanced Verification:</span>{" "}
-              In accordance with BlindPay compliance standards, accounts in Colombia require enhanced verification
-              and are reviewed manually by BlindPay (typically within 1 business day).
+              <span className="font-semibold text-primary">
+                Colombia Enhanced Verification:
+              </span>{" "}
+              In accordance with BlindPay compliance standards, accounts in Colombia require
+              enhanced verification and are reviewed manually by BlindPay (typically within 1
+              business day).
             </div>
           </div>
         )}
@@ -578,9 +241,9 @@ export function KycForm({ existingProfile, onSuccess, onCancel, className }: Kyc
                     key={corridor.code}
                     type="button"
                     onClick={() => {
-                      set("country", corridor.code);
-                      set("taxId", "");
-                      set("postalCode", "");
+                      setField("country", corridor.code);
+                      setField("taxId", "");
+                      setField("postalCode", "");
                     }}
                     className={cn(
                       "p-3 rounded-xl text-left border transition-all duration-200 flex flex-col justify-between",
@@ -599,7 +262,9 @@ export function KycForm({ existingProfile, onSuccess, onCancel, className }: Kyc
                     </div>
                     <div>
                       <p className="text-xs font-semibold text-text-primary">{corridor.name}</p>
-                      <p className="text-[10px] text-text-secondary capitalize">{corridor.tier} tier</p>
+                      <p className="text-[10px] text-text-secondary capitalize">
+                        {corridor.tier} tier
+                      </p>
                     </div>
                   </button>
                 );
@@ -612,7 +277,10 @@ export function KycForm({ existingProfile, onSuccess, onCancel, className }: Kyc
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label htmlFor={`${formId}-firstName`} className="block text-sm font-medium text-text-primary mb-2">
+              <label
+                htmlFor={`${formId}-firstName`}
+                className="block text-sm font-medium text-text-primary mb-2"
+              >
                 First Name
               </label>
               <input
@@ -620,7 +288,7 @@ export function KycForm({ existingProfile, onSuccess, onCancel, className }: Kyc
                 type="text"
                 value={fields.firstName}
                 maxLength={100}
-                onChange={(e) => set("firstName", cleanLettersOnly(e.target.value))}
+                onChange={(e) => setField("firstName", e.target.value)}
                 placeholder="e.g. Maria"
                 className={cn(NEUMORPHIC_INPUT, errors.firstName && "ring-2 ring-error/50")}
                 aria-invalid={Boolean(errors.firstName)}
@@ -631,7 +299,10 @@ export function KycForm({ existingProfile, onSuccess, onCancel, className }: Kyc
             </div>
 
             <div>
-              <label htmlFor={`${formId}-lastName`} className="block text-sm font-medium text-text-primary mb-2">
+              <label
+                htmlFor={`${formId}-lastName`}
+                className="block text-sm font-medium text-text-primary mb-2"
+              >
                 Last Name
               </label>
               <input
@@ -639,7 +310,7 @@ export function KycForm({ existingProfile, onSuccess, onCancel, className }: Kyc
                 type="text"
                 value={fields.lastName}
                 maxLength={100}
-                onChange={(e) => set("lastName", cleanLettersOnly(e.target.value))}
+                onChange={(e) => setField("lastName", e.target.value)}
                 placeholder="e.g. Silva"
                 className={cn(NEUMORPHIC_INPUT, errors.lastName && "ring-2 ring-error/50")}
                 aria-invalid={Boolean(errors.lastName)}
@@ -651,14 +322,17 @@ export function KycForm({ existingProfile, onSuccess, onCancel, className }: Kyc
           </div>
 
           <div>
-            <label htmlFor={`${formId}-dateOfBirth`} className="block text-sm font-medium text-text-primary mb-2">
+            <label
+              htmlFor={`${formId}-dateOfBirth`}
+              className="block text-sm font-medium text-text-primary mb-2"
+            >
               Date of Birth
             </label>
             <input
               id={`${formId}-dateOfBirth`}
               type="date"
               value={fields.dateOfBirth}
-              onChange={(e) => set("dateOfBirth", e.target.value)}
+              onChange={(e) => setField("dateOfBirth", e.target.value)}
               className={cn(NEUMORPHIC_INPUT, errors.dateOfBirth && "ring-2 ring-error/50")}
               aria-invalid={Boolean(errors.dateOfBirth)}
             />
@@ -676,7 +350,10 @@ export function KycForm({ existingProfile, onSuccess, onCancel, className }: Kyc
       {currentStep === 2 && (
         <div className="space-y-4 animate-scale-in">
           <div>
-            <label htmlFor={`${formId}-taxId`} className="block text-sm font-medium text-text-primary mb-2">
+            <label
+              htmlFor={`${formId}-taxId`}
+              className="block text-sm font-medium text-text-primary mb-2"
+            >
               Tax ID / National Identification ({KYC_COUNTRY_NAMES[fields.country]})
             </label>
             <input
@@ -684,18 +361,19 @@ export function KycForm({ existingProfile, onSuccess, onCancel, className }: Kyc
               type="text"
               value={fields.taxId}
               maxLength={64}
-              onChange={(e) => set("taxId", maskTaxId(e.target.value, fields.country))}
+              onChange={(e) => setField("taxId", e.target.value)}
               placeholder={taxIdPlaceholder}
               className={cn(NEUMORPHIC_INPUT, errors.taxId && "ring-2 ring-error/50")}
               aria-invalid={Boolean(errors.taxId)}
             />
-            {errors.taxId && (
-              <p className="mt-1.5 text-xs text-error">{errors.taxId}</p>
-            )}
+            {errors.taxId && <p className="mt-1.5 text-xs text-error">{errors.taxId}</p>}
           </div>
 
           <div>
-            <label htmlFor={`${formId}-addressLine1`} className="block text-sm font-medium text-text-primary mb-2">
+            <label
+              htmlFor={`${formId}-addressLine1`}
+              className="block text-sm font-medium text-text-primary mb-2"
+            >
               Street Address
             </label>
             <input
@@ -703,7 +381,7 @@ export function KycForm({ existingProfile, onSuccess, onCancel, className }: Kyc
               type="text"
               value={fields.addressLine1}
               maxLength={200}
-              onChange={(e) => set("addressLine1", e.target.value)}
+              onChange={(e) => setField("addressLine1", e.target.value)}
               placeholder="e.g. Av. Paulista, 1000, Apt 42"
               className={cn(NEUMORPHIC_INPUT, errors.addressLine1 && "ring-2 ring-error/50")}
               aria-invalid={Boolean(errors.addressLine1)}
@@ -714,15 +392,19 @@ export function KycForm({ existingProfile, onSuccess, onCancel, className }: Kyc
           </div>
 
           <div>
-            <label htmlFor={`${formId}-addressLine2`} className="block text-sm font-medium text-text-primary mb-2">
-              Address Line 2 <span className="text-text-secondary font-normal">(optional)</span>
+            <label
+              htmlFor={`${formId}-addressLine2`}
+              className="block text-sm font-medium text-text-primary mb-2"
+            >
+              Address Line 2{" "}
+              <span className="text-text-secondary font-normal">(optional)</span>
             </label>
             <input
               id={`${formId}-addressLine2`}
               type="text"
               value={fields.addressLine2}
               maxLength={200}
-              onChange={(e) => set("addressLine2", e.target.value)}
+              onChange={(e) => setField("addressLine2", e.target.value)}
               placeholder="Suite, building, floor, etc."
               className={NEUMORPHIC_INPUT}
             />
@@ -730,7 +412,10 @@ export function KycForm({ existingProfile, onSuccess, onCancel, className }: Kyc
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <label htmlFor={`${formId}-city`} className="block text-sm font-medium text-text-primary mb-2">
+              <label
+                htmlFor={`${formId}-city`}
+                className="block text-sm font-medium text-text-primary mb-2"
+              >
                 City
               </label>
               <input
@@ -738,18 +423,19 @@ export function KycForm({ existingProfile, onSuccess, onCancel, className }: Kyc
                 type="text"
                 value={fields.city}
                 maxLength={100}
-                onChange={(e) => set("city", cleanLettersOnly(e.target.value))}
+                onChange={(e) => setField("city", e.target.value)}
                 placeholder="e.g. São Paulo"
                 className={cn(NEUMORPHIC_INPUT, errors.city && "ring-2 ring-error/50")}
                 aria-invalid={Boolean(errors.city)}
               />
-              {errors.city && (
-                <p className="mt-1.5 text-xs text-error">{errors.city}</p>
-              )}
+              {errors.city && <p className="mt-1.5 text-xs text-error">{errors.city}</p>}
             </div>
 
             <div>
-              <label htmlFor={`${formId}-stateProvinceRegion`} className="block text-sm font-medium text-text-primary mb-2">
+              <label
+                htmlFor={`${formId}-stateProvinceRegion`}
+                className="block text-sm font-medium text-text-primary mb-2"
+              >
                 State / Province
               </label>
               <input
@@ -757,9 +443,12 @@ export function KycForm({ existingProfile, onSuccess, onCancel, className }: Kyc
                 type="text"
                 value={fields.stateProvinceRegion}
                 maxLength={100}
-                onChange={(e) => set("stateProvinceRegion", cleanLettersOnly(e.target.value))}
+                onChange={(e) => setField("stateProvinceRegion", e.target.value)}
                 placeholder="e.g. SP"
-                className={cn(NEUMORPHIC_INPUT, errors.stateProvinceRegion && "ring-2 ring-error/50")}
+                className={cn(
+                  NEUMORPHIC_INPUT,
+                  errors.stateProvinceRegion && "ring-2 ring-error/50"
+                )}
                 aria-invalid={Boolean(errors.stateProvinceRegion)}
               />
               {errors.stateProvinceRegion && (
@@ -768,7 +457,10 @@ export function KycForm({ existingProfile, onSuccess, onCancel, className }: Kyc
             </div>
 
             <div>
-              <label htmlFor={`${formId}-postalCode`} className="block text-sm font-medium text-text-primary mb-2">
+              <label
+                htmlFor={`${formId}-postalCode`}
+                className="block text-sm font-medium text-text-primary mb-2"
+              >
                 Postal Code
               </label>
               <input
@@ -776,7 +468,7 @@ export function KycForm({ existingProfile, onSuccess, onCancel, className }: Kyc
                 type="text"
                 value={fields.postalCode}
                 maxLength={20}
-                onChange={(e) => set("postalCode", maskPostalCode(e.target.value, fields.country))}
+                onChange={(e) => setField("postalCode", e.target.value)}
                 placeholder={postalPlaceholder}
                 className={cn(NEUMORPHIC_INPUT, errors.postalCode && "ring-2 ring-error/50")}
                 aria-invalid={Boolean(errors.postalCode)}
@@ -794,14 +486,17 @@ export function KycForm({ existingProfile, onSuccess, onCancel, className }: Kyc
         <div className="space-y-4 animate-scale-in">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label htmlFor={`${formId}-idDocType`} className="block text-sm font-medium text-text-primary mb-2">
+              <label
+                htmlFor={`${formId}-idDocType`}
+                className="block text-sm font-medium text-text-primary mb-2"
+              >
                 Document Type
               </label>
               <div className="relative">
                 <select
                   id={`${formId}-idDocType`}
                   value={fields.idDocType}
-                  onChange={(e) => set("idDocType", e.target.value as KycIdDocType)}
+                  onChange={(e) => setField("idDocType", e.target.value as KycIdDocType)}
                   className={SELECT_STYLES}
                 >
                   {ID_DOC_TYPES.map((t) => (
@@ -819,14 +514,17 @@ export function KycForm({ existingProfile, onSuccess, onCancel, className }: Kyc
             </div>
 
             <div>
-              <label htmlFor={`${formId}-idDocCountry`} className="block text-sm font-medium text-text-primary mb-2">
+              <label
+                htmlFor={`${formId}-idDocCountry`}
+                className="block text-sm font-medium text-text-primary mb-2"
+              >
                 Document Issuing Country
               </label>
               <div className="relative">
                 <select
                   id={`${formId}-idDocCountry`}
                   value={fields.idDocCountry}
-                  onChange={(e) => set("idDocCountry", e.target.value)}
+                  onChange={(e) => setField("idDocCountry", e.target.value)}
                   className={SELECT_STYLES}
                 >
                   {GLOBAL_COUNTRIES.map((c) => (
@@ -847,14 +545,14 @@ export function KycForm({ existingProfile, onSuccess, onCancel, className }: Kyc
           <KycFileUploadField
             label="Selfie Photo"
             value={fields.selfieFileUrl}
-            onChange={(url) => set("selfieFileUrl", url)}
+            onChange={(url) => setField("selfieFileUrl", url)}
             error={errors.selfieFileUrl}
           />
 
           <KycFileUploadField
             label="Document Front Side"
             value={fields.idDocFrontFileUrl}
-            onChange={(url) => set("idDocFrontFileUrl", url)}
+            onChange={(url) => setField("idDocFrontFileUrl", url)}
             error={errors.idDocFrontFileUrl}
           />
 
@@ -862,14 +560,14 @@ export function KycForm({ existingProfile, onSuccess, onCancel, className }: Kyc
             <KycFileUploadField
               label="Document Back Side"
               value={fields.idDocBackFileUrl}
-              onChange={(url) => set("idDocBackFileUrl", url)}
+              onChange={(url) => setField("idDocBackFileUrl", url)}
               error={errors.idDocBackFileUrl}
             />
           ) : (
             <KycFileUploadField
               label="Document Back Side"
               value={fields.idDocBackFileUrl}
-              onChange={(url) => set("idDocBackFileUrl", url)}
+              onChange={(url) => setField("idDocBackFileUrl", url)}
               optional
             />
           )}
@@ -880,14 +578,19 @@ export function KycForm({ existingProfile, onSuccess, onCancel, className }: Kyc
       {isEnhanced && currentStep === 4 && (
         <div className="space-y-4 animate-scale-in">
           <div>
-            <label htmlFor={`${formId}-proofOfAddressDocType`} className="block text-sm font-medium text-text-primary mb-2">
+            <label
+              htmlFor={`${formId}-proofOfAddressDocType`}
+              className="block text-sm font-medium text-text-primary mb-2"
+            >
               Proof of Address Document
             </label>
             <div className="relative">
               <select
                 id={`${formId}-proofOfAddressDocType`}
                 value={fields.proofOfAddressDocType}
-                onChange={(e) => set("proofOfAddressDocType", e.target.value as ProofOfAddressDocType)}
+                onChange={(e) =>
+                  setField("proofOfAddressDocType", e.target.value as ProofOfAddressDocType)
+                }
                 className={SELECT_STYLES}
               >
                 <option value="">Select document type...</option>
@@ -911,19 +614,24 @@ export function KycForm({ existingProfile, onSuccess, onCancel, className }: Kyc
           <KycFileUploadField
             label="Upload Proof of Address"
             value={fields.proofOfAddressDocFileUrl}
-            onChange={(url) => set("proofOfAddressDocFileUrl", url)}
+            onChange={(url) => setField("proofOfAddressDocFileUrl", url)}
             error={errors.proofOfAddressDocFileUrl}
           />
 
           <div>
-            <label htmlFor={`${formId}-sourceOfFundsDocType`} className="block text-sm font-medium text-text-primary mb-2">
+            <label
+              htmlFor={`${formId}-sourceOfFundsDocType`}
+              className="block text-sm font-medium text-text-primary mb-2"
+            >
               Primary Source of Funds
             </label>
             <div className="relative">
               <select
                 id={`${formId}-sourceOfFundsDocType`}
                 value={fields.sourceOfFundsDocType}
-                onChange={(e) => set("sourceOfFundsDocType", e.target.value as SourceOfFundsDocType)}
+                onChange={(e) =>
+                  setField("sourceOfFundsDocType", e.target.value as SourceOfFundsDocType)
+                }
                 className={SELECT_STYLES}
               >
                 <option value="">Select source of funds...</option>
@@ -947,19 +655,24 @@ export function KycForm({ existingProfile, onSuccess, onCancel, className }: Kyc
           <KycFileUploadField
             label="Upload Source of Funds Documentation"
             value={fields.sourceOfFundsDocFileUrl}
-            onChange={(url) => set("sourceOfFundsDocFileUrl", url)}
+            onChange={(url) => setField("sourceOfFundsDocFileUrl", url)}
             error={errors.sourceOfFundsDocFileUrl}
           />
 
           <div>
-            <label htmlFor={`${formId}-purposeOfTransactions`} className="block text-sm font-medium text-text-primary mb-2">
+            <label
+              htmlFor={`${formId}-purposeOfTransactions`}
+              className="block text-sm font-medium text-text-primary mb-2"
+            >
               Purpose of Transactions
             </label>
             <div className="relative">
               <select
                 id={`${formId}-purposeOfTransactions`}
                 value={fields.purposeOfTransactions}
-                onChange={(e) => set("purposeOfTransactions", e.target.value as PurposeOfTransactions)}
+                onChange={(e) =>
+                  setField("purposeOfTransactions", e.target.value as PurposeOfTransactions)
+                }
                 className={SELECT_STYLES}
               >
                 <option value="">Select primary purpose...</option>
@@ -982,7 +695,10 @@ export function KycForm({ existingProfile, onSuccess, onCancel, className }: Kyc
 
           {fields.purposeOfTransactions === "other" && (
             <div className="transition-all duration-300 animate-scale-in">
-              <label htmlFor={`${formId}-explanation`} className="block text-sm font-medium text-text-primary mb-2">
+              <label
+                htmlFor={`${formId}-explanation`}
+                className="block text-sm font-medium text-text-primary mb-2"
+              >
                 Explain Transaction Purpose
               </label>
               <textarea
@@ -990,12 +706,20 @@ export function KycForm({ existingProfile, onSuccess, onCancel, className }: Kyc
                 rows={3}
                 maxLength={500}
                 value={fields.purposeOfTransactionsExplanation}
-                onChange={(e) => set("purposeOfTransactionsExplanation", e.target.value)}
+                onChange={(e) =>
+                  setField("purposeOfTransactionsExplanation", e.target.value)
+                }
                 placeholder="Detail why you are using this payout corridor..."
-                className={cn(NEUMORPHIC_INPUT, "resize-none", errors.purposeOfTransactionsExplanation && "ring-2 ring-error/50")}
+                className={cn(
+                  NEUMORPHIC_INPUT,
+                  "resize-none",
+                  errors.purposeOfTransactionsExplanation && "ring-2 ring-error/50"
+                )}
               />
               {errors.purposeOfTransactionsExplanation && (
-                <p className="mt-1.5 text-xs text-error">{errors.purposeOfTransactionsExplanation}</p>
+                <p className="mt-1.5 text-xs text-error">
+                  {errors.purposeOfTransactionsExplanation}
+                </p>
               )}
             </div>
           )}
@@ -1006,7 +730,8 @@ export function KycForm({ existingProfile, onSuccess, onCancel, className }: Kyc
       {currentStep === reviewStepIndex && (
         <div className="space-y-4 animate-scale-in">
           <p className="text-xs text-text-secondary">
-            Please review your information carefully before submitting. You can click <strong>Edit</strong> on any section to make adjustments.
+            Please review your information carefully before submitting. You can click{" "}
+            <strong>Edit</strong> on any section to make adjustments.
           </p>
 
           {/* Section 1: Personal Details */}
@@ -1026,14 +751,18 @@ export function KycForm({ existingProfile, onSuccess, onCancel, className }: Kyc
             </div>
             <div className="grid grid-cols-2 gap-2 text-xs text-text-secondary">
               <div>
-                <span className="text-text-primary font-medium">Name:</span> {fields.firstName} {fields.lastName}
+                <span className="text-text-primary font-medium">Name:</span>{" "}
+                {fields.firstName} {fields.lastName}
               </div>
               <div>
-                <span className="text-text-primary font-medium">Birth Date:</span> {fields.dateOfBirth}
+                <span className="text-text-primary font-medium">Birth Date:</span>{" "}
+                {fields.dateOfBirth}
               </div>
               <div className="col-span-2 flex items-center gap-1.5">
                 <span className="text-text-primary font-medium">Corridor:</span>{" "}
-                <span>{COUNTRY_FLAGS[fields.country]} {KYC_COUNTRY_NAMES[fields.country]}</span>
+                <span>
+                  {COUNTRY_FLAGS[fields.country]} {KYC_COUNTRY_NAMES[fields.country]}
+                </span>
                 <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary uppercase font-semibold">
                   {isEnhanced ? "Enhanced Tier" : "Standard Tier"}
                 </span>
@@ -1058,14 +787,18 @@ export function KycForm({ existingProfile, onSuccess, onCancel, className }: Kyc
             </div>
             <div className="grid grid-cols-2 gap-2 text-xs text-text-secondary">
               <div>
-                <span className="text-text-primary font-medium">Tax ID:</span> {fields.taxId}
+                <span className="text-text-primary font-medium">Tax ID:</span>{" "}
+                {fields.taxId}
               </div>
               <div>
-                <span className="text-text-primary font-medium">Postal Code:</span> {fields.postalCode}
+                <span className="text-text-primary font-medium">Postal Code:</span>{" "}
+                {fields.postalCode}
               </div>
               <div className="col-span-2">
-                <span className="text-text-primary font-medium">Address:</span> {fields.addressLine1}
-                {fields.addressLine2 ? `, ${fields.addressLine2}` : ""}, {fields.city}, {fields.stateProvinceRegion}
+                <span className="text-text-primary font-medium">Address:</span>{" "}
+                {fields.addressLine1}
+                {fields.addressLine2 ? `, ${fields.addressLine2}` : ""}, {fields.city},{" "}
+                {fields.stateProvinceRegion}
               </div>
             </div>
           </div>
@@ -1087,28 +820,42 @@ export function KycForm({ existingProfile, onSuccess, onCancel, className }: Kyc
             </div>
             <div className="grid grid-cols-2 gap-2 text-xs text-text-secondary mb-3">
               <div>
-                <span className="text-text-primary font-medium">Type:</span> {fields.idDocType}
+                <span className="text-text-primary font-medium">Type:</span>{" "}
+                {fields.idDocType}
               </div>
               <div>
-                <span className="text-text-primary font-medium">Country:</span> {fields.idDocCountry}
+                <span className="text-text-primary font-medium">Country:</span>{" "}
+                {fields.idDocCountry}
               </div>
             </div>
             <div className="flex flex-wrap gap-3">
               {fields.selfieFileUrl && (
                 <div className="flex items-center gap-2 p-2 rounded-lg bg-white border border-border/40">
-                  <img src={fields.selfieFileUrl} alt="Selfie" className="w-9 h-9 rounded object-cover" />
+                  <img
+                    src={fields.selfieFileUrl}
+                    alt="Selfie"
+                    className="w-9 h-9 rounded object-cover"
+                  />
                   <span className="text-[11px] font-medium text-text-primary">Selfie</span>
                 </div>
               )}
               {fields.idDocFrontFileUrl && (
                 <div className="flex items-center gap-2 p-2 rounded-lg bg-white border border-border/40">
-                  <img src={fields.idDocFrontFileUrl} alt="Doc Front" className="w-9 h-9 rounded object-cover" />
+                  <img
+                    src={fields.idDocFrontFileUrl}
+                    alt="Doc Front"
+                    className="w-9 h-9 rounded object-cover"
+                  />
                   <span className="text-[11px] font-medium text-text-primary">Doc Front</span>
                 </div>
               )}
               {fields.idDocBackFileUrl && (
                 <div className="flex items-center gap-2 p-2 rounded-lg bg-white border border-border/40">
-                  <img src={fields.idDocBackFileUrl} alt="Doc Back" className="w-9 h-9 rounded object-cover" />
+                  <img
+                    src={fields.idDocBackFileUrl}
+                    alt="Doc Back"
+                    className="w-9 h-9 rounded object-cover"
+                  />
                   <span className="text-[11px] font-medium text-text-primary">Doc Back</span>
                 </div>
               )}
@@ -1133,17 +880,21 @@ export function KycForm({ existingProfile, onSuccess, onCancel, className }: Kyc
               </div>
               <div className="space-y-1.5 text-xs text-text-secondary">
                 <div>
-                  <span className="text-text-primary font-medium">Proof of Address:</span> {fields.proofOfAddressDocType}
+                  <span className="text-text-primary font-medium">Proof of Address:</span>{" "}
+                  {fields.proofOfAddressDocType}
                 </div>
                 <div>
-                  <span className="text-text-primary font-medium">Source of Funds:</span> {fields.sourceOfFundsDocType}
+                  <span className="text-text-primary font-medium">Source of Funds:</span>{" "}
+                  {fields.sourceOfFundsDocType}
                 </div>
                 <div>
-                  <span className="text-text-primary font-medium">Purpose:</span> {fields.purposeOfTransactions}
+                  <span className="text-text-primary font-medium">Purpose:</span>{" "}
+                  {fields.purposeOfTransactions}
                 </div>
                 {fields.purposeOfTransactionsExplanation && (
                   <div>
-                    <span className="text-text-primary font-medium">Explanation:</span> {fields.purposeOfTransactionsExplanation}
+                    <span className="text-text-primary font-medium">Explanation:</span>{" "}
+                    {fields.purposeOfTransactionsExplanation}
                   </div>
                 )}
               </div>
@@ -1154,7 +905,10 @@ export function KycForm({ existingProfile, onSuccess, onCancel, className }: Kyc
 
       {/* --- Error Display --- */}
       {submitError && (
-        <div role="alert" className="p-3 rounded-xl bg-error/10 border border-error/20 flex items-center gap-2 text-xs text-error">
+        <div
+          role="alert"
+          className="p-3 rounded-xl bg-error/10 border border-error/20 flex items-center gap-2 text-xs text-error"
+        >
           <Icon path={ICON_PATHS.alertCircle} size="sm" className="shrink-0" />
           <span>{submitError}</span>
         </div>
