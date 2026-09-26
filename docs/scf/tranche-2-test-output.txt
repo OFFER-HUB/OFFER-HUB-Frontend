@@ -1,0 +1,410 @@
+PASS apps/api/src/providers/blindpay/__tests__/blindpay.config.spec.ts
+  BlindPayConfig
+    ✓ throws a named error when BLINDPAY_API_KEY is missing (18 ms)
+    ✓ throws a named error when BLINDPAY_INSTANCE_ID is missing (1 ms)
+    ✓ throws a named error when BLINDPAY_BASE_URL is missing (1 ms)
+    ✓ throws a named error when BLINDPAY_WEBHOOK_SECRET is missing (1 ms)
+    ✓ throws when BLINDPAY_API_KEY is set but empty (2 ms)
+    ✓ throws when BLINDPAY_INSTANCE_ID is set but empty (1 ms)
+    ✓ throws when BLINDPAY_BASE_URL is set but empty (1 ms)
+    ✓ throws when BLINDPAY_WEBHOOK_SECRET is set but empty (2 ms)
+    ✓ rejects a BLINDPAY_BASE_URL that is not a valid URL (1 ms)
+    ✓ rejects a non-https BLINDPAY_BASE_URL (1 ms)
+    ✓ strips trailing slashes so the instance URL has no double slash (4 ms)
+    ✓ rejects an unknown BLINDPAY_ENV (1 ms)
+    ✓ defaults to the development environment (1 ms)
+    ✓ refuses a production instance while Stellar is on testnet (1 ms)
+    ✓ accepts a production instance on mainnet (1 ms)
+    ✓ warns but starts when the instance id has an unexpected prefix
+    ✓ warns but starts when the webhook secret has an unexpected prefix
+    ✓ exposes the values the HTTP client needs (1 ms)
+PASS apps/api/src/providers/blindpay/__tests__/payout-corridors.spec.ts (5.325 s)
+  BlindPay payout corridors — MX/SPEI_BITSO
+    ✓ opens the Payout record with corridor=MX/SPEI_BITSO and fiatCurrency=MXN (14 ms)
+  BlindPay payout corridors — BR/PIX
+    ✓ opens the Payout record with corridor=BR/PIX and fiatCurrency=BRL (2 ms)
+    ✓ quotes the correct amount in minor units and completes the payout (4 ms)
+  BlindPay payout corridors — CO/ACH_COP_BITSO (PSE)
+    ✓ opens the Payout record with corridor=CO/ACH_COP_BITSO and fiatCurrency=COP (3 ms)
+    ✓ creates the payout through the full Quote→Authorize→Payout sequence (3 ms)
+  expired-quote retry path (D2.4 #207)
+    ✓ BlindPayQuoteExpiredException is retriable — BullMQ will reschedule the job (7 ms)
+    ✓ succeeds on the second attempt after receiving a fresh quote (22 ms)
+PASS apps/api/src/providers/blindpay/__tests__/blindpay.service.spec.ts (5.648 s)
+  BlindPayService
+    ✓ authorizeQuote posts the quote and wallet to the Stellar authorize route (1 ms)
+    ✓ createPayout posts the signed envelope to the Stellar payout route (1 ms)
+    ✓ getPayoutStatus reads the payout by id (2 ms)
+    ✓ registerWebhook posts to webhook-endpoints and defaults to every event
+    createQuote
+      ✓ posts to /quotes and returns the quote (13 ms)
+      ✓ fills network and token from config so callers never hardcode them (3 ms)
+      ✓ lets an explicit network and token override the config (4 ms)
+    createCustomer
+      ✓ posts to /customers with the full compliance dossier (3 ms)
+      ✓ forwards explicit type and kycType overrides, plus enhanced-tier fields (2 ms)
+    createBankAccount
+      ✓ posts the body to customers/:id/bank-accounts (2 ms)
+      ✓ passes through any rail-specific fields untouched (3 ms)
+    error mapping
+      ✓ surfaces BlindPay validation detail in the message (2 ms)
+      ✓ maps 429 to PROVIDER_RATE_LIMITED (1 ms)
+      ✓ maps a timeout to PROVIDER_TIMEOUT (1 ms)
+      ✓ always throws BlindPayProviderException, never a raw HTTP error (2 ms)
+PASS apps/api/src/modules/bank-accounts/__tests__/bank-accounts.controller.spec.ts
+  BankAccountsController
+    list()
+      ✓ returns only the accounts that belong to the authenticated user (11 ms)
+      ✓ returns an empty array when the user has no bank accounts (2 ms)
+    create()
+      ✓ delegates to service.create with the caller's userId and the DTO (3 ms)
+      ✓ surfaces service errors (invalid corridor → 400) (7 ms)
+    setDefault()
+      ✓ delegates with the caller's userId and the account id (3 ms)
+    remove()
+      ✓ delegates with the caller's userId and the account id (2 ms)
+      ✓ surfaces service errors (account has payouts → 409) (1 ms)
+    cross-user isolation
+      ✓ two simultaneous callers each receive their own scoped list (3 ms)
+PASS apps/api/src/modules/payout/__tests__/payout-orchestration.service.spec.ts
+  PayoutOrchestrationService
+    ✓ throws NotFoundException when the order does not exist (15 ms)
+    ✓ throws UnsupportedPayoutCorridorException when the seller country has no BlindPay rail (1 ms)
+    ✓ throws UnsupportedPayoutCorridorException when neither location nor bank account country is set (1 ms)
+    ✓ throws NoBankAccountForCorridorException when the seller has no account for their corridor
+    resolveCorridorCountry
+      ✓ prefers seller.location over the bank account country (5 ms)
+      ✓ falls back to bank account country when location is null (2 ms)
+      ✓ returns null when both are absent (2 ms)
+      ✓ normalises lower-case input to upper-case (1 ms)
+      ✓ falls back to the bank account country when location is free-text, not a supported corridor code (1 ms)
+      ✓ returns null when location is unsupported free-text and there is no bank account country either (2 ms)
+    idempotency
+      ✓ returns the existing PROCESSING payout without creating a new one (2 ms)
+      ✓ returns the existing COMPLETED payout without creating a new one (4 ms)
+      ✓ retries a FAILED payout without creating a second record (2 ms)
+    initiateOffRamp — happy path
+      ✓ creates a PENDING payout and enqueues the job (3 ms)
+      ✓ uses seller.location to determine the corridor (3 ms)
+      ✓ falls back to bank account country when seller has no location (3 ms)
+    retryFailedPayout
+      ✓ throws PayoutNotFoundException when there is no payout for the order (1 ms)
+      ✓ refuses a caller who does not own the payout
+      ✓ refuses to retry a payout that is already PENDING
+      ✓ refuses to retry a payout that is already PROCESSING (1 ms)
+      ✓ refuses to retry a payout that is already COMPLETED (5 ms)
+      ✓ throws SellerWalletNotFoundException when the seller has no active primary wallet (2 ms)
+      ✓ re-resolves the seller's current default bank account instead of the one frozen on the failed payout (3 ms)
+PASS apps/api/src/providers/blindpay/__tests__/blindpay-webhook.service.spec.ts (5.717 s)
+  BlindPayWebhookService
+    verifySignature()
+      ✓ returns the parsed payload when Svix verification succeeds (7 ms)
+      ✓ throws UnauthorizedException when Svix verification fails (43 ms)
+    processEvent()
+      ✓ returns duplicate=true when the webhookEvent create throws P2002 (concurrent delivery) (2 ms)
+      ✓ rethrows non-P2002 errors from webhookEvent create
+      ✓ dedupes on the svix-id header, since BlindPay sends no event id of its own (1 ms)
+      ✓ returns success without updating Payout when blindpayPayoutId is unknown
+      ✓ payout.new — logs only, no Payout status change
+      ✓ payout.update — informational log, no Payout status change for an in-progress status
+      ✓ payout.update with status="failed" — sets FAILED and stores failureReason (1 ms)
+      ✓ payout.update with status="completed" — sets COMPLETED and stores fiatAmount + exchangeRate when present
+      ✓ payout.update with status="completed" and no fiat_amount/exchange_rate — leaves those fields untouched
+      ✓ payout.update with status="refunded" — does not touch the Payout row (not modeled yet)
+      ✓ payout.update with status="on_hold" — does not touch the Payout row (not modeled yet) (1 ms)
+      ✓ payout.complete — sets COMPLETED and stores fiatAmount + exchangeRate when present
+      ✓ payout.failed — sets FAILED and stores failureReason
+      ✓ payout.failed with no failure_reason uses fallback message
+      ✓ records the event as processed using Provider.BLINDPAY
+      ✓ returns success=false when DB update throws (1 ms)
+      ✓ payout.refunded — sets REFUNDED and stores refund_reason
+      ✓ payout.refunded with no refund_reason uses fallback message
+      ✓ payout.on_hold — sets ON_HOLD and stores hold_reason (1 ms)
+      ✓ payout.on_hold with no hold_reason stores null (not a failure, still in flight)
+PASS apps/api/src/modules/resolution/utils/__tests__/refund-calculation.util.spec.ts
+  calculateRefundableAmount
+    ✓ returns the full order amount when there are no milestones (single-payment order)
+    ✓ returns the full order amount when milestones is undefined
+    ✓ returns the full amount when 0 of N milestones are completed (1 ms)
+    ✓ returns 0.00 when all N milestones are completed
+    ✓ returns the exact sum of only the non-completed milestones for a partial case
+    ✓ excludes RELEASED milestones the same as COMPLETED — their funds already left the escrow
+  hasPartiallyEarnedMilestones
+    ✓ is false when there are no milestones
+    ✓ is false when milestones is undefined
+    ✓ is false when no milestone is completed yet
+    ✓ is true when at least one milestone is completed
+    ✓ is true when every milestone is completed (1 ms)
+    ✓ is true when a milestone has already been RELEASED (funds gone, not just marked done)
+PASS apps/api/src/modules/bank-accounts/__tests__/bank-accounts.service.spec.ts
+  BankAccountsService
+    ✓ lists the caller's accounts with the default first
+    corridor validation
+      ✓ rejects PE — BlindPay has no rail for it (11 ms)
+      ✓ rejects CL — BlindPay has no rail for it (2 ms)
+      ✓ rejects CR — BlindPay has no rail for it (1 ms)
+      ✓ rejects a rail that belongs to another country (3 ms)
+      ✓ names the allowed rails so the caller can fix the request (2 ms)
+      ✓ accepts BR/PIX (1 ms)
+      ✓ accepts BR/TED
+      ✓ accepts MX/SPEI_BITSO (1 ms)
+      ✓ accepts AR/TRANSFERS_BITSO
+      ✓ accepts CO/ACH_COP_BITSO (1 ms)
+      ✓ normalises lower-case input before validating (1 ms)
+      ✓ rejects a rail whose required details are missing (1 ms)
+      ✓ rejects details present but empty (2 ms)
+      ✓ rejects a Colombian account missing the beneficiary/document fields BlindPay actually requires (1 ms)
+      ✓ stores the details so the payout can build BlindPay's payload (2 ms)
+      ✓ never touches the database when the corridor is invalid (2 ms)
+    the default account
+      ✓ makes the first account default even when not asked (4 ms)
+      ✓ decides the first-account rule inside the transaction (10 ms)
+      ✓ leaves later accounts non-default unless asked (2 ms)
+      ✓ clears the previous default when a new account claims it
+      ✓ clears and sets in one transaction so two defaults cannot coexist (1 ms)
+    ownership
+      ✓ reports another user's account as not found rather than forbidden (2 ms)
+      ✓ throws when the account does not exist at all (1 ms)
+    deletion
+      ✓ refuses to delete an account payouts point at (3 ms)
+      ✓ counts the payouts inside the transaction that deletes (2 ms)
+      ✓ says how many payouts are in the way (2 ms)
+      ✓ deletes when nothing references the account (2 ms)
+      ✓ promotes the next account when the default is deleted (2 ms)
+      ✓ does not promote anything when the last account is deleted (1 ms)
+PASS packages/shared/src/constants/__tests__/blindpay-corridors.spec.ts
+  BlindPay corridors
+    ✓ covers exactly the four countries BlindPay has a LATAM rail for (1 ms)
+    ✓ rejects the countries BlindPay has no rail for
+    ✓ matches each rail to its own country only
+    ✓ requires the full beneficiary/document set for ACH Colombia, confirmed against BlindPay's own schema (1 ms)
+    ✓ uses BlindPay's own rail names so they map 1:1 onto their API
+PASS apps/api/src/modules/queues/__tests__/queue.service.spec.ts
+  QueueService
+    addPayoutJob
+      ✓ enqueues a fresh job when none exists yet for this payout (2 ms)
+      ✓ removes a previously FAILED job with the same jobId before re-enqueueing, so a retry actually picks up fresh data (1 ms)
+      ✓ removes a previously COMPLETED job with the same jobId before re-enqueueing
+      ✓ does not remove a job that is still active or waiting (1 ms)
+PASS apps/api/src/modules/queues/processors/__tests__/payout.processor.spec.ts
+  PayoutProcessor
+    process()
+      ✓ calls initiateFullPayout with the correct job data (2 ms)
+      ✓ moves a non-retriable BlindPay error to DLQ and does not rethrow (1 ms)
+      ✓ rethrows a retriable BlindPay error so BullMQ schedules a retry (5 ms)
+      ✓ rethrows unknown errors so BullMQ treats them as retriable (1 ms)
+    onFailed()
+      ✓ marks the Payout record as FAILED with the error message
+      ✓ does not throw when the DB update fails
+  BlindPayPayoutException.retriable flag
+    ✓ BlindPayQuoteExpiredException is retriable
+    ✓ BlindPayBankAccountNotRegisteredException is non-retriable (1 ms)
+PASS apps/api/src/providers/blindpay/__tests__/payout-flow.service.spec.ts (6.056 s)
+  BlindPayPayoutFlowService
+    ✓ refuses, without retrying, a wallet the server cannot sign for (5 ms)
+    ✓ marks the payout FAILED with the reason when the sequence breaks (2 ms)
+    idempotency
+      ✓ returns the existing PROCESSING payout without calling BlindPay again (15 ms)
+      ✓ returns the existing COMPLETED payout without calling BlindPay again (3 ms)
+      ✓ retries a FAILED payout on the same row instead of creating a second (4 ms)
+    the quote expiry guard
+      ✓ aborts when the quote expires inside the margin (19 ms)
+      ✓ aborts on an already expired quote (3 ms)
+      ✓ marks expiry retriable so the orchestrator runs the sequence again (2 ms)
+      ✓ proceeds when the quote has room left (3 ms)
+    lazy registration with BlindPay
+      ✓ asks KycService for the customer id and registers the bank account under it (2 ms)
+      ✓ persists the bank account id so registration happens once (2 ms)
+      ✓ quotes against the id BlindPay just returned (3 ms)
+      ✓ skips registration entirely when the account already has an id (2 ms)
+      ✓ refuses, without retrying, an account missing the fields its rail needs (3 ms)
+      ✓ propagates whatever ensureBlindPayCustomer throws — missing data, no profile, no ToS acceptance are all its concern now (5 ms)
+    the full sequence
+      ✓ quotes in minor units against the BlindPay account id (3 ms)
+      ✓ signs the envelope the authorize step returned (2 ms)
+      ✓ records the quote, the rate and the fiat amount before authorizing (2 ms)
+      ✓ stores the BlindPay payout id and moves to PROCESSING (2 ms)
+      ✓ opens the record as PENDING with the corridor and currency (2 ms)
+    client-side signing (external wallet)
+      ✓ parks the payout awaiting signature instead of signing server-side (2 ms)
+      ✓ discards the quote instead of overwriting a payout that already moved on (1 ms)
+    preparePayoutTransfer
+      ✓ throws when there is no payout for the order (1 ms)
+      ✓ refuses a caller who is not the payout owner (1 ms)
+      ✓ refuses a custodial seller — nothing to sign
+      ✓ refuses when the payout is already PROCESSING (1 ms)
+      ✓ refuses when the payout is already COMPLETED (2 ms)
+      ✓ refuses when the payout is already REFUNDED (2 ms)
+      ✓ refuses when the payout is already ON_HOLD (2 ms)
+      ✓ returns the pending XDR unchanged when it still has plenty of time left (2 ms)
+      ✓ mints a fresh quote when there is no usable pending transaction
+      ✓ re-quotes a stale pending transaction instead of handing over one about to expire (1 ms)
+    submitPayoutTransfer
+      ✓ throws when there is no payout for the order (1 ms)
+      ✓ refuses a caller who is not the payout owner
+      ✓ dispatches the signed transfer and clears the pending fields (2 ms)
+      ✓ rejects a stale quote id instead of dispatching a mismatched signature (2 ms)
+      ✓ rolls back to FAILED when the quote expired before dispatch (2 ms)
+      ✓ rolls back to AWAITING_SIGNATURE on a definite provider rejection, keeping the pending fields (4 ms)
+      ✓ clears the pending quote/XDR on a stale-transaction rejection, forcing a fresh prepare on retry (4 ms)
+      ✓ leaves the payout PROCESSING on an ambiguous failure instead of auto-retrying (4 ms)
+PASS apps/api/src/modules/queues/processors/__tests__/reconciliation-deposits.spec.ts (6.138 s)
+  ReconciliationProcessor.checkMissedDeposits() — deduplication
+    ✓ skips payment already in ProcessedTransaction (2 ms)
+    ✓ credits balance and creates ProcessedTransaction for new payment (1 ms)
+    ✓ creates a balance record instead of silently dropping the credit when the user has none yet (1 ms)
+    ✓ skips non-USDC payments
+    ✓ skips payments outside the lookback window (1 ms)
+    ✓ handles Horizon 404 gracefully (unfunded account) (1 ms)
+    ✓ logs summary with wallet count and missed deposit count (1 ms)
+PASS apps/api/src/modules/resolution/__tests__/dispute.service.spec.ts (6.168 s)
+  DisputeService
+    openDispute
+      ✓ throws when the order is not IN_PROGRESS (29 ms)
+      ✓ throws DisputeAlreadyExistsException when an active dispute already exists (2 ms)
+      ✓ creates a dispute when the order is IN_PROGRESS with no active dispute (5 ms)
+      ✓ also accepts a DELIVERED order — escalating to a dispute stays available after delivery (2 ms)
+      ✓ persists the buyer-provided description alongside the reason enum (3 ms)
+      ✓ emits DISPUTE_OPENED with the real buyerId/sellerId, not just openedBy (3 ms)
+    resolveDispute
+      ✓ throws DisputeNotFoundException when the dispute does not exist (1 ms)
+      ✓ throws InvalidDisputeStateException when the dispute is not UNDER_REVIEW (1 ms)
+      ✓ delegates FULL_RELEASE to ReleaseRefundService.executeFullRelease (1 ms)
+      ✓ delegates FULL_REFUND to ReleaseRefundService.executeFullRefund (1 ms)
+      ✓ rejects a SPLIT whose amounts do not sum to the order amount (20 ms)
+      ✓ delegates a valid SPLIT to ReleaseRefundService.executeSplitResolution (1 ms)
+      ✓ rejects a SPLIT with only one of releaseAmount/refundAmount provided — half a split is never valid
+      ✓ a SPLIT with neither amount provided delegates to the native milestone-based resolution instead (2 ms)
+      ✓ DISPUTE_RESOLVED carries the real buyerId/sellerId, even for SPLIT (2 ms)
+    cancelDispute
+      ✓ throws when the caller is not the party who opened the dispute (1 ms)
+      ✓ throws when the caller is an unrelated authenticated user
+      ✓ throws when the dispute is already resolved (1 ms)
+      ✓ resolves via FULL_RELEASE when the buyer opened and cancels their own dispute
+      ✓ resolves via FULL_REFUND when the seller opened and cancels their own dispute (1 ms)
+    getDispute
+      ✓ throws DisputeNotFoundException when the requesting user is not a party to the order (1 ms)
+      ✓ returns the dispute for the buyer
+      ✓ returns the dispute for the seller (1 ms)
+      ✓ throws DisputeNotFoundException when the dispute does not exist (3 ms)
+      ✓ attaches suggestedRefundAmount — full order amount when no milestone is completed (1 ms)
+      ✓ attaches suggestedRefundAmount — only the non-completed milestones for a partially-earned order (1 ms)
+    assignDispute
+      ✓ throws DisputeNotFoundException when the dispute does not exist (1 ms)
+      ✓ throws InvalidDisputeStateException when the dispute is not OPEN
+      ✓ moves the dispute to UNDER_REVIEW when it is OPEN (1 ms)
+    listDisputes
+      ✓ returns all disputes when no filters are provided (2 ms)
+      ✓ filters by orderId (1 ms)
+      ✓ filters by status (1 ms)
+      ✓ filters by userId — matches buyer or seller of the order (2 ms)
+      ✓ returns an empty array when no disputes match (1 ms)
+      ✓ attaches suggestedRefundAmount to every dispute in the list
+PASS apps/api/src/modules/resolution/__tests__/dispute-refund-lifecycle.e2e.spec.ts (6.185 s)
+  Dispute/refund lifecycle (integration)
+    ✓ refund before delivery resolves automatically to CLOSED — no admin involved (19 ms)
+    ✓ refund after delivery does NOT auto-resolve — buyer must escalate through a dispute (27 ms)
+    ✓ non-admin — including both parties to the order — is rejected by AdminAuthGuard before assign/resolve ever runs; an admin passes through to the real service (7 ms)
+    ✓ full admin cycle — open, assign, resolve FULL_RELEASE — seller gets 100%, order closes (2 ms)
+    ✓ full admin cycle — resolve FULL_REFUND — buyer gets 100%, order closes (2 ms)
+    ✓ full admin cycle — resolve SPLIT — both parties are credited exactly as decided, order closes (4 ms)
+    ✓ full admin cycle — resolve SPLIT with no amounts given — native milestone-based resolution pays the seller for the completed milestone and refunds only the rest (5 ms)
+    ✓ releases a 3-milestone order one milestone at a time — seller balance moves by exactly that milestone each time (25 ms)
+    ✓ releases all 3 milestones of a fully-completed order independently, in sequence (1 ms)
+    ✓ a dispute opened after one milestone is already RELEASED (not just COMPLETED) skips re-releasing it and only refunds the true remainder (2 ms)
+    ✓ a dispute opened with 0 milestones released behaves like today's plain full refund (1 ms)
+    ✓ a dispute opened after every milestone is already RELEASED has nothing left to refund — resolves cleanly, no error (1 ms)
+    suggested refund amount across milestone completion levels
+      ✓ 0 of 3 milestones completed — the full order amount is still refundable (1 ms)
+      ✓ 1 of 2 milestones completed (50%) — only the incomplete half is refundable
+      ✓ 3 of 3 milestones completed (100%) — nothing is left to refund
+PASS apps/api/src/modules/resolution/__tests__/release-refund.service.spec.ts (6.176 s)
+  ReleaseRefundService
+    requestRelease
+      ✓ throws when the order has no escrow (44 ms)
+      ✓ throws when the order is not IN_PROGRESS (2 ms)
+      ✓ throws ActiveDisputeException when the order has an active dispute (1 ms)
+      ✓ throws when milestones are incomplete (2 ms)
+      ✓ treats an already-RELEASED milestone as done, not incomplete — releasing one milestone early must not block releasing the rest (3 ms)
+      ✓ throws when escrow is not FUNDED (1 ms)
+      ✓ moves the order to RELEASE_REQUESTED when all preconditions pass (custodial path) (1 ms)
+      ✓ moves the order to RELEASE_REQUESTED with no milestones (milestone-free orders) (1 ms)
+      ✓ also accepts a DELIVERED order — release stays available after the seller marks the work complete (1 ms)
+    releaseMilestone
+      ✓ rejects a caller who is not the buyer (1 ms)
+      ✓ rejects an order with one milestone or none — use the regular release flow instead (1 ms)
+      ✓ rejects when the order is not IN_PROGRESS or DELIVERED (1 ms)
+      ✓ throws when the milestone does not exist on the order (2 ms)
+      ✓ rejects a milestone that is still OPEN — the seller has not marked it done yet (1 ms)
+      ✓ rejects a milestone that is already RELEASED — it can only be released once (1 ms)
+      ✓ releases exactly the COMPLETED milestone using its real index, and credits only that amount to the seller (2 ms)
+      ✓ rejects when there is an active dispute on the order (6 ms)
+    requestRefund
+      ✓ throws when the order is not IN_PROGRESS (3 ms)
+      ✓ throws ActiveDisputeException when the order has an active dispute (3 ms)
+      ✓ moves the order to REFUND_REQUESTED when preconditions pass (custodial path) (1 ms)
+      ✓ rejects a DELIVERED order — a refund can no longer auto-resolve once work is delivered, must go through a dispute instead (1 ms)
+      ✓ rejects an IN_PROGRESS order with at least one completed milestone — refunding 100% would erase paid-for work
+      ✓ still auto-resolves an IN_PROGRESS order when no milestone has been completed yet (1 ms)
+      ✓ throws when the order has no escrow (1 ms)
+      ✓ throws when escrow is not FUNDED (1 ms)
+    confirmRelease
+      ✓ credits the seller via BalanceService.release and closes the order (2 ms)
+      ✓ rolls the order back to IN_PROGRESS when BalanceService.release fails (2 ms)
+      ✓ throws when the order is not RELEASE_REQUESTED (1 ms)
+    confirmRefund
+      ✓ credits the buyer via BalanceService.creditAvailable and closes the order (1 ms)
+      ✓ throws when the order is not REFUND_REQUESTED (1 ms)
+    executeFullRelease / executeFullRefund (called by DisputeService on dispute resolution)
+      ✓ drives the escrow release flow and completes via confirmRelease
+      ✓ drives the escrow refund flow and completes via confirmRefund (2 ms)
+      ✓ treats "already in dispute" as done rather than failing — the buyer already disputed it on-chain to create this dispute in the first place (3 ms)
+      ✓ does not swallow a genuine dispute-escrow failure as already-done (1 ms)
+    executeSplitResolution
+      ✓ credits both parties and closes the order without going through confirmRelease/confirmRefund (1 ms)
+      ✓ triggers the off-ramp for only the seller's released share, not the full order amount (1 ms)
+      ✓ does not trigger the off-ramp when nothing was released to the seller (1 ms)
+      ✓ treats "already in dispute" as done rather than failing — reproduces the live bug where resolving a SPLIT always failed because the dispute was already opened on-chain
+    executeMilestoneBasedSplitResolution
+      ✓ rejects an order with one milestone or none — nothing to distinguish per-milestone (1 ms)
+      ✓ releases every COMPLETED milestone with its real index and refunds only the still-OPEN remainder (2 ms)
+      ✓ skips the refund step entirely when every milestone is already COMPLETED — nothing left in escrow (2 ms)
+      ✓ does not release a milestone that is still OPEN or already RELEASED (1 ms)
+      ✓ closes the order once resolution completes (3 ms)
+      ✓ triggers the off-ramp for the milestones actually released to the seller, not the full order amount (4 ms)
+    prepare (client-side signing)
+      ✓ prepareDispute returns the buyer signature that opens a dispute
+      ✓ prepareDispute does not swallow a genuine provider failure as an opaque 500
+      ✓ refuses to hand an XDR to a signer who has no wallet of their own (1 ms)
+      ✓ refuses when the escrow contract is not deployed yet
+      a release is three signatures from two people
+        ✓ asks the seller to complete the milestone first (1 ms)
+        ✓ returns the same XDR on a second prepare call before the first is submitted, instead of a freshly-built one with a different sequence number (2 ms)
+        ✓ moves to the buyer approving once the milestone is complete (4 ms)
+        ✓ moves on to approve_milestone from local completion tracking alone, without asking TrustlessWork to rebuild complete_milestone (4 ms)
+        ✓ moves to the release itself once the approval has landed (2 ms)
+        ✓ reports the sequence finished when every step has landed (2 ms)
+        ✓ does not swallow a real failure as an already-done step, and wraps it structurally (3 ms)
+      a refund is the buyer, then the platform
+        ✓ rejects a DELIVERED order the same way the custodial requestRefund path does
+        ✓ rejects an order with a completed milestone the same way, even while still IN_PROGRESS (1 ms)
+        ✓ returns the buyer dispute step (1 ms)
+        ✓ resolves server-side once the dispute is on-chain, and returns nothing to sign (1 ms)
+        ✓ does not swallow a failure in the platform-signed leg as an opaque 500 (1 ms)
+    submitEscrowStep
+      ✓ submits the step and leaves the order untouched when more steps remain (1 ms)
+      ✓ finalizes a release once the last step lands: RELEASE_REQUESTED then confirmRelease (1 ms)
+      ✓ finalizes a refund once the platform leg lands: REFUND_REQUESTED then confirmRefund (1 ms)
+      ✓ never finalizes a dispute — the resolution endpoint owns the DISPUTED transition (2 ms)
+      ✓ treats a duplicate submission as success rather than a 500 (2 ms)
+      ✓ does not swallow a genuine submission failure, and wraps it structurally (2 ms)
+      ✓ rejects a caller who is not a party to the order
+PASS apps/api/src/modules/queues/processors/__tests__/reconciliation-abandoned-escrow.spec.ts
+  ReconciliationProcessor.cleanupAbandonedEscrowAttempts()
+    ✓ does nothing when there are no abandoned escrows (1 ms)
+    ✓ deletes the orphaned escrow and rolls the order back to ORDER_CREATED
+    ✓ only looks at escrows still CREATING with no contract, older than the abandonment threshold
+    ✓ keeps going and records an error when one cleanup fails, instead of aborting the batch (1 ms)
+Test Suites: 17 passed, 17 total
+Tests:       320 passed, 320 total
+Time:        6.9 s, estimated 10 s
