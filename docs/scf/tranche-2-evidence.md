@@ -2,7 +2,7 @@
 
 Supporting evidence for Tranche #2 (Testnet), prepared in response to the review panel's questions. The backend repository (OFFER-HUB-API) is private; everything the reviewers need to verify Tranche 2 is published here, and reviewer access to the private repository has been granted.
 
-Last updated: 2026-09-26. All transactions are on Stellar **testnet**. BlindPay is used in its sandbox, which settles in the test stablecoin USDB.
+Last updated: 2026-09-29. All transactions are on Stellar **testnet**. BlindPay is used in its sandbox, which settles in the test stablecoin USDB.
 
 ## 1. Deliverable 2.1: transactions and signers
 
@@ -50,14 +50,23 @@ The `resolve_dispute` distribution is 75.0000000 to the buyer (`GBUFHWMF…274N`
 
 ### Refund
 
-Escrow `CDMTNLSLTXWXHROYLTE76QV2MDWS6CKIK5Q4QBM6YR4BZX3R5RFZPKF4`, 2026-09-13.
+Two refunds are included: one from earlier development QA (kept for completeness) and one run on the production platform account, as requested by the reviewers.
+
+**Production refund.** Escrow `CB3AE4Y7DJKA5X6SHESTM52EHYCCGMZNWFVXFGC6JZHJQ7GLJ3E3LZKJ`, 2026-09-29.
+
+| Operation | Signer | Transaction hash |
+|---|---|---|
+| Create (deploy) | Buyer | `b71a089b23901c1c217dfee7c3ea14343e6c4e8999bc97f69cdf421d8bc1eb4f` |
+| Fund | Buyer | `aa0bc9cfc1693087a05fc7867b18594a78f4533b342ab1f285ae35eddc228544` |
+| Open dispute (`dispute_escrow`) | Buyer (`GBUFHWMF…274N`) | `54abefa4c13d5ed97d22a9cf310a7b958795fd816bc84bb6aa7344dd68808796` |
+| Resolve dispute, full refund (`resolve_dispute`, 150.0000000 returned 100% to the buyer) | **Platform** (production, `GBTA5SOF…2NCD`) | `b7af1fcd0bae6bd2651335cffa5fa2dea8c86f72fbbb140671e5680165f7c0b3` |
+
+**Earlier development-environment refund.** Escrow `CDMTNLSLTXWXHROYLTE76QV2MDWS6CKIK5Q4QBM6YR4BZX3R5RFZPKF4`, 2026-09-13.
 
 | Operation | Signer | Transaction hash |
 |---|---|---|
 | Open dispute (`dispute_escrow`) | Buyer (`GBUFHWMF…274N`) | `7f00febf08d524c68ea803a8207a2e3b84b9917af49d3d96db4ccc9fd91bbac4` |
 | Resolve dispute, full refund (`resolve_dispute`, 500.0000000 returned 100% to the buyer) | Platform key of our **development** environment (`GBUXD4L2…26NOA`) | `d3b6fcc4a92eab9b9f99a9eccba74514aed3ff4b0a22025ccd307bad2f046547` |
-
-This refund was executed from our development environment, so its `resolve_dispute` was signed by that environment's platform key, not the production platform key above. A refund on the production platform account is being added: **[production refund hashes: to be added]**.
 
 ## 2. Key custody
 
