@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { getPublicOffers, type MarketplaceOffer } from "@/lib/api/marketplace";
 import { OfferCard } from "@/components/marketplace/OfferCard";
+import { SearchBar } from "@/components/marketplace/SearchBar";
 import {
   MarketplaceFilters,
   type MarketplaceFiltersState,
@@ -13,6 +14,7 @@ import { Icon, ICON_PATHS } from "@/components/ui/Icon";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Navbar } from "@/components/landing/Navbar";
 import { cn } from "@/lib/cn";
+import { useMarketplaceCursorLoadMore } from "@/hooks/useMarketplaceCursorLoadMore";
 
 function OfferCardSkeleton(): React.JSX.Element {
   return (
@@ -90,25 +92,30 @@ export default function BrowseOffersPage(): React.JSX.Element {
     setSearchText("");
   };
 
-  const loadMore = async () => {
-    if (!hasMore || !nextCursor) return;
-
-    try {
-      const response = await getPublicOffers({
+  const fetchMoreOffers = useCallback(
+    (cursor: string) =>
+      getPublicOffers({
         category: filters.category || undefined,
         minBudget: filters.minBudget > 0 ? filters.minBudget : undefined,
         maxBudget: filters.maxBudget < 10000 ? filters.maxBudget : undefined,
         search: searchText || undefined,
         limit: 18,
-        cursor: nextCursor,
-      });
-      setOffers((prev) => [...prev, ...response.data]);
-      setHasMore(response.hasMore);
-      setNextCursor(response.nextCursor);
-    } catch (err) {
-      console.error("Failed to load more offers:", err);
-    }
-  };
+        cursor,
+      }),
+    [filters, searchText]
+  );
+
+  const { loadMore } = useMarketplaceCursorLoadMore({
+    hasMore,
+    nextCursor,
+    fetchPage: fetchMoreOffers,
+    onAppend: (items) => setOffers((prev) => [...prev, ...items]),
+    onMetaChange: ({ hasMore: more, nextCursor: cursor }) => {
+      setHasMore(more);
+      setNextCursor(cursor);
+    },
+    errorMessage: "Failed to load more offers:",
+  });
 
   const hasActiveFilters =
     Boolean(filters.category) ||
@@ -189,56 +196,13 @@ export default function BrowseOffersPage(): React.JSX.Element {
               </div>
             </div>
 
-            {/* Search Bar */}
-            <form onSubmit={handleSearch} className="max-w-4xl mb-6">
-              <div
-                className={cn(
-                  "flex items-center gap-3 p-3 rounded-3xl bg-white",
-                  "shadow-[6px_6px_14px_#d1d5db,-6px_-6px_14px_#ffffff]",
-                  "border border-white/80"
-                )}
-              >
-                <div
-                  className={cn(
-                    "flex-1 flex items-center gap-3 px-5 py-3 rounded-2xl",
-                    "bg-background",
-                    "shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]"
-                  )}
-                >
-                  <Icon path={ICON_PATHS.search} size="sm" className="text-text-secondary/60 flex-shrink-0" />
-                  <input
-                    type="text"
-                    placeholder="Search offers by project title, requirements, or keywords..."
-                    value={searchInput}
-                    onChange={(e) => setSearchInput(e.target.value)}
-                    className="flex-1 bg-transparent text-sm text-text-primary placeholder-text-secondary/50 focus:outline-none"
-                  />
-                  {searchInput && (
-                    <button
-                      type="button"
-                      onClick={clearSearch}
-                      className="p-1 rounded-full text-text-secondary hover:text-text-primary hover:bg-gray-200 transition-colors"
-                      title="Clear search"
-                    >
-                      <Icon path={ICON_PATHS.close} size="sm" />
-                    </button>
-                  )}
-                </div>
-
-                <button
-                  type="submit"
-                  className={cn(
-                    "px-7 py-3 rounded-2xl flex items-center gap-2 font-bold text-sm",
-                    "bg-primary text-white transition-all duration-200 cursor-pointer flex-shrink-0",
-                    "shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]",
-                    "hover:bg-primary-hover hover:shadow-[5px_5px_10px_#d1d5db,-5px_-5px_10px_#ffffff]",
-                    "active:shadow-[inset_2px_2px_4px_rgba(0,0,0,0.2)]"
-                  )}
-                >
-                  <span>Search</span>
-                </button>
-              </div>
-            </form>
+            <SearchBar
+              value={searchInput}
+              onChange={setSearchInput}
+              onSearch={handleSearch}
+              onClear={clearSearch}
+              placeholder="Search offers by project title, requirements, or keywords..."
+            />
 
             {/* Quick Category Chips */}
             <div className="flex flex-wrap items-center gap-2.5 pt-1">

@@ -6,6 +6,11 @@ import { Icon, ICON_PATHS } from "@/components/ui/Icon";
 import type { MarketplaceOffer } from "@/lib/api/marketplace";
 import { FavoriteButton } from "@/components/favorites/FavoriteButton";
 import { useFavoritesStore } from "@/stores/favorites-store";
+import {
+  getCategoryLabel,
+  parseMoneyAmount,
+  parseAverageRating,
+} from "@/lib/marketplace-helpers";
 
 interface OfferCardProps {
   offer: MarketplaceOffer;
@@ -13,25 +18,13 @@ interface OfferCardProps {
   highlightQuery?: string;
 }
 
-const CATEGORY_MAP: Record<string, string> = {
-  WEB_DEVELOPMENT: "Web Development",
-  MOBILE_DEVELOPMENT: "Mobile Development",
-  DESIGN: "Design & Creative",
-  WRITING: "Writing & Translation",
-  MARKETING: "Marketing & Sales",
-  VIDEO: "Video & Animation",
-  MUSIC: "Music & Audio",
-  DATA: "Data & Analytics",
-  OTHER: "Other",
-};
-
 export function OfferCard({ offer, className }: OfferCardProps): React.JSX.Element {
-  const budget = parseFloat(offer.budget);
+  const budget = parseMoneyAmount(offer.budget);
   const deadline = new Date(offer.deadline).toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
   });
-  const categoryLabel = CATEGORY_MAP[offer.category] || offer.category;
+  const categoryLabel = getCategoryLabel(offer.category);
   const userName = offer.user?.email ? offer.user.email.split("@")[0] : "Client";
   const initials = userName.slice(0, 2).toUpperCase();
 
