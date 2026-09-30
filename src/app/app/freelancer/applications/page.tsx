@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/stores/auth-store";
 import { getMyApplications, withdrawApplication } from "@/lib/api/applications";
-import { Icon, ICON_PATHS, LoadingSpinner } from "@/components/ui/Icon";
+import { LoadingSpinner, ICON_PATHS } from "@/components/ui/Icon";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
+import { ApplicationCard } from "@/components/offers/ApplicationCard";
 import { cn } from "@/lib/cn";
 import type { Application, ApplicationStatus } from "@/types/application.types";
 import { APPLICATION_STATUS_CONFIG } from "@/types/application.types";
@@ -39,18 +39,19 @@ export default function MyApplicationsPage(): React.JSX.Element {
     fetchApplications();
   }, [token, filterStatus]);
 
-  async function handleWithdraw() {
-    if (!token || !withdrawingId) return;
-
-    try {
-      await withdrawApplication(token, withdrawingId);
-      setApplications((prev) => prev.filter((app) => app.id !== withdrawingId));
-    } catch (error) {
-      console.error('Failed to withdraw application:', error);
-    } finally {
-      setWithdrawingId(null);
-    }
-  }
+  const handleWithdraw = useCallback(
+    async (applicationId: string) => {
+      if (!token) return;
+      setWithdrawingId(applicationId);
+      try {
+        await withdrawApplication(token, applicationId);
+        setApplications((prev) => prev.filter((app) => app.id !== applicationId));
+      } finally {
+        setWithdrawingId(null);
+      }
+    },
+    [token]
+  );
 
   if (isLoading) {
     return (
@@ -115,99 +116,17 @@ export default function MyApplicationsPage(): React.JSX.Element {
           />
         ) : (
           <div className="space-y-4">
-            {applications.map((app) => {
-              const statusConfig = APPLICATION_STATUS_CONFIG[app.status];
-              const appliedDate = new Date(app.createdAt).toLocaleDateString('en-US', {
-                month: 'short',
-                day: 'numeric',
-                year: 'numeric',
-              });
-
-              return (
-                <div
-                  key={app.id}
-                  className={cn(
-                    "p-6 rounded-3xl bg-white",
-                    "shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff]"
-                  )}
-                >
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1">
-                      <div className="flex items-start gap-3 mb-2">
-                        <h3 className="text-lg font-semibold text-text-primary flex-1">
-                          {app.offer?.title}
-                        </h3>
-                        <span className={cn("px-3 py-1 rounded-lg text-xs font-medium", statusConfig.bg, statusConfig.color)}>
-                          {statusConfig.label}
-                        </span>
-                      </div>
-
-                      <div className="flex items-center gap-4 text-sm text-text-secondary mb-3">
-                        <span>Budget: ${app.offer?.budget}</span>
-                        <span>•</span>
-                        <span>Applied {appliedDate}</span>
-                        {app.proposedRate && (
-                          <>
-                            <span>•</span>
-                            <span className="text-primary font-medium">Your rate: ${app.proposedRate}</span>
-                          </>
-                        )}
-                      </div>
-
-                      <div
-                        className={cn(
-                          "p-3 rounded-lg bg-background",
-                          "shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]"
-                        )}
-                      >
-                        <p className="text-sm font-medium text-text-primary mb-1">Your Cover Letter:</p>
-                        <p className="text-sm text-text-secondary">{app.coverLetter}</p>
-                      </div>
-
-                      <div className="flex items-center gap-3 mt-4">
-                        <button
-                          onClick={() => router.push(`/marketplace/offers/${app.offerId}`)}
-                          className={cn(
-                            "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium",
-                            "bg-primary text-white hover:bg-primary-hover transition-colors"
-                          )}
-                        >
-                          <Icon path={ICON_PATHS.eye} size="sm" />
-                          View Offer
-                        </button>
-
-                        {app.status === 'PENDING' && (
-                          <button
-                            onClick={() => setWithdrawingId(app.id)}
-                            className={cn(
-                              "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium",
-                              "text-error hover:bg-error/10 transition-colors"
-                            )}
-                          >
-                            <Icon path={ICON_PATHS.close} size="sm" />
-                            Withdraw
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+            {applications.map((app) => (
+              <ApplicationCard
+                key={app.id}
+                application={app}
+                onWithdraw={handleWithdraw}
+                showActions
+              />
+            ))}
           </div>
         )}
       </div>
-
-      {/* Withdraw Confirmation */}
-      <ConfirmationModal
-        isOpen={!!withdrawingId}
-        onClose={() => setWithdrawingId(null)}
-        onConfirm={handleWithdraw}
-        title="Withdraw Application"
-        message="Are you sure you want to withdraw this application? This action cannot be undone."
-        confirmText="Withdraw"
-        variant="warning"
-      />
     </>
   );
 }

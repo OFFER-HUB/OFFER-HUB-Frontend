@@ -7,6 +7,7 @@ import { cn } from "@/lib/cn";
 import { Icon, ICON_PATHS, LoadingSpinner } from "@/components/ui/Icon";
 import { createService } from "@/lib/api/services";
 import { useAuthStore } from "@/stores/auth-store";
+import { ServiceFormField, MinLengthCounter } from "@/components/services/ServiceFormField";
 import {
   NEUMORPHIC_CARD,
   NEUMORPHIC_INPUT,
@@ -23,63 +24,20 @@ import {
   MIN_DELIVERY_DAYS,
   MAX_DELIVERY_DAYS,
 } from "@/data/service.data";
+import {
+  PRICE_PRESETS,
+  DELIVERY_PRESETS,
+  INITIAL_SERVICE_FORM_DATA,
+  validateServiceForm,
+  getServiceFormChecklist,
+  toServiceCategory,
+} from "@/data/service-form.data";
 import type { ServiceFormData, ServiceFormErrors } from "@/types/service.types";
-
-const INITIAL_FORM_DATA: ServiceFormData = {
-  title: "",
-  description: "",
-  category: "",
-  price: 50,
-  deliveryDays: 3,
-};
-
-const PRICE_PRESETS = [25, 50, 100, 250, 500, 1000];
-const DELIVERY_PRESETS = [
-  { days: 1, label: "1 day (Express)" },
-  { days: 3, label: "3 days" },
-  { days: 7, label: "7 days" },
-  { days: 14, label: "14 days" },
-  { days: 30, label: "30 days" },
-];
-
-function validateForm(data: ServiceFormData): ServiceFormErrors {
-  const errors: ServiceFormErrors = {};
-
-  if (!data.title.trim()) {
-    errors.title = "Title is required";
-  } else if (data.title.trim().length < MIN_TITLE_LENGTH) {
-    errors.title = `Title must be at least ${MIN_TITLE_LENGTH} characters`;
-  }
-
-  if (!data.description.trim()) {
-    errors.description = "Description is required";
-  } else if (data.description.trim().length < MIN_DESCRIPTION_LENGTH) {
-    errors.description = `Description must be at least ${MIN_DESCRIPTION_LENGTH} characters`;
-  } else if (data.description.trim().length > MAX_DESCRIPTION_LENGTH) {
-    errors.description = `Description must be less than ${MAX_DESCRIPTION_LENGTH} characters`;
-  }
-
-  if (!data.category) {
-    errors.category = "Please select a category";
-  }
-
-  if (!data.price || data.price < MIN_PRICE) {
-    errors.price = `Price must be at least $${MIN_PRICE}`;
-  }
-
-  if (!data.deliveryDays || data.deliveryDays < MIN_DELIVERY_DAYS) {
-    errors.deliveryDays = `Delivery time must be at least ${MIN_DELIVERY_DAYS} day`;
-  } else if (data.deliveryDays > MAX_DELIVERY_DAYS) {
-    errors.deliveryDays = `Delivery time cannot exceed ${MAX_DELIVERY_DAYS} days`;
-  }
-
-  return errors;
-}
 
 export default function CreateServicePage(): React.JSX.Element {
   const router = useRouter();
   const token = useAuthStore((state) => state.token);
-  const [formData, setFormData] = useState<ServiceFormData>(INITIAL_FORM_DATA);
+  const [formData, setFormData] = useState<ServiceFormData>(INITIAL_SERVICE_FORM_DATA);
   const [errors, setErrors] = useState<ServiceFormErrors>({});
   const [isLoading, setIsLoading] = useState(false);
 
@@ -101,25 +59,14 @@ export default function CreateServicePage(): React.JSX.Element {
   }, [formData.category]);
 
   // Validation checklist
-  const checklist = useMemo(() => {
-    return {
-      title: formData.title.trim().length >= MIN_TITLE_LENGTH,
-      category: Boolean(formData.category),
-      description:
-        formData.description.trim().length >= MIN_DESCRIPTION_LENGTH &&
-        formData.description.trim().length <= MAX_DESCRIPTION_LENGTH,
-      price: formData.price >= MIN_PRICE,
-      delivery: formData.deliveryDays >= MIN_DELIVERY_DAYS && formData.deliveryDays <= MAX_DELIVERY_DAYS,
-    };
-  }, [formData]);
-
+  const checklist = useMemo(() => getServiceFormChecklist(formData), [formData]);
   const allChecksPassed = Object.values(checklist).every(Boolean);
 
   async function handleSubmit(e: React.FormEvent): Promise<void> {
     e.preventDefault();
     setErrors({});
 
-    const validationErrors = validateForm(formData);
+    const validationErrors = validateServiceForm(formData);
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       return;
@@ -136,7 +83,7 @@ export default function CreateServicePage(): React.JSX.Element {
       const payload = {
         title: formData.title.trim(),
         description: formData.description.trim(),
-        category: formData.category as any,
+        category: toServiceCategory(formData.category),
         price: formData.price.toFixed(2),
         deliveryDays: formData.deliveryDays,
       };
@@ -190,22 +137,14 @@ export default function CreateServicePage(): React.JSX.Element {
               </div>
 
               {/* Title Field */}
-              <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <label htmlFor="service-title" className="text-sm font-semibold text-text-primary">
-                    Service Title <span className="text-error">*</span>
-                  </label>
-                  <span
-                    className={cn(
-                      "text-xs font-medium",
-                      formData.title.length < MIN_TITLE_LENGTH
-                        ? "text-text-secondary"
-                        : "text-success"
-                    )}
-                  >
-                    {formData.title.length}/{MIN_TITLE_LENGTH} min chars
-                  </span>
-                </div>
+              <ServiceFormField
+                label="Service Title"
+                htmlFor="service-title"
+                required
+                error={errors.title}
+                aside={<MinLengthCounter length={formData.title.length} minLength={MIN_TITLE_LENGTH} />}
+                hint="Write a clear, concise headline that explicitly communicates what you will deliver."
+              >
                 <input
                   id="service-title"
                   type="text"
@@ -215,17 +154,15 @@ export default function CreateServicePage(): React.JSX.Element {
                   className={cn(NEUMORPHIC_INPUT, errors.title && INPUT_ERROR_STYLES)}
                   placeholder="e.g., Professional Next.js Web Development & Redesign"
                 />
-                {errors.title && <p className="mt-1.5 text-xs text-error font-medium">{errors.title}</p>}
-                <p className="mt-1.5 text-xs text-text-secondary">
-                  Write a clear, concise headline that explicitly communicates what you will deliver.
-                </p>
-              </div>
+              </ServiceFormField>
 
               {/* Category Field */}
-              <div>
-                <label htmlFor="service-category" className="block text-sm font-semibold text-text-primary mb-1.5">
-                  Category <span className="text-error">*</span>
-                </label>
+              <ServiceFormField
+                label="Category"
+                htmlFor="service-category"
+                required
+                error={errors.category}
+              >
                 <div className="relative">
                   <select
                     id="service-category"
@@ -250,8 +187,7 @@ export default function CreateServicePage(): React.JSX.Element {
                     <Icon path={ICON_PATHS.chevronDown} size="sm" />
                   </div>
                 </div>
-                {errors.category && <p className="mt-1.5 text-xs text-error font-medium">{errors.category}</p>}
-              </div>
+              </ServiceFormField>
             </div>
 
             {/* Scope & Description Card */}
@@ -271,11 +207,12 @@ export default function CreateServicePage(): React.JSX.Element {
                 </div>
               </div>
 
-              <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <label htmlFor="service-description" className="text-sm font-semibold text-text-primary">
-                    Detailed Description <span className="text-error">*</span>
-                  </label>
+              <ServiceFormField
+                label="Detailed Description"
+                htmlFor="service-description"
+                required
+                error={errors.description}
+                aside={
                   <span
                     className={cn(
                       "text-xs font-medium",
@@ -288,7 +225,8 @@ export default function CreateServicePage(): React.JSX.Element {
                   >
                     {formData.description.length} / {MIN_DESCRIPTION_LENGTH} min ({MAX_DESCRIPTION_LENGTH} max)
                   </span>
-                </div>
+                }
+              >
                 <textarea
                   id="service-description"
                   name="description"
@@ -302,9 +240,6 @@ export default function CreateServicePage(): React.JSX.Element {
                   )}
                   placeholder="Describe your service in detail:&#10;• What is included in this package?&#10;• What tools and technologies do you use?&#10;• What do you need from the client to get started?"
                 />
-                {errors.description && (
-                  <p className="mt-1.5 text-xs text-error font-medium">{errors.description}</p>
-                )}
                 <div className="mt-3 p-3 rounded-xl bg-background text-xs text-text-secondary space-y-1">
                   <span className="font-semibold text-text-primary flex items-center gap-1.5">
                     <Icon path={ICON_PATHS.infoCircle} size="sm" className="text-primary" />
@@ -314,7 +249,7 @@ export default function CreateServicePage(): React.JSX.Element {
                     Clear bullet points outlining what the buyer will receive help build confidence and reduce revision cycles.
                   </p>
                 </div>
-              </div>
+              </ServiceFormField>
             </div>
 
             {/* Pricing & Timeline Card */}

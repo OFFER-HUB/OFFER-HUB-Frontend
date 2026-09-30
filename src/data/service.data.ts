@@ -19,6 +19,10 @@ export const SERVICE_CATEGORIES: { value: ServiceCategory; label: string }[] = [
   { value: "OTHER", label: "Other" },
 ];
 
+export function getServiceCategoryLabel(value: string): string {
+  return SERVICE_CATEGORIES.find((c) => c.value === value)?.label || value;
+}
+
 export const MOCK_SERVICES: Service[] = [
   {
     id: "1",

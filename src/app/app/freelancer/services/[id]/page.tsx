@@ -6,13 +6,9 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { cn } from "@/lib/cn";
 import { Icon, ICON_PATHS } from "@/components/ui/Icon";
 import { NEUMORPHIC_CARD, PRIMARY_BUTTON, ICON_BUTTON } from "@/lib/styles";
-import {
-  SERVICE_CATEGORIES,
-  ORDER_STATUS_LABELS,
-  ORDER_STATUS_COLORS,
-} from "@/data/service.data";
-import { getChatIdByOrderId } from "@/data/chat.data";
-import { hasClientRating } from "@/data/rating.data";
+import { getServiceCategoryLabel } from "@/data/service.data";
+import { OrderCard } from "@/components/services/OrderCard";
+import { ServiceActions } from "@/components/services/ServiceActions";
 import { RateClientModal } from "@/components/rating";
 import { Toast } from "@/components/ui/Toast";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
@@ -36,10 +32,6 @@ const STATUS_LABELS: Record<ServiceStatus, string> = {
   ARCHIVED: "Archived",
 };
 
-function getCategoryLabel(value: string): string {
-  return SERVICE_CATEGORIES.find((c) => c.value === value)?.label || value;
-}
-
 function formatDate(dateString: string): string {
   return new Date(dateString).toLocaleDateString("en-US", {
     year: "numeric",
@@ -48,182 +40,22 @@ function formatDate(dateString: string): string {
   });
 }
 
-interface OrderCardProps {
-  order: ServiceOrder;
-  onRateClient: (order: ServiceOrder) => void;
-}
+/** Order statuses that count as "in flight" for the Active Orders section. */
+const ACTIVE_ORDER_STATUSES: ReadonlySet<ServiceOrder["status"]> = new Set([
+  "IN_PROGRESS",
+  "DELIVERED",
+  "ORDER_CREATED",
+  "FUNDS_RESERVED",
+  "ESCROW_CREATING",
+  "ESCROW_FUNDING",
+  "ESCROW_FUNDED",
+]);
 
-function OrderCard({ order, onRateClient }: OrderCardProps): React.JSX.Element {
-  const isCompleted = order.status === "completed" || order.status === "delivered";
-  const alreadyRated = hasClientRating(order.id);
-
-  return (
-    <div className="flex items-center justify-between p-4 rounded-xl bg-background">
-      <div className="flex items-center gap-3">
-        <div
-          className={cn(
-            "w-10 h-10 rounded-full flex items-center justify-center",
-            "bg-primary text-white font-semibold text-sm"
-          )}
-        >
-          {order.clientAvatar}
-        </div>
-        <div>
-          <p className="font-medium text-text-primary">{order.clientName}</p>
-          <p className="text-sm text-text-secondary">Ordered {formatDate(order.orderedAt)}</p>
-        </div>
-      </div>
-
-      <div className="flex items-center gap-4">
-        <div className="text-right hidden sm:block">
-          <p className="font-semibold text-text-primary">${order.price}</p>
-          <p className="text-xs text-text-secondary">Due {formatDate(order.deliveryDate)}</p>
-        </div>
-
-        <span
-          className={cn(
-            "px-3 py-1 rounded-full text-xs font-medium",
-            ORDER_STATUS_COLORS[order.status]
-          )}
-        >
-          {ORDER_STATUS_LABELS[order.status]}
-        </span>
-
-        <div className="flex items-center gap-1">
-          {isCompleted &&
-            (alreadyRated ? (
-              <span className={cn("p-2 rounded-lg", "text-success")} title="Client rated">
-                <Icon path={ICON_PATHS.star} size="sm" />
-              </span>
-            ) : (
-              <button
-                type="button"
-                onClick={() => onRateClient(order)}
-                className={cn(
-                  "p-2 rounded-lg",
-                  "text-text-secondary hover:text-warning hover:bg-warning/10",
-                  "transition-colors cursor-pointer"
-                )}
-                title="Rate client"
-              >
-                <Icon path={ICON_PATHS.star} size="sm" />
-              </button>
-            ))}
-
-          <Link
-            href={`/app/chat/${getChatIdByOrderId(order.id)}`}
-            className={cn(
-              "p-2 rounded-lg",
-              "text-text-secondary hover:text-primary hover:bg-primary/10",
-              "transition-colors cursor-pointer"
-            )}
-            title="Chat with client"
-          >
-            <Icon path={ICON_PATHS.chat} size="sm" />
-          </Link>
-
-          {order.hasDispute ? (
-            <Link
-              href={`/app/freelancer/disputes?order=${order.id}`}
-              className={cn(
-                "p-2 rounded-lg",
-                "text-error hover:bg-error/10",
-                "transition-colors cursor-pointer"
-              )}
-              title="View dispute"
-            >
-              <Icon path={ICON_PATHS.flag} size="sm" />
-            </Link>
-          ) : (
-            <Link
-              href={`/app/freelancer/disputes/new?order=${order.id}`}
-              className={cn(
-                "p-2 rounded-lg",
-                "text-text-secondary hover:text-warning hover:bg-warning/10",
-                "transition-colors cursor-pointer"
-              )}
-              title="Open dispute"
-            >
-              <Icon path={ICON_PATHS.flag} size="sm" />
-            </Link>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-interface ServiceActionsProps {
-  service: Service;
-  onStatusChange: (status: ServiceStatus) => void;
-  onDelete: () => void;
-}
-
-function ServiceActions({
-  service,
-  onStatusChange,
-  onDelete,
-}: ServiceActionsProps): React.JSX.Element {
-  return (
-    <div className={NEUMORPHIC_CARD}>
-      <h2 className="text-lg font-semibold text-text-primary mb-4">Actions</h2>
-      <div className="space-y-3">
-        <Link
-          href={`/app/freelancer/services/${service.id}/edit`}
-          className={cn(
-            "flex items-center gap-3 w-full px-4 py-3 rounded-xl",
-            "bg-background text-text-primary",
-            "hover:bg-gray-100 transition-colors cursor-pointer"
-          )}
-        >
-          <Icon path={ICON_PATHS.edit} size="md" />
-          <span className="font-medium">Edit Service</span>
-        </Link>
-
-        {service.status === "ACTIVE" ? (
-          <button
-            type="button"
-            onClick={() => onStatusChange("PAUSED")}
-            className={cn(
-              "flex items-center gap-3 w-full px-4 py-3 rounded-xl",
-              "bg-warning/10 text-warning",
-              "hover:bg-warning/20 transition-colors cursor-pointer"
-            )}
-          >
-            <Icon path={ICON_PATHS.clock} size="md" />
-            <span className="font-medium">Pause Service</span>
-          </button>
-        ) : (
-          <button
-            type="button"
-            onClick={() => onStatusChange("ACTIVE")}
-            className={cn(
-              "flex items-center gap-3 w-full px-4 py-3 rounded-xl",
-              "bg-success/10 text-success",
-              "hover:bg-success/20 transition-colors cursor-pointer"
-            )}
-          >
-            <Icon path={ICON_PATHS.check} size="md" />
-            <span className="font-medium">Activate Service</span>
-          </button>
-        )}
-
-        <button
-          type="button"
-          onClick={onDelete}
-          className={cn(
-            "flex items-center gap-3 w-full px-4 py-3 rounded-xl",
-            "bg-error/10 text-error",
-            "hover:bg-error/20 transition-colors cursor-pointer"
-          )}
-        >
-          <Icon path={ICON_PATHS.trash} size="md" />
-          <span className="font-medium">Delete Service</span>
-        </button>
-      </div>
-    </div>
-  );
-}
+/** Order statuses that count as finished for the Recent Orders section. */
+const COMPLETED_ORDER_STATUSES: ReadonlySet<ServiceOrder["status"]> = new Set([
+  "RELEASED",
+  "CLOSED",
+]);
 
 export default function ServiceDetailsPage({ params }: PageProps): React.JSX.Element {
   const { id } = use(params);
@@ -393,18 +225,8 @@ export default function ServiceDetailsPage({ params }: PageProps): React.JSX.Ele
     );
   }
 
-  const activeOrders = orders.filter((o) =>
-    o.status === "IN_PROGRESS" ||
-    o.status === "DELIVERED" ||
-    o.status === "ORDER_CREATED" ||
-    o.status === "FUNDS_RESERVED" ||
-    o.status === "ESCROW_CREATING" ||
-    o.status === "ESCROW_FUNDING" ||
-    o.status === "ESCROW_FUNDED"
-  );
-  const completedOrders = orders.filter(
-    (o) => o.status === "RELEASED" || o.status === "CLOSED"
-  );
+  const activeOrders = orders.filter((o) => ACTIVE_ORDER_STATUSES.has(o.status));
+  const completedOrders = orders.filter((o) => COMPLETED_ORDER_STATUSES.has(o.status));
 
   return (
     <div className="space-y-4">
@@ -425,7 +247,7 @@ export default function ServiceDetailsPage({ params }: PageProps): React.JSX.Ele
             </span>
           </div>
           <p className="text-text-secondary mt-1">
-            {getCategoryLabel(service.category)} • Created {formatDate(service.createdAt)}
+            {getServiceCategoryLabel(service.category)} • Created {formatDate(service.createdAt)}
           </p>
         </div>
       </div>
@@ -466,40 +288,50 @@ export default function ServiceDetailsPage({ params }: PageProps): React.JSX.Ele
             </div>
           </div>
 
-          {activeOrders.length > 0 && (
-            <div className={NEUMORPHIC_CARD}>
-              <h2 className="text-lg font-semibold text-text-primary mb-4">
-                Active Orders ({activeOrders.length})
-              </h2>
-              <div className="space-y-3">
-                {activeOrders.map((order) => (
-                  <OrderCard key={order.id} order={order} onRateClient={handleRateClient} />
-                ))}
-              </div>
+          {isFetchingOrders ? (
+            <div className={cn(NEUMORPHIC_CARD, "p-6 space-y-3 animate-pulse")}>
+              <div className="h-6 bg-gray-200 rounded w-48" />
+              <div className="h-14 bg-gray-200 rounded" />
+              <div className="h-14 bg-gray-200 rounded" />
             </div>
-          )}
+          ) : (
+            <>
+              {activeOrders.length > 0 && (
+                <div className={NEUMORPHIC_CARD}>
+                  <h2 className="text-lg font-semibold text-text-primary mb-4">
+                    Active Orders ({activeOrders.length})
+                  </h2>
+                  <div className="space-y-3">
+                    {activeOrders.map((order) => (
+                      <OrderCard key={order.id} order={order} onRateClient={handleRateClient} />
+                    ))}
+                  </div>
+                </div>
+              )}
 
-          {completedOrders.length > 0 && (
-            <div className={NEUMORPHIC_CARD}>
-              <h2 className="text-lg font-semibold text-text-primary mb-4">
-                Recent Orders ({completedOrders.length})
-              </h2>
-              <div className="space-y-3">
-                {completedOrders.map((order) => (
-                  <OrderCard key={order.id} order={order} onRateClient={handleRateClient} />
-                ))}
-              </div>
-            </div>
-          )}
+              {completedOrders.length > 0 && (
+                <div className={NEUMORPHIC_CARD}>
+                  <h2 className="text-lg font-semibold text-text-primary mb-4">
+                    Recent Orders ({completedOrders.length})
+                  </h2>
+                  <div className="space-y-3">
+                    {completedOrders.map((order) => (
+                      <OrderCard key={order.id} order={order} onRateClient={handleRateClient} />
+                    ))}
+                  </div>
+                </div>
+              )}
 
-          {orders.length === 0 && (
-            <div className={cn(NEUMORPHIC_CARD, "text-center py-8")}>
-              <Icon path={ICON_PATHS.users} size="xl" className="text-gray-300 mx-auto mb-3" />
-              <h3 className="text-lg font-medium text-text-primary mb-1">No orders yet</h3>
-              <p className="text-text-secondary text-sm">
-                Orders from clients will appear here once they start coming in.
-              </p>
-            </div>
+              {orders.length === 0 && (
+                <div className={cn(NEUMORPHIC_CARD, "text-center py-8")}>
+                  <Icon path={ICON_PATHS.users} size="xl" className="text-gray-300 mx-auto mb-3" />
+                  <h3 className="text-lg font-medium text-text-primary mb-1">No orders yet</h3>
+                  <p className="text-text-secondary text-sm">
+                    Orders from clients will appear here once they start coming in.
+                  </p>
+                </div>
+              )}
+            </>
           )}
         </div>
 
@@ -524,12 +356,8 @@ export default function ServiceDetailsPage({ params }: PageProps): React.JSX.Ele
                 <span className="font-semibold text-text-primary">{activeOrders.length}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-text-secondary">Completion Rate</span>
-                <span className="font-semibold text-success">98%</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-text-secondary">Avg. Response Time</span>
-                <span className="font-semibold text-text-primary">2 hours</span>
+                <span className="text-text-secondary">Completed Orders</span>
+                <span className="font-semibold text-success">{completedOrders.length}</span>
               </div>
             </div>
           </div>

@@ -13,6 +13,8 @@ export interface ApplicationCardProps {
   application: Application;
   onAccept?: (applicationId: string) => Promise<void>;
   onReject?: (applicationId: string) => Promise<void>;
+  /** Enables the freelancer "withdraw my application" action for PENDING items. */
+  onWithdraw?: (applicationId: string) => Promise<void>;
   showActions?: boolean;
 }
 
@@ -20,15 +22,25 @@ export function ApplicationCard({
   application,
   onAccept,
   onReject,
+  onWithdraw,
   showActions = false,
 }: ApplicationCardProps): React.JSX.Element {
   const router = useRouter();
   const [showAcceptModal, setShowAcceptModal] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
+  const [showWithdrawModal, setShowWithdrawModal] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
 
   const statusConfig = APPLICATION_STATUS_CONFIG[application.status];
-  const freelancerName = application.freelancer?.email?.split('@')[0] || 'Anonymous';
+  const isFreelancerView = !onAccept && !onReject;
+
+  // Client view: who applied. Freelancer view: what offer was applied to.
+  const heading = isFreelancerView
+    ? application.offer?.title
+    : (application.freelancer?.email?.split('@')[0] || 'Anonymous');
+  const subheading = isFreelancerView
+    ? undefined
+    : application.freelancer?.email;
   const proposalDate = new Date(application.createdAt).toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
@@ -61,6 +73,22 @@ export function ApplicationCard({
     }
   }
 
+  async function handleWithdraw() {
+    if (!onWithdraw) return;
+    setIsProcessing(true);
+    try {
+      await onWithdraw(application.id);
+      setShowWithdrawModal(false);
+    } catch (error) {
+      console.error('Failed to withdraw application:', error);
+    } finally {
+      setIsProcessing(false);
+    }
+  }
+
+  const canAcceptReject = showActions && !isFreelancerView;
+  const canWithdraw = showActions && isFreelancerView && Boolean(onWithdraw);
+
   return (
     <>
       <div
@@ -77,25 +105,28 @@ export function ApplicationCard({
               "bg-primary text-white font-semibold text-lg"
             )}
           >
-            {freelancerName.charAt(0).toUpperCase()}
+            {(heading || '?').charAt(0).toUpperCase()}
           </div>
 
           <div className="flex-1 min-w-0">
             {/* Header */}
             <div className="flex items-start justify-between gap-2 mb-1">
-              <h3 className="font-medium text-text-primary">{freelancerName}</h3>
-              <span className={cn("px-2 py-1 rounded-lg text-xs font-medium", statusConfig.bg, statusConfig.color)}>
+              <h3 className="font-medium text-text-primary truncate">{heading}</h3>
+              <span className={cn("px-2 py-1 rounded-lg text-xs font-medium shrink-0", statusConfig.bg, statusConfig.color)}>
                 {statusConfig.label}
               </span>
             </div>
 
-            {/* Email */}
-            <p className="text-sm text-text-secondary">{application.freelancer?.email}</p>
+            {/* Email (client view) / Budget (freelancer view) */}
+            {subheading && <p className="text-sm text-text-secondary">{subheading}</p>}
+            {isFreelancerView && application.offer?.budget && (
+              <p className="text-sm text-text-secondary">Budget: ${application.offer.budget}</p>
+            )}
 
             {/* Proposed Rate */}
             {application.proposedRate && (
               <p className="text-sm text-primary font-medium mt-1">
-                Proposed Rate: ${application.proposedRate}
+                {isFreelancerView ? 'Your' : 'Proposed'} Rate: ${application.proposedRate}
               </p>
             )}
 
@@ -109,7 +140,7 @@ export function ApplicationCard({
             </div>
 
             {/* Actions */}
-            {showActions && application.status === 'PENDING' && (
+            {canAcceptReject && application.status === 'PENDING' && (
               <div className="flex items-center gap-2 mt-4">
                 <button
                   onClick={() => setShowAcceptModal(true)}
@@ -141,6 +172,35 @@ export function ApplicationCard({
                 </button>
               </div>
             )}
+
+            {canWithdraw && application.status === 'PENDING' && (
+              <div className="flex items-center gap-2 mt-4">
+                <Link
+                  href={`/marketplace/offers/${application.offerId}`}
+                  className={cn(
+                    "flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium",
+                    "bg-primary text-white hover:opacity-90 transition-all duration-200"
+                  )}
+                >
+                  <Icon path={ICON_PATHS.eye} size="sm" />
+                  View Offer
+                </Link>
+                <button
+                  onClick={() => setShowWithdrawModal(true)}
+                  className={cn(
+                    "flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium",
+                    "bg-white text-error",
+                    "shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]",
+                    "hover:shadow-[2px_2px_4px_#d1d5db,-2px_-2px_4px_#ffffff]",
+                    "active:shadow-[inset_3px_3px_6px_rgba(0,0,0,0.1)]",
+                    "transition-all duration-200"
+                  )}
+                >
+                  <Icon path={ICON_PATHS.close} size="sm" />
+                  Withdraw
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -151,7 +211,7 @@ export function ApplicationCard({
         onClose={() => setShowAcceptModal(false)}
         onConfirm={handleAccept}
         title="Accept Application"
-        message={`Are you sure you want to accept ${freelancerName}'s application? This will notify the freelancer.`}
+        message={`Are you sure you want to accept ${heading}'s application? This will notify the freelancer.`}
         confirmText="Accept"
         variant="info"
         isLoading={isProcessing}
@@ -162,9 +222,20 @@ export function ApplicationCard({
         onClose={() => setShowRejectModal(false)}
         onConfirm={handleReject}
         title="Reject Application"
-        message={`Are you sure you want to reject ${freelancerName}'s application? This action cannot be undone.`}
+        message={`Are you sure you want to reject ${heading}'s application? This action cannot be undone.`}
         confirmText="Reject"
         variant="danger"
+        isLoading={isProcessing}
+      />
+
+      <ConfirmationModal
+        isOpen={showWithdrawModal}
+        onClose={() => setShowWithdrawModal(false)}
+        onConfirm={handleWithdraw}
+        title="Withdraw Application"
+        message="Are you sure you want to withdraw this application? This action cannot be undone."
+        confirmText="Withdraw"
+        variant="warning"
         isLoading={isProcessing}
       />
     </>
