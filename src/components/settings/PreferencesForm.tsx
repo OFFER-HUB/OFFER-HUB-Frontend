@@ -10,7 +10,6 @@ import {
   formatPreferenceTime,
   getAvailableTimezones,
   LANGUAGE_OPTIONS,
-  THEME_OPTIONS,
   TIME_FORMAT_OPTIONS,
 } from "@/lib/preferences";
 import { NEUMORPHIC_CARD, NEUMORPHIC_INPUT } from "@/lib/styles";
@@ -19,6 +18,8 @@ import { usePreferencesStore } from "@/stores/preferences-store";
 import type { UserPreferences } from "@/types/preferences.types";
 import { FormField } from "@/components/ui/FormField";
 import { Icon, ICON_PATHS, LoadingSpinner } from "@/components/ui/Icon";
+import { SelectField } from "@/components/settings/SelectField";
+import { ThemeToggle } from "@/components/settings/ThemeToggle";
 
 type SaveStatus = "idle" | "saving" | "saved" | "error";
 
@@ -35,76 +36,6 @@ const SAVE_MESSAGES: Record<Exclude<SaveStatus, "idle">, string> = {
   saved: "All changes saved",
   error: "We kept your local changes, but remote sync failed",
 };
-
-function SelectField({
-  label,
-  value,
-  onChange,
-  options,
-  hint,
-}: {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  options: Array<{ value: string; label: string }>;
-  hint?: string;
-}): React.JSX.Element {
-  return (
-    <FormField label={label} hint={hint}>
-      <div className="relative">
-        <select
-          value={value}
-          onChange={(event) => onChange(event.target.value)}
-          className={SELECT_STYLES}
-        >
-          {options.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-        <Icon
-          path={ICON_PATHS.chevronDown}
-          size="sm"
-          className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-text-secondary"
-        />
-      </div>
-    </FormField>
-  );
-}
-
-function ThemeToggle({
-  value,
-  onChange,
-}: {
-  value: UserPreferences["theme"];
-  onChange: (value: UserPreferences["theme"]) => void;
-}): React.JSX.Element {
-  return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-      {THEME_OPTIONS.map((option) => {
-        const isActive = option.value === value;
-
-        return (
-          <button
-            key={option.value}
-            type="button"
-            onClick={() => onChange(option.value)}
-            className={cn(
-              "rounded-2xl border p-4 text-left transition-all duration-200",
-              isActive
-                ? "border-primary bg-primary/10 shadow-[inset_2px_2px_4px_rgba(20,154,155,0.12)]"
-                : "border-border-light bg-white shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff] hover:border-primary/30"
-            )}
-          >
-            <p className="font-semibold text-text-primary">{option.label}</p>
-            <p className="mt-1 text-sm text-text-secondary">{option.description}</p>
-          </button>
-        );
-      })}
-    </div>
-  );
-}
 
 export function PreferencesForm(): React.JSX.Element {
   const token = useAuthStore((state) => state.token);
