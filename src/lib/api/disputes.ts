@@ -94,3 +94,36 @@ export async function cancelDispute(
   const apiDispute = unwrapApiResponse<ApiDispute>(json);
   return mapApiDisputeToDispute(apiDispute, currentUserId);
 }
+
+/**
+ * Add a comment to a dispute. `POST /disputes/:id/comments`
+ *
+ * Backend note: the comments endpoint is not implemented on the API yet —
+ * tracked in https://github.com/OFFER-HUB/OFFER-HUB-Frontend/issues/491.
+ * This is a genuine network call, not a local stub; callers surface the
+ * failure to the user instead of manufacturing an optimistic response.
+ */
+export async function addDisputeComment(
+  token: string | null,
+  disputeId: string,
+  content: string,
+  currentUserId?: string
+): Promise<Dispute> {
+  const response = await fetch(`${API_URL}/disputes/${disputeId}/comments`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token ?? ""}`,
+    },
+    body: JSON.stringify({ content }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error?.message || "Failed to add comment");
+  }
+
+  const json = await response.json();
+  const apiDispute = unwrapApiResponse<ApiDispute>(json);
+  return mapApiDisputeToDispute(apiDispute, currentUserId);
+}
