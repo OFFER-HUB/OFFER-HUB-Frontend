@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useAuthStore } from "@/stores/auth-store";
 import { cn } from "@/lib/cn";
@@ -8,6 +8,8 @@ import { Icon, ICON_PATHS } from "@/components/ui/Icon";
 import { useWalletBalance } from "@/hooks/useWalletBalance";
 import { getWalletDashboard, type WalletDashboardData } from "@/lib/api/wallet";
 import { STELLAR_NETWORK } from "@/config/wallet";
+import { formatPct, parseMoney, pctVsPrevious } from "@/lib/earnings-utils";
+import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import {
   BalanceCard,
   BalanceChart,
@@ -16,23 +18,6 @@ import {
   WalletPageSkeleton,
   UsdbTestnetFundingCard,
 } from "@/components/wallet";
-
-function parseMoney(s: string): number {
-  const n = parseFloat(s);
-  return Number.isNaN(n) ? 0 : n;
-}
-
-function pctVsPrevious(current: string, previous: string): number | null {
-  const c = parseMoney(current);
-  const p = parseMoney(previous);
-  if (p === 0) return null;
-  return ((c - p) / p) * 100;
-}
-
-function formatPct(p: number): string {
-  const sign = p > 0 ? "+" : "";
-  return `${sign}${p.toFixed(1)}%`;
-}
 
 export default function WalletPage(): React.JSX.Element {
   const token = useAuthStore((s) => s.token);
@@ -82,43 +67,7 @@ export default function WalletPage(): React.JSX.Element {
     void load();
   }, [token, load, refreshWalletBalance]);
 
-  const pullStart = useRef(0);
-  const pulling = useRef(false);
-
-  useEffect(() => {
-    const el = document.getElementById("main-content");
-    if (!el) return;
-
-    const onStart = (e: TouchEvent) => {
-      if (el.scrollTop <= 0) {
-        pulling.current = true;
-        pullStart.current = e.touches[0].clientY;
-      }
-    };
-
-    const onMove = (e: TouchEvent) => {
-      if (!pulling.current || isRefreshing) return;
-      const dy = e.touches[0].clientY - pullStart.current;
-      if (dy > 72) {
-        pulling.current = false;
-        refresh();
-      }
-    };
-
-    const onEnd = () => {
-      pulling.current = false;
-    };
-
-    el.addEventListener("touchstart", onStart, { passive: true });
-    el.addEventListener("touchmove", onMove, { passive: true });
-    el.addEventListener("touchend", onEnd);
-
-    return () => {
-      el.removeEventListener("touchstart", onStart);
-      el.removeEventListener("touchmove", onMove);
-      el.removeEventListener("touchend", onEnd);
-    };
-  }, [refresh, isRefreshing]);
+  usePullToRefresh(refresh);
 
   // Before hydration the store is empty even for a signed-in user, so an early
   // `!token` would flash the sign-in wall on every reload.

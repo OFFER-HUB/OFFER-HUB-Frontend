@@ -11,35 +11,11 @@ import {
   TransactionHistorySkeleton,
   TransactionList,
 } from "@/components/wallet";
-import type { TransactionFiltersValue } from "@/components/wallet/TransactionFilters";
-import { downloadWalletTransactionsCsv } from "@/components/wallet/transactionsCsv";
-
-const PAGE_SIZE = 8;
-
-const DEFAULT_FILTERS: TransactionFiltersValue = {
-  search: "",
-  types: [],
-  startDate: "",
-  endDate: "",
-  minAmount: "",
-  maxAmount: "",
-  sortBy: "date-desc",
-};
-
-function parseAmount(value: string): number {
-  const amount = Number.parseFloat(value);
-  return Number.isNaN(amount) ? 0 : amount;
-}
-
-function toDateValue(value: string): number {
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? 0 : date.getTime();
-}
-
-function buildExportFilename(): string {
-  const now = new Date();
-  return `offer-hub-wallet-transactions-${now.toISOString().slice(0, 10)}.csv`;
-}
+import {
+  DEFAULT_TRANSACTION_FILTERS,
+  WALLET_TRANSACTION_PAGE_SIZE,
+  useWalletTransactions,
+} from "@/hooks/useWalletTransactions";
 
 export default function WalletTransactionsPage(): React.JSX.Element {
   const token = useAuthStore((state) => state.token);
@@ -48,8 +24,19 @@ export default function WalletTransactionsPage(): React.JSX.Element {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [filters, setFilters] = useState<TransactionFiltersValue>(DEFAULT_FILTERS);
-  const [currentPage, setCurrentPage] = useState(1);
+  const {
+    filters,
+    setFilters,
+    setCurrentPage,
+    filteredTransactions,
+    paginatedTransactions,
+    page,
+    totalPages,
+    creditsCount,
+    debitsCount,
+    reservesCount,
+    exportCsv,
+  } = useWalletTransactions(data);
   const deferredSearch = useDeferredValue(filters.search);
 
   const loadTransactions = useCallback(async (): Promise<void> => {
@@ -97,18 +84,6 @@ export default function WalletTransactionsPage(): React.JSX.Element {
     void loadTransactions();
   }, [loadTransactions]);
 
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [
-    deferredSearch,
-    filters.endDate,
-    filters.maxAmount,
-    filters.minAmount,
-    filters.sortBy,
-    filters.startDate,
-    filters.types,
-  ]);
-
   function refresh(): void {
     if (!token) return;
     setIsRefreshing(true);
@@ -149,7 +124,9 @@ export default function WalletTransactionsPage(): React.JSX.Element {
       return (
         <div className="max-w-lg mx-auto text-center py-16 px-4">
           <Icon path={ICON_PATHS.document} size="xl" className="mx-auto text-text-secondary mb-4" />
-          <h1 className="text-xl font-bold text-text-primary mb-2">Transaction history unavailable</h1>
+          <h1 className="text-xl font-bold text-text-primary mb-2">
+            Transaction history unavailable
+          </h1>
           <p className="text-text-secondary mb-6">{error}</p>
           <button
             type="button"
@@ -162,7 +139,11 @@ export default function WalletTransactionsPage(): React.JSX.Element {
               "disabled:opacity-60 transition-all"
             )}
           >
-            <Icon path={ICON_PATHS.refresh} size="sm" className={cn(isRefreshing && "animate-spin")} />
+            <Icon
+              path={ICON_PATHS.refresh}
+              size="sm"
+              className={cn(isRefreshing && "animate-spin")}
+            />
             Retry
           </button>
         </div>
@@ -172,76 +153,6 @@ export default function WalletTransactionsPage(): React.JSX.Element {
   }
 
   const walletData = data;
-
-  const searchTerm = deferredSearch.trim().toLowerCase();
-  const minAmount = filters.minAmount === "" ? null : Number.parseFloat(filters.minAmount);
-  const maxAmount = filters.maxAmount === "" ? null : Number.parseFloat(filters.maxAmount);
-
-  const filteredTransactions = walletData.transactions
-    .filter((transaction) => {
-      if (filters.types.length > 0 && !filters.types.includes(transaction.type)) {
-        return false;
-      }
-
-      if (searchTerm && !transaction.description.toLowerCase().includes(searchTerm)) {
-        return false;
-      }
-
-      if (filters.startDate && transaction.createdAt.slice(0, 10) < filters.startDate) {
-        return false;
-      }
-
-      if (filters.endDate && transaction.createdAt.slice(0, 10) > filters.endDate) {
-        return false;
-      }
-
-      const amount = parseAmount(transaction.amount);
-      if (minAmount !== null && !Number.isNaN(minAmount) && amount < minAmount) {
-        return false;
-      }
-
-      if (maxAmount !== null && !Number.isNaN(maxAmount) && amount > maxAmount) {
-        return false;
-      }
-
-      return true;
-    })
-    .sort((left, right) => {
-      if (filters.sortBy === "date-asc") {
-        return toDateValue(left.createdAt) - toDateValue(right.createdAt);
-      }
-
-      if (filters.sortBy === "date-desc") {
-        return toDateValue(right.createdAt) - toDateValue(left.createdAt);
-      }
-
-      if (filters.sortBy === "amount-asc") {
-        return parseAmount(left.amount) - parseAmount(right.amount);
-      }
-
-      return parseAmount(right.amount) - parseAmount(left.amount);
-    });
-
-  const totalPages = Math.max(1, Math.ceil(filteredTransactions.length / PAGE_SIZE));
-  const page = Math.min(currentPage, totalPages);
-  const paginatedTransactions = filteredTransactions.slice(
-    (page - 1) * PAGE_SIZE,
-    page * PAGE_SIZE
-  );
-
-  function exportCsv(): void {
-    if (filteredTransactions.length === 0) return;
-    downloadWalletTransactionsCsv(
-      filteredTransactions,
-      walletData.currency,
-      buildExportFilename(),
-      walletData.runningBalanceAvailable
-    );
-  }
-
-  const creditsCount = walletData.transactions.filter((transaction) => transaction.type === "credit").length;
-  const debitsCount = walletData.transactions.filter((transaction) => transaction.type === "debit").length;
-  const reservesCount = walletData.transactions.filter((transaction) => transaction.type === "reserve").length;
 
   return (
     <div className="w-full max-w-7xl mx-auto pb-12 space-y-6 transition-all duration-300 ease-in-out">
@@ -254,7 +165,9 @@ export default function WalletTransactionsPage(): React.JSX.Element {
             <span>/</span>
             <span className="text-text-primary">Transactions</span>
           </div>
-          <h1 className="text-2xl lg:text-3xl font-bold tracking-tight text-text-primary">Transaction history</h1>
+          <h1 className="text-2xl lg:text-3xl font-bold tracking-tight text-text-primary">
+            Transaction history
+          </h1>
           <p className="text-sm text-text-secondary mt-1">
             Review credits, debits, and reserved funds across your wallet
           </p>
@@ -273,12 +186,16 @@ export default function WalletTransactionsPage(): React.JSX.Element {
               "disabled:opacity-60"
             )}
           >
-            <Icon path={ICON_PATHS.refresh} size="sm" className={cn(isRefreshing && "animate-spin")} />
+            <Icon
+              path={ICON_PATHS.refresh}
+              size="sm"
+              className={cn(isRefreshing && "animate-spin")}
+            />
             Refresh
           </button>
           <button
             type="button"
-            onClick={() => exportCsv()}
+            onClick={exportCsv}
             disabled={filteredTransactions.length === 0}
             className={cn(
               "inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-semibold uppercase tracking-wider transition-all duration-200",
@@ -296,19 +213,31 @@ export default function WalletTransactionsPage(): React.JSX.Element {
 
       <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         <div className="p-5 rounded-3xl bg-white shadow-[var(--shadow-neumorphic-light)] dark:shadow-[var(--shadow-neumorphic-dark)] transition-all duration-200">
-          <p className="text-xs font-semibold uppercase tracking-wider text-text-secondary">Total transactions</p>
-          <p className="text-2xl lg:text-3xl font-extrabold text-text-primary mt-2">{walletData.transactions.length}</p>
+          <p className="text-xs font-semibold uppercase tracking-wider text-text-secondary">
+            Total transactions
+          </p>
+          <p className="text-2xl lg:text-3xl font-extrabold text-text-primary mt-2">
+            {walletData.transactions.length}
+          </p>
         </div>
         <div className="p-5 rounded-3xl bg-white shadow-[var(--shadow-neumorphic-light)] dark:shadow-[var(--shadow-neumorphic-dark)] transition-all duration-200">
-          <p className="text-xs font-semibold uppercase tracking-wider text-text-secondary">Credits</p>
+          <p className="text-xs font-semibold uppercase tracking-wider text-text-secondary">
+            Credits
+          </p>
           <p className="text-2xl lg:text-3xl font-extrabold text-success mt-2">{creditsCount}</p>
         </div>
         <div className="p-5 rounded-3xl bg-white shadow-[var(--shadow-neumorphic-light)] dark:shadow-[var(--shadow-neumorphic-dark)] transition-all duration-200">
-          <p className="text-xs font-semibold uppercase tracking-wider text-text-secondary">Debits</p>
-          <p className="text-2xl lg:text-3xl font-extrabold text-text-primary mt-2">{debitsCount}</p>
+          <p className="text-xs font-semibold uppercase tracking-wider text-text-secondary">
+            Debits
+          </p>
+          <p className="text-2xl lg:text-3xl font-extrabold text-text-primary mt-2">
+            {debitsCount}
+          </p>
         </div>
         <div className="p-5 rounded-3xl bg-white shadow-[var(--shadow-neumorphic-light)] dark:shadow-[var(--shadow-neumorphic-dark)] transition-all duration-200">
-          <p className="text-xs font-semibold uppercase tracking-wider text-text-secondary">Reserved</p>
+          <p className="text-xs font-semibold uppercase tracking-wider text-text-secondary">
+            Reserved
+          </p>
           <p className="text-2xl lg:text-3xl font-extrabold text-warning mt-2">{reservesCount}</p>
         </div>
       </section>
@@ -316,7 +245,7 @@ export default function WalletTransactionsPage(): React.JSX.Element {
       <TransactionFilters
         filters={filters}
         onChange={setFilters}
-        onClear={() => setFilters(DEFAULT_FILTERS)}
+        onClear={() => setFilters(DEFAULT_TRANSACTION_FILTERS)}
         resultCount={filteredTransactions.length}
         totalCount={walletData.transactions.length}
       />
@@ -328,7 +257,7 @@ export default function WalletTransactionsPage(): React.JSX.Element {
         currentPage={page}
         totalPages={totalPages}
         totalItems={filteredTransactions.length}
-        pageSize={PAGE_SIZE}
+        pageSize={WALLET_TRANSACTION_PAGE_SIZE}
         onPageChange={setCurrentPage}
       />
     </div>
