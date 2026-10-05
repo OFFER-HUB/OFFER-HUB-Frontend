@@ -6,11 +6,7 @@ import { Icon, ICON_PATHS } from "@/components/ui/Icon";
 import type { MarketplaceOffer } from "@/lib/api/marketplace";
 import { FavoriteButton } from "@/components/favorites/FavoriteButton";
 import { useFavoritesStore } from "@/stores/favorites-store";
-import {
-  getCategoryLabel,
-  parseMoneyAmount,
-  parseAverageRating,
-} from "@/lib/marketplace-helpers";
+import { getCategoryLabel, parseMoneyAmount } from "@/lib/marketplace-helpers";
 
 interface OfferCardProps {
   offer: MarketplaceOffer;

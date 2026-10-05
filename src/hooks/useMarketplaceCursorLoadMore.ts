@@ -1,17 +1,12 @@
 "use client";
 
 import { useCallback, useState } from "react";
-
-export interface CursorPage<T> {
-  data: T[];
-  hasMore: boolean;
-  nextCursor?: string;
-}
+import type { PaginatedResponse } from "@/lib/api/marketplace";
 
 interface UseMarketplaceCursorLoadMoreOptions<T> {
   hasMore: boolean;
   nextCursor: string | undefined;
-  fetchPage: (cursor: string) => Promise<CursorPage<T>>;
+  fetchPage: (cursor: string) => Promise<PaginatedResponse<T>>;
   onAppend: (items: T[]) => void;
   onMetaChange: (meta: { hasMore: boolean; nextCursor?: string }) => void;
   errorMessage?: string;
