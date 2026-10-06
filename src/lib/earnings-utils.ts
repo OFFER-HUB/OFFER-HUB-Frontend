@@ -43,6 +43,10 @@ export function pctChange(current: number, prev: number): number | null {
   return ((current - prev) / prev) * 100;
 }
 
+export function pctVsPrevious(current: string, previous: string): number | null {
+  return pctChange(parseMoney(current), parseMoney(previous));
+}
+
 export function formatPct(p: number): string {
   const sign = p > 0 ? "+" : "";
   return `${sign}${p.toFixed(1)}%`;
