@@ -1,20 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { AuthLayout } from "@/components/auth/AuthLayout";
 import { AuthInput } from "@/components/auth/AuthInput";
 import { WalletConnectModal } from "@/components/wallet/WalletConnectModal";
+import { StepIndicator } from "@/components/onboarding/StepIndicator";
 import { cn } from "@/lib/cn";
-import { updateProfile, ProfileApiError } from "@/lib/api/profile";
-import { useAuthStore, type User } from "@/stores/auth-store";
-import {
-  onboardingStep1Schema,
-  onboardingStep2Schema,
-  type OnboardingAccountType,
-  type OnboardingStep1Values,
-  type OnboardingStep2Values,
-} from "@/types/onboarding.types";
+import { useWalletOnboardingForm } from "@/hooks/useWalletOnboardingForm";
+import type { OnboardingAccountType } from "@/types/onboarding.types";
 
 function truncateAddress(address: string): string {
   return `${address.slice(0, 6)}…${address.slice(-4)}`;
@@ -26,205 +19,27 @@ const ROLE_OPTIONS: ReadonlyArray<{ id: OnboardingAccountType; label: string }> 
   { id: "BOTH",   label: "Both"       },
 ];
 
-type Step1Errors = Partial<Record<keyof OnboardingStep1Values, string>>;
-type Step2Errors = Partial<Record<keyof OnboardingStep2Values, string>>;
-
-function toUserType(value: string): User["type"] {
-  if (value === "BUYER" || value === "SELLER" || value === "BOTH") {
-    return value;
-  }
-  return undefined;
-}
-
-function StepIndicator({ current, total }: { current: number; total: number }) {
-  return (
-    <div className="flex items-center justify-center gap-2 mb-6 h-10">
-      {total < 2 ? null : Array.from({ length: total }, (_, i) => {
-        const s = i + 1;
-        const done = s < current;
-        const active = s === current;
-        return (
-          <div key={s} className="flex items-center gap-2">
-            <div className={cn(
-              "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300",
-              active && "bg-primary text-white shadow-[3px_3px_6px_#d1d5db,-3px_-3px_6px_#ffffff]",
-              done && "bg-primary/20 text-primary",
-              !active && !done && "bg-[#F3F4F6] text-text-secondary shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]",
-            )}>
-              {done ? (
-                <svg viewBox="0 0 16 16" fill="currentColor" className="w-4 h-4">
-                  <path fillRule="evenodd" d="M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                </svg>
-              ) : s}
-            </div>
-            {s < total && (
-              <div className={cn("w-8 h-0.5 rounded-full transition-all duration-300", done ? "bg-primary/40" : "bg-gray-200")} />
-            )}
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
 export function WalletOnboardingForm() {
-  const router = useRouter();
-  const user = useAuthStore((state) => state.user);
-  const token = useAuthStore((state) => state.token);
-  const login = useAuthStore((state) => state.login);
-  // The account's actual linked wallet (backend truth), not the browser
-  // extension's live SWK session (`walletAddress` in the store). That one
-  // persists across whatever OfferHub account is logged in, so a brand new
-  // account with nothing connected could otherwise show a wallet chip left
-  // over from a previous session in the same browser.
-  const walletAddress = user?.wallet?.publicKey ?? null;
-
-  // Email/OAuth accounts typed or picked their username at registration, so
-  // it's locked here. A wallet-first account never chose one at all — the
-  // backend auto-generates it from the public key (see
-  // `findOrCreateUserByWallet`) — so it's editable until they set a real one.
-  const isWalletFirstAccount = walletAddress !== null && !user?.email;
-
-  const [step, setStep] = useState<1 | 2>(1);
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
-
-  const [step1, setStep1] = useState<OnboardingStep1Values>({
-    firstName: "",
-    lastName: "",
-    username: user?.username ?? "",
-    type: "BUYER",
-    country: "",
-    phone: "",
-    email: "",
-  });
-  const [step1Errors, setStep1Errors] = useState<Step1Errors>({});
-
-  const [step2, setStep2] = useState<OnboardingStep2Values>({
-    professionalTitle: "",
-    bio: "",
-  });
-  const [step2Errors, setStep2Errors] = useState<Step2Errors>({});
-
-  const [submitError, setSubmitError] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const needsStep2 = step1.type === "SELLER" || step1.type === "BOTH";
-
-  function handleStep1Change(e: React.ChangeEvent<HTMLInputElement>) {
-    const { name, value } = e.target;
-    const field = name as keyof OnboardingStep1Values;
-    setStep1((prev) => ({ ...prev, [field]: value }));
-    if (step1Errors[field]) setStep1Errors((prev) => ({ ...prev, [field]: undefined }));
-  }
-
-  function handleRoleSelect(type: OnboardingAccountType) {
-    setStep1((prev) => ({ ...prev, type }));
-    if (step1Errors.type) setStep1Errors((prev) => ({ ...prev, type: undefined }));
-  }
-
-  function handleStep2Change(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
-    const { name, value } = e.target;
-    const field = name as keyof OnboardingStep2Values;
-    setStep2((prev) => ({ ...prev, [field]: value }));
-    if (step2Errors[field]) setStep2Errors((prev) => ({ ...prev, [field]: undefined }));
-  }
-
-  function handleStep1Submit(e: React.FormEvent) {
-    e.preventDefault();
-    setSubmitError(null);
-
-    const parsed = onboardingStep1Schema.safeParse(step1);
-    if (!parsed.success) {
-      const errs: Step1Errors = {};
-      for (const issue of parsed.error.issues) {
-        const field = issue.path[0] as keyof OnboardingStep1Values;
-        if (!errs[field]) errs[field] = issue.message;
-      }
-      setStep1Errors(errs);
-      return;
-    }
-
-    if (needsStep2) {
-      setStep(2);
-    } else {
-      void submitAll();
-    }
-  }
-
-  function handleStep2Submit(e: React.FormEvent) {
-    e.preventDefault();
-    setSubmitError(null);
-
-    const parsed = onboardingStep2Schema.safeParse(step2);
-    if (!parsed.success) {
-      const errs: Step2Errors = {};
-      for (const issue of parsed.error.issues) {
-        const field = issue.path[0] as keyof OnboardingStep2Values;
-        if (!errs[field]) errs[field] = issue.message;
-      }
-      setStep2Errors(errs);
-      return;
-    }
-
-    void submitAll();
-  }
-
-  async function submitAll() {
-    if (!token) {
-      setSubmitError("Your session has expired. Please connect your wallet again.");
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      const profile = await updateProfile(token, {
-        firstName: step1.firstName.trim(),
-        lastName: step1.lastName.trim(),
-        username: step1.username.trim(),
-        type: step1.type,
-        location: step1.country.trim() || undefined,
-        phone: step1.phone.trim() || undefined,
-        ...(!user?.email && step1.email?.trim() ? { email: step1.email.trim() } : {}),
-        professionalTitle: step2.professionalTitle.trim() || undefined,
-        bio: step2.bio.trim() || undefined,
-      });
-
-      if (user) {
-        login(
-          {
-            ...user,
-            firstName: profile.firstName,
-            lastName: profile.lastName,
-            username: profile.username ?? step1.username,
-            type: toUserType(profile.type) ?? step1.type,
-          },
-          token,
-        );
-      }
-
-      router.push("/app");
-    } catch (error) {
-      if (error instanceof ProfileApiError) {
-        const code = error.code;
-        if (code === "USERNAME_TAKEN") {
-          setStep(1);
-          setStep1Errors({ username: error.message });
-        } else if (code === "EMAIL_ALREADY_EXISTS") {
-          setStep(1);
-          setStep1Errors({ email: error.message });
-        } else if (code === "VALIDATION_ERROR" && error.message.toLowerCase().includes("phone")) {
-          setStep(1);
-          setStep1Errors({ phone: error.message });
-        } else {
-          setSubmitError(error.message);
-        }
-      } else {
-        setSubmitError("Something went wrong. Please check your connection and try again.");
-      }
-    } finally {
-      setIsSubmitting(false);
-    }
-  }
+  const {
+    user,
+    step,
+    step1,
+    step1Errors,
+    step2,
+    step2Errors,
+    submitError,
+    isSubmitting,
+    needsStep2,
+    walletAddress,
+    isWalletFirstAccount,
+    handleStep1Change,
+    handleRoleSelect,
+    handleStep2Change,
+    handleStep1Submit,
+    handleStep2Submit,
+    goToStep1,
+  } = useWalletOnboardingForm();
 
   const totalSteps = needsStep2 ? 2 : 1;
 
@@ -493,7 +308,7 @@ export function WalletOnboardingForm() {
           <div className="flex gap-3">
             <button
               type="button"
-              onClick={() => setStep(1)}
+              onClick={goToStep1}
               disabled={isSubmitting}
               className={cn(
                 "flex-1 px-6 py-3 rounded-xl font-medium cursor-pointer",
