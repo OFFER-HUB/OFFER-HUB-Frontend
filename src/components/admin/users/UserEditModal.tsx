@@ -3,14 +3,14 @@
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/cn";
 import { Icon, ICON_PATHS, LoadingSpinner } from "@/components/ui/Icon";
-import { NEUMORPHIC_CARD, NEUMORPHIC_INSET, NEUMORPHIC_INPUT } from "@/lib/styles";
+import { NEUMORPHIC_CARD, NEUMORPHIC_INPUT } from "@/lib/styles";
 import { useAdminUserDetail } from "@/hooks/useAdminUserDetail";
+import { UserStatsGrid } from "@/components/admin/users/UserStatsGrid";
 import {
   ADMIN_USER_STATUS_CONFIG,
   ADMIN_USER_ROLE_LABELS,
   adminUserDisplayName,
   type AdminUser,
-  type AdminUserDetail,
   type UpdateAdminUserPayload,
   type AdminUserRole,
 } from "@/types/admin.types";
@@ -61,87 +61,6 @@ export function diffUserPayload(user: AdminUser, form: UserEditFormData): Update
     if (next !== original[key]) payload[key] = next;
   }
   return payload;
-}
-
-// ─── Stats Grid sub-component ─────────────────────────────────────────────────
-
-function StatsGrid({
-  detail,
-  isLoading,
-  error,
-}: {
-  detail: AdminUserDetail | null;
-  isLoading: boolean;
-  error: string | null;
-}) {
-  const statItems = detail
-    ? [
-        {
-          icon: ICON_PATHS.shoppingCart,
-          label: "Orders (bought / sold)",
-          value: `${detail._count.buyerOrders} / ${detail._count.sellerOrders}`,
-        },
-        {
-          icon: ICON_PATHS.check,
-          label: "Completed as seller",
-          value: String(detail.stats.completedOrders),
-        },
-        {
-          icon: ICON_PATHS.currency,
-          label: "Earnings",
-          value: `$${detail.stats.totalEarnings}`,
-        },
-        {
-          icon: ICON_PATHS.star,
-          label: "Rating",
-          value: detail.stats.averageRating ?? "No ratings",
-        },
-        {
-          icon: ICON_PATHS.briefcase,
-          label: "Services",
-          value: String(detail._count.services),
-        },
-        {
-          icon: ICON_PATHS.creditCard,
-          label: "Balance",
-          value: detail.balance
-            ? `${detail.balance.available} ${detail.balance.currency}`
-            : "—",
-        },
-      ]
-    : [];
-
-  return (
-    <div className={cn(NEUMORPHIC_INSET, "rounded-xl p-4")}>
-      <p className="text-xs font-semibold text-text-secondary uppercase tracking-wider mb-3">
-        Statistics
-      </p>
-      {isLoading ? (
-        <div className="flex items-center gap-2 text-xs text-text-secondary">
-          <LoadingSpinner size="sm" />
-          Loading…
-        </div>
-      ) : error ? (
-        <p className="text-xs text-error">{error}</p>
-      ) : (
-        <div className="grid grid-cols-2 gap-3">
-          {statItems.map(({ icon, label, value }) => (
-            <div key={label} className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                <Icon path={icon} size="sm" className="text-primary" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-[10px] text-text-secondary uppercase tracking-wide leading-none mb-0.5">
-                  {label}
-                </p>
-                <p className="text-xs font-semibold text-text-primary truncate">{value}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
 }
 
 // ─── Main Component ───────────────────────────────────────────────────────────
@@ -272,7 +191,10 @@ export function UserEditModal({ isOpen, user, onClose, onSave, onBan }: UserEdit
         {/* Form fields */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
           <div>
-            <label htmlFor="edit-email" className="block text-sm font-medium text-text-primary mb-1.5">
+            <label
+              htmlFor="edit-email"
+              className="block text-sm font-medium text-text-primary mb-1.5"
+            >
               Email
             </label>
             <input
@@ -285,7 +207,10 @@ export function UserEditModal({ isOpen, user, onClose, onSave, onBan }: UserEdit
             />
           </div>
           <div className="relative">
-            <label htmlFor="edit-role" className="block text-sm font-medium text-text-primary mb-1.5">
+            <label
+              htmlFor="edit-role"
+              className="block text-sm font-medium text-text-primary mb-1.5"
+            >
               Role
             </label>
             <select
@@ -293,7 +218,10 @@ export function UserEditModal({ isOpen, user, onClose, onSave, onBan }: UserEdit
               value={form.type}
               onChange={(e) => setForm((f) => ({ ...f, type: e.target.value as AdminUserRole }))}
               disabled={isSubmitting}
-              className={cn(NEUMORPHIC_INPUT, "appearance-none pr-10 cursor-pointer disabled:opacity-50")}
+              className={cn(
+                NEUMORPHIC_INPUT,
+                "appearance-none pr-10 cursor-pointer disabled:opacity-50"
+              )}
             >
               {(Object.keys(ADMIN_USER_ROLE_LABELS) as AdminUserRole[]).map((role) => (
                 <option key={role} value={role}>
@@ -306,7 +234,10 @@ export function UserEditModal({ isOpen, user, onClose, onSave, onBan }: UserEdit
             </span>
           </div>
           <div>
-            <label htmlFor="edit-title" className="block text-sm font-medium text-text-primary mb-1.5">
+            <label
+              htmlFor="edit-title"
+              className="block text-sm font-medium text-text-primary mb-1.5"
+            >
               Professional title
             </label>
             <input
@@ -320,7 +251,10 @@ export function UserEditModal({ isOpen, user, onClose, onSave, onBan }: UserEdit
             />
           </div>
           <div>
-            <label htmlFor="edit-location" className="block text-sm font-medium text-text-primary mb-1.5">
+            <label
+              htmlFor="edit-location"
+              className="block text-sm font-medium text-text-primary mb-1.5"
+            >
               Location
             </label>
             <input
@@ -333,7 +267,10 @@ export function UserEditModal({ isOpen, user, onClose, onSave, onBan }: UserEdit
             />
           </div>
           <div>
-            <label htmlFor="edit-timezone" className="block text-sm font-medium text-text-primary mb-1.5">
+            <label
+              htmlFor="edit-timezone"
+              className="block text-sm font-medium text-text-primary mb-1.5"
+            >
               Timezone
             </label>
             <input
@@ -347,7 +284,10 @@ export function UserEditModal({ isOpen, user, onClose, onSave, onBan }: UserEdit
             />
           </div>
           <div className="sm:col-span-2">
-            <label htmlFor="edit-bio" className="block text-sm font-medium text-text-primary mb-1.5">
+            <label
+              htmlFor="edit-bio"
+              className="block text-sm font-medium text-text-primary mb-1.5"
+            >
               Bio
             </label>
             <textarea
@@ -364,7 +304,7 @@ export function UserEditModal({ isOpen, user, onClose, onSave, onBan }: UserEdit
 
         {/* User statistics */}
         <div className="mb-5">
-          <StatsGrid detail={detail.detail} isLoading={detail.isLoading} error={detail.error} />
+          <UserStatsGrid detail={detail.detail} isLoading={detail.isLoading} error={detail.error} />
         </div>
 
         {/* Error */}
