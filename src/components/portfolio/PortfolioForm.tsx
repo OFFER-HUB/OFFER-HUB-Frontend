@@ -1,11 +1,18 @@
 "use client";
 
-import { useState, useRef, useEffect, KeyboardEvent } from "react";
+import { useState, useEffect } from "react";
 import { cn } from "@/lib/cn";
 import { Icon, ICON_PATHS, LoadingSpinner } from "@/components/ui/Icon";
 import { useAuthStore } from "@/stores/auth-store";
 import { ImageUploader } from "@/components/portfolio/ImageUploader";
 import { ImageGallery } from "@/components/portfolio/ImageGallery";
+import { TagInput } from "@/components/portfolio/TagInput";
+import {
+  usePortfolioForm,
+  isValidUrl,
+  validatePortfolioForm,
+  INITIAL_FORM_DATA,
+} from "@/hooks/usePortfolioForm";
 import {
   NEUMORPHIC_CARD,
   NEUMORPHIC_INPUT,
@@ -18,12 +25,11 @@ import {
   MAX_DESCRIPTION_LENGTH,
   MAX_IMAGES_PER_ITEM,
   MAX_TAGS,
-  MAX_TAG_LENGTH,
   type PortfolioFormData,
-  type PortfolioFormErrors,
   type PortfolioCategory,
-  type PortfolioImageEntry,
 } from "@/types/portfolio.types";
+
+export { isValidUrl, validatePortfolioForm, INITIAL_FORM_DATA };
 
 // ─── Tip content ──────────────────────────────────────────────────────────────
 
@@ -34,64 +40,6 @@ const PORTFOLIO_TIPS = [
   "Tag your projects well to surface them in the right searches.",
   "Public projects are visible on your profile; keep private ones for drafts.",
 ];
-
-// ─── Validation ───────────────────────────────────────────────────────────────
-
-function isValidUrl(url: string): boolean {
-  try {
-    new URL(url);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-export function validatePortfolioForm(data: PortfolioFormData): PortfolioFormErrors {
-  const errors: PortfolioFormErrors = {};
-
-  if (!data.title.trim()) {
-    errors.title = "Title is required";
-  } else if (data.title.length > MAX_TITLE_LENGTH) {
-    errors.title = `Title must be less than ${MAX_TITLE_LENGTH} characters`;
-  }
-
-  if (data.description.length > MAX_DESCRIPTION_LENGTH) {
-    errors.description = `Description must be less than ${MAX_DESCRIPTION_LENGTH} characters`;
-  }
-
-  if (data.projectUrl && !isValidUrl(data.projectUrl)) {
-    errors.projectUrl = "Please enter a valid URL (e.g. https://example.com)";
-  }
-
-  if (data.repoUrl && !isValidUrl(data.repoUrl)) {
-    errors.repoUrl = "Please enter a valid URL (e.g. https://github.com/...)";
-  }
-
-  if (data.startDate && data.endDate && data.endDate < data.startDate) {
-    errors.endDate = "End date must be after start date";
-  }
-
-  if (!data.images || data.images.length === 0) {
-    errors.images = "At least one image is required";
-  }
-
-  return errors;
-}
-
-// ─── Default form data ────────────────────────────────────────────────────────
-
-export const INITIAL_FORM_DATA: PortfolioFormData = {
-  title: "",
-  description: "",
-  category: "web_development",
-  tags: [],
-  images: [],
-  projectUrl: "",
-  repoUrl: "",
-  startDate: "",
-  endDate: "",
-  isPublic: true,
-};
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
@@ -180,85 +128,6 @@ function PreviewPanel({ data }: PreviewPanelProps) {
   );
 }
 
-// ─── Tag input ────────────────────────────────────────────────────────────────
-
-interface TagInputProps {
-  tags: string[];
-  onChange: (tags: string[]) => void;
-  error?: string;
-}
-
-function TagInput({ tags, onChange, error }: TagInputProps) {
-  const [input, setInput] = useState("");
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  function addTag(value: string) {
-    const trimmed = value.trim().replace(/,/g, "");
-    if (!trimmed || tags.length >= MAX_TAGS || tags.includes(trimmed)) return;
-    if (trimmed.length > MAX_TAG_LENGTH) return;
-    onChange([...tags, trimmed]);
-    setInput("");
-  }
-
-  function handleKeyDown(e: KeyboardEvent<HTMLInputElement>) {
-    if (e.key === "Enter" || e.key === ",") {
-      e.preventDefault();
-      addTag(input);
-    } else if (e.key === "Backspace" && !input && tags.length > 0) {
-      onChange(tags.slice(0, -1));
-    }
-  }
-
-  function removeTag(tag: string) {
-    onChange(tags.filter((t) => t !== tag));
-  }
-
-  return (
-    <div>
-      <div
-        className={cn(
-          NEUMORPHIC_INPUT,
-          "flex flex-wrap gap-1.5 cursor-text min-h-[46px] h-auto py-2",
-          error && INPUT_ERROR_STYLES
-        )}
-        onClick={() => inputRef.current?.focus()}
-      >
-        {tags.map((tag) => (
-          <span
-            key={tag}
-            className="flex items-center gap-1 px-2 py-0.5 text-xs rounded-full bg-primary/10 text-primary font-medium"
-          >
-            {tag}
-            <button
-              type="button"
-              onClick={() => removeTag(tag)}
-              className="hover:text-error transition-colors"
-              aria-label={`Remove tag ${tag}`}
-            >
-              <Icon path={ICON_PATHS.close} size="sm" />
-            </button>
-          </span>
-        ))}
-        {tags.length < MAX_TAGS && (
-          <input
-            ref={inputRef}
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            onBlur={() => addTag(input)}
-            placeholder={tags.length === 0 ? "Type a tag and press Enter..." : ""}
-            className="flex-1 min-w-[120px] bg-transparent outline-none text-sm text-text-primary placeholder:text-text-secondary/60"
-          />
-        )}
-      </div>
-      <p className="mt-1 text-xs text-text-secondary">
-        {tags.length}/{MAX_TAGS} tags · Press Enter or comma to add
-      </p>
-    </div>
-  );
-}
-
 // ─── Main form component ──────────────────────────────────────────────────────
 
 export interface PortfolioFormProps {
@@ -277,67 +146,24 @@ export function PortfolioForm({
   onCancel,
 }: PortfolioFormProps): React.JSX.Element {
   const { token } = useAuthStore();
-  const [formData, setFormData] = useState<PortfolioFormData>(initialData);
-  const [errors, setErrors] = useState<PortfolioFormErrors>({});
   const [showPreview, setShowPreview] = useState(false);
   const [activeTip, setActiveTip] = useState(0);
+
+  const {
+    formData,
+    setFormData,
+    errors,
+    handleChange,
+    handleImagesAdded,
+    handleRemoveImage,
+    handleReorder,
+    handleCaptionChange,
+    handleSubmit,
+  } = usePortfolioForm(initialData, onSubmit);
 
   useEffect(() => {
     setActiveTip(Math.floor(Math.random() * PORTFOLIO_TIPS.length));
   }, []);
-
-  function handleChange(
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-  ) {
-    const { name, value, type } = e.target;
-    const checked = (e.target as HTMLInputElement).checked;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
-    if (errors[name as keyof PortfolioFormErrors]) {
-      setErrors((prev) => ({ ...prev, [name]: undefined }));
-    }
-  }
-
-  function handleImagesAdded(entries: PortfolioImageEntry[]) {
-    setFormData((prev) => ({
-      ...prev,
-      images: [...prev.images, ...entries].slice(0, MAX_IMAGES_PER_ITEM),
-    }));
-    if (errors.images) setErrors((e) => ({ ...e, images: undefined }));
-  }
-
-  function handleRemoveImage(index: number) {
-    setFormData((prev) => ({
-      ...prev,
-      images: prev.images.filter((_, i) => i !== index),
-    }));
-  }
-
-  function handleReorder(fromIndex: number, toIndex: number) {
-    setFormData((prev) => {
-      const next = [...prev.images];
-      const [removed] = next.splice(fromIndex, 1);
-      next.splice(toIndex, 0, removed);
-      return { ...prev, images: next };
-    });
-  }
-
-  function handleCaptionChange(index: number, caption: string) {
-    setFormData((prev) => ({
-      ...prev,
-      images: prev.images.map((im, i) => (i === index ? { ...im, caption } : im)),
-    }));
-  }
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    const errs = validatePortfolioForm(formData);
-    setErrors(errs);
-    if (Object.keys(errs).length > 0) return;
-    await onSubmit(formData);
-  }
 
   const FILLED_PRIMARY = cn(
     "px-5 py-2.5 rounded-xl font-medium text-sm flex items-center gap-2",
