@@ -14,12 +14,7 @@ const sizeStyles = {
   full: "max-w-full",
 };
 
-export function Container({
-  children,
-  size = "xl",
-  className,
-  ...props
-}: ContainerProps) {
+export function Container({ children, size = "xl", className, ...props }: ContainerProps) {
   return (
     <div
       className={cn("mx-auto w-full px-4 sm:px-6 lg:px-8", sizeStyles[size], className)}

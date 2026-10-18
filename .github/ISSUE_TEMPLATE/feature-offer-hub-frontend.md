@@ -1,13 +1,12 @@
 ---
 name: Feature OFFER-HUB Frontend
 about: Suggest an idea for this project
-title: ''
-labels: ''
-assignees: ''
-
+title: ""
+labels: ""
+assignees: ""
 ---
 
-## 🔧 Title: 
+## 🔧 Title:
 
 ## 📘 Description
 

@@ -85,8 +85,14 @@ describe("AdminDashboardPage", () => {
     expect(mockReplace).not.toHaveBeenCalled();
     expect(await screen.findByText("Welcome back, Ada Lovelace")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /users/i })).toHaveAttribute("href", "/admin/users");
-    expect(screen.getByRole("link", { name: /disputes/i })).toHaveAttribute("href", "/admin/disputes");
-    expect(screen.getByRole("link", { name: /analytics/i })).toHaveAttribute("href", "/admin/analytics");
+    expect(screen.getByRole("link", { name: /disputes/i })).toHaveAttribute(
+      "href",
+      "/admin/disputes"
+    );
+    expect(screen.getByRole("link", { name: /analytics/i })).toHaveAttribute(
+      "href",
+      "/admin/analytics"
+    );
   });
 
   it("renders the platform stats once analytics data loads", async () => {

@@ -11,7 +11,10 @@ import {
   ReviewRatingStats,
   parseReviewsSearchParams,
 } from "@/components/marketplace/freelancer-reviews";
-import { getPublicFreelancerSummary, getPublicFreelancerReviews } from "@/lib/api/freelancer-public";
+import {
+  getPublicFreelancerSummary,
+  getPublicFreelancerReviews,
+} from "@/lib/api/freelancer-public";
 import { generatePageMetadata, getBreadcrumbSchema, SITE_CONFIG } from "@/lib/seo";
 
 type PageProps = {
@@ -41,10 +44,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 function JsonLd({ data }: { data: object }): React.JSX.Element {
   return (
-    <script
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }}
-    />
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }} />
   );
 }
 
@@ -119,12 +119,18 @@ export default async function PublicFreelancerReviewsPage({
       <Navbar />
       <div className="min-h-screen bg-background">
         <div className="container mx-auto px-4 py-8 max-w-4xl">
-          <nav className="text-sm text-text-secondary mb-6 flex flex-wrap items-center gap-2" aria-label="Breadcrumb">
+          <nav
+            className="text-sm text-text-secondary mb-6 flex flex-wrap items-center gap-2"
+            aria-label="Breadcrumb"
+          >
             <Link href="/marketplace/services" className="hover:text-primary">
               Services
             </Link>
             <span aria-hidden>/</span>
-            <Link href={profileHref} className="hover:text-primary truncate max-w-[12rem] sm:max-w-none">
+            <Link
+              href={profileHref}
+              className="hover:text-primary truncate max-w-[12rem] sm:max-w-none"
+            >
               {summary.displayName}
             </Link>
             <span aria-hidden>/</span>
@@ -172,9 +178,7 @@ export default async function PublicFreelancerReviewsPage({
                     placement="top"
                   />
 
-                  {showHighlights ? (
-                    <ReviewHighlights reviews={reviewsResult.reviews} />
-                  ) : null}
+                  {showHighlights ? <ReviewHighlights reviews={reviewsResult.reviews} /> : null}
 
                   {reviewsResult.reviews.length === 0 ? (
                     <EmptyState
@@ -186,15 +190,17 @@ export default async function PublicFreelancerReviewsPage({
                           ? "Try clearing the star filter or check back later."
                           : "When clients leave feedback, it will show up here."
                       }
-                      linkHref={stars ? `/marketplace/freelancers/${id}/reviews` : "/marketplace/services"}
+                      linkHref={
+                        stars ? `/marketplace/freelancers/${id}/reviews` : "/marketplace/services"
+                      }
                       linkText={stars ? "Show all reviews" : "Browse services"}
                     />
                   ) : (
                     <ReviewList
-  reviews={reviewsResult.reviews}
-  freelancerDisplayName={summary.displayName}
-  freelancerId={id}
-/>
+                      reviews={reviewsResult.reviews}
+                      freelancerDisplayName={summary.displayName}
+                      freelancerId={id}
+                    />
                   )}
 
                   {reviewsResult.totalPages > 0 ? (

@@ -16,12 +16,12 @@ TypeScript strict mode is enabled. All code must be fully typed.
 
 ### Type Safety Rules
 
-| Rule | Requirement |
-|------|-------------|
-| No `any` | Use `unknown` and narrow types |
-| No unused variables | Remove or prefix with `_` |
-| No implicit `any` | Always provide explicit types |
-| Strict null checks | Handle `null` and `undefined` |
+| Rule                | Requirement                    |
+| ------------------- | ------------------------------ |
+| No `any`            | Use `unknown` and narrow types |
+| No unused variables | Remove or prefix with `_`      |
+| No implicit `any`   | Always provide explicit types  |
+| Strict null checks  | Handle `null` and `undefined`  |
 
 ### Avoiding `any` - Critical Rule
 
@@ -46,25 +46,20 @@ function processData(data: unknown) {
 
 #### Alternatives to `any`
 
-| Instead of | Use |
-|------------|-----|
-| `any` | `unknown` + type narrowing |
-| `any[]` | `unknown[]` or generic `T[]` |
-| `Record<string, any>` | `Record<string, unknown>` |
-| `Function` | Specific function signature |
-| `object` | Specific interface or `Record<string, unknown>` |
+| Instead of            | Use                                             |
+| --------------------- | ----------------------------------------------- |
+| `any`                 | `unknown` + type narrowing                      |
+| `any[]`               | `unknown[]` or generic `T[]`                    |
+| `Record<string, any>` | `Record<string, unknown>`                       |
+| `Function`            | Specific function signature                     |
+| `object`              | Specific interface or `Record<string, unknown>` |
 
 #### Type Narrowing Examples
 
 ```typescript
 // Type guard function
 function isUser(value: unknown): value is User {
-  return (
-    typeof value === "object" &&
-    value !== null &&
-    "id" in value &&
-    "email" in value
-  );
+  return typeof value === "object" && value !== null && "id" in value && "email" in value;
 }
 
 // Usage
@@ -107,6 +102,7 @@ This rule is enforced by ESLint:
 ```
 
 PRs with `any` will be rejected unless accompanied by:
+
 1. A comment explaining why it's necessary
 2. A tracking issue for proper typing
 3. Approval from a senior developer
@@ -119,6 +115,7 @@ PRs with `any` will be rejected unless accompanied by:
 ### Exports
 
 Prefer named exports:
+
 ```typescript
 // Correct
 export function formatDate(date: Date): string { ... }
@@ -141,6 +138,7 @@ returns JSX. It must not contain:
 - Inline JSX bodies longer than ~100 lines
 
 **Reference examples (follow these):**
+
 - `src/app/app/client/dashboard/page.tsx` — calls `useClientDashboardData`, renders
   imported components, zero inline business logic.
 - `src/app/app/orders/[id]/page.tsx` — delegates all escrow/signing state to
@@ -152,6 +150,7 @@ hook and move the logic there.
 ### Single-Responsibility Components
 
 A component file may not combine all three of:
+
 - (a) direct API/service calls
 - (b) non-trivial business logic (derived state, validation, multi-step flows)
 - (c) substantial JSX (> ~80 lines)
@@ -160,6 +159,7 @@ If a component needs all three, split it: extract the data-fetching and logic in
 `useX` hook and keep the component as a render-only view.
 
 **Canonical before/after (issue #349):**
+
 - Before: a single component mixing fetch + logic + JSX
 - After: `useSkillsManager.ts` / `useAvailabilityForm.ts` handle state & API calls;
   `SkillsInput.tsx` / `AvailabilitySettings.tsx` render from props
@@ -170,6 +170,7 @@ Any interface or type that represents a **domain entity** (user, order, wallet, 
 service, …) belongs in `src/types/<domain>.types.ts`.
 
 **Never define domain types inline** in:
+
 - Component files
 - Hook files
 - `src/lib/api/*.ts` files (those files import from `src/types/`)
@@ -319,6 +320,7 @@ The app uses a specific scroll system that **MUST NOT be modified**. The layout 
 ### Page Categories
 
 #### Pages that NEED scroll (DEFAULT behavior):
+
 - Dashboard (`/app/freelancer/dashboard`)
 - Disputes list (`/app/freelancer/disputes`)
 - Profile (`/app/freelancer/profile`)
@@ -330,6 +332,7 @@ The app uses a specific scroll system that **MUST NOT be modified**. The layout 
 **DO NOT add `page-full-height` class to these pages.**
 
 #### Pages that should NOT have external scroll:
+
 - Chat/Messages (`/app/chat/[id]`)
 - Any page that displays everything within the viewport and manages its own internal scroll
 
@@ -337,36 +340,34 @@ The app uses a specific scroll system that **MUST NOT be modified**. The layout 
 
 ### Rules for Developers and AI
 
-| Rule | Description |
-|------|-------------|
-| Never remove `app-main-content` | This class enables scroll on the main content area |
-| Never change overflow settings | Do not modify overflow properties in globals.css for these classes |
-| Never add `page-full-height` to scrollable pages | Only use for pages that fill the viewport completely |
-| Always verify scroll | After making changes to any page, verify scroll works correctly |
-| Default is scrollable | When creating new pages, follow the default (scrollable) pattern |
+| Rule                                             | Description                                                        |
+| ------------------------------------------------ | ------------------------------------------------------------------ |
+| Never remove `app-main-content`                  | This class enables scroll on the main content area                 |
+| Never change overflow settings                   | Do not modify overflow properties in globals.css for these classes |
+| Never add `page-full-height` to scrollable pages | Only use for pages that fill the viewport completely               |
+| Always verify scroll                             | After making changes to any page, verify scroll works correctly    |
+| Default is scrollable                            | When creating new pages, follow the default (scrollable) pattern   |
 
 ### Correct Page Structure Examples
 
 **Scrollable page (default - most pages):**
+
 ```tsx
 export default function DashboardPage(): React.JSX.Element {
   return (
-    <div className="space-y-4">
-      {/* Content that may exceed viewport height - WILL SCROLL */}
-    </div>
+    <div className="space-y-4">{/* Content that may exceed viewport height - WILL SCROLL */}</div>
   );
 }
 ```
 
 **Full-height page (no external scroll - only Chat/Messages):**
+
 ```tsx
 export default function ChatPage(): React.JSX.Element {
   return (
     <div className="page-full-height flex flex-col">
       {/* Content that manages its own internal scroll */}
-      <div className="flex-1 overflow-y-auto">
-        {/* Scrollable area inside */}
-      </div>
+      <div className="flex-1 overflow-y-auto">{/* Scrollable area inside */}</div>
     </div>
   );
 }
@@ -375,6 +376,7 @@ export default function ChatPage(): React.JSX.Element {
 ### Warning
 
 This scroll behavior has been broken multiple times. **DO NOT MODIFY** the scroll-related CSS classes or layout structure without explicit approval. If scroll is not working on a page, the issue is likely:
+
 1. Incorrectly added `page-full-height` class
 2. Missing `min-h-0` on flex containers
 3. Conflicting overflow styles
@@ -384,7 +386,8 @@ This scroll behavior has been broken multiple times. **DO NOT MODIFY** the scrol
 - Avoid obvious comments
 - Document "why" not "what"
 - Use JSDoc for public APIs
-- IT IS ESSENTIAL THAT WHEN DESIGNING NEW COMPONENTS OR PAGES,  RESPONSIVE BEHAVIOR IS ENSURED AND PROPERLY IMPLEMENTED. THIS IS A CRITICAL POINT THAT MUST BE ADDRESSED.
+- IT IS ESSENTIAL THAT WHEN DESIGNING NEW COMPONENTS OR PAGES, RESPONSIVE BEHAVIOR IS ENSURED AND PROPERLY IMPLEMENTED. THIS IS A CRITICAL POINT THAT MUST BE ADDRESSED.
+
 ```typescript
 /**
  * Merges class names with Tailwind conflict resolution.

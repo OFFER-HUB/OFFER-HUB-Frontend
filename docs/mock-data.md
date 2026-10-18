@@ -24,10 +24,10 @@ src/
 
 ## File Naming Convention
 
-| Type | Pattern | Example |
-|------|---------|---------|
-| Static data | `{entity}.mock.ts` | `users.mock.ts` |
-| Factories | `{entity}.factory.ts` | `user.factory.ts` |
+| Type         | Pattern                | Example             |
+| ------------ | ---------------------- | ------------------- |
+| Static data  | `{entity}.mock.ts`     | `users.mock.ts`     |
+| Factories    | `{entity}.factory.ts`  | `user.factory.ts`   |
 | MSW handlers | `{entity}.handlers.ts` | `users.handlers.ts` |
 
 ## Static Mock Data
@@ -70,12 +70,12 @@ export const MOCK_USER_EMPTY: User = {
 
 ### Naming Conventions
 
-| Pattern | Usage | Example |
-|---------|-------|---------|
-| `MOCK_{ENTITY}` | Single default item | `MOCK_USER` |
-| `MOCK_{ENTITIES}` | Array of items | `MOCK_USERS` |
-| `MOCK_{ENTITY}_EMPTY` | Empty/default state | `MOCK_USER_EMPTY` |
-| `MOCK_{ENTITY}_{VARIANT}` | Specific variant | `MOCK_USER_ADMIN` |
+| Pattern                   | Usage               | Example           |
+| ------------------------- | ------------------- | ----------------- |
+| `MOCK_{ENTITY}`           | Single default item | `MOCK_USER`       |
+| `MOCK_{ENTITIES}`         | Array of items      | `MOCK_USERS`      |
+| `MOCK_{ENTITY}_EMPTY`     | Empty/default state | `MOCK_USER_EMPTY` |
+| `MOCK_{ENTITY}_{VARIANT}` | Specific variant    | `MOCK_USER_ADMIN` |
 
 ## Data Factories
 

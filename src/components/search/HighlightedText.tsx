@@ -13,7 +13,11 @@ interface HighlightedTextProps {
 /**
  * Highlights occurrences of the search query inside text (case-insensitive).
  */
-export function HighlightedText({ text, query, className }: HighlightedTextProps): React.JSX.Element {
+export function HighlightedText({
+  text,
+  query,
+  className,
+}: HighlightedTextProps): React.JSX.Element {
   const q = query.trim();
   if (!q) {
     return <span className={className}>{text}</span>;

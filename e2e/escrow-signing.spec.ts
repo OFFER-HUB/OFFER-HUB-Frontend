@@ -18,13 +18,20 @@ async function openReleaseFundsModal(page: import("@playwright/test").Page) {
 }
 
 test.describe("D2.1 client-side signing — Release Funds", () => {
-  test("clicking Release Funds opens EscrowSigningModal in awaiting_signature state", async ({ page }) => {
+  test("clicking Release Funds opens EscrowSigningModal in awaiting_signature state", async ({
+    page,
+  }) => {
     await seedSignedInSession(page);
     // Slow enough for the transient "awaiting_signature" state to be reliably observable.
     await seedWalletConfig(page, { signTransactionDelayMs: 1500 });
     await mockOrderApi(page, {
       order: buildOrder(),
-      releasePrepare: { step: "release", signer: "buyer", unsignedXdr: FAKE_XDR, expiresAt: FUTURE_EXPIRY },
+      releasePrepare: {
+        step: "release",
+        signer: "buyer",
+        unsignedXdr: FAKE_XDR,
+        expiresAt: FUTURE_EXPIRY,
+      },
     });
 
     await openReleaseFundsModal(page);
@@ -34,12 +41,19 @@ test.describe("D2.1 client-side signing — Release Funds", () => {
     await expect(dialog.getByText("Check your wallet extension to sign")).toBeVisible();
   });
 
-  test("simulated wallet approval completes the flow and the order status updates", async ({ page }) => {
+  test("simulated wallet approval completes the flow and the order status updates", async ({
+    page,
+  }) => {
     await seedSignedInSession(page);
     await seedWalletConfig(page, {}); // default: approve, no delay
     await mockOrderApi(page, {
       order: buildOrder(),
-      releasePrepare: { step: "release", signer: "buyer", unsignedXdr: FAKE_XDR, expiresAt: FUTURE_EXPIRY },
+      releasePrepare: {
+        step: "release",
+        signer: "buyer",
+        unsignedXdr: FAKE_XDR,
+        expiresAt: FUTURE_EXPIRY,
+      },
     });
 
     await openReleaseFundsModal(page);
@@ -57,7 +71,12 @@ test.describe("D2.1 client-side signing — Release Funds", () => {
     await seedWalletConfig(page, { signTransactionBehavior: "reject" });
     await mockOrderApi(page, {
       order: buildOrder(),
-      releasePrepare: { step: "release", signer: "buyer", unsignedXdr: FAKE_XDR, expiresAt: FUTURE_EXPIRY },
+      releasePrepare: {
+        step: "release",
+        signer: "buyer",
+        unsignedXdr: FAKE_XDR,
+        expiresAt: FUTURE_EXPIRY,
+      },
     });
 
     await openReleaseFundsModal(page);
@@ -69,12 +88,19 @@ test.describe("D2.1 client-side signing — Release Funds", () => {
     await expect(dialog.getByRole("button", { name: "Cancel" })).toBeVisible();
   });
 
-  test("an already-expired XDR shows the expiry message with a retry option (and no cancel)", async ({ page }) => {
+  test("an already-expired XDR shows the expiry message with a retry option (and no cancel)", async ({
+    page,
+  }) => {
     await seedSignedInSession(page);
     await seedWalletConfig(page, {});
     await mockOrderApi(page, {
       order: buildOrder(),
-      releasePrepare: { step: "release", signer: "buyer", unsignedXdr: FAKE_XDR, expiresAt: PAST_EXPIRY },
+      releasePrepare: {
+        step: "release",
+        signer: "buyer",
+        unsignedXdr: FAKE_XDR,
+        expiresAt: PAST_EXPIRY,
+      },
     });
 
     await openReleaseFundsModal(page);
@@ -88,11 +114,18 @@ test.describe("D2.1 client-side signing — Release Funds", () => {
     await expect(dialog.getByRole("button", { name: "Cancel" })).toHaveCount(0);
   });
 
-  test("no wallet connected in this browser session shows WalletConnectModal before any signing starts", async ({ page }) => {
+  test("no wallet connected in this browser session shows WalletConnectModal before any signing starts", async ({
+    page,
+  }) => {
     await seedSignedInSession(page, { swkConnected: false });
     await mockOrderApi(page, {
       order: buildOrder(),
-      releasePrepare: { step: "release", signer: "buyer", unsignedXdr: FAKE_XDR, expiresAt: FUTURE_EXPIRY },
+      releasePrepare: {
+        step: "release",
+        signer: "buyer",
+        unsignedXdr: FAKE_XDR,
+        expiresAt: FUTURE_EXPIRY,
+      },
     });
 
     let prepareCalled = false;
@@ -101,7 +134,14 @@ test.describe("D2.1 client-side signing — Release Funds", () => {
       route.fulfill({
         status: 200,
         contentType: "application/json",
-        body: JSON.stringify({ data: { step: "release", signer: "buyer", unsignedXdr: FAKE_XDR, expiresAt: FUTURE_EXPIRY } }),
+        body: JSON.stringify({
+          data: {
+            step: "release",
+            signer: "buyer",
+            unsignedXdr: FAKE_XDR,
+            expiresAt: FUTURE_EXPIRY,
+          },
+        }),
       });
     });
 

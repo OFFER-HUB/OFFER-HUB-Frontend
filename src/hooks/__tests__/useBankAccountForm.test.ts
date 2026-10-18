@@ -1,6 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
-import { useBankAccountForm, maskCpfOrCnpj, maskAccountNumberByRail } from "@/hooks/useBankAccountForm";
+import {
+  useBankAccountForm,
+  maskCpfOrCnpj,
+  maskAccountNumberByRail,
+} from "@/hooks/useBankAccountForm";
 
 const mockAddBankAccount = vi.fn();
 
@@ -37,7 +41,9 @@ describe("useBankAccountForm — pure masking exports", () => {
   });
 
   it("maskAccountNumberByRail limits CLABE to 18 digits", () => {
-    expect(maskAccountNumberByRail("032180000118359719abc", "SPEI_BITSO")).toBe("032180000118359719");
+    expect(maskAccountNumberByRail("032180000118359719abc", "SPEI_BITSO")).toBe(
+      "032180000118359719"
+    );
   });
 
   it("maskAccountNumberByRail limits CBU/CVU to 22 digits", () => {

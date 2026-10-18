@@ -34,7 +34,11 @@ function authHeaders(token: string): HeadersInit {
 export function unwrapDisputesPage(json: unknown): AdminDisputesPage {
   const outer = (json as { data?: unknown })?.data;
   const inner = outer as { data?: unknown; hasMore?: unknown } | undefined;
-  const disputes = Array.isArray(inner?.data) ? (inner!.data as AdminDispute[]) : Array.isArray(outer) ? (outer as AdminDispute[]) : [];
+  const disputes = Array.isArray(inner?.data)
+    ? (inner!.data as AdminDispute[])
+    : Array.isArray(outer)
+      ? (outer as AdminDispute[])
+      : [];
   return { disputes, hasMore: inner?.hasMore === true };
 }
 
@@ -52,10 +56,16 @@ export function buildAdminDisputesSearchParams(query: AdminDisputesQuery): URLSe
   return params;
 }
 
-export async function getAdminDisputes(token: string, query: AdminDisputesQuery): Promise<AdminDisputesPage> {
-  const response = await fetch(`${API_BASE_URL}/disputes?${buildAdminDisputesSearchParams(query).toString()}`, {
-    headers: authHeaders(token),
-  });
+export async function getAdminDisputes(
+  token: string,
+  query: AdminDisputesQuery
+): Promise<AdminDisputesPage> {
+  const response = await fetch(
+    `${API_BASE_URL}/disputes?${buildAdminDisputesSearchParams(query).toString()}`,
+    {
+      headers: authHeaders(token),
+    }
+  );
 
   if (!response.ok) {
     throw await parseApiError(response, "Failed to fetch disputes");
@@ -77,7 +87,11 @@ export async function getAdminDispute(token: string, disputeId: string): Promise
 }
 
 /** OPEN → UNDER_REVIEW. `assignedTo` is the reviewing admin's user id. */
-export async function assignDispute(token: string, disputeId: string, assignedTo: string): Promise<AdminDispute> {
+export async function assignDispute(
+  token: string,
+  disputeId: string,
+  assignedTo: string
+): Promise<AdminDispute> {
   const response = await fetch(`${API_BASE_URL}/disputes/${disputeId}/assign`, {
     method: "POST",
     headers: authHeaders(token),

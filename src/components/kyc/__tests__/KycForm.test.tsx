@@ -1,7 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { KycForm, cleanLettersOnly, maskTaxId, maskPostalCode, calculateAge } from "@/components/kyc/KycForm";
+import {
+  KycForm,
+  cleanLettersOnly,
+  maskTaxId,
+  maskPostalCode,
+  calculateAge,
+} from "@/components/kyc/KycForm";
 
 const mockSubmitKyc = vi.fn();
 const mockGetProfile = vi.fn();
@@ -19,7 +25,12 @@ vi.mock("@/lib/api/profile", () => ({
 }));
 
 vi.mock("@/stores/auth-store", () => ({
-  useAuthStore: (selector: (s: { token: string | null; user: { firstName?: string; lastName?: string } | null }) => unknown) =>
+  useAuthStore: (
+    selector: (s: {
+      token: string | null;
+      user: { firstName?: string; lastName?: string } | null;
+    }) => unknown
+  ) =>
     selector({
       token: "mock-jwt-token",
       user: { firstName: "Test", lastName: "User" },
@@ -41,7 +52,12 @@ vi.mock("@/components/kyc/KycFileUploadField", () => ({
   }) => (
     <div data-testid={`upload-${label}`}>
       <span>{label}</span>
-      <button type="button" onClick={() => onChange(`https://example.com/${label.replace(/\s+/g, "_").toLowerCase()}.jpg`)}>
+      <button
+        type="button"
+        onClick={() =>
+          onChange(`https://example.com/${label.replace(/\s+/g, "_").toLowerCase()}.jpg`)
+        }
+      >
         Upload {label}
       </button>
       {value && <span data-testid={`value-${label}`}>{value}</span>}
@@ -128,7 +144,9 @@ describe("KycForm Wizard Navigation & Validation", () => {
     await user.type(dobInput, "2020-01-01");
 
     await user.click(screen.getByRole("button", { name: "Continue" }));
-    expect(await screen.findByText("You must be at least 18 years old to complete verification")).toBeInTheDocument();
+    expect(
+      await screen.findByText("You must be at least 18 years old to complete verification")
+    ).toBeInTheDocument();
   });
 
   it("navigates through Brazil flow (4 steps) and submits data", async () => {

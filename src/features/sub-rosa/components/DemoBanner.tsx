@@ -44,8 +44,8 @@ export function DemoBanner(): React.JSX.Element {
           </p>
           <p className="text-sm text-text-secondary mt-1.5 leading-relaxed">
             An exploration of Sub Rosa as an optional sealed-proposal layer. It is not wired to
-            OFFER HUB accounts, offers, payments or escrows, and no contract ID, transaction hash
-            or receipt is claimed anywhere on this page.
+            OFFER HUB accounts, offers, payments or escrows, and no contract ID, transaction hash or
+            receipt is claimed anywhere on this page.
           </p>
         </div>
       </div>

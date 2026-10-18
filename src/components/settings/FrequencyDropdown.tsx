@@ -122,7 +122,9 @@ export function FrequencyDropdown({
                   aria-selected={isSelected}
                 >
                   <span>{option.label}</span>
-                  {isSelected && <Icon path={ICON_PATHS.check} size="sm" className="text-primary" />}
+                  {isSelected && (
+                    <Icon path={ICON_PATHS.check} size="sm" className="text-primary" />
+                  )}
                 </button>
               </li>
             );

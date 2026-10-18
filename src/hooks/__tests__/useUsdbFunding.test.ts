@@ -13,7 +13,8 @@ vi.mock("@creit.tech/stellar-wallets-kit", () => ({
 }));
 
 vi.mock("@/stores/auth-store", () => ({
-  useAuthStore: (selector: (s: { token: string | null }) => unknown) => selector({ token: "jwt-token" }),
+  useAuthStore: (selector: (s: { token: string | null }) => unknown) =>
+    selector({ token: "jwt-token" }),
 }));
 
 let mockAddress: string | null = "GSELLERADDRESSXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";

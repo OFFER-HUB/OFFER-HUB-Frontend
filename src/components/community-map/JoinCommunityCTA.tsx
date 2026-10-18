@@ -29,8 +29,8 @@ export function JoinCommunityCTA() {
               </h2>
 
               <p className="text-text-secondary text-lg mb-8 leading-relaxed">
-                Showcase your location to potential clients and fellow freelancers.
-                Update your profile settings to join our global community map.
+                Showcase your location to potential clients and fellow freelancers. Update your
+                profile settings to join our global community map.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center">

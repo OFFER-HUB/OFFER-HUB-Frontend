@@ -40,12 +40,7 @@ describe("SellerStatusPanel", () => {
 
   it("CLOSED after a release: shows completion, not an empty panel", () => {
     render(
-      <SellerStatusPanel
-        {...BASE_PROPS}
-        status="CLOSED"
-        escrowStatus="RELEASED"
-        isWorkCompleted
-      />
+      <SellerStatusPanel {...BASE_PROPS} status="CLOSED" escrowStatus="RELEASED" isWorkCompleted />
     );
     expect(screen.getByText(/order completed/i)).toBeInTheDocument();
   });
@@ -55,12 +50,7 @@ describe("SellerStatusPanel", () => {
     // payout tracker below it never appears for a refund either, so the
     // freelancer saw a blank "Order Status" card with no explanation.
     render(
-      <SellerStatusPanel
-        {...BASE_PROPS}
-        status="CLOSED"
-        escrowStatus="REFUNDED"
-        isWorkCompleted
-      />
+      <SellerStatusPanel {...BASE_PROPS} status="CLOSED" escrowStatus="REFUNDED" isWorkCompleted />
     );
     expect(screen.getByText(/order refunded/i)).toBeInTheDocument();
     expect(screen.getByText(/no payout applies/i)).toBeInTheDocument();

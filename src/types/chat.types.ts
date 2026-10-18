@@ -43,11 +43,7 @@ export interface SharedFile {
 
 // ─── SSE ───────────────────────────────────────────────────────────────────
 
-export type SSEConnectionStatus =
-  | "connecting"
-  | "connected"
-  | "disconnected"
-  | "error";
+export type SSEConnectionStatus = "connecting" | "connected" | "disconnected" | "error";
 
 export type SSEEventType =
   | "new_message"

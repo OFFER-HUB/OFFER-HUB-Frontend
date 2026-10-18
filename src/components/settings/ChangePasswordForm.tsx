@@ -238,16 +238,32 @@ export function ChangePasswordForm(): React.JSX.Element {
               >
                 <p className="mb-3 text-sm font-medium text-text-primary">Requirements</p>
                 <div className="space-y-2 text-sm">
-                  <p className={cn(passwordChecks.hasMinLength ? "text-success" : "text-text-secondary")}>
+                  <p
+                    className={cn(
+                      passwordChecks.hasMinLength ? "text-success" : "text-text-secondary"
+                    )}
+                  >
                     {passwordChecks.hasMinLength ? "✓" : "○"} {MIN_PASSWORD_LENGTH}+ characters
                   </p>
-                  <p className={cn(passwordChecks.hasUppercase ? "text-success" : "text-text-secondary")}>
+                  <p
+                    className={cn(
+                      passwordChecks.hasUppercase ? "text-success" : "text-text-secondary"
+                    )}
+                  >
                     {passwordChecks.hasUppercase ? "✓" : "○"} Uppercase letter
                   </p>
-                  <p className={cn(passwordChecks.hasLowercase ? "text-success" : "text-text-secondary")}>
+                  <p
+                    className={cn(
+                      passwordChecks.hasLowercase ? "text-success" : "text-text-secondary"
+                    )}
+                  >
                     {passwordChecks.hasLowercase ? "✓" : "○"} Lowercase letter
                   </p>
-                  <p className={cn(passwordChecks.hasNumber ? "text-success" : "text-text-secondary")}>
+                  <p
+                    className={cn(
+                      passwordChecks.hasNumber ? "text-success" : "text-text-secondary"
+                    )}
+                  >
                     {passwordChecks.hasNumber ? "✓" : "○"} Number
                   </p>
                 </div>
@@ -302,11 +318,7 @@ export function ChangePasswordForm(): React.JSX.Element {
       </div>
 
       {toast ? (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          onClose={() => setToast(null)}
-        />
+        <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />
       ) : null}
     </>
   );

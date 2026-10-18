@@ -46,7 +46,12 @@ export interface FreelancerStats {
 
 export interface FreelancerActivity {
   id: string;
-  type: 'order_created' | 'order_completed' | 'payment_received' | 'withdrawal_completed' | 'topup_completed';
+  type:
+    | "order_created"
+    | "order_completed"
+    | "payment_received"
+    | "withdrawal_completed"
+    | "topup_completed";
   title: string;
   description: string;
   createdAt: string;
@@ -56,13 +61,13 @@ export interface FreelancerActivity {
 export async function getFreelancerStats(token: string): Promise<FreelancerStats> {
   const response = await fetch(`${API_BASE_URL}/freelancer/stats`, {
     headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
     },
   });
 
   if (!response.ok) {
-    throw new Error('Failed to fetch freelancer stats');
+    throw new Error("Failed to fetch freelancer stats");
   }
 
   const data = await response.json();
@@ -74,28 +79,36 @@ export async function getDashboardStats(token: string): Promise<DashboardStats> 
     fetch(`${API_BASE_URL}/freelancer/dashboard/stats`, {
       headers: {
         Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
     }),
     getFreelancerEarningsAnalytics(token, currentMonthToDateRange()),
   ]);
 
-  let dashboardData: { stats: Record<string, unknown>; comparison?: Record<string, unknown> } | null = null;
+  let dashboardData: {
+    stats: Record<string, unknown>;
+    comparison?: Record<string, unknown>;
+  } | null = null;
   if (dashboardRes.status === "fulfilled" && dashboardRes.value.ok) {
     const body = await dashboardRes.value.json();
     dashboardData = body.data;
   }
 
   if (!dashboardData && earningsRes.status !== "fulfilled") {
-    throw new Error('Failed to fetch dashboard stats');
+    throw new Error("Failed to fetch dashboard stats");
   }
 
   const stats = dashboardData?.stats ?? {};
-  const comparison = dashboardData?.comparison as { earnings?: { changePercent?: number | null } } | undefined;
+  const comparison = dashboardData?.comparison as
+    | { earnings?: { changePercent?: number | null } }
+    | undefined;
 
   const earnings = earningsRes.status === "fulfilled" ? earningsRes.value : null;
   const earningsTrend = earnings
-    ? computeChangePercent(earnings.currentPeriod.totalEarnings, earnings.previousPeriod.totalEarnings)
+    ? computeChangePercent(
+        earnings.currentPeriod.totalEarnings,
+        earnings.previousPeriod.totalEarnings
+      )
     : (comparison?.earnings?.changePercent ?? null);
 
   return {
@@ -104,7 +117,10 @@ export async function getDashboardStats(token: string): Promise<DashboardStats> 
     totalEarnings: formatCurrencyValue(
       earnings?.totals.thisMonth ?? String(stats.earningsThisMonth ?? "0.00")
     ),
-    rating: stats.averageRating !== null && stats.averageRating !== undefined ? parseFloat(String(stats.averageRating)) : null,
+    rating:
+      stats.averageRating !== null && stats.averageRating !== undefined
+        ? parseFloat(String(stats.averageRating))
+        : null,
     ratingCount: 0,
     activeApplicationsTrend: null,
     activeOrdersTrend: null,
@@ -116,13 +132,13 @@ export async function getDashboardStats(token: string): Promise<DashboardStats> 
 export async function getFreelancerActivities(token: string): Promise<FreelancerActivity[]> {
   const response = await fetch(`${API_BASE_URL}/freelancer/activities`, {
     headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
     },
   });
 
   if (!response.ok) {
-    throw new Error('Failed to fetch freelancer activities');
+    throw new Error("Failed to fetch freelancer activities");
   }
 
   const data = await response.json();

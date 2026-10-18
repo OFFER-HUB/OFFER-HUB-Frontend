@@ -292,8 +292,7 @@ export function BankAccountSelector({
           className={cn(
             ACTION_BUTTON_DEFAULT,
             "w-auto px-4 py-2 text-xs transition-all duration-200",
-            !isKycApproved &&
-              "opacity-50 cursor-not-allowed hover:shadow-none pointer-events-auto"
+            !isKycApproved && "opacity-50 cursor-not-allowed hover:shadow-none pointer-events-auto"
           )}
         >
           <Icon path={isKycApproved ? ICON_PATHS.plus : ICON_PATHS.lock} size="sm" />
@@ -325,9 +324,7 @@ export function BankAccountSelector({
           </div>
 
           <h3 className="text-base font-bold text-text-primary mb-1">
-            {isKycPending
-              ? "Identity verification in review"
-              : "Identity verification required"}
+            {isKycPending ? "Identity verification in review" : "Identity verification required"}
           </h3>
 
           <p className="text-sm text-text-secondary max-w-md mx-auto mb-4">
@@ -393,11 +390,7 @@ export function BankAccountSelector({
         </p>
       )}
 
-      <AddBankAccountModal
-        isOpen={isAddModalOpen}
-        onClose={closeAddModal}
-        onAdded={handleAdded}
-      />
+      <AddBankAccountModal isOpen={isAddModalOpen} onClose={closeAddModal} onAdded={handleAdded} />
 
       <ConfirmationModal
         isOpen={pendingDelete !== null}

@@ -128,7 +128,10 @@ export function ConfirmationModal({
           <h2 id={titleId} className="text-lg font-bold text-text-primary mb-2">
             {title}
           </h2>
-          <div id={descId} className="text-sm text-text-secondary mb-6 break-all [overflow-wrap:anywhere] w-full">
+          <div
+            id={descId}
+            className="text-sm text-text-secondary mb-6 break-all [overflow-wrap:anywhere] w-full"
+          >
             {message}
           </div>
 

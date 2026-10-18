@@ -98,10 +98,7 @@ export function DeleteAccountModal({
 
   return (
     /* Backdrop */
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      role="presentation"
-    >
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="presentation">
       <div
         className="absolute inset-0 bg-black/40 backdrop-blur-sm"
         onClick={onClose}
@@ -129,10 +126,7 @@ export function DeleteAccountModal({
               <Icon path={ICON_PATHS.trash} size="md" className="text-error" />
             </div>
             <div>
-              <h2
-                id="delete-account-title"
-                className="text-lg font-bold text-text-primary"
-              >
+              <h2 id="delete-account-title" className="text-lg font-bold text-text-primary">
                 Delete Account
               </h2>
               <p className="text-xs text-text-secondary">
@@ -160,10 +154,7 @@ export function DeleteAccountModal({
             {/* Warning banner */}
             <div
               id="delete-account-desc"
-              className={cn(
-                "flex gap-3 p-4 rounded-xl",
-                "bg-error/5 border border-error/20"
-              )}
+              className={cn("flex gap-3 p-4 rounded-xl", "bg-error/5 border border-error/20")}
             >
               <Icon
                 path={ICON_PATHS.alertCircle}
@@ -208,8 +199,8 @@ export function DeleteAccountModal({
 
             {/* Recovery info */}
             <p className="text-xs text-text-secondary">
-              <strong>Recovery period:</strong> There is no recovery period — deletion is
-              immediate and permanent upon confirmation.
+              <strong>Recovery period:</strong> There is no recovery period — deletion is immediate
+              and permanent upon confirmation.
             </p>
 
             {/* Actions */}
@@ -321,15 +312,13 @@ export function DeleteAccountModal({
                     "shadow-[inset_1px_1px_2px_#d1d5db,inset_-1px_-1px_2px_#ffffff]"
                   )}
                 >
-                  {understood && (
-                    <Icon path={ICON_PATHS.check} size="sm" className="text-white" />
-                  )}
+                  {understood && <Icon path={ICON_PATHS.check} size="sm" className="text-white" />}
                 </div>
               </div>
               <span className="text-sm text-text-secondary leading-relaxed">
                 I understand that deleting my account is{" "}
-                <strong className="text-text-primary">permanent and cannot be undone</strong>.
-                All my data will be lost.
+                <strong className="text-text-primary">permanent and cannot be undone</strong>. All
+                my data will be lost.
               </span>
             </label>
 

@@ -456,9 +456,14 @@ export default function AdminDisputeDetailPage(): React.JSX.Element | null {
 
             {dispute.status === "OPEN" && (
               <div className="space-y-4">
-                <div className={cn(NEUMORPHIC_INSET, "p-4 rounded-2xl text-xs text-text-secondary leading-relaxed")}>
-                  This dispute is currently unassigned. Take it for review to lock adjudication under
-                  your administrator account.
+                <div
+                  className={cn(
+                    NEUMORPHIC_INSET,
+                    "p-4 rounded-2xl text-xs text-text-secondary leading-relaxed"
+                  )}
+                >
+                  This dispute is currently unassigned. Take it for review to lock adjudication
+                  under your administrator account.
                 </div>
 
                 <button
@@ -485,7 +490,12 @@ export default function AdminDisputeDetailPage(): React.JSX.Element | null {
 
             {dispute.status === "UNDER_REVIEW" && (
               <div className="space-y-4">
-                <div className={cn(NEUMORPHIC_INSET, "p-4 rounded-2xl text-xs text-text-secondary leading-relaxed")}>
+                <div
+                  className={cn(
+                    NEUMORPHIC_INSET,
+                    "p-4 rounded-2xl text-xs text-text-secondary leading-relaxed"
+                  )}
+                >
                   You are currently reviewing this claim. Evaluate the milestone deliverables and
                   evidence before issuing the irrevocable on-chain resolution.
                 </div>

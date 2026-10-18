@@ -69,7 +69,10 @@ export function useUsdbFunding(): UseUsdbFundingResult {
         } else {
           setError({
             code: "API_ERROR",
-            message: toWalletErrorMessage(cause, "Could not sign the transaction. Please try again."),
+            message: toWalletErrorMessage(
+              cause,
+              "Could not sign the transaction. Please try again."
+            ),
           });
         }
         setState("error");
@@ -82,7 +85,10 @@ export function useUsdbFunding(): UseUsdbFundingResult {
       setState("confirmed");
     } catch (cause) {
       const message =
-        cause && typeof cause === "object" && "message" in cause && typeof cause.message === "string"
+        cause &&
+        typeof cause === "object" &&
+        "message" in cause &&
+        typeof cause.message === "string"
           ? cause.message
           : "The request failed. Please try again.";
       setError({ code: "API_ERROR", message });

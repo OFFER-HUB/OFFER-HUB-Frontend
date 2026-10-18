@@ -4,13 +4,7 @@ import { cn } from "@/lib/cn";
 import { useInView } from "@/hooks/useInView";
 import type { ReactNode } from "react";
 
-type AnimationType =
-  | "fade-up"
-  | "fade-down"
-  | "fade-left"
-  | "fade-right"
-  | "scale"
-  | "blur";
+type AnimationType = "fade-up" | "fade-down" | "fade-left" | "fade-right" | "scale" | "blur";
 
 interface AnimatedSectionProps {
   children: ReactNode;
@@ -38,11 +32,11 @@ const animationStyles: Record<AnimationType, { initial: string; animate: string 
     initial: "opacity-0 -translate-x-8",
     animate: "opacity-100 translate-x-0",
   },
-  "scale": {
+  scale: {
     initial: "opacity-0 scale-95",
     animate: "opacity-100 scale-100",
   },
-  "blur": {
+  blur: {
     initial: "opacity-0 blur-sm",
     animate: "opacity-100 blur-0",
   },

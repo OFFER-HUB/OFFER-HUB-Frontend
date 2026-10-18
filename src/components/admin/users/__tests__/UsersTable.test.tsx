@@ -40,7 +40,10 @@ const WALLET_ONLY: AdminUser = {
   email: null,
 };
 
-function renderTable(users: AdminUser[], overrides: Partial<React.ComponentProps<typeof UsersTable>> = {}) {
+function renderTable(
+  users: AdminUser[],
+  overrides: Partial<React.ComponentProps<typeof UsersTable>> = {}
+) {
   const props = {
     users,
     isLoading: false,

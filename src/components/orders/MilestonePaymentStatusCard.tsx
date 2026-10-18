@@ -53,7 +53,10 @@ export function MilestonePaymentStatusCard({
           const released = m.status === "RELEASED";
           const completed = m.status === "COMPLETED";
           return (
-            <li key={m.id} className={cn(NEUMORPHIC_INSET, "p-3 rounded-xl flex items-center gap-3")}>
+            <li
+              key={m.id}
+              className={cn(NEUMORPHIC_INSET, "p-3 rounded-xl flex items-center gap-3")}
+            >
               <span
                 className={cn(
                   "w-7 h-7 rounded-lg flex items-center justify-center shrink-0",
@@ -65,7 +68,9 @@ export function MilestonePaymentStatusCard({
                 )}
               >
                 <Icon
-                  path={released ? ICON_PATHS.currency : completed ? ICON_PATHS.check : ICON_PATHS.clock}
+                  path={
+                    released ? ICON_PATHS.currency : completed ? ICON_PATHS.check : ICON_PATHS.clock
+                  }
                   size="sm"
                 />
               </span>

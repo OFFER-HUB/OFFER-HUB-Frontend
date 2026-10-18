@@ -78,7 +78,10 @@ async function parseEscrowError(response: Response, fallback: string): Promise<E
  * order must be FUNDS_RESERVED with no escrow yet.
  * POST /orders/:id/escrow/prepare
  */
-export async function prepareEscrowCreate(token: string, orderId: string): Promise<PrepareEscrowResult> {
+export async function prepareEscrowCreate(
+  token: string,
+  orderId: string
+): Promise<PrepareEscrowResult> {
   const response = await fetch(`${API_URL}/orders/${orderId}/escrow/prepare`, {
     method: "POST",
     headers: authHeaders(token),
@@ -97,7 +100,10 @@ export async function prepareEscrowCreate(token: string, orderId: string): Promi
  * has been submitted and the contract deployed.
  * POST /orders/:id/escrow/fund/prepare
  */
-export async function prepareEscrowFund(token: string, orderId: string): Promise<PrepareEscrowResult> {
+export async function prepareEscrowFund(
+  token: string,
+  orderId: string
+): Promise<PrepareEscrowResult> {
   const response = await fetch(`${API_URL}/orders/${orderId}/escrow/fund/prepare`, {
     method: "POST",
     headers: authHeaders(token),
@@ -118,7 +124,10 @@ export async function prepareEscrowFund(token: string, orderId: string): Promise
  * `step: null` means the release is done.
  * POST /orders/:orderId/resolution/release/prepare
  */
-export async function prepareReleaseStep(token: string, orderId: string): Promise<PrepareEscrowStepResult> {
+export async function prepareReleaseStep(
+  token: string,
+  orderId: string
+): Promise<PrepareEscrowStepResult> {
   const response = await fetch(`${API_URL}/orders/${orderId}/resolution/release/prepare`, {
     method: "POST",
     headers: authHeaders(token),
@@ -137,7 +146,10 @@ export async function prepareReleaseStep(token: string, orderId: string): Promis
  * from here — the platform signs the resolution server-side.
  * POST /orders/:orderId/resolution/refund/prepare
  */
-export async function prepareRefundStep(token: string, orderId: string): Promise<PrepareEscrowStepResult> {
+export async function prepareRefundStep(
+  token: string,
+  orderId: string
+): Promise<PrepareEscrowStepResult> {
   const response = await fetch(`${API_URL}/orders/${orderId}/resolution/refund/prepare`, {
     method: "POST",
     headers: authHeaders(token),
@@ -155,7 +167,10 @@ export async function prepareRefundStep(token: string, orderId: string): Promise
  * Unsigned transaction that puts the escrow into dispute.
  * POST /orders/:orderId/resolution/dispute/prepare
  */
-export async function prepareDisputeStep(token: string, orderId: string): Promise<PrepareEscrowStepResult> {
+export async function prepareDisputeStep(
+  token: string,
+  orderId: string
+): Promise<PrepareEscrowStepResult> {
   const response = await fetch(`${API_URL}/orders/${orderId}/resolution/dispute/prepare`, {
     method: "POST",
     headers: authHeaders(token),

@@ -24,8 +24,22 @@ export function MessageInput({
   const emojiPickerRef = useRef<HTMLDivElement>(null);
 
   const POPULAR_EMOJIS = [
-    "😀", "😂", "😍", "👍", "🎉", "🔥", "❤️", "🚀",
-    "🤔", "👏", "🙌", "✨", "💯", "😎", "💡", "😢"
+    "😀",
+    "😂",
+    "😍",
+    "👍",
+    "🎉",
+    "🔥",
+    "❤️",
+    "🚀",
+    "🤔",
+    "👏",
+    "🙌",
+    "✨",
+    "💯",
+    "😎",
+    "💡",
+    "😢",
   ];
 
   // Close picker on clicking outside

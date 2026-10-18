@@ -32,15 +32,13 @@ describe("getRangeForPreset", () => {
   it("30d returns a 30-day window ending today", () => {
     const { start, end } = getRangeForPreset("30d");
     expect(end).toBe("2025-09-15");
-    const diffDays =
-      (new Date(end).getTime() - new Date(start).getTime()) / (1000 * 60 * 60 * 24);
+    const diffDays = (new Date(end).getTime() - new Date(start).getTime()) / (1000 * 60 * 60 * 24);
     expect(diffDays).toBe(29);
   });
 
   it("90d returns a 90-day window ending today", () => {
     const { start, end } = getRangeForPreset("90d");
-    const diffDays =
-      (new Date(end).getTime() - new Date(start).getTime()) / (1000 * 60 * 60 * 24);
+    const diffDays = (new Date(end).getTime() - new Date(start).getTime()) / (1000 * 60 * 60 * 24);
     expect(diffDays).toBe(89);
   });
 

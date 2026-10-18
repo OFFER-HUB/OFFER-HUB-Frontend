@@ -25,7 +25,9 @@ function formatUsdc(amount: string): string {
   const n = parseFloat(amount);
   return Number.isNaN(n)
     ? amount
-    : new Intl.NumberFormat("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
+    : new Intl.NumberFormat("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(
+        n
+      );
 }
 
 function formatAvailableBalance(balance: WalletBalanceSummary): string {

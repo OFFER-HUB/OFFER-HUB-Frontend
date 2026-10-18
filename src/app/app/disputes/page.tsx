@@ -138,9 +138,7 @@ function DisputesContent(): React.JSX.Element {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-text-primary">Disputes</h1>
-          <p className="text-text-secondary mt-1">
-            Manage and track your dispute cases
-          </p>
+          <p className="text-text-secondary mt-1">Manage and track your dispute cases</p>
         </div>
         <Link
           href="/app/disputes/new"
@@ -188,10 +186,7 @@ function DisputesContent(): React.JSX.Element {
         {isLoading ? (
           <LoadingState message="Loading disputes..." />
         ) : error ? (
-          <ErrorState
-            message={error}
-            onRetry={() => setRefreshKey((k) => k + 1)}
-          />
+          <ErrorState message={error} onRetry={() => setRefreshKey((k) => k + 1)} />
         ) : disputes.length === 0 ? (
           <EmptyState
             icon={ICON_PATHS.flag}
@@ -216,9 +211,7 @@ function DisputesContent(): React.JSX.Element {
                   disabled={isLoadingMore}
                   className={cn(PRIMARY_BUTTON, "disabled:opacity-50")}
                 >
-                  {isLoadingMore && (
-                    <LoadingSpinner size="sm" className="text-primary" />
-                  )}
+                  {isLoadingMore && <LoadingSpinner size="sm" className="text-primary" />}
                   {isLoadingMore ? "Loading..." : "Load More"}
                 </button>
               </div>

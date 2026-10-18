@@ -7,7 +7,10 @@ export function toLocalISODate(d: Date): string {
   return `${y}-${m}-${day}`;
 }
 
-export function getRangeForPreset(preset: Exclude<PresetId, "custom">): { start: string; end: string } {
+export function getRangeForPreset(preset: Exclude<PresetId, "custom">): {
+  start: string;
+  end: string;
+} {
   const end = new Date();
   const endStr = toLocalISODate(end);
 

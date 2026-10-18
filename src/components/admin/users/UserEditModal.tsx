@@ -104,9 +104,7 @@ function StatsGrid({
         {
           icon: ICON_PATHS.creditCard,
           label: "Balance",
-          value: detail.balance
-            ? `${detail.balance.available} ${detail.balance.currency}`
-            : "—",
+          value: detail.balance ? `${detail.balance.available} ${detail.balance.currency}` : "—",
         },
       ]
     : [];
@@ -272,7 +270,10 @@ export function UserEditModal({ isOpen, user, onClose, onSave, onBan }: UserEdit
         {/* Form fields */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
           <div>
-            <label htmlFor="edit-email" className="block text-sm font-medium text-text-primary mb-1.5">
+            <label
+              htmlFor="edit-email"
+              className="block text-sm font-medium text-text-primary mb-1.5"
+            >
               Email
             </label>
             <input
@@ -285,7 +286,10 @@ export function UserEditModal({ isOpen, user, onClose, onSave, onBan }: UserEdit
             />
           </div>
           <div className="relative">
-            <label htmlFor="edit-role" className="block text-sm font-medium text-text-primary mb-1.5">
+            <label
+              htmlFor="edit-role"
+              className="block text-sm font-medium text-text-primary mb-1.5"
+            >
               Role
             </label>
             <select
@@ -293,7 +297,10 @@ export function UserEditModal({ isOpen, user, onClose, onSave, onBan }: UserEdit
               value={form.type}
               onChange={(e) => setForm((f) => ({ ...f, type: e.target.value as AdminUserRole }))}
               disabled={isSubmitting}
-              className={cn(NEUMORPHIC_INPUT, "appearance-none pr-10 cursor-pointer disabled:opacity-50")}
+              className={cn(
+                NEUMORPHIC_INPUT,
+                "appearance-none pr-10 cursor-pointer disabled:opacity-50"
+              )}
             >
               {(Object.keys(ADMIN_USER_ROLE_LABELS) as AdminUserRole[]).map((role) => (
                 <option key={role} value={role}>
@@ -306,7 +313,10 @@ export function UserEditModal({ isOpen, user, onClose, onSave, onBan }: UserEdit
             </span>
           </div>
           <div>
-            <label htmlFor="edit-title" className="block text-sm font-medium text-text-primary mb-1.5">
+            <label
+              htmlFor="edit-title"
+              className="block text-sm font-medium text-text-primary mb-1.5"
+            >
               Professional title
             </label>
             <input
@@ -320,7 +330,10 @@ export function UserEditModal({ isOpen, user, onClose, onSave, onBan }: UserEdit
             />
           </div>
           <div>
-            <label htmlFor="edit-location" className="block text-sm font-medium text-text-primary mb-1.5">
+            <label
+              htmlFor="edit-location"
+              className="block text-sm font-medium text-text-primary mb-1.5"
+            >
               Location
             </label>
             <input
@@ -333,7 +346,10 @@ export function UserEditModal({ isOpen, user, onClose, onSave, onBan }: UserEdit
             />
           </div>
           <div>
-            <label htmlFor="edit-timezone" className="block text-sm font-medium text-text-primary mb-1.5">
+            <label
+              htmlFor="edit-timezone"
+              className="block text-sm font-medium text-text-primary mb-1.5"
+            >
               Timezone
             </label>
             <input
@@ -347,7 +363,10 @@ export function UserEditModal({ isOpen, user, onClose, onSave, onBan }: UserEdit
             />
           </div>
           <div className="sm:col-span-2">
-            <label htmlFor="edit-bio" className="block text-sm font-medium text-text-primary mb-1.5">
+            <label
+              htmlFor="edit-bio"
+              className="block text-sm font-medium text-text-primary mb-1.5"
+            >
               Bio
             </label>
             <textarea

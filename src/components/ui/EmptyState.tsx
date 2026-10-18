@@ -35,15 +35,10 @@ export function EmptyState({
       >
         <Icon path={icon} size="xl" className="text-text-secondary" ariaHidden />
       </div>
-      {title && (
-        <h3 className="text-lg font-semibold text-text-primary mb-2">{title}</h3>
-      )}
+      {title && <h3 className="text-lg font-semibold text-text-primary mb-2">{title}</h3>}
       <p className="text-text-secondary mb-4">{message}</p>
       {linkHref && linkText && (
-        <Link
-          href={linkHref}
-          className={cn(PRIMARY_BUTTON, "inline-flex items-center gap-2")}
-        >
+        <Link href={linkHref} className={cn(PRIMARY_BUTTON, "inline-flex items-center gap-2")}>
           {linkText}
         </Link>
       )}
@@ -60,11 +55,7 @@ export function EmptyState({
   );
 
   if (variant === "card") {
-    return (
-      <div className={cn(NEUMORPHIC_CARD, "text-center py-8")}>
-        {content}
-      </div>
-    );
+    return <div className={cn(NEUMORPHIC_CARD, "text-center py-8")}>{content}</div>;
   }
 
   return (

@@ -33,11 +33,7 @@ interface DemoErrorProps {
 function DemoError({ message, onRetry }: DemoErrorProps): React.JSX.Element {
   return (
     <div className="max-w-lg mx-auto text-center py-16 px-4">
-      <Icon
-        path={ICON_PATHS.alertCircle}
-        size="xl"
-        className="mx-auto text-text-secondary mb-4"
-      />
+      <Icon path={ICON_PATHS.alertCircle} size="xl" className="mx-auto text-text-secondary mb-4" />
       <h2 className="text-xl font-bold text-text-primary mb-2">Workspace unavailable</h2>
       <p className="text-text-secondary mb-6">{message}</p>
       <Button variant="outline" size="sm" onClick={onRetry}>
@@ -87,9 +83,7 @@ export function SubRosaDemo(): React.JSX.Element {
             <Icon path={ICON_PATHS.lock} size="sm" className="w-3.5 h-3.5" />
             Optional sealed proposals
           </span>
-          <h1 className="text-3xl font-bold text-text-primary mt-3">
-            Sub Rosa on OFFER HUB
-          </h1>
+          <h1 className="text-3xl font-bold text-text-primary mt-3">Sub Rosa on OFFER HUB</h1>
           <p className="text-text-secondary mt-2 max-w-3xl leading-relaxed">
             A walkthrough of what an optional sealed-proposal round would look like: freelancers
             submit privately, everything is revealed together at a shared deadline, and only then

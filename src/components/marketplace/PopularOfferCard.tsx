@@ -56,14 +56,22 @@ export function PopularOfferCard({ offer, onClick }: PopularOfferCardProps) {
             "p-2 rounded-xl transition-all duration-200",
             "shadow-[3px_3px_6px_#d1d5db,-3px_-3px_6px_#ffffff]",
             "hover:shadow-[inset_3px_3px_6px_#d1d5db,inset_-3px_-3px_6px_#ffffff]",
-            offer.isBookmarked
-              ? "text-primary"
-              : "text-text-secondary/40 hover:text-text-secondary"
+            offer.isBookmarked ? "text-primary" : "text-text-secondary/40 hover:text-text-secondary"
           )}
           aria-label={offer.isBookmarked ? "Remove bookmark" : "Add bookmark"}
         >
-          <svg className="h-5 w-5" fill={offer.isBookmarked ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+          <svg
+            className="h-5 w-5"
+            fill={offer.isBookmarked ? "currentColor" : "none"}
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"
+            />
           </svg>
         </button>
       </div>

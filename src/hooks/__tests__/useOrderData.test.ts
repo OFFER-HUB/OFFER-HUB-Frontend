@@ -62,7 +62,7 @@ describe("useOrderData — background polling and manual refresh", () => {
     expect(getOrderById).toHaveBeenCalledTimes(1);
 
     (getOrderById as unknown as ReturnType<typeof vi.fn>).mockResolvedValue(
-      order({ status: "DELIVERED" }),
+      order({ status: "DELIVERED" })
     );
 
     await act(async () => {
@@ -95,7 +95,9 @@ describe("useOrderData — background polling and manual refresh", () => {
   });
 
   it("stops polling once the order is CLOSED — nothing left to refresh", async () => {
-    (getOrderById as unknown as ReturnType<typeof vi.fn>).mockResolvedValue(order({ status: "CLOSED" }));
+    (getOrderById as unknown as ReturnType<typeof vi.fn>).mockResolvedValue(
+      order({ status: "CLOSED" })
+    );
     const { result } = renderHook(() => useOrderData("ord_1"));
     await flush();
 

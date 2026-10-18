@@ -5,12 +5,14 @@ This folder contains manual testing reports submitted by contributors.
 ## Structure
 
 **Single flow per issue:**
+
 ```
 reports/
   Report_FlowName_Issue_42.md
 ```
 
 **Multiple flows per issue:**
+
 ```
 reports/
   issue-42/

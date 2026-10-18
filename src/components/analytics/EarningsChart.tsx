@@ -45,7 +45,8 @@ export function EarningsChart({
         ) : null}
       </div>
       <p className="text-xs text-text-secondary mb-4">
-        Monthly earnings distribution in your selected range. Dashed line indicates monthly goal when set.
+        Monthly earnings distribution in your selected range. Dashed line indicates monthly goal
+        when set.
       </p>
 
       {data.length === 0 ? (

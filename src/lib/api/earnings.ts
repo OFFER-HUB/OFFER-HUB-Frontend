@@ -1,8 +1,5 @@
 import { API_URL } from "@/config/api";
-import type {
-  FreelancerEarningsAnalytics,
-  EarningsAnalyticsParams,
-} from "@/types/earnings.types";
+import type { FreelancerEarningsAnalytics, EarningsAnalyticsParams } from "@/types/earnings.types";
 
 export type {
   EarningsMonthlyPoint,

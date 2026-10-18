@@ -123,19 +123,11 @@ export function NotificationDropdown({
                 "bg-white shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]"
               )}
             >
-              <Icon
-                path={ICON_PATHS.bell}
-                size="md"
-                className="text-text-secondary"
-              />
+              <Icon path={ICON_PATHS.bell} size="md" className="text-text-secondary" />
             </div>
             <div className="text-center">
-              <p className="text-sm font-semibold text-text-primary">
-                You&apos;re all caught up
-              </p>
-              <p className="text-xs text-text-secondary mt-0.5">
-                No notifications yet
-              </p>
+              <p className="text-sm font-semibold text-text-primary">You&apos;re all caught up</p>
+              <p className="text-xs text-text-secondary mt-0.5">No notifications yet</p>
             </div>
           </div>
         ) : (
@@ -172,11 +164,7 @@ export function NotificationDropdown({
           )}
         >
           View all notifications
-          <Icon
-            path={ICON_PATHS.chevronRight}
-            size="sm"
-            className="opacity-70"
-          />
+          <Icon path={ICON_PATHS.chevronRight} size="sm" className="opacity-70" />
         </Link>
       </div>
     </div>

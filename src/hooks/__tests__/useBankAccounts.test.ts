@@ -112,9 +112,7 @@ describe("useBankAccounts — KYC gate", () => {
   });
 
   it("uses the propIsKycApproved override without fetching KYC", async () => {
-    const { result } = renderHook(() =>
-      useBankAccounts({ isKycApproved: true })
-    );
+    const { result } = renderHook(() => useBankAccounts({ isKycApproved: true }));
     // Should not call getMyKyc at all
     expect(mockGetMyKyc).not.toHaveBeenCalled();
     expect(result.current.isKycApproved).toBe(true);
@@ -123,9 +121,7 @@ describe("useBankAccounts — KYC gate", () => {
 
   it("uses the propKycProfile without fetching KYC", async () => {
     const profile = { id: "kyc_1", blindpayTosId: "tos_123" } as import("@/lib/api/kyc").KycProfile;
-    const { result } = renderHook(() =>
-      useBankAccounts({ kycProfile: profile })
-    );
+    const { result } = renderHook(() => useBankAccounts({ kycProfile: profile }));
     expect(mockGetMyKyc).not.toHaveBeenCalled();
     expect(result.current.isKycApproved).toBe(true);
   });
@@ -214,9 +210,7 @@ describe("useBankAccounts — add modal", () => {
       result.current.handleAdded(newDefaultAccount);
     });
 
-    const existingAccount = result.current.accounts?.find(
-      (a) => a.id === "ba_default"
-    );
+    const existingAccount = result.current.accounts?.find((a) => a.id === "ba_default");
     expect(existingAccount?.isDefault).toBe(false);
   });
 });

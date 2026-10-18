@@ -81,19 +81,14 @@ export function ProposalCard({
   return (
     <Card
       padding="md"
-      className={cn(
-        "transition-shadow duration-200",
-        isSelected && "ring-2 ring-primary"
-      )}
+      className={cn("transition-shadow duration-200", isSelected && "ring-2 ring-primary")}
     >
       <div className="flex items-start justify-between gap-3">
         <div>
           <h3 className="text-base font-bold text-text-primary">
             {content ? content.providerName : proposal.label}
           </h3>
-          {content ? (
-            <p className="text-xs text-text-secondary mt-0.5">{proposal.label}</p>
-          ) : null}
+          {content ? <p className="text-xs text-text-secondary mt-0.5">{proposal.label}</p> : null}
         </div>
         <span
           className={cn(

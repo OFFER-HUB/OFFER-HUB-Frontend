@@ -161,7 +161,9 @@ export async function getPayoutStatus(token: string, orderId: string): Promise<P
 
   if (!response.ok) {
     const error = await response.json().catch(() => null);
-    const apiError: PayoutApiError = new Error(error?.error?.message || "Failed to fetch payout status");
+    const apiError: PayoutApiError = new Error(
+      error?.error?.message || "Failed to fetch payout status"
+    );
     apiError.status = response.status;
     throw apiError;
   }
@@ -403,4 +405,3 @@ export async function addOrderProjectNote(
   const data = await response.json();
   return data.data || data;
 }
-

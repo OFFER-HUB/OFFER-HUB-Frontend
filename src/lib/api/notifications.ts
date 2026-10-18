@@ -1,8 +1,5 @@
 import { httpGet, httpPatch } from "@/services/http-client";
-import type {
-  NotificationsResponse,
-  MarkReadPayload,
-} from "@/types/notification.types";
+import type { NotificationsResponse, MarkReadPayload } from "@/types/notification.types";
 import type { ApiResponse } from "@/types/api-response.types";
 
 const BASE = "/notifications";
@@ -22,9 +19,7 @@ export async function getNotifications(
 /**
  * Mark one or more notifications as read.
  */
-export async function markNotificationsRead(
-  notificationIds: string[]
-): Promise<ApiResponse<null>> {
+export async function markNotificationsRead(notificationIds: string[]): Promise<ApiResponse<null>> {
   const payload: MarkReadPayload = { notificationIds };
   return httpPatch<null>(`${BASE}/read`, payload);
 }

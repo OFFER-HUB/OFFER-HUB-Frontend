@@ -29,7 +29,12 @@ function TableRowSkeleton() {
     <tr className="border-t border-gray-100 animate-pulse">
       {Array.from({ length: COLUMN_COUNT }).map((_, i) => (
         <td key={i} className="px-4 py-4">
-          <div className={cn("h-4 rounded bg-gray-200", i === 0 ? "w-40" : i === COLUMN_COUNT - 1 ? "w-8" : "w-20")} />
+          <div
+            className={cn(
+              "h-4 rounded bg-gray-200",
+              i === 0 ? "w-40" : i === COLUMN_COUNT - 1 ? "w-8" : "w-20"
+            )}
+          />
         </td>
       ))}
     </tr>
@@ -39,7 +44,13 @@ function TableRowSkeleton() {
 export function StatusBadge({ status }: { status: AdminDispute["status"] }) {
   const cfg = ADMIN_DISPUTE_STATUS_CONFIG[status];
   return (
-    <span className={cn("text-xs font-semibold px-2 py-1 rounded-full whitespace-nowrap", cfg.color, cfg.bg)}>
+    <span
+      className={cn(
+        "text-xs font-semibold px-2 py-1 rounded-full whitespace-nowrap",
+        cfg.color,
+        cfg.bg
+      )}
+    >
       {cfg.label}
     </span>
   );
@@ -86,8 +97,12 @@ export function DisputesTable({ disputes, isLoading, onViewDetail }: DisputesTab
                 onClick={() => onViewDetail(dispute)}
               >
                 <td className="px-4 py-3">
-                  <p className="text-sm font-semibold text-text-primary truncate max-w-[260px]">{dispute.order.title}</p>
-                  <p className="text-xs text-text-secondary font-mono truncate max-w-[260px]">{dispute.order.id}</p>
+                  <p className="text-sm font-semibold text-text-primary truncate max-w-[260px]">
+                    {dispute.order.title}
+                  </p>
+                  <p className="text-xs text-text-secondary font-mono truncate max-w-[260px]">
+                    {dispute.order.id}
+                  </p>
                 </td>
                 <td className="px-4 py-3 text-xs">
                   <p className="text-text-primary truncate max-w-[220px]">

@@ -56,8 +56,7 @@ export function SearchResults({
   onLoadMore,
   counts,
 }: SearchResultsProps): React.JSX.Element {
-  const tabLabel =
-    tab === "offers" ? "Offers" : tab === "services" ? "Services" : "Freelancers";
+  const tabLabel = tab === "offers" ? "Offers" : tab === "services" ? "Services" : "Freelancers";
   const visibleCount =
     tab === "offers" ? offers.length : tab === "services" ? services.length : freelancers.length;
   const totalForTab =
@@ -76,12 +75,7 @@ export function SearchResults({
           {" · "}
           Showing {visibleCount}
           {totalForTab !== visibleCount ? ` of ${totalForTab} loaded` : ""}
-          {query ? (
-            <>
-              {" "}
-              for &ldquo;{query}&rdquo;
-            </>
-          ) : null}
+          {query ? <> for &ldquo;{query}&rdquo;</> : null}
         </p>
         <div className="flex flex-wrap items-center gap-2">
           <label className="text-xs text-text-secondary sr-only" htmlFor="search-sort">

@@ -23,7 +23,9 @@ export function buildFreelancerReviewsQuery(params: {
   return s ? `?${s}` : "";
 }
 
-export function parseReviewsSearchParams(searchParams: Record<string, string | string[] | undefined>): {
+export function parseReviewsSearchParams(
+  searchParams: Record<string, string | string[] | undefined>
+): {
   sort: PublicReviewSort;
   stars?: number;
   page: number;

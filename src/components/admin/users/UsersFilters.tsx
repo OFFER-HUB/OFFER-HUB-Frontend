@@ -4,7 +4,11 @@ import { useEffect, useState } from "react";
 import { cn } from "@/lib/cn";
 import { Icon, ICON_PATHS } from "@/components/ui/Icon";
 import { NEUMORPHIC_INPUT, ICON_BUTTON } from "@/lib/styles";
-import type { AdminUsersFilters, AdminUserStatusFilter, AdminUserRoleFilter } from "@/types/admin.types";
+import type {
+  AdminUsersFilters,
+  AdminUserStatusFilter,
+  AdminUserRoleFilter,
+} from "@/types/admin.types";
 
 export interface UsersFiltersProps {
   filters: AdminUsersFilters;
@@ -89,11 +93,10 @@ export function UsersFilters({ filters, onFiltersChange, className }: UsersFilte
       <div className="relative w-full sm:w-auto">
         <select
           value={filters.status}
-          onChange={(e) => onFiltersChange({ ...filters, status: e.target.value as AdminUserStatusFilter })}
-          className={cn(
-            NEUMORPHIC_INPUT,
-            "appearance-none pr-10 cursor-pointer min-w-[140px]"
-          )}
+          onChange={(e) =>
+            onFiltersChange({ ...filters, status: e.target.value as AdminUserStatusFilter })
+          }
+          className={cn(NEUMORPHIC_INPUT, "appearance-none pr-10 cursor-pointer min-w-[140px]")}
           aria-label="Filter by status"
         >
           <option value="ALL">All Statuses</option>
@@ -110,11 +113,10 @@ export function UsersFilters({ filters, onFiltersChange, className }: UsersFilte
       <div className="relative w-full sm:w-auto">
         <select
           value={filters.role}
-          onChange={(e) => onFiltersChange({ ...filters, role: e.target.value as AdminUserRoleFilter })}
-          className={cn(
-            NEUMORPHIC_INPUT,
-            "appearance-none pr-10 cursor-pointer min-w-[130px]"
-          )}
+          onChange={(e) =>
+            onFiltersChange({ ...filters, role: e.target.value as AdminUserRoleFilter })
+          }
+          className={cn(NEUMORPHIC_INPUT, "appearance-none pr-10 cursor-pointer min-w-[130px]")}
           aria-label="Filter by role"
         >
           <option value="ALL">All Roles</option>

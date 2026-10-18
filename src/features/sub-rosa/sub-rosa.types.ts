@@ -14,11 +14,7 @@
  * and `revealed` is reached by permissionless reveal transactions. Here both
  * are driven by the operator buttons in `RoundControls`.
  */
-export type RoundPhase =
-  | "collecting"
-  | "deadline_reached"
-  | "revealed"
-  | "provider_selected";
+export type RoundPhase = "collecting" | "deadline_reached" | "revealed" | "provider_selected";
 
 /** The job a round is opened for. Owned by OFFER HUB, not by Sub Rosa. */
 export interface SealedJob {

@@ -87,7 +87,9 @@ export function SearchSuggestions({
                 onClick={() => onSelect(item)}
                 className={cn(
                   "w-full flex items-center gap-3 px-3 py-2.5 text-left text-sm transition-colors rounded-lg mx-1",
-                  isActive ? "bg-primary/10 text-text-primary" : "text-text-primary hover:bg-background"
+                  isActive
+                    ? "bg-primary/10 text-text-primary"
+                    : "text-text-primary hover:bg-background"
                 )}
               >
                 <span

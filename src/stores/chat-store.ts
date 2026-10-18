@@ -14,7 +14,7 @@ const READ_BATCH_DEBOUNCE_MS = 350;
 const readBatchTimers: Record<string, ReturnType<typeof setTimeout> | undefined> = {};
 const readBatchLastMessageId: Record<string, string | undefined> = {};
 
-function parseRelativeLastMessageTime (value: string): number {
+function parseRelativeLastMessageTime(value: string): number {
   const normalized = value.trim().toLowerCase();
   const now = Date.now();
 
@@ -25,11 +25,8 @@ function parseRelativeLastMessageTime (value: string): number {
   if (relative) {
     const amount = Number(relative[1]);
     const unit = relative[2];
-    const multiplier = unit === "m"
-      ? 60 * 1000
-      : unit === "h"
-        ? 60 * 60 * 1000
-        : 24 * 60 * 60 * 1000;
+    const multiplier =
+      unit === "m" ? 60 * 1000 : unit === "h" ? 60 * 60 * 1000 : 24 * 60 * 60 * 1000;
     return now - amount * multiplier;
   }
 
@@ -37,7 +34,7 @@ function parseRelativeLastMessageTime (value: string): number {
   return Number.isNaN(absolute) ? 0 : absolute;
 }
 
-function getConversationActivityTimestamp (conversation: Conversation): number {
+function getConversationActivityTimestamp(conversation: Conversation): number {
   if (conversation.lastMessageAt) {
     const parsed = Date.parse(conversation.lastMessageAt);
     if (!Number.isNaN(parsed)) return parsed;
@@ -46,7 +43,7 @@ function getConversationActivityTimestamp (conversation: Conversation): number {
   return parseRelativeLastMessageTime(conversation.lastMessageTime);
 }
 
-function sortConversationsByRecent (conversations: Conversation[]): Conversation[] {
+function sortConversationsByRecent(conversations: Conversation[]): Conversation[] {
   return [...conversations].sort(
     (a, b) => getConversationActivityTimestamp(b) - getConversationActivityTimestamp(a)
   );
@@ -127,7 +124,8 @@ export const useChatStore = create<ChatState>()((set, get) => ({
   },
 
   fetchMoreConversations: async () => {
-    const { conversationsLoading, conversationsHasMore, conversationsCursor, conversations } = get();
+    const { conversationsLoading, conversationsHasMore, conversationsCursor, conversations } =
+      get();
     if (conversationsLoading || !conversationsHasMore) return;
 
     set({ conversationsLoading: true });
@@ -215,7 +213,7 @@ export const useChatStore = create<ChatState>()((set, get) => ({
       id: messageId,
       senderId: currentUserId,
       content,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
       isRead: false,
       status: "sending",
     };
@@ -289,9 +287,7 @@ export const useChatStore = create<ChatState>()((set, get) => ({
 
     const currentQueuedId = readBatchLastMessageId[conversationId];
     const messages = get().messagesByConversation[conversationId] ?? [];
-    const currentIndex = currentQueuedId
-      ? messages.findIndex((m) => m.id === currentQueuedId)
-      : -1;
+    const currentIndex = currentQueuedId ? messages.findIndex((m) => m.id === currentQueuedId) : -1;
     const nextIndex = lastReadMessageId
       ? messages.findIndex((m) => m.id === lastReadMessageId)
       : -1;
@@ -345,9 +341,7 @@ export const useChatStore = create<ChatState>()((set, get) => ({
       return {
         messagesByConversation: {
           ...state.messagesByConversation,
-          [conversationId]: existing.map((m) =>
-            m.id === messageId ? { ...m, content } : m
-          ),
+          [conversationId]: existing.map((m) => (m.id === messageId ? { ...m, content } : m)),
         },
       };
     });
@@ -396,11 +390,11 @@ export const useChatStore = create<ChatState>()((set, get) => ({
       const updated = state.conversations.map((c) =>
         c.id === conversationId
           ? {
-            ...c,
-            lastMessage: message.content,
-            lastMessageTime: message.timestamp,
-            lastMessageAt: new Date().toISOString(),
-          }
+              ...c,
+              lastMessage: message.content,
+              lastMessageTime: message.timestamp,
+              lastMessageAt: new Date().toISOString(),
+            }
           : c
       );
 
@@ -413,9 +407,7 @@ export const useChatStore = create<ChatState>()((set, get) => ({
   incrementUnread: (conversationId) => {
     set((state) => ({
       conversations: state.conversations.map((c) =>
-        c.id === conversationId
-          ? { ...c, unreadCount: c.unreadCount + 1 }
-          : c
+        c.id === conversationId ? { ...c, unreadCount: c.unreadCount + 1 } : c
       ),
     }));
   },

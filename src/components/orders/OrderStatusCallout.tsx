@@ -42,9 +42,7 @@ export function OrderStatusCallout({
   const styles = TONE_STYLES[tone];
 
   return (
-    <div
-      className={cn("p-4 rounded-xl", NEUMORPHIC_INSET, "border-l-4", styles.border, className)}
-    >
+    <div className={cn("p-4 rounded-xl", NEUMORPHIC_INSET, "border-l-4", styles.border, className)}>
       <div className="flex items-start gap-3">
         <div
           className={cn(

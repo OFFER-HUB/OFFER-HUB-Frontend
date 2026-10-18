@@ -28,7 +28,9 @@ describe("BuyerActionPanel — ORDER_CREATED (custodial)", () => {
 
   it("calls onConfirmOrder when 'Confirm Order' is clicked", async () => {
     const onConfirmOrder = vi.fn();
-    render(<BuyerActionPanel {...BASE_PROPS} status="ORDER_CREATED" onConfirmOrder={onConfirmOrder} />);
+    render(
+      <BuyerActionPanel {...BASE_PROPS} status="ORDER_CREATED" onConfirmOrder={onConfirmOrder} />
+    );
     await userEvent.click(screen.getByRole("button", { name: /confirm order/i }));
     expect(onConfirmOrder).toHaveBeenCalledOnce();
   });
@@ -107,7 +109,12 @@ describe("BuyerActionPanel — ESCROW_FUNDING (external wallet / non-custodial)"
   it("calls onSignFundEscrow when clicked", async () => {
     const onSignFundEscrow = vi.fn();
     render(
-      <BuyerActionPanel {...BASE_PROPS} status="ESCROW_FUNDING" isExternalWallet onSignFundEscrow={onSignFundEscrow} />
+      <BuyerActionPanel
+        {...BASE_PROPS}
+        status="ESCROW_FUNDING"
+        isExternalWallet
+        onSignFundEscrow={onSignFundEscrow}
+      />
     );
     await userEvent.click(screen.getByRole("button", { name: /sign fund transaction/i }));
     expect(onSignFundEscrow).toHaveBeenCalledOnce();
@@ -115,14 +122,11 @@ describe("BuyerActionPanel — ESCROW_FUNDING (external wallet / non-custodial)"
 
   it("disables the button while isProcessing is true", () => {
     render(
-      <BuyerActionPanel
-        {...BASE_PROPS}
-        status="ESCROW_FUNDING"
-        isExternalWallet
-        isProcessing
-      />
+      <BuyerActionPanel {...BASE_PROPS} status="ESCROW_FUNDING" isExternalWallet isProcessing />
     );
-    expect(screen.getByRole("button", { name: /sign fund transaction|processing/i })).toBeDisabled();
+    expect(
+      screen.getByRole("button", { name: /sign fund transaction|processing/i })
+    ).toBeDisabled();
   });
 });
 
@@ -139,7 +143,9 @@ describe("BuyerActionPanel — IN_PROGRESS (nothing delivered yet)", () => {
 
   it("calls onRequestRefund directly — pre-delivery refund stays low-friction", async () => {
     const onRequestRefund = vi.fn();
-    render(<BuyerActionPanel {...BASE_PROPS} status="IN_PROGRESS" onRequestRefund={onRequestRefund} />);
+    render(
+      <BuyerActionPanel {...BASE_PROPS} status="IN_PROGRESS" onRequestRefund={onRequestRefund} />
+    );
     await userEvent.click(screen.getByRole("button", { name: /request refund/i }));
     expect(onRequestRefund).toHaveBeenCalledTimes(1);
   });
@@ -153,14 +159,18 @@ describe("BuyerActionPanel — IN_PROGRESS (nothing delivered yet)", () => {
   });
   it("calls onRequestRelease when 'Release Funds' is clicked", async () => {
     const onRequestRelease = vi.fn();
-    render(<BuyerActionPanel {...BASE_PROPS} status="IN_PROGRESS" onRequestRelease={onRequestRelease} />);
+    render(
+      <BuyerActionPanel {...BASE_PROPS} status="IN_PROGRESS" onRequestRelease={onRequestRelease} />
+    );
     await userEvent.click(screen.getByRole("button", { name: /release funds/i }));
     expect(onRequestRelease).toHaveBeenCalledTimes(1);
   });
 
   it("calls onRequestDispute when 'Open Dispute' is clicked", async () => {
     const onRequestDispute = vi.fn();
-    render(<BuyerActionPanel {...BASE_PROPS} status="IN_PROGRESS" onRequestDispute={onRequestDispute} />);
+    render(
+      <BuyerActionPanel {...BASE_PROPS} status="IN_PROGRESS" onRequestDispute={onRequestDispute} />
+    );
     await userEvent.click(screen.getByRole("button", { name: /open dispute/i }));
     expect(onRequestDispute).toHaveBeenCalledTimes(1);
   });
@@ -169,7 +179,9 @@ describe("BuyerActionPanel — IN_PROGRESS (nothing delivered yet)", () => {
 describe("BuyerActionPanel — DELIVERED", () => {
   it("keeps Release Funds as the direct action and removes Request Refund", () => {
     render(<BuyerActionPanel {...BASE_PROPS} status="DELIVERED" amount="150" />);
-    expect(screen.getByRole("button", { name: /release funds · \$150\.00 usd/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /release funds · \$150\.00 usd/i })
+    ).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /request refund/i })).not.toBeInTheDocument();
     expect(screen.getByText(/deliverables ready for review/i)).toBeInTheDocument();
   });
@@ -183,19 +195,25 @@ describe("BuyerActionPanel — DELIVERED", () => {
 
   it("still lets the buyer escalate through Open Dispute", async () => {
     const onRequestDispute = vi.fn();
-    render(<BuyerActionPanel {...BASE_PROPS} status="DELIVERED" onRequestDispute={onRequestDispute} />);
+    render(
+      <BuyerActionPanel {...BASE_PROPS} status="DELIVERED" onRequestDispute={onRequestDispute} />
+    );
     await userEvent.click(screen.getByRole("button", { name: /open dispute/i }));
     expect(onRequestDispute).toHaveBeenCalledTimes(1);
   });
 
   it("explains that refunds on delivered work go through a dispute", () => {
     render(<BuyerActionPanel {...BASE_PROPS} status="DELIVERED" />);
-    expect(screen.getByText(/refunds on delivered work are decided through a dispute/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/refunds on delivered work are decided through a dispute/i)
+    ).toBeInTheDocument();
   });
 
   it("calls onRequestRelease when Release Funds is clicked", async () => {
     const onRequestRelease = vi.fn();
-    render(<BuyerActionPanel {...BASE_PROPS} status="DELIVERED" onRequestRelease={onRequestRelease} />);
+    render(
+      <BuyerActionPanel {...BASE_PROPS} status="DELIVERED" onRequestRelease={onRequestRelease} />
+    );
     await userEvent.click(screen.getByRole("button", { name: /release funds/i }));
     expect(onRequestRelease).toHaveBeenCalledTimes(1);
   });
@@ -211,7 +229,9 @@ describe("BuyerActionPanel — DELIVERED", () => {
 
 describe("BuyerActionPanel — IN_PROGRESS vs DELIVERED action comparison (#448)", () => {
   it("contrasts pre-delivery 3-action grid with post-delivery review action hierarchy", () => {
-    const { unmount } = render(<BuyerActionPanel {...BASE_PROPS} status="IN_PROGRESS" amount="200" />);
+    const { unmount } = render(
+      <BuyerActionPanel {...BASE_PROPS} status="IN_PROGRESS" amount="200" />
+    );
     expect(screen.getByRole("button", { name: /release funds/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /request refund/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /open dispute/i })).toBeInTheDocument();
@@ -219,7 +239,9 @@ describe("BuyerActionPanel — IN_PROGRESS vs DELIVERED action comparison (#448)
     unmount();
 
     render(<BuyerActionPanel {...BASE_PROPS} status="DELIVERED" amount="200" />);
-    expect(screen.getByRole("button", { name: /release funds · \$200\.00 usd/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /release funds · \$200\.00 usd/i })
+    ).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /request refund/i })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: /open dispute/i })).toBeInTheDocument();
     expect(screen.getByText(/deliverables ready for review/i)).toBeInTheDocument();
@@ -227,7 +249,9 @@ describe("BuyerActionPanel — IN_PROGRESS vs DELIVERED action comparison (#448)
 
   it("handles transition when a milestone is completed before delivery vs full delivery", () => {
     // In progress with milestone completed: refund button hidden, explanation shown
-    const { unmount } = render(<BuyerActionPanel {...BASE_PROPS} status="IN_PROGRESS" refundRequiresDispute />);
+    const { unmount } = render(
+      <BuyerActionPanel {...BASE_PROPS} status="IN_PROGRESS" refundRequiresDispute />
+    );
     expect(screen.queryByRole("button", { name: /request refund/i })).not.toBeInTheDocument();
     expect(screen.getByText(/milestone has already been completed/i)).toBeInTheDocument();
     unmount();
@@ -235,6 +259,8 @@ describe("BuyerActionPanel — IN_PROGRESS vs DELIVERED action comparison (#448)
     // Delivered: refund button hidden, delivered dispute explanation shown
     render(<BuyerActionPanel {...BASE_PROPS} status="DELIVERED" />);
     expect(screen.queryByRole("button", { name: /request refund/i })).not.toBeInTheDocument();
-    expect(screen.getByText(/refunds on delivered work are decided through a dispute/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/refunds on delivered work are decided through a dispute/i)
+    ).toBeInTheDocument();
   });
 });

@@ -16,8 +16,7 @@ export const useModeStore = create<ModeState>()(
     (set, get) => ({
       mode: "freelancer",
       setMode: (mode) => set({ mode }),
-      toggleMode: () =>
-        set({ mode: get().mode === "freelancer" ? "client" : "freelancer" }),
+      toggleMode: () => set({ mode: get().mode === "freelancer" ? "client" : "freelancer" }),
     }),
     {
       name: "mode-storage",
@@ -58,6 +57,6 @@ const CLIENT_NAV_ITEMS: NavigationItem[] = [
   { href: "/app/profile", label: "Profile", icon: ICON_PATHS.user },
 ];
 
-export function getNavigationItems (mode: UserMode): NavigationItem[] {
+export function getNavigationItems(mode: UserMode): NavigationItem[] {
   return mode === "client" ? CLIENT_NAV_ITEMS : FREELANCER_NAV_ITEMS;
 }

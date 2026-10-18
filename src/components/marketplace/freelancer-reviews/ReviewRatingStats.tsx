@@ -91,7 +91,9 @@ export function ReviewRatingStats({
                   style={{ width: `${pct}%` }}
                 />
               </div>
-              <span className="text-xs text-text-secondary w-10 text-right tabular-nums">{pct}%</span>
+              <span className="text-xs text-text-secondary w-10 text-right tabular-nums">
+                {pct}%
+              </span>
             </Link>
           );
         })}

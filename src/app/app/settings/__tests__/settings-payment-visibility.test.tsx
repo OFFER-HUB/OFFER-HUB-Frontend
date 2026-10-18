@@ -38,7 +38,7 @@ import SettingsPage from "@/app/app/settings/page";
 function setUserType(type: string | undefined) {
   (useAuthStore as unknown as ReturnType<typeof vi.fn>).mockImplementation(
     (selector: (s: { user?: { type?: string } }) => unknown) =>
-      selector({ user: type ? { type } : undefined }),
+      selector({ user: type ? { type } : undefined })
   );
 }
 

@@ -14,7 +14,8 @@ vi.mock("@/lib/api/payout", () => ({
 }));
 
 vi.mock("@/stores/auth-store", () => ({
-  useAuthStore: (selector: (s: { token: string | null }) => unknown) => selector({ token: "jwt-token" }),
+  useAuthStore: (selector: (s: { token: string | null }) => unknown) =>
+    selector({ token: "jwt-token" }),
 }));
 
 let mockConnectedWalletAddress: string | null = "GSELLERADDRESS";
@@ -24,7 +25,13 @@ vi.mock("@/hooks/use-wallet-kit", () => ({
 
 const mockSign = vi.fn();
 const mockReset = vi.fn();
-let mockSigningState: "idle" | "building" | "awaiting_signature" | "submitting" | "confirmed" | "error" = "idle";
+let mockSigningState:
+  | "idle"
+  | "building"
+  | "awaiting_signature"
+  | "submitting"
+  | "confirmed"
+  | "error" = "idle";
 let mockPrepared: { fiatAmount: string; fiatCurrency: string; expiresAt: number } | null = null;
 
 vi.mock("@/hooks/usePayoutSigning", () => ({
@@ -151,7 +158,10 @@ describe("PayoutStatusCard", () => {
     });
 
     expect(screen.getByText("BlindPay rejected the destination account")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /Contact Support/ })).toHaveAttribute("href", "/app/chat");
+    expect(screen.getByRole("link", { name: /Contact Support/ })).toHaveAttribute(
+      "href",
+      "/app/chat"
+    );
 
     await act(async () => {
       await vi.advanceTimersByTimeAsync(10000);

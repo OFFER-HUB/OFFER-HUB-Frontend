@@ -187,10 +187,7 @@ export function errorCopy(error: EscrowSigningError): {
 }
 
 /** Modal header title for each signing state. */
-export function stateTitle(
-  state: EscrowSigningState,
-  error: EscrowSigningError | null
-): string {
+export function stateTitle(state: EscrowSigningState, error: EscrowSigningError | null): string {
   switch (state) {
     case "building":
       return "Preparing transaction";

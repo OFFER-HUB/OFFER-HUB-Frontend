@@ -12,11 +12,7 @@ import { Pagination } from "@/components/ui/Pagination";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 import { PortfolioCard } from "@/components/portfolio/PortfolioCard";
 import { NEUMORPHIC_CARD } from "@/lib/styles";
-import {
-  getPortfolioItems,
-  deletePortfolioItem,
-  reorderPortfolioItems,
-} from "@/lib/api/portfolio";
+import { getPortfolioItems, deletePortfolioItem, reorderPortfolioItems } from "@/lib/api/portfolio";
 import type { PortfolioItem } from "@/types/portfolio.types";
 
 // ─── Drag state ───────────────────────────────────────────────────────────────
@@ -101,9 +97,7 @@ export default function PortfolioPage(): React.JSX.Element {
 
   // ── Toggle public ─────────────────────────────────────────────────────────
   function handleTogglePublic(item: PortfolioItem) {
-    setItems((prev) =>
-      prev.map((p) => (p.id === item.id ? { ...p, isPublic: !p.isPublic } : p))
-    );
+    setItems((prev) => prev.map((p) => (p.id === item.id ? { ...p, isPublic: !p.isPublic } : p)));
   }
 
   // ── Delete ────────────────────────────────────────────────────────────────
@@ -168,10 +162,7 @@ export default function PortfolioPage(): React.JSX.Element {
   // ─────────────────────────────────────────────────────────────────────────
 
   if (isLoading) return <LoadingState message="Loading portfolio..." />;
-  if (error)
-    return (
-      <ErrorState message={error} onRetry={() => setRefreshKey((k) => k + 1)} />
-    );
+  if (error) return <ErrorState message={error} onRetry={() => setRefreshKey((k) => k + 1)} />;
 
   return (
     <div className="space-y-6 pb-8">
@@ -179,9 +170,7 @@ export default function PortfolioPage(): React.JSX.Element {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-text-primary">Portfolio</h1>
-          <p className="text-sm text-text-secondary">
-            Showcase your best work to attract clients
-          </p>
+          <p className="text-sm text-text-secondary">Showcase your best work to attract clients</p>
         </div>
 
         <div className="flex items-center gap-3">
@@ -227,7 +216,8 @@ export default function PortfolioPage(): React.JSX.Element {
         <div className={cn(NEUMORPHIC_CARD, "py-3 flex items-center gap-3")}>
           <Icon path={ICON_PATHS.menu} size="sm" className="text-text-secondary" />
           <p className="text-xs text-text-secondary">
-            Drag the <span className="font-medium">≡</span> handle on a card to reorder, or use the ↑↓ arrows.
+            Drag the <span className="font-medium">≡</span> handle on a card to reorder, or use the
+            ↑↓ arrows.
           </p>
         </div>
       )}

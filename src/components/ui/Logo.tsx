@@ -21,7 +21,10 @@ export function Logo({ size = "md", variant = "auto", className, showText = true
   return (
     <Link
       href="/"
-      className={cn("inline-flex items-center gap-2.5 group transition-opacity hover:opacity-90", className)}
+      className={cn(
+        "inline-flex items-center gap-2.5 group transition-opacity hover:opacity-90",
+        className
+      )}
     >
       {variant === "auto" ? (
         <>
@@ -56,19 +59,14 @@ export function Logo({ size = "md", variant = "auto", className, showText = true
       )}
 
       {showText && (
-        <span
-          className={cn(
-            "font-extrabold tracking-tight select-none",
-            config.textClass
-          )}
-        >
+        <span className={cn("font-extrabold tracking-tight select-none", config.textClass)}>
           <span
             className={
               variant === "dark"
                 ? "text-white"
                 : variant === "light"
-                ? "text-[#19213D]"
-                : "text-[#19213D] dark:text-white"
+                  ? "text-[#19213D]"
+                  : "text-[#19213D] dark:text-white"
             }
           >
             OFFER-

@@ -20,7 +20,11 @@ function ListHeader({ phase, count }: { phase: RoundPhase; count: number }): Rea
     <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
       <h2 className="text-lg font-bold text-text-primary">Proposals</h2>
       <p className="inline-flex items-center gap-2 text-xs text-text-secondary">
-        <Icon path={isSealed ? ICON_PATHS.lock : ICON_PATHS.eye} size="sm" className="w-3.5 h-3.5" />
+        <Icon
+          path={isSealed ? ICON_PATHS.lock : ICON_PATHS.eye}
+          size="sm"
+          className="w-3.5 h-3.5"
+        />
         {isSealed
           ? `${count} sealed — only the count is public before the deadline`
           : `${count} revealed together at the shared deadline`}

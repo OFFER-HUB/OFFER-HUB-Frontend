@@ -25,7 +25,8 @@ const CANCELLATION_PATTERNS = [
   /no elements in sequence/i,
 ];
 
-export const WALLET_CANCELLED_MESSAGE = "Connection cancelled. You closed or declined the request in your wallet.";
+export const WALLET_CANCELLED_MESSAGE =
+  "Connection cancelled. You closed or declined the request in your wallet.";
 
 function extractMessage(error: unknown): string | null {
   if (error instanceof Error) return error.message;

@@ -63,9 +63,18 @@ export function EvidenceItem({
   }, [item.evidence?.url, item.previewUrl]);
 
   return (
-    <div className={cn("p-3 rounded-xl bg-background space-y-3", item.status === "error" && "border border-error/40")}>
+    <div
+      className={cn(
+        "p-3 rounded-xl bg-background space-y-3",
+        item.status === "error" && "border border-error/40"
+      )}
+    >
       <div className="flex items-start gap-3">
-        <Icon path={getFileIcon(item.type)} size="md" className="text-text-secondary mt-0.5 flex-shrink-0" />
+        <Icon
+          path={getFileIcon(item.type)}
+          size="md"
+          className="text-text-secondary mt-0.5 flex-shrink-0"
+        />
         <div className="min-w-0 flex-1">
           <p className="text-sm font-medium text-text-primary truncate">{item.name}</p>
           <p className="text-xs text-text-secondary">
@@ -101,28 +110,42 @@ export function EvidenceItem({
       {item.status === "uploading" && (
         <div className={cn("rounded-lg p-2", NEUMORPHIC_INSET)}>
           <div className="w-full bg-border rounded-full h-2 overflow-hidden">
-            <div className="h-full bg-primary transition-all duration-200" style={{ width: `${item.progress}%` }} />
+            <div
+              className="h-full bg-primary transition-all duration-200"
+              style={{ width: `${item.progress}%` }}
+            />
           </div>
           <p className="text-xs text-text-secondary mt-1">{item.progress}% uploaded</p>
         </div>
       )}
 
-      {item.status === "error" && item.error && (
-        <p className="text-xs text-error">{item.error}</p>
-      )}
+      {item.status === "error" && item.error && <p className="text-xs text-error">{item.error}</p>}
 
       {isImage(item.type) && previewHref && (
-        <img src={previewHref} alt={item.name} className="w-full max-h-52 object-cover rounded-lg border border-border-light" />
+        <img
+          src={previewHref}
+          alt={item.name}
+          className="w-full max-h-52 object-cover rounded-lg border border-border-light"
+        />
       )}
 
       {isPdf(item.type) && previewHref && (
         <div className="rounded-lg border border-border-light overflow-hidden">
           <iframe title={item.name} src={previewHref} className="w-full h-52" />
           <div className="p-2 flex items-center justify-end gap-3 bg-background">
-            <a href={previewHref} target="_blank" rel="noreferrer" className="text-xs text-primary hover:underline">
+            <a
+              href={previewHref}
+              target="_blank"
+              rel="noreferrer"
+              className="text-xs text-primary hover:underline"
+            >
               Open PDF
             </a>
-            <a href={previewHref} download={item.name} className="text-xs text-primary hover:underline">
+            <a
+              href={previewHref}
+              download={item.name}
+              className="text-xs text-primary hover:underline"
+            >
               Download
             </a>
           </div>

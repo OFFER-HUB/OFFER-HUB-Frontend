@@ -75,9 +75,7 @@ export function StatsCard({
               </span>
             )}
           </div>
-          {subtitle && (
-            <p className="text-xs text-text-secondary mt-0.5">{subtitle}</p>
-          )}
+          {subtitle && <p className="text-xs text-text-secondary mt-0.5">{subtitle}</p>}
         </div>
       </div>
     </div>

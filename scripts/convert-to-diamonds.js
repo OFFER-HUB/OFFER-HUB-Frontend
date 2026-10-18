@@ -1,12 +1,13 @@
 #!/usr/bin/env node
-const fs = require('fs');
-const path = require('path');
+const fs = require("fs");
+const path = require("path");
 
-const svgPath = path.join(__dirname, '../public/our-community/community-map.svg');
-const svgContent = fs.readFileSync(svgPath, 'utf-8');
+const svgPath = path.join(__dirname, "../public/our-community/community-map.svg");
+const svgContent = fs.readFileSync(svgPath, "utf-8");
 
 // Extract all rect elements and convert to diamonds (rotated 45°)
-const rectRegex = /<rect x="([^"]*)" y="([^"]*)" width="([^"]*)" height="([^"]*)" fill="([^"]*)"\s*\/>/g;
+const rectRegex =
+  /<rect x="([^"]*)" y="([^"]*)" width="([^"]*)" height="([^"]*)" fill="([^"]*)"\s*\/>/g;
 
 const diamonds = [];
 let match;
@@ -27,18 +28,18 @@ while ((match = rectRegex.exec(svgContent)) !== null) {
   // Use polygon for diamond shape (more precise than rotated rect)
   const halfSize = size / 2;
   const points = [
-    `${cx},${cy - halfSize * 1.2}`,      // top
-    `${cx + halfSize * 1.2},${cy}`,      // right
-    `${cx},${cy + halfSize * 1.2}`,      // bottom
-    `${cx - halfSize * 1.2},${cy}`,      // left
-  ].join(' ');
+    `${cx},${cy - halfSize * 1.2}`, // top
+    `${cx + halfSize * 1.2},${cy}`, // right
+    `${cx},${cy + halfSize * 1.2}`, // bottom
+    `${cx - halfSize * 1.2},${cy}`, // left
+  ].join(" ");
 
   diamonds.push(`<polygon points="${points}" fill="${fill}"/>`);
 }
 
 // Build new SVG
 const newSvg = `<svg width="1240" height="431" viewBox="0 0 1240 431" fill="none" xmlns="http://www.w3.org/2000/svg">
-${diamonds.join('\n')}
+${diamonds.join("\n")}
 </svg>`;
 
 // Write output

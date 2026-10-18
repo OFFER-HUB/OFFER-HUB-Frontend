@@ -73,8 +73,8 @@ export default function GlobalError({ error, reset }: GlobalErrorProps): React.J
                 lineHeight: 1.6,
               }}
             >
-              A critical error has occurred and the application could not recover.
-              Please refresh the page or try again later.
+              A critical error has occurred and the application could not recover. Please refresh
+              the page or try again later.
             </p>
 
             <div style={{ display: "flex", gap: "16px", justifyContent: "center" }}>
@@ -94,7 +94,7 @@ export default function GlobalError({ error, reset }: GlobalErrorProps): React.J
                 Try Again
               </button>
               <button
-                onClick={() => window.location.href = "/"}
+                onClick={() => (window.location.href = "/")}
                 style={{
                   padding: "12px 32px",
                   borderRadius: "12px",

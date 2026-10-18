@@ -12,8 +12,7 @@ const steps = [
   {
     number: 2,
     title: "Review Proposals",
-    description:
-      "Browse through proposals from talented freelancers and select the best fit.",
+    description: "Browse through proposals from talented freelancers and select the best fit.",
   },
   {
     number: 3,
@@ -48,12 +47,8 @@ export function HowItWorks() {
               <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-primary text-white text-xl font-bold mb-5">
                 {step.number}
               </div>
-              <h3 className="text-lg font-semibold text-text-primary mb-2">
-                {step.title}
-              </h3>
-              <p className="text-text-secondary text-sm leading-relaxed">
-                {step.description}
-              </p>
+              <h3 className="text-lg font-semibold text-text-primary mb-2">{step.title}</h3>
+              <p className="text-text-secondary text-sm leading-relaxed">{step.description}</p>
             </div>
           ))}
         </StaggeredChildren>

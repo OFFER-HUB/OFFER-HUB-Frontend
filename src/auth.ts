@@ -23,8 +23,9 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
         token.provider = account.provider;
         token.providerAccountId = account.providerAccountId;
         token.oauthEmail = profile.email;
-        token.oauthName = profile.name || (profile as Record<string, unknown>).login as string;
-        token.oauthAvatarUrl = profile.image || (profile as Record<string, unknown>).avatar_url as string;
+        token.oauthName = profile.name || ((profile as Record<string, unknown>).login as string);
+        token.oauthAvatarUrl =
+          profile.image || ((profile as Record<string, unknown>).avatar_url as string);
         // The backend re-verifies these against the provider before issuing a JWT,
         // so the identity above is a claim until it does.
         token.oauthAccessToken = account.access_token;

@@ -29,13 +29,13 @@ there is no lockfile change to revert, no store or service to unwire, and no mig
 
 This is an evaluation, not an adopted dependency. The reasons are concrete:
 
-| Concern | Evidence |
-| --- | --- |
-| No funds-handling audit | Sub Rosa's own [`docs/LIMITATIONS.md`](https://github.com/karagozemin/Sub-Rosa/blob/main/docs/LIMITATIONS.md): *"Core v2 … has no independent funds-handling audit yet"* |
-| Latest SDK is uninstallable with npm | `npm i @sub-rosa/sdk@0.2.2` fails with `EUNSUPPORTEDPROTOCOL` — it publishes `workspace:^` dependency specifiers. Only `0.2.1` resolves |
-| Stellar SDK version clash | `@sub-rosa/sdk` requires `@stellar/stellar-sdk@^15`; OFFER-HUB-API is on `14.4.3` |
-| Outside SCF scope | Sub Rosa is not a deliverable of T1, T2 or T3 of Build Award #44 |
-| Receipts do not verify chain state | Receipt verification is offline only — it checks internal consistency, not current on-chain state |
+| Concern                              | Evidence                                                                                                                                                                 |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| No funds-handling audit              | Sub Rosa's own [`docs/LIMITATIONS.md`](https://github.com/karagozemin/Sub-Rosa/blob/main/docs/LIMITATIONS.md): _"Core v2 … has no independent funds-handling audit yet"_ |
+| Latest SDK is uninstallable with npm | `npm i @sub-rosa/sdk@0.2.2` fails with `EUNSUPPORTEDPROTOCOL` — it publishes `workspace:^` dependency specifiers. Only `0.2.1` resolves                                  |
+| Stellar SDK version clash            | `@sub-rosa/sdk` requires `@stellar/stellar-sdk@^15`; OFFER-HUB-API is on `14.4.3`                                                                                        |
+| Outside SCF scope                    | Sub Rosa is not a deliverable of T1, T2 or T3 of Build Award #44                                                                                                         |
+| Receipts do not verify chain state   | Receipt verification is offline only — it checks internal consistency, not current on-chain state                                                                        |
 
 So the demo installs **nothing**: no `@sub-rosa/sdk`, no `@stellar/stellar-sdk`, no change to
 `package.json` or `package-lock.json`. The sealed-round lifecycle is simulated in memory.

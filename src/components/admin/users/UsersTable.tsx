@@ -53,7 +53,9 @@ function SortableHeader({
       <span className="flex items-center gap-1">
         {label}
         <Icon
-          path={isActive && currentSort.direction === "asc" ? ICON_PATHS.arrowUp : ICON_PATHS.arrowDown}
+          path={
+            isActive && currentSort.direction === "asc" ? ICON_PATHS.arrowUp : ICON_PATHS.arrowDown
+          }
           size="sm"
           className={isActive ? "text-primary" : "text-text-secondary/30"}
         />
@@ -81,13 +83,7 @@ function TableRowSkeleton() {
 
 function UserAvatar({ name, avatarUrl }: { name: string; avatarUrl: string | null }) {
   if (avatarUrl) {
-    return (
-      <img
-        src={avatarUrl}
-        alt={name}
-        className="w-8 h-8 rounded-full object-cover"
-      />
-    );
+    return <img src={avatarUrl} alt={name} className="w-8 h-8 rounded-full object-cover" />;
   }
   return (
     <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs shrink-0">
@@ -140,13 +136,23 @@ export function UsersTable({
               Role
             </th>
 
-            <SortableHeader field="status" label="Status" currentSort={sort} onSort={onSortChange} />
+            <SortableHeader
+              field="status"
+              label="Status"
+              currentSort={sort}
+              onSort={onSortChange}
+            />
 
             <th className="px-4 py-3 text-left text-xs font-semibold text-text-secondary uppercase tracking-wider whitespace-nowrap">
               Email
             </th>
 
-            <SortableHeader field="createdAt" label="Registered" currentSort={sort} onSort={onSortChange} />
+            <SortableHeader
+              field="createdAt"
+              label="Registered"
+              currentSort={sort}
+              onSort={onSortChange}
+            />
 
             <th className="px-4 py-3 text-left text-xs font-semibold text-text-secondary uppercase tracking-wider whitespace-nowrap">
               Actions
@@ -277,7 +283,11 @@ export function UsersTable({
                           title="Ban user"
                           aria-label={`Ban ${name}`}
                         >
-                          <Icon path={ICON_PATHS.flag} size="sm" className="text-text-secondary hover:text-error" />
+                          <Icon
+                            path={ICON_PATHS.flag}
+                            size="sm"
+                            className="text-text-secondary hover:text-error"
+                          />
                         </button>
                       )}
                     </div>

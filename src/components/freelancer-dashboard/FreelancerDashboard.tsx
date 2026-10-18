@@ -31,15 +31,8 @@ export function FreelancerDashboard(): React.JSX.Element {
   const user = useAuthStore((s) => s.user);
   const token = useAuthStore((s) => s.token);
 
-  const {
-    stats,
-    activities,
-    walletBalance,
-    isLoading,
-    isRefreshing,
-    isMounted,
-    refetch,
-  } = useFreelancerDashboardData();
+  const { stats, activities, walletBalance, isLoading, isRefreshing, isMounted, refetch } =
+    useFreelancerDashboardData();
 
   // Live on-chain USDC balance of the connected wallet (SCF D1.1), independent
   // of the platform-ledger `walletBalance` above.
@@ -83,7 +76,10 @@ export function FreelancerDashboard(): React.JSX.Element {
             onChainUsdc={
               onChainBalance.address === null
                 ? null
-                : { amount: onChainBalance.balances?.usdc.balance ?? "0", isLoading: onChainBalance.isLoading }
+                : {
+                    amount: onChainBalance.balances?.usdc.balance ?? "0",
+                    isLoading: onChainBalance.isLoading,
+                  }
             }
           />
         </div>
@@ -233,11 +229,7 @@ export function FreelancerDashboard(): React.JSX.Element {
             ) : (
               <div className="flex flex-col items-center justify-center py-12 text-center">
                 <div className="w-16 h-16 bg-background rounded-full flex items-center justify-center mb-4 shadow-inner">
-                  <Icon
-                    path={ICON_PATHS.calendar}
-                    size="lg"
-                    className="text-text-secondary/30"
-                  />
+                  <Icon path={ICON_PATHS.calendar} size="lg" className="text-text-secondary/30" />
                 </div>
                 <p className="text-text-secondary font-medium">No recent activity to show</p>
                 <Link

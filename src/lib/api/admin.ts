@@ -47,7 +47,10 @@ export function buildAdminUsersSearchParams(query: AdminUsersQuery): URLSearchPa
   return params;
 }
 
-export async function getAdminUsers(token: string, query: AdminUsersQuery): Promise<AdminUsersPage> {
+export async function getAdminUsers(
+  token: string,
+  query: AdminUsersQuery
+): Promise<AdminUsersPage> {
   const response = await fetch(
     `${API_BASE_URL}/admin/users?${buildAdminUsersSearchParams(query).toString()}`,
     { headers: authHeaders(token) }

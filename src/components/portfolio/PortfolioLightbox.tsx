@@ -131,13 +131,18 @@ export function PortfolioLightbox({
           </span>
 
           {project.description && (
-            <p className="text-sm text-text-secondary leading-relaxed mb-4">{project.description}</p>
+            <p className="text-sm text-text-secondary leading-relaxed mb-4">
+              {project.description}
+            </p>
           )}
 
           {project.tags.length > 0 && (
             <div className="flex flex-wrap gap-1.5 mb-4">
               {project.tags.map((tag) => (
-                <span key={tag} className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-text-secondary">
+                <span
+                  key={tag}
+                  className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-text-secondary"
+                >
                   {tag}
                 </span>
               ))}

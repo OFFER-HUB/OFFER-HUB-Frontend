@@ -99,7 +99,8 @@ export const MOCK_CHAT_THREADS: Record<string, ChatThread> = {
       {
         id: "m3",
         senderId: "1",
-        content: "Of course! I've worked on several e-commerce redesigns. I recently completed a project for a fashion brand that increased their conversion rate by 40%.",
+        content:
+          "Of course! I've worked on several e-commerce redesigns. I recently completed a project for a fashion brand that increased their conversion rate by 40%.",
         timestamp: "10:22 AM",
         isRead: true,
       },

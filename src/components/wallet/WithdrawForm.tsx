@@ -166,7 +166,9 @@ export function WithdrawForm({
         </div>
         <div className="p-3 rounded-xl bg-background">
           <p className="text-text-secondary">Total deducted</p>
-          <p className="font-semibold text-text-primary">{formatCurrency(totalDeducted, currency)}</p>
+          <p className="font-semibold text-text-primary">
+            {formatCurrency(totalDeducted, currency)}
+          </p>
         </div>
         <div className="p-3 rounded-xl bg-background">
           <p className="text-text-secondary">Estimated arrival</p>
@@ -174,7 +176,12 @@ export function WithdrawForm({
         </div>
         <div className="p-3 rounded-xl bg-background">
           <p className="text-text-secondary">Balance after request</p>
-          <p className={cn("font-semibold", remainingBalance < 0 ? "text-error" : "text-text-primary")}>
+          <p
+            className={cn(
+              "font-semibold",
+              remainingBalance < 0 ? "text-error" : "text-text-primary"
+            )}
+          >
             {formatCurrency(Math.max(0, remainingBalance), currency)}
           </p>
         </div>
@@ -191,7 +198,11 @@ export function WithdrawForm({
           onChange={(e) => setDestination(e.target.value)}
           placeholder="Enter destination wallet address"
           disabled={isSubmitting}
-          className={cn(NEUMORPHIC_INPUT, "resize-none", errors.destination && "ring-2 ring-error/40")}
+          className={cn(
+            NEUMORPHIC_INPUT,
+            "resize-none",
+            errors.destination && "ring-2 ring-error/40"
+          )}
         />
       </FormField>
 

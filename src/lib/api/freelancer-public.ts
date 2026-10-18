@@ -19,7 +19,9 @@ function unwrapData<T>(json: unknown): T | null {
  * Public freelancer profile summary (no auth).
  * GET /marketplace/freelancers/:id
  */
-export async function getPublicFreelancerSummary(freelancerId: string): Promise<PublicFreelancerSummary | null> {
+export async function getPublicFreelancerSummary(
+  freelancerId: string
+): Promise<PublicFreelancerSummary | null> {
   try {
     const response = await fetch(`${API_URL}/marketplace/freelancers/${freelancerId}`, {
       next: { revalidate: 60 },
@@ -34,7 +36,7 @@ export async function getPublicFreelancerSummary(freelancerId: string): Promise<
     }
 
     const json = await response.json();
-    type ApiResponse = Omit<PublicFreelancerSummary, 'skills'> & {
+    type ApiResponse = Omit<PublicFreelancerSummary, "skills"> & {
       skills?: (string | { name: string })[];
     };
     const data = unwrapData<ApiResponse>(json);
@@ -48,7 +50,7 @@ export async function getPublicFreelancerSummary(freelancerId: string): Promise<
       averageRating: data.averageRating,
       totalReviews: data.totalReviews,
       bio: data.bio,
-      skills: data.skills?.map((s) => typeof s === 'string' ? s : s.name) ?? [],
+      skills: data.skills?.map((s) => (typeof s === "string" ? s : s.name)) ?? [],
     };
   } catch {
     return null;
@@ -223,12 +225,12 @@ export interface PublicPortfolioResult {
 
 export async function getPublicFreelancerPortfolio(
   freelancerId: string,
-  page = 1,
+  page = 1
 ): Promise<PublicPortfolioResult | null> {
   try {
     const response = await fetch(
       `${API_URL}/marketplace/freelancers/${freelancerId}/portfolio?page=${page}&limit=20`,
-      { next: { revalidate: 300 } },
+      { next: { revalidate: 300 } }
     );
 
     if (response.status === 404) return null;

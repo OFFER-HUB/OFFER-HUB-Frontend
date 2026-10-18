@@ -147,8 +147,12 @@ export function NotificationMatrix({
                 >
                   <div className="grid gap-4 lg:grid-cols-[minmax(0,1.3fr)_minmax(260px,1fr)] lg:items-start">
                     <div>
-                      <h3 className="text-sm font-semibold text-text-primary sm:text-base">{item.title}</h3>
-                      <p className="mt-1 text-sm leading-6 text-text-secondary">{item.description}</p>
+                      <h3 className="text-sm font-semibold text-text-primary sm:text-base">
+                        {item.title}
+                      </h3>
+                      <p className="mt-1 text-sm leading-6 text-text-secondary">
+                        {item.description}
+                      </p>
                     </div>
 
                     <div className="grid gap-4">

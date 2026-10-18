@@ -53,11 +53,7 @@ export function EscrowDetailsCard({
 
   return (
     <div
-      className={cn(
-        NEUMORPHIC_CARD,
-        "p-5 space-y-3.5 transition-all duration-200",
-        className
-      )}
+      className={cn(NEUMORPHIC_CARD, "p-5 space-y-3.5 transition-all duration-200", className)}
       data-testid="escrow-details-card"
     >
       {/* Header Row: Title & Status Badge */}
@@ -92,10 +88,7 @@ export function EscrowDetailsCard({
           )}
         >
           <span
-            className={cn(
-              "w-1.5 h-1.5 rounded-full bg-current",
-              !isSettled && "animate-pulse"
-            )}
+            className={cn("w-1.5 h-1.5 rounded-full bg-current", !isSettled && "animate-pulse")}
           />
           <span className="text-[11px] uppercase tracking-wide">{displayStatus}</span>
         </div>

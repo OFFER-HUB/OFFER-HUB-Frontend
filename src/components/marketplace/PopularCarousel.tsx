@@ -93,7 +93,12 @@ export function PopularCarousel({ offers }: PopularCarouselProps) {
               aria-label="Scroll left"
             >
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 19l-7-7 7-7"
+                />
               </svg>
             </button>
             <button
@@ -109,7 +114,12 @@ export function PopularCarousel({ offers }: PopularCarouselProps) {
               aria-label="Scroll right"
             >
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 5l7 7-7 7"
+                />
               </svg>
             </button>
           </div>
@@ -125,10 +135,7 @@ export function PopularCarousel({ offers }: PopularCarouselProps) {
         {offers.map((offer, index) => (
           <div
             key={offer.id}
-            className={cn(
-              "flex-shrink-0 w-[280px]",
-              "opacity-0 animate-scale-in"
-            )}
+            className={cn("flex-shrink-0 w-[280px]", "opacity-0 animate-scale-in")}
             style={{ animationDelay: `${index * 0.1}s`, animationFillMode: "forwards" }}
           >
             <PopularOfferCard

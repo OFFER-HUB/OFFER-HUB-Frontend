@@ -1,7 +1,4 @@
-import {
-  MAX_IMAGE_CAPTION_LENGTH,
-  type PortfolioImageEntry,
-} from "@/types/portfolio.types";
+import { MAX_IMAGE_CAPTION_LENGTH, type PortfolioImageEntry } from "@/types/portfolio.types";
 import { BACKEND_URL } from "@/config/api";
 
 /**
@@ -42,9 +39,7 @@ export function normalizePortfolioImages(raw: unknown): PortfolioImageEntry[] {
       const url = typeof o.url === "string" ? resolveImageUrl(o.url.trim()) : "";
       if (!url) return;
       const cap =
-        typeof o.caption === "string"
-          ? o.caption.slice(0, MAX_IMAGE_CAPTION_LENGTH)
-          : undefined;
+        typeof o.caption === "string" ? o.caption.slice(0, MAX_IMAGE_CAPTION_LENGTH) : undefined;
       out.push({
         id: typeof o.id === "string" && o.id ? o.id : newPortfolioImageId(),
         url,

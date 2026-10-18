@@ -142,7 +142,9 @@ export const ADMIN_USER_ROLE_LABELS: Record<AdminUserRole, string> = {
  * What to call a user in admin UI. There is no username on the row, so fall
  * back through the fields that are actually there.
  */
-export function adminUserDisplayName(user: Pick<AdminUser, "email" | "professionalTitle" | "externalUserId">): string {
+export function adminUserDisplayName(
+  user: Pick<AdminUser, "email" | "professionalTitle" | "externalUserId">
+): string {
   return user.email ?? user.professionalTitle ?? user.externalUserId;
 }
 

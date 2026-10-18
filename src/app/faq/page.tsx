@@ -9,9 +9,7 @@ import { cn } from "@/lib/cn";
 export default function FAQPage() {
   const [activeCategory, setActiveCategory] = useState(faqCategories[0].id);
 
-  const activeCategoryData = faqCategories.find(
-    (cat) => cat.id === activeCategory
-  );
+  const activeCategoryData = faqCategories.find((cat) => cat.id === activeCategory);
 
   return (
     <div className="min-h-screen bg-background">
@@ -37,8 +35,8 @@ export default function FAQPage() {
               )}
               style={{ animationDelay: "0.1s", animationFillMode: "forwards" }}
             >
-              Find answers to common questions about OFFER HUB. Can&apos;t find
-              what you&apos;re looking for? Contact our support team.
+              Find answers to common questions about OFFER HUB. Can&apos;t find what you&apos;re
+              looking for? Contact our support team.
             </p>
           </div>
 
@@ -67,12 +65,9 @@ export default function FAQPage() {
             )}
             style={{ animationDelay: "0.3s", animationFillMode: "forwards" }}
           >
-            <h3 className="text-lg font-bold text-text-primary mb-2">
-              Still have questions?
-            </h3>
+            <h3 className="text-lg font-bold text-text-primary mb-2">Still have questions?</h3>
             <p className="text-sm text-text-secondary mb-6">
-              Our support team is here to help you with any questions or
-              concerns.
+              Our support team is here to help you with any questions or concerns.
             </p>
             <button
               className={cn(

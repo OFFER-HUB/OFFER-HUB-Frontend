@@ -63,7 +63,10 @@ export function DisputeResolutionForm({ dispute, onSubmit, onCancel }: DisputeRe
   // Slider represents freelancer (seller/release) percentage: 0% = 100% Client, 100% = 100% Freelancer
   const initialPercent =
     totalCents > 0
-      ? Math.min(Math.max(Math.round((toCents(suggestion.releaseAmount) / totalCents) * 100), 0), 100)
+      ? Math.min(
+          Math.max(Math.round((toCents(suggestion.releaseAmount) / totalCents) * 100), 0),
+          100
+        )
       : 0;
   const [sliderPercent, setSliderPercent] = useState<number>(initialPercent);
 
@@ -171,7 +174,9 @@ export function DisputeResolutionForm({ dispute, onSubmit, onCancel }: DisputeRe
               key={d}
               className={cn(
                 "flex items-start gap-3 p-3 rounded-xl cursor-pointer transition-all",
-                selected ? "bg-white shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]" : NEUMORPHIC_INSET
+                selected
+                  ? "bg-white shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]"
+                  : NEUMORPHIC_INSET
               )}
             >
               <input
@@ -183,7 +188,14 @@ export function DisputeResolutionForm({ dispute, onSubmit, onCancel }: DisputeRe
                 className="mt-1 accent-primary"
               />
               <span className="min-w-0">
-                <span className={cn("block text-sm font-semibold", selected ? cfg.color : "text-text-primary")}>{cfg.label}</span>
+                <span
+                  className={cn(
+                    "block text-sm font-semibold",
+                    selected ? cfg.color : "text-text-primary"
+                  )}
+                >
+                  {cfg.label}
+                </span>
                 <span className="block text-xs text-text-secondary">{cfg.description}</span>
               </span>
             </label>
@@ -194,8 +206,9 @@ export function DisputeResolutionForm({ dispute, onSubmit, onCancel }: DisputeRe
       {decision === "SPLIT" && (
         <div className={cn(NEUMORPHIC_INSET, "p-4 rounded-xl space-y-4")}>
           <p className="text-xs text-text-secondary">
-            Suggested from the order&apos;s milestones: {suggestion.completedMilestones} of {suggestion.totalMilestones} completed →
-            seller ${suggestion.releaseAmount}, buyer ${suggestion.refundAmount}. Adjust if the evidence warrants it.
+            Suggested from the order&apos;s milestones: {suggestion.completedMilestones} of{" "}
+            {suggestion.totalMilestones} completed → seller ${suggestion.releaseAmount}, buyer $
+            {suggestion.refundAmount}. Adjust if the evidence warrants it.
           </p>
 
           {/* Interactive Split Allocation Slider */}
@@ -225,13 +238,17 @@ export function DisputeResolutionForm({ dispute, onSubmit, onCancel }: DisputeRe
             </div>
 
             <div className="text-center text-xs text-text-secondary font-medium">
-              Client: ${refundAmount} ({clientPercent}%) · Freelancer: ${releaseAmount} ({freelancerPercent}%)
+              Client: ${refundAmount} ({clientPercent}%) · Freelancer: ${releaseAmount} (
+              {freelancerPercent}%)
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label htmlFor="release-amount" className="block text-xs font-semibold text-text-primary mb-1">
+              <label
+                htmlFor="release-amount"
+                className="block text-xs font-semibold text-text-primary mb-1"
+              >
                 Release to seller ({order.currency})
               </label>
               <input
@@ -244,7 +261,10 @@ export function DisputeResolutionForm({ dispute, onSubmit, onCancel }: DisputeRe
               />
             </div>
             <div>
-              <label htmlFor="refund-amount" className="block text-xs font-semibold text-text-primary mb-1">
+              <label
+                htmlFor="refund-amount"
+                className="block text-xs font-semibold text-text-primary mb-1"
+              >
                 Refund to buyer ({order.currency})
               </label>
               <input
@@ -268,7 +288,10 @@ export function DisputeResolutionForm({ dispute, onSubmit, onCancel }: DisputeRe
       )}
 
       <div>
-        <label htmlFor="decision-note" className="block text-sm font-semibold text-text-primary mb-2">
+        <label
+          htmlFor="decision-note"
+          className="block text-sm font-semibold text-text-primary mb-2"
+        >
           Decision note <span className="text-error">*</span>
         </label>
         <textarea

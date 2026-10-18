@@ -38,7 +38,7 @@ describe("OrderSummaryHeader — refresh button", () => {
         statusLabel="In progress"
         onRefresh={vi.fn()}
         isRefreshing
-      />,
+      />
     );
 
     const button = screen.getByTitle("Refresh order");

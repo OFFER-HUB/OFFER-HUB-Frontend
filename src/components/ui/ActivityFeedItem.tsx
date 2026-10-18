@@ -44,9 +44,7 @@ export function ActivityFeedItem<TType extends string>({
 /** Placeholder row with the same footprint as {@link ActivityFeedItem}. */
 export function ActivityFeedItemSkeleton(): React.JSX.Element {
   return (
-    <div
-      className={cn("flex items-start gap-4 p-4 rounded-xl animate-pulse", NEUMORPHIC_INSET)}
-    >
+    <div className={cn("flex items-start gap-4 p-4 rounded-xl animate-pulse", NEUMORPHIC_INSET)}>
       <div className="w-10 h-10 rounded-lg bg-gray-200 flex-shrink-0" />
       <div className="flex-1">
         <div className="h-5 bg-gray-200 rounded mb-2 w-1/3" />

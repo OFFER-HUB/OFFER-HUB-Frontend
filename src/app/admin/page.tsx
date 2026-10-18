@@ -42,7 +42,11 @@ export default function AdminDashboardPage(): React.JSX.Element {
       {analytics.isLoading ? (
         <LoadingState message="Loading platform overview..." />
       ) : analytics.error ? (
-        <ErrorState title="Failed to Load Overview" message={analytics.error} onRetry={analytics.refetch} />
+        <ErrorState
+          title="Failed to Load Overview"
+          message={analytics.error}
+          onRetry={analytics.refetch}
+        />
       ) : analytics.data ? (
         <PlatformStats stats={analytics.data.stats} />
       ) : null}

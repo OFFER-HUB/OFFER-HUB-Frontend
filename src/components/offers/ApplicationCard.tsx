@@ -28,11 +28,11 @@ export function ApplicationCard({
   const [isProcessing, setIsProcessing] = useState(false);
 
   const statusConfig = APPLICATION_STATUS_CONFIG[application.status];
-  const freelancerName = application.freelancer?.email?.split('@')[0] || 'Anonymous';
-  const proposalDate = new Date(application.createdAt).toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
+  const freelancerName = application.freelancer?.email?.split("@")[0] || "Anonymous";
+  const proposalDate = new Date(application.createdAt).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
   });
 
   async function handleAccept() {
@@ -42,9 +42,9 @@ export function ApplicationCard({
       await onAccept(application.id);
       setShowAcceptModal(false);
       // Redirect to orders page after successful accept
-      router.push('/app/orders');
+      router.push("/app/orders");
     } catch (error) {
-      console.error('Failed to accept application:', error);
+      console.error("Failed to accept application:", error);
     } finally {
       setIsProcessing(false);
     }
@@ -84,7 +84,13 @@ export function ApplicationCard({
             {/* Header */}
             <div className="flex items-start justify-between gap-2 mb-1">
               <h3 className="font-medium text-text-primary">{freelancerName}</h3>
-              <span className={cn("px-2 py-1 rounded-lg text-xs font-medium", statusConfig.bg, statusConfig.color)}>
+              <span
+                className={cn(
+                  "px-2 py-1 rounded-lg text-xs font-medium",
+                  statusConfig.bg,
+                  statusConfig.color
+                )}
+              >
                 {statusConfig.label}
               </span>
             </div>
@@ -109,7 +115,7 @@ export function ApplicationCard({
             </div>
 
             {/* Actions */}
-            {showActions && application.status === 'PENDING' && (
+            {showActions && application.status === "PENDING" && (
               <div className="flex items-center gap-2 mt-4">
                 <button
                   onClick={() => setShowAcceptModal(true)}

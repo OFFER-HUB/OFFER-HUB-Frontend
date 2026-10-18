@@ -53,12 +53,7 @@ export function WalletAddress({
       </div>
 
       {/* Address */}
-      <span
-        className={cn(
-          "font-mono text-sm text-text-primary",
-          showFull && "min-w-0 break-all"
-        )}
-      >
+      <span className={cn("font-mono text-sm text-text-primary", showFull && "min-w-0 break-all")}>
         {showFull ? address : truncateAddress(address)}
       </span>
 
@@ -86,11 +81,7 @@ export function WalletAddress({
             stroke="currentColor"
             strokeWidth={2}
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M5 13l4 4L19 7"
-            />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
           </svg>
         ) : (
           <svg

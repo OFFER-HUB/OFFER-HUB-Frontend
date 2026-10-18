@@ -5,7 +5,11 @@ import { StellarWalletsKit } from "@creit.tech/stellar-wallets-kit";
 import { useAuthStore } from "@/stores/auth-store";
 import { useWalletKit } from "@/hooks/use-wallet-kit";
 import { isWalletCancellation, toWalletErrorMessage } from "@/lib/wallet-error-messages";
-import { preparePayoutTransfer, submitPayoutTransfer, type PreparePayoutTransferResult } from "@/lib/api/payout";
+import {
+  preparePayoutTransfer,
+  submitPayoutTransfer,
+  type PreparePayoutTransferResult,
+} from "@/lib/api/payout";
 import type { EscrowSigningState, EscrowSigningError } from "@/hooks/useEscrowSigning";
 
 export interface UsePayoutSigningResult {
@@ -66,7 +70,10 @@ export function usePayoutSigning(): UsePayoutSigningResult {
         setPrepared(result);
 
         if (Date.now() > result.expiresAt) {
-          setError({ code: "XDR_EXPIRED", message: "This signing request expired. Please try again." });
+          setError({
+            code: "XDR_EXPIRED",
+            message: "This signing request expired. Please try again.",
+          });
           setState("error");
           return;
         }
@@ -93,7 +100,10 @@ export function usePayoutSigning(): UsePayoutSigningResult {
           } else {
             setError({
               code: "API_ERROR",
-              message: toWalletErrorMessage(cause, "Could not sign the transaction. Please try again."),
+              message: toWalletErrorMessage(
+                cause,
+                "Could not sign the transaction. Please try again."
+              ),
             });
           }
           setState("error");
@@ -107,14 +117,20 @@ export function usePayoutSigning(): UsePayoutSigningResult {
         setState("confirmed");
       } catch (cause) {
         const message =
-          cause && typeof cause === "object" && "message" in cause && typeof cause.message === "string"
+          cause &&
+          typeof cause === "object" &&
+          "message" in cause &&
+          typeof cause.message === "string"
             ? cause.message
             : "The request failed. Please try again.";
         // STELLAR_NETWORK_ERROR names a specific, known cause (the signed
         // transfer went stale) rather than an unclassified failure — same
         // treatment as useEscrowSigning's toApiError.
         const code =
-          cause && typeof cause === "object" && "code" in cause && cause.code === "STELLAR_NETWORK_ERROR"
+          cause &&
+          typeof cause === "object" &&
+          "code" in cause &&
+          cause.code === "STELLAR_NETWORK_ERROR"
             ? "STALE_TRANSACTION"
             : "API_ERROR";
         setError({ code, message });

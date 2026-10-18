@@ -24,17 +24,20 @@ OfferHub is an SCF Integration Track grantee. Every line of code written under t
 ### Tranche Deliverables
 
 #### T1 — MVP: SWK Connection & Auth ($16,000) — deadline Sep 10, 2026
+
 - **D1.1** Multi-wallet connection UI (Freighter, Lobstr, xBull) with balance display — `$7,500`
 - **D1.2** Wallet-based authentication — hybrid login (wallet tab + email/password tab) — `$8,500`
 - SCF verification: video demo + end-to-end testnet walkthrough
 
 #### T2 — Testnet: Core Integrations ($19,500) — deadline Oct 20, 2026
+
 - **D2.1** SWK client-side Soroban signing UI — 4 operations from browser
 - **D2.2** BlindPay off-ramp UI — corridor selection, fiat payout confirmation
 - **D2.3** Off-ramp orchestration frontend layer
 - **D2.4** E2E integration tests
 
 #### T3 — Mainnet Launch & OS Adapters ($30,500) — deadline Dec 5, 2026
+
 - **D3.1** Stellar RPC migration (frontend SDK update)
 - **D3.2** Mainnet deployment
 - **D3.3** offer-hub.org/stats — live public metrics dashboard
@@ -44,6 +47,7 @@ OfferHub is an SCF Integration Track grantee. Every line of code written under t
 ### Custodial → Non-Custodial Migration
 
 103 existing users have auto-generated server-side wallets. Migration is opt-in and phased:
+
 - **T1:** Users can connect their own wallet (Freighter/Lobstr/xBull) and link it to their account
 - **T2:** All Soroban operations sign client-side via SWK — user must be online to approve
 - **T3:** Server-side signing removed entirely from codebase
@@ -52,16 +56,16 @@ OfferHub is an SCF Integration Track grantee. Every line of code written under t
 
 ## Tech Stack
 
-| Layer | Technology |
-|-------|-----------|
-| Framework | Next.js 15 (App Router) |
-| Language | TypeScript (strict mode) |
-| UI | React 19, Tailwind CSS |
-| State | Zustand (with localStorage persistence) |
-| Auth | NextAuth v5 + custom backend JWT |
-| Wallet | `@creit.tech/stellar-wallets-kit` (T1) |
-| Data fetching | TanStack Query |
-| Forms | react-hook-form + Zod |
+| Layer         | Technology                              |
+| ------------- | --------------------------------------- |
+| Framework     | Next.js 15 (App Router)                 |
+| Language      | TypeScript (strict mode)                |
+| UI            | React 19, Tailwind CSS                  |
+| State         | Zustand (with localStorage persistence) |
+| Auth          | NextAuth v5 + custom backend JWT        |
+| Wallet        | `@creit.tech/stellar-wallets-kit` (T1)  |
+| Data fetching | TanStack Query                          |
+| Forms         | react-hook-form + Zod                   |
 
 ---
 
@@ -106,15 +110,15 @@ src/
 
 ### Design System
 
-| Token | Value |
-|-------|-------|
-| Background | `#F1F3F7` |
-| Primary | `#149A9B` (teal) |
-| Secondary | `#002333` (dark navy) |
-| Raised shadow | `shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff]` |
-| Sunken shadow | `shadow-[inset_4px_4px_8px_#d1d5db,inset_-4px_-4px_8px_#ffffff]` |
-| Border radius (container) | `rounded-2xl` |
-| Border radius (interactive) | `rounded-xl` |
+| Token                       | Value                                                            |
+| --------------------------- | ---------------------------------------------------------------- |
+| Background                  | `#F1F3F7`                                                        |
+| Primary                     | `#149A9B` (teal)                                                 |
+| Secondary                   | `#002333` (dark navy)                                            |
+| Raised shadow               | `shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff]`           |
+| Sunken shadow               | `shadow-[inset_4px_4px_8px_#d1d5db,inset_-4px_-4px_8px_#ffffff]` |
+| Border radius (container)   | `rounded-2xl`                                                    |
+| Border radius (interactive) | `rounded-xl`                                                     |
 
 #### Neumorphism is not optional
 
@@ -122,14 +126,14 @@ src/
 
 This is the most common way generated UI drifts off-brand: the colours come out right, but everything is painted flat and the page stops looking like the rest of the site. Before calling any frontend work done, look at every surface you added and decide which of these it is:
 
-| Surface | Treatment |
-|---------|-----------|
-| Cards, panels, banners | Raised — `bg-white` + `shadow-[var(--shadow-neumorphic-light)]` |
-| Wells, inputs, read-only fields | Sunken — `bg-background` + `shadow-[var(--shadow-neumorphic-inset-light)]` |
-| Badges, chips, pills, tabs, status tags | Sunken, tighter — `shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]` |
-| Active / selected item | Raised + `bg-primary text-white` — `shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]` |
-| Pressed state | Swap the raised shadow for the inset one |
-| Page background | The one legitimate flat surface — plain `bg-background` |
+| Surface                                 | Treatment                                                                               |
+| --------------------------------------- | --------------------------------------------------------------------------------------- |
+| Cards, panels, banners                  | Raised — `bg-white` + `shadow-[var(--shadow-neumorphic-light)]`                         |
+| Wells, inputs, read-only fields         | Sunken — `bg-background` + `shadow-[var(--shadow-neumorphic-inset-light)]`              |
+| Badges, chips, pills, tabs, status tags | Sunken, tighter — `shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]`      |
+| Active / selected item                  | Raised + `bg-primary text-white` — `shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]` |
+| Pressed state                           | Swap the raised shadow for the inset one                                                |
+| Page background                         | The one legitimate flat surface — plain `bg-background`                                 |
 
 Rules that follow from this:
 
@@ -153,11 +157,13 @@ Rules that follow from this:
 ## Auth Architecture (Current — T1 target)
 
 **Current (pre-T1):**
+
 - NextAuth v5 handles OAuth (GitHub/Google) — does NOT store backend JWT
 - Zustand `auth-store.ts` stores `{ user, token }` from email/password login in `localStorage`
 - Dual system — not fully unified (known issue)
 
 **T1 target:**
+
 - Add third auth path: wallet signature (SWK challenge-response)
 - Hybrid login UI: tab "Email/Password" + tab "Connect Wallet"
 - Wallet state: `walletAddress`, `walletConnected`, `connectWallet()`, `disconnectWallet()` in `auth-store.ts`

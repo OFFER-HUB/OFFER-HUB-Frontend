@@ -50,8 +50,12 @@ export function MarketplaceFilters({
   priceLabel = "Budget",
   className,
 }: MarketplaceFiltersProps): React.JSX.Element {
-  const [minInput, setMinInput] = useState<string>(filters.minBudget > 0 ? String(filters.minBudget) : "");
-  const [maxInput, setMaxInput] = useState<string>(filters.maxBudget < 10000 ? String(filters.maxBudget) : "");
+  const [minInput, setMinInput] = useState<string>(
+    filters.minBudget > 0 ? String(filters.minBudget) : ""
+  );
+  const [maxInput, setMaxInput] = useState<string>(
+    filters.maxBudget < 10000 ? String(filters.maxBudget) : ""
+  );
 
   const activeFiltersCount =
     (filters.category ? 1 : 0) +
@@ -214,7 +218,9 @@ export function MarketplaceFilters({
         <div className="space-y-3">
           <div className="grid grid-cols-2 gap-2.5">
             <div>
-              <span className="text-[11px] text-text-secondary mb-1 block font-medium">Min ($)</span>
+              <span className="text-[11px] text-text-secondary mb-1 block font-medium">
+                Min ($)
+              </span>
               <div className="flex items-center px-3 py-2 rounded-xl bg-background shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]">
                 <span className="text-xs text-text-secondary mr-1 font-semibold">$</span>
                 <input
@@ -232,7 +238,9 @@ export function MarketplaceFilters({
             </div>
 
             <div>
-              <span className="text-[11px] text-text-secondary mb-1 block font-medium">Max ($)</span>
+              <span className="text-[11px] text-text-secondary mb-1 block font-medium">
+                Max ($)
+              </span>
               <div className="flex items-center px-3 py-2 rounded-xl bg-background shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]">
                 <span className="text-xs text-text-secondary mr-1 font-semibold">$</span>
                 <input

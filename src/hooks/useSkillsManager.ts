@@ -53,10 +53,7 @@ export function useSkillsManager() {
       });
   }, [token]);
 
-  const existingNames = useMemo(
-    () => new Set(skills.map((s) => s.name.toLowerCase())),
-    [skills]
-  );
+  const existingNames = useMemo(() => new Set(skills.map((s) => s.name.toLowerCase())), [skills]);
   const atLimit = skills.length >= MAX_SKILLS;
 
   /* ── Add skill ── */
@@ -151,7 +148,10 @@ export function useSkillsManager() {
     dragIndex.current = null;
     dragOverIndex.current = null;
     try {
-      await reorderSkills(token ?? "", skills.map((s) => s.id));
+      await reorderSkills(
+        token ?? "",
+        skills.map((s) => s.id)
+      );
     } catch {
       showToast("error", "Failed to save new order.");
     }

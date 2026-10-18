@@ -24,9 +24,7 @@ interface UseSealedRoundResult {
   reset: () => void;
 }
 
-export function useSealedRound(
-  adapter: SubRosaAdapter = mockSubRosaAdapter
-): UseSealedRoundResult {
+export function useSealedRound(adapter: SubRosaAdapter = mockSubRosaAdapter): UseSealedRoundResult {
   const [round, setRound] = useState<SealedRound | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -56,7 +54,10 @@ export function useSealedRound(
    * current round to the adapter, swap in whatever comes back.
    */
   const runAction = useCallback(
-    (action: Exclude<PendingAction, null>, transition: (current: SealedRound) => Promise<SealedRound>) => {
+    (
+      action: Exclude<PendingAction, null>,
+      transition: (current: SealedRound) => Promise<SealedRound>
+    ) => {
       if (!round || pendingAction !== null) return;
       setPendingAction(action);
       setError(null);

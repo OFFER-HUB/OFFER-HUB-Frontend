@@ -60,9 +60,7 @@ describe("getPayoutStatus", () => {
   });
 
   it("falls back to a generic message when the error body has none", async () => {
-    (fetch as unknown as ReturnType<typeof vi.fn>).mockResolvedValue(
-      jsonResponse({}, false, 500)
-    );
+    (fetch as unknown as ReturnType<typeof vi.fn>).mockResolvedValue(jsonResponse({}, false, 500));
 
     const error: PayoutApiError = await getPayoutStatus(TOKEN, ORDER_ID).catch((e) => e);
 

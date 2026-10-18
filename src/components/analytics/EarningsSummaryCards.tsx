@@ -136,14 +136,21 @@ export function EarningsSummaryCards({ data }: EarningsSummaryCardsProps): React
                 </div>
 
                 {aovDelta !== null ? (
-                  <p className={cn("text-xs font-semibold", aovDelta >= 0 ? "text-success" : "text-error")}>
+                  <p
+                    className={cn(
+                      "text-xs font-semibold",
+                      aovDelta >= 0 ? "text-success" : "text-error"
+                    )}
+                  >
                     AOV {formatPct(aovDelta)}
                   </p>
                 ) : null}
 
                 <p className="text-[11px] text-text-secondary pt-1 border-t border-border-light/40">
                   Prior period ({data.previousPeriod.start} – {data.previousPeriod.end}):{" "}
-                  <span className="font-medium text-text-primary">{fmt(data.previousPeriod.totalEarnings)}</span>
+                  <span className="font-medium text-text-primary">
+                    {fmt(data.previousPeriod.totalEarnings)}
+                  </span>
                 </p>
               </>
             ) : (
@@ -163,8 +170,12 @@ export function EarningsSummaryCards({ data }: EarningsSummaryCardsProps): React
                 <p className="text-sm font-bold text-text-primary">Monthly Revenue Goal</p>
               </div>
               <p className="text-xs text-text-secondary mt-1">
-                Target: <span className="font-semibold text-text-primary">{fmt(data.monthlyGoal!)}</span> · Progress:{" "}
-                <span className="font-semibold text-text-primary">{fmt(data.totals.thisMonth)}</span>
+                Target:{" "}
+                <span className="font-semibold text-text-primary">{fmt(data.monthlyGoal!)}</span> ·
+                Progress:{" "}
+                <span className="font-semibold text-text-primary">
+                  {fmt(data.totals.thisMonth)}
+                </span>
               </p>
             </div>
 

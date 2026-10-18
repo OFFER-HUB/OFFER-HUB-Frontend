@@ -2,18 +2,18 @@ import { API_URL } from "@/config/api";
 
 const API_BASE_URL = API_URL;
 
-export type OfferStatus = 'ACTIVE' | 'PENDING' | 'CLOSED' | 'COMPLETED';
+export type OfferStatus = "ACTIVE" | "PENDING" | "CLOSED" | "COMPLETED";
 
 export type OfferCategory =
-  | 'WEB_DEVELOPMENT'
-  | 'MOBILE_DEVELOPMENT'
-  | 'DESIGN'
-  | 'WRITING'
-  | 'MARKETING'
-  | 'VIDEO'
-  | 'MUSIC'
-  | 'DATA'
-  | 'OTHER';
+  | "WEB_DEVELOPMENT"
+  | "MOBILE_DEVELOPMENT"
+  | "DESIGN"
+  | "WRITING"
+  | "MARKETING"
+  | "VIDEO"
+  | "MUSIC"
+  | "DATA"
+  | "OTHER";
 
 export interface OfferAttachment {
   id: string;
@@ -60,22 +60,19 @@ export interface UpdateOfferStatusPayload {
   status: OfferStatus;
 }
 
-export async function createOffer(
-  token: string,
-  payload: CreateOfferPayload
-): Promise<Offer> {
+export async function createOffer(token: string, payload: CreateOfferPayload): Promise<Offer> {
   const response = await fetch(`${API_BASE_URL}/offers`, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
     },
     body: JSON.stringify(payload),
   });
 
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.error?.message || 'Failed to create offer');
+    throw new Error(error.error?.message || "Failed to create offer");
   }
 
   const data = await response.json();
@@ -85,34 +82,31 @@ export async function createOffer(
 export async function getMyOffers(token: string): Promise<Offer[]> {
   const response = await fetch(`${API_BASE_URL}/offers`, {
     headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
     },
   });
 
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.error?.message || 'Failed to fetch offers');
+    throw new Error(error.error?.message || "Failed to fetch offers");
   }
 
   const data = await response.json();
   return data.data;
 }
 
-export async function getOfferById(
-  token: string,
-  offerId: string
-): Promise<Offer> {
+export async function getOfferById(token: string, offerId: string): Promise<Offer> {
   const response = await fetch(`${API_BASE_URL}/offers/${offerId}`, {
     headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
     },
   });
 
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.error?.message || 'Failed to fetch offer');
+    throw new Error(error.error?.message || "Failed to fetch offer");
   }
 
   const data = await response.json();
@@ -125,17 +119,17 @@ export async function updateOffer(
   payload: UpdateOfferPayload
 ): Promise<Offer> {
   const response = await fetch(`${API_BASE_URL}/offers/${offerId}`, {
-    method: 'PUT',
+    method: "PUT",
     headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
     },
     body: JSON.stringify(payload),
   });
 
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.error?.message || 'Failed to update offer');
+    throw new Error(error.error?.message || "Failed to update offer");
   }
 
   const data = await response.json();
@@ -148,38 +142,35 @@ export async function updateOfferStatus(
   payload: UpdateOfferStatusPayload
 ): Promise<Offer> {
   const response = await fetch(`${API_BASE_URL}/offers/${offerId}/status`, {
-    method: 'PATCH',
+    method: "PATCH",
     headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
     },
     body: JSON.stringify(payload),
   });
 
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.error?.message || 'Failed to update offer status');
+    throw new Error(error.error?.message || "Failed to update offer status");
   }
 
   const data = await response.json();
   return data.data;
 }
 
-export async function deleteOffer(
-  token: string,
-  offerId: string
-): Promise<void> {
+export async function deleteOffer(token: string, offerId: string): Promise<void> {
   const response = await fetch(`${API_BASE_URL}/offers/${offerId}`, {
-    method: 'DELETE',
+    method: "DELETE",
     headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
     },
   });
 
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.error?.message || 'Failed to delete offer');
+    throw new Error(error.error?.message || "Failed to delete offer");
   }
 }
 
@@ -189,38 +180,35 @@ export async function uploadAttachment(
   file: File
 ): Promise<OfferAttachment> {
   const formData = new FormData();
-  formData.append('file', file);
+  formData.append("file", file);
 
   const response = await fetch(`${API_BASE_URL}/offers/${offerId}/attachments`, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Authorization': `Bearer ${token}`,
+      Authorization: `Bearer ${token}`,
     },
     body: formData,
   });
 
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.error?.message || 'Failed to upload attachment');
+    throw new Error(error.error?.message || "Failed to upload attachment");
   }
 
   const data = await response.json();
   return data.data;
 }
 
-export async function deleteAttachment(
-  token: string,
-  attachmentId: string
-): Promise<void> {
+export async function deleteAttachment(token: string, attachmentId: string): Promise<void> {
   const response = await fetch(`${API_BASE_URL}/offers/attachments/${attachmentId}`, {
-    method: 'DELETE',
+    method: "DELETE",
     headers: {
-      'Authorization': `Bearer ${token}`,
+      Authorization: `Bearer ${token}`,
     },
   });
 
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.error?.message || 'Failed to delete attachment');
+    throw new Error(error.error?.message || "Failed to delete attachment");
   }
 }

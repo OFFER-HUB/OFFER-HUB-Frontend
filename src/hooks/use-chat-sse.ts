@@ -199,12 +199,7 @@ export function useChatSSE({ conversationId }: UseChatSSEOptions): void {
           break;
         }
         case "messages_read": {
-          applyReadReceipt(
-            conversationId,
-            event.lastReadMessageId,
-            event.readAt,
-            event.userId
-          );
+          applyReadReceipt(conversationId, event.lastReadMessageId, event.readAt, event.userId);
           break;
         }
       }
@@ -250,8 +245,7 @@ export function useChatSSE({ conversationId }: UseChatSSEOptions): void {
       if (!cid || !tokenRef.current || !isMountedRef.current) return;
 
       const es = esRef.current;
-      const isDisconnected =
-        es === null || es.readyState === EventSource.CLOSED;
+      const isDisconnected = es === null || es.readyState === EventSource.CLOSED;
 
       if (isDisconnected) {
         clearRetryTimer();

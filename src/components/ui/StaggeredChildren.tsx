@@ -29,9 +29,7 @@ export function StaggeredChildren({
         <div
           className={cn(
             "transition-all ease-out",
-            isInView
-              ? "opacity-100 translate-y-0"
-              : "opacity-0 translate-y-6",
+            isInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6",
             childClassName
           )}
           style={{

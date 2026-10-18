@@ -21,9 +21,9 @@ function truncateAddress(address: string): string {
 }
 
 const ROLE_OPTIONS: ReadonlyArray<{ id: OnboardingAccountType; label: string }> = [
-  { id: "BUYER",  label: "Client"     },
+  { id: "BUYER", label: "Client" },
   { id: "SELLER", label: "Freelancer" },
-  { id: "BOTH",   label: "Both"       },
+  { id: "BOTH", label: "Both" },
 ];
 
 type Step1Errors = Partial<Record<keyof OnboardingStep1Values, string>>;
@@ -39,30 +39,48 @@ function toUserType(value: string): User["type"] {
 function StepIndicator({ current, total }: { current: number; total: number }) {
   return (
     <div className="flex items-center justify-center gap-2 mb-6 h-10">
-      {total < 2 ? null : Array.from({ length: total }, (_, i) => {
-        const s = i + 1;
-        const done = s < current;
-        const active = s === current;
-        return (
-          <div key={s} className="flex items-center gap-2">
-            <div className={cn(
-              "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300",
-              active && "bg-primary text-white shadow-[3px_3px_6px_#d1d5db,-3px_-3px_6px_#ffffff]",
-              done && "bg-primary/20 text-primary",
-              !active && !done && "bg-[#F3F4F6] text-text-secondary shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]",
-            )}>
-              {done ? (
-                <svg viewBox="0 0 16 16" fill="currentColor" className="w-4 h-4">
-                  <path fillRule="evenodd" d="M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                </svg>
-              ) : s}
-            </div>
-            {s < total && (
-              <div className={cn("w-8 h-0.5 rounded-full transition-all duration-300", done ? "bg-primary/40" : "bg-gray-200")} />
-            )}
-          </div>
-        );
-      })}
+      {total < 2
+        ? null
+        : Array.from({ length: total }, (_, i) => {
+            const s = i + 1;
+            const done = s < current;
+            const active = s === current;
+            return (
+              <div key={s} className="flex items-center gap-2">
+                <div
+                  className={cn(
+                    "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300",
+                    active &&
+                      "bg-primary text-white shadow-[3px_3px_6px_#d1d5db,-3px_-3px_6px_#ffffff]",
+                    done && "bg-primary/20 text-primary",
+                    !active &&
+                      !done &&
+                      "bg-[#F3F4F6] text-text-secondary shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]"
+                  )}
+                >
+                  {done ? (
+                    <svg viewBox="0 0 16 16" fill="currentColor" className="w-4 h-4">
+                      <path
+                        fillRule="evenodd"
+                        d="M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  ) : (
+                    s
+                  )}
+                </div>
+                {s < total && (
+                  <div
+                    className={cn(
+                      "w-8 h-0.5 rounded-full transition-all duration-300",
+                      done ? "bg-primary/40" : "bg-gray-200"
+                    )}
+                  />
+                )}
+              </div>
+            );
+          })}
     </div>
   );
 }
@@ -198,7 +216,7 @@ export function WalletOnboardingForm() {
             username: profile.username ?? step1.username,
             type: toUserType(profile.type) ?? step1.type,
           },
-          token,
+          token
         );
       }
 
@@ -242,10 +260,12 @@ export function WalletOnboardingForm() {
 
       {walletAddress && (
         <div className="flex justify-center mb-2">
-          <div className={cn(
-            "inline-flex items-center gap-2 px-3 py-1.5 rounded-full",
-            "bg-[#F3F4F6] shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]",
-          )}>
+          <div
+            className={cn(
+              "inline-flex items-center gap-2 px-3 py-1.5 rounded-full",
+              "bg-[#F3F4F6] shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]"
+            )}
+          >
             <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
             <span className="text-xs font-mono text-text-secondary">
               {truncateAddress(walletAddress)}
@@ -301,10 +321,12 @@ export function WalletOnboardingForm() {
           {/* Role selector */}
           <div>
             <p className="text-sm font-medium text-text-primary mb-2">I want to</p>
-            <div className={cn(
-              "relative flex p-1 rounded-xl bg-[#F3F4F6]",
-              "shadow-[inset_3px_3px_6px_#d1d5db,inset_-3px_-3px_6px_#ffffff]",
-            )}>
+            <div
+              className={cn(
+                "relative flex p-1 rounded-xl bg-[#F3F4F6]",
+                "shadow-[inset_3px_3px_6px_#d1d5db,inset_-3px_-3px_6px_#ffffff]"
+              )}
+            >
               <span
                 aria-hidden="true"
                 className="absolute rounded-lg bg-primary pointer-events-none"
@@ -327,7 +349,7 @@ export function WalletOnboardingForm() {
                       "relative flex-1 py-2 px-2 rounded-lg text-xs font-semibold z-10",
                       "outline-none transition-colors duration-200 cursor-pointer",
                       "focus-visible:ring-2 focus-visible:ring-primary/40",
-                      active ? "text-white" : "text-text-secondary hover:text-text-primary",
+                      active ? "text-white" : "text-text-secondary hover:text-text-primary"
                     )}
                   >
                     {opt.label}
@@ -350,7 +372,10 @@ export function WalletOnboardingForm() {
               autoComplete="country-name"
             />
             <div>
-              <label className="text-sm font-medium text-text-primary mb-2 block" htmlFor="onboarding-phone">
+              <label
+                className="text-sm font-medium text-text-primary mb-2 block"
+                htmlFor="onboarding-phone"
+              >
                 Phone
               </label>
               <input
@@ -367,10 +392,12 @@ export function WalletOnboardingForm() {
                   "shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]",
                   "focus:outline-none focus:ring-2 focus:ring-primary/30",
                   "transition-all duration-200",
-                  step1Errors.phone && "ring-2 ring-error/30",
+                  step1Errors.phone && "ring-2 ring-error/30"
                 )}
               />
-              {step1Errors.phone && <p className="mt-1.5 text-xs text-error">{step1Errors.phone}</p>}
+              {step1Errors.phone && (
+                <p className="mt-1.5 text-xs text-error">{step1Errors.phone}</p>
+              )}
             </div>
           </div>
 
@@ -404,7 +431,7 @@ export function WalletOnboardingForm() {
                   "shadow-[3px_3px_6px_#d1d5db,-3px_-3px_6px_#ffffff]",
                   "hover:shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]",
                   "active:shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]",
-                  "transition-all duration-150",
+                  "transition-all duration-150"
                 )}
               >
                 Connect wallet
@@ -426,7 +453,7 @@ export function WalletOnboardingForm() {
               "hover:bg-primary-hover hover:shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff] hover:scale-[1.02]",
               "active:shadow-[inset_4px_4px_8px_rgba(0,0,0,0.2)] active:scale-[0.98]",
               "disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100",
-              "transition-all duration-200",
+              "transition-all duration-200"
             )}
           >
             {isSubmitting ? "Saving..." : needsStep2 ? "Continue" : "Get started"}
@@ -473,7 +500,7 @@ export function WalletOnboardingForm() {
                 "shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]",
                 "focus:outline-none focus:ring-2 focus:ring-primary/30",
                 "transition-all duration-200",
-                step2Errors.bio && "ring-2 ring-error/30",
+                step2Errors.bio && "ring-2 ring-error/30"
               )}
             />
             <div className="flex justify-between mt-1">
@@ -501,7 +528,7 @@ export function WalletOnboardingForm() {
                 "shadow-[3px_3px_6px_#d1d5db,-3px_-3px_6px_#ffffff]",
                 "hover:text-text-primary active:shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]",
                 "disabled:opacity-70 disabled:cursor-not-allowed",
-                "transition-all duration-200",
+                "transition-all duration-200"
               )}
             >
               Back
@@ -516,7 +543,7 @@ export function WalletOnboardingForm() {
                 "hover:bg-primary-hover hover:shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff] hover:scale-[1.02]",
                 "active:shadow-[inset_4px_4px_8px_rgba(0,0,0,0.2)] active:scale-[0.98]",
                 "disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100",
-                "transition-all duration-200",
+                "transition-all duration-200"
               )}
             >
               {isSubmitting ? "Saving..." : "Get started"}

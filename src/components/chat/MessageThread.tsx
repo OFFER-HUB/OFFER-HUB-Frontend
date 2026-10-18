@@ -67,7 +67,8 @@ export function MessageThread({
       container.scrollHeight - container.scrollTop - container.clientHeight < 250;
 
     const isInitialLoad = lastMessageCountRef.current === 0 && messages.length > 0;
-    const isNewMessageSent = messages.length > lastMessageCountRef.current && 
+    const isNewMessageSent =
+      messages.length > lastMessageCountRef.current &&
       messages[messages.length - 1]?.senderId === currentUserId;
 
     if (isInitialLoad || isNewMessageSent || isNearBottom) {
@@ -120,10 +121,7 @@ export function MessageThread({
     }
 
     renderedElements.push(
-      <div
-        key={message.id}
-        ref={getMessageRef ? getMessageRef(message) : undefined}
-      >
+      <div key={message.id} ref={getMessageRef ? getMessageRef(message) : undefined}>
         <MessageBubble
           message={message}
           isOwn={message.senderId === currentUserId}
@@ -139,10 +137,7 @@ export function MessageThread({
     <div
       ref={containerRef}
       onScroll={handleScroll}
-      className={cn(
-        "flex-1 overflow-y-auto p-4 sm:p-6 min-h-0 relative",
-        "bg-background"
-      )}
+      className={cn("flex-1 overflow-y-auto p-4 sm:p-6 min-h-0 relative", "bg-background")}
       style={{ contain: "content" }} // Scroll performance optimization
     >
       {/* Loading older spinner */}

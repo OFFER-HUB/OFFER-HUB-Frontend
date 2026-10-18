@@ -63,9 +63,7 @@ export class E2ETestWalletModule implements ModuleInterface {
     return { address: E2E_TEST_WALLET_ADDRESS };
   }
 
-  async signTransaction(
-    xdr: string
-  ): Promise<{ signedTxXdr: string; signerAddress?: string }> {
+  async signTransaction(xdr: string): Promise<{ signedTxXdr: string; signerAddress?: string }> {
     const cfg = config();
     if (cfg.signTransactionDelayMs) await delay(cfg.signTransactionDelayMs);
 
@@ -84,9 +82,7 @@ export class E2ETestWalletModule implements ModuleInterface {
     return { signedAuthEntry: authEntry, signerAddress: E2E_TEST_WALLET_ADDRESS };
   }
 
-  async signMessage(
-    message: string
-  ): Promise<{ signedMessage: string; signerAddress?: string }> {
+  async signMessage(message: string): Promise<{ signedMessage: string; signerAddress?: string }> {
     return { signedMessage: message, signerAddress: E2E_TEST_WALLET_ADDRESS };
   }
 

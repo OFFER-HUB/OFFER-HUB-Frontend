@@ -13,11 +13,7 @@ function isProduction(): boolean {
 }
 
 function buildCookieOptions(maxAgeSeconds: number, includeHttpOnly: boolean = true): string[] {
-  const options = [
-    `Max-Age=${maxAgeSeconds}`,
-    "Path=/",
-    "SameSite=Lax",
-  ];
+  const options = [`Max-Age=${maxAgeSeconds}`, "Path=/", "SameSite=Lax"];
 
   if (includeHttpOnly) {
     options.push("HttpOnly");

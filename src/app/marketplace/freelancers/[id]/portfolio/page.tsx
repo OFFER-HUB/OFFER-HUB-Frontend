@@ -35,7 +35,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   });
 }
 
-export default async function PublicPortfolioPage({ params }: PageProps): Promise<React.JSX.Element> {
+export default async function PublicPortfolioPage({
+  params,
+}: PageProps): Promise<React.JSX.Element> {
   const { id } = await params;
   const result = await getPublicFreelancerPortfolio(id);
 
@@ -63,7 +65,7 @@ export default async function PublicPortfolioPage({ params }: PageProps): Promis
           <div
             className={cn(
               "p-6 rounded-3xl bg-white mb-8",
-              "shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff]",
+              "shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff]"
             )}
           >
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -89,7 +91,7 @@ export default async function PublicPortfolioPage({ params }: PageProps): Promis
                     "inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium",
                     "bg-white text-text-secondary border border-border-light",
                     "shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]",
-                    "hover:text-text-primary transition-colors",
+                    "hover:text-text-primary transition-colors"
                   )}
                 >
                   Reviews

@@ -49,7 +49,9 @@ export interface SearchServicesResult {
   nextCursor?: string;
 }
 
-export function aggregateFreelancersFromServices(services: MarketplaceService[]): FreelancerSearchHit[] {
+export function aggregateFreelancersFromServices(
+  services: MarketplaceService[]
+): FreelancerSearchHit[] {
   const byUser = new Map<string, MarketplaceService[]>();
   for (const s of services) {
     const list = byUser.get(s.userId) ?? [];
@@ -145,12 +147,18 @@ export async function fetchFreelancerHitsFromServices(params: {
   };
 }
 
-export function filterBySkills<T extends { category: string }>(items: T[], skills: Set<string>): T[] {
+export function filterBySkills<T extends { category: string }>(
+  items: T[],
+  skills: Set<string>
+): T[] {
   if (skills.size === 0) return items;
   return items.filter((item) => skills.has(item.category));
 }
 
-export function filterFreelancersBySkills(hits: FreelancerSearchHit[], skills: Set<string>): FreelancerSearchHit[] {
+export function filterFreelancersBySkills(
+  hits: FreelancerSearchHit[],
+  skills: Set<string>
+): FreelancerSearchHit[] {
   if (skills.size === 0) return hits;
   return hits.filter((h) => h.categories.some((c) => skills.has(c)));
 }

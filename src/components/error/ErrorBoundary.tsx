@@ -31,7 +31,10 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     this.props.onError?.(error, errorInfo);
 
     // Send to error tracking service if configured
-    if (typeof window !== "undefined" && process.env.NEXT_PUBLIC_ERROR_TRACKING_ENABLED === "true") {
+    if (
+      typeof window !== "undefined" &&
+      process.env.NEXT_PUBLIC_ERROR_TRACKING_ENABLED === "true"
+    ) {
       this.reportError(error, errorInfo);
     }
   }
@@ -68,12 +71,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
         return this.props.fallback;
       }
 
-      return (
-        <DefaultErrorFallback
-          error={this.state.error}
-          onReset={this.handleReset}
-        />
-      );
+      return <DefaultErrorFallback error={this.state.error} onReset={this.handleReset} />;
     }
 
     return this.props.children;
@@ -107,18 +105,15 @@ function DefaultErrorFallback({ error, onReset }: DefaultErrorFallbackProps): Re
           </svg>
         </div>
 
-        <h2 className="text-xl font-bold text-text-primary mb-2">
-          Something went wrong
-        </h2>
+        <h2 className="text-xl font-bold text-text-primary mb-2">Something went wrong</h2>
         <p className="text-text-secondary mb-6">
-          We encountered an unexpected error. Please try again or contact support if the problem persists.
+          We encountered an unexpected error. Please try again or contact support if the problem
+          persists.
         </p>
 
         {isDev && error && (
           <div className="mb-6 p-4 bg-gray-100 rounded-xl text-left overflow-auto max-h-32">
-            <p className="text-sm font-mono text-error break-all">
-              {error.message}
-            </p>
+            <p className="text-sm font-mono text-error break-all">{error.message}</p>
           </div>
         )}
 
@@ -130,7 +125,7 @@ function DefaultErrorFallback({ error, onReset }: DefaultErrorFallbackProps): Re
             Try Again
           </button>
           <button
-            onClick={() => window.location.href = "/"}
+            onClick={() => (window.location.href = "/")}
             className="px-6 py-2.5 rounded-xl font-medium border-2 border-primary text-primary hover:bg-primary hover:text-white transition-colors"
           >
             Go Home

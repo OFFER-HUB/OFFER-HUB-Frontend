@@ -8,11 +8,7 @@ import { useModeStore } from "@/stores/mode-store";
 import { useAuthStore } from "@/stores/auth-store";
 import { Icon, ICON_PATHS } from "@/components/ui/Icon";
 import { EvidenceUploader } from "@/components/disputes/EvidenceUploader";
-import {
-  NEUMORPHIC_CARD,
-  NEUMORPHIC_INSET,
-  ICON_BUTTON,
-} from "@/lib/styles";
+import { NEUMORPHIC_CARD, NEUMORPHIC_INSET, ICON_BUTTON } from "@/lib/styles";
 import { DISPUTE_REASONS } from "@/types/dispute.types";
 import { listOrders, openDispute } from "@/lib/api/orders";
 import { toApiDisputeReason } from "@/lib/disputes/map-dispute";
@@ -141,9 +137,7 @@ function NewDisputeForm(): React.JSX.Element {
       >
         <form onSubmit={handleSubmit} className="max-w-3xl mx-auto space-y-6">
           <div className={NEUMORPHIC_CARD}>
-            <h2 className="text-lg font-semibold text-text-primary mb-4">
-              Select Order
-            </h2>
+            <h2 className="text-lg font-semibold text-text-primary mb-4">Select Order</h2>
             <div className="space-y-3">
               {ordersLoading ? (
                 <p className="text-text-secondary text-sm">Loading eligible orders...</p>
@@ -183,15 +177,11 @@ function NewDisputeForm(): React.JSX.Element {
                 ))
               )}
             </div>
-            {errors.service && (
-              <p className="text-error text-sm mt-2">{errors.service}</p>
-            )}
+            {errors.service && <p className="text-error text-sm mt-2">{errors.service}</p>}
           </div>
 
           <div className={NEUMORPHIC_CARD}>
-            <h2 className="text-lg font-semibold text-text-primary mb-4">
-              Reason for Dispute
-            </h2>
+            <h2 className="text-lg font-semibold text-text-primary mb-4">Reason for Dispute</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {DISPUTE_REASONS.map((reason) => (
                 <label
@@ -215,21 +205,15 @@ function NewDisputeForm(): React.JSX.Element {
                     />
                     <span className="text-text-primary font-medium">{reason.label}</span>
                   </div>
-                  <p className="text-text-secondary text-sm mt-2 ml-7">
-                    {reason.description}
-                  </p>
+                  <p className="text-text-secondary text-sm mt-2 ml-7">{reason.description}</p>
                 </label>
               ))}
             </div>
-            {errors.reason && (
-              <p className="text-error text-sm mt-2">{errors.reason}</p>
-            )}
+            {errors.reason && <p className="text-error text-sm mt-2">{errors.reason}</p>}
           </div>
 
           <div className={NEUMORPHIC_CARD}>
-            <h2 className="text-lg font-semibold text-text-primary mb-4">
-              Describe Your Issue
-            </h2>
+            <h2 className="text-lg font-semibold text-text-primary mb-4">Describe Your Issue</h2>
             <div className={cn("rounded-xl", NEUMORPHIC_INSET)}>
               <textarea
                 value={description}
@@ -247,21 +231,15 @@ function NewDisputeForm(): React.JSX.Element {
               {errors.description ? (
                 <p className="text-error text-sm">{errors.description}</p>
               ) : (
-                <p className="text-text-secondary text-sm">
-                  Minimum 50 characters required
-                </p>
+                <p className="text-text-secondary text-sm">Minimum 50 characters required</p>
               )}
-              <p className="text-text-secondary text-sm">
-                {description.length} characters
-              </p>
+              <p className="text-text-secondary text-sm">{description.length} characters</p>
             </div>
           </div>
 
           <EvidenceUploader token={token} onChange={setEvidenceItems} />
 
-          {errors.submit && (
-            <p className="text-error text-sm text-center">{errors.submit}</p>
-          )}
+          {errors.submit && <p className="text-error text-sm text-center">{errors.submit}</p>}
 
           <div className="flex items-center justify-end gap-4">
             {hasPendingEvidence && (

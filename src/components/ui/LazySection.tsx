@@ -48,7 +48,7 @@ export function LazySection({
 
   return (
     <div ref={sectionRef} className={className}>
-      {hasLoaded ? children : (fallback || <LazySectionPlaceholder />)}
+      {hasLoaded ? children : fallback || <LazySectionPlaceholder />}
     </div>
   );
 }

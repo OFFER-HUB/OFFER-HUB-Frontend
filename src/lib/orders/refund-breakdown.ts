@@ -24,7 +24,10 @@ export interface RefundBreakdown {
  * so the buyer sees that up front instead of the modal simply asserting
  * "$220.00 back" with no breakdown of what that is made of.
  */
-export function computeRefundBreakdown(amount: string, milestones: Milestone[] | undefined): RefundBreakdown {
+export function computeRefundBreakdown(
+  amount: string,
+  milestones: Milestone[] | undefined
+): RefundBreakdown {
   const total = Number.parseFloat(amount);
   const safeTotal = Number.isFinite(total) ? total : 0;
 
@@ -46,7 +49,13 @@ export function computeRefundBreakdown(amount: string, milestones: Milestone[] |
   // report a negative or over-100% refundable amount.
   const refundable = Math.max(0, Math.min(safeTotal, safeTotal - earned));
 
-  return { total: safeTotal, earned: Math.min(earned, safeTotal), refundable, completedCount, totalCount: milestones.length };
+  return {
+    total: safeTotal,
+    earned: Math.min(earned, safeTotal),
+    refundable,
+    completedCount,
+    totalCount: milestones.length,
+  };
 }
 
 /** Whether a refund breakdown step is worth showing at all — only when the order has milestones. */

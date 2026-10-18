@@ -83,8 +83,8 @@ function RefundModalDialog({
           </div>
 
           <p className="text-text-secondary mb-4 text-sm">
-            This order is split into milestones. Here is what a refund would actually return, based on the{" "}
-            {breakdown.completedCount} of {breakdown.totalCount} already completed.
+            This order is split into milestones. Here is what a refund would actually return, based
+            on the {breakdown.completedCount} of {breakdown.totalCount} already completed.
           </p>
 
           <div className={cn(NEUMORPHIC_INSET, "rounded-2xl p-4 space-y-2 mb-4")}>
@@ -141,13 +141,17 @@ function RefundModalDialog({
 
         <p className="text-text-secondary mb-4">
           This asks for{" "}
-          <span className="font-semibold text-primary">{money(breakdown.refundable)}</span>{" "}
-          back. The freelancer will not be paid for {showBreakdown ? "the remaining, unearned part of" : ""} this order.
+          <span className="font-semibold text-primary">{money(breakdown.refundable)}</span> back.
+          The freelancer will not be paid for{" "}
+          {showBreakdown ? "the remaining, unearned part of" : ""} this order.
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="refund-reason" className="mb-2 block text-sm font-medium text-text-primary">
+            <label
+              htmlFor="refund-reason"
+              className="mb-2 block text-sm font-medium text-text-primary"
+            >
               Reason for refund
             </label>
             <div className={cn("rounded-2xl", NEUMORPHIC_INSET)}>

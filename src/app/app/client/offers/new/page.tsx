@@ -215,7 +215,9 @@ export default function CreateOfferPage(): React.JSX.Element {
                 </div>
                 <div>
                   <h2 className="text-base font-bold text-text-primary">Project Overview</h2>
-                  <p className="text-xs text-text-secondary">Provide a headline and select the industry domain</p>
+                  <p className="text-xs text-text-secondary">
+                    Provide a headline and select the industry domain
+                  </p>
                 </div>
               </div>
 
@@ -228,7 +230,9 @@ export default function CreateOfferPage(): React.JSX.Element {
                   <span
                     className={cn(
                       "text-xs font-medium",
-                      formData.title.length < MIN_TITLE_LENGTH ? "text-text-secondary" : "text-success"
+                      formData.title.length < MIN_TITLE_LENGTH
+                        ? "text-text-secondary"
+                        : "text-success"
                     )}
                   >
                     {formData.title.length}/{MIN_TITLE_LENGTH} min chars
@@ -243,12 +247,17 @@ export default function CreateOfferPage(): React.JSX.Element {
                   className={cn(NEUMORPHIC_INPUT, errors.title && INPUT_ERROR_STYLES)}
                   placeholder="e.g., Build a Modern Responsive Web Application with Next.js"
                 />
-                {errors.title && <p className="mt-1.5 text-xs text-error font-medium">{errors.title}</p>}
+                {errors.title && (
+                  <p className="mt-1.5 text-xs text-error font-medium">{errors.title}</p>
+                )}
               </div>
 
               {/* Category Field */}
               <div>
-                <label htmlFor="offer-category" className="block text-sm font-semibold text-text-primary mb-1.5">
+                <label
+                  htmlFor="offer-category"
+                  className="block text-sm font-semibold text-text-primary mb-1.5"
+                >
                   Category <span className="text-error">*</span>
                 </label>
                 <div className="relative">
@@ -274,7 +283,9 @@ export default function CreateOfferPage(): React.JSX.Element {
                     <Icon path={ICON_PATHS.chevronDown} size="sm" />
                   </div>
                 </div>
-                {errors.category && <p className="mt-1.5 text-xs text-error font-medium">{errors.category}</p>}
+                {errors.category && (
+                  <p className="mt-1.5 text-xs text-error font-medium">{errors.category}</p>
+                )}
               </div>
             </div>
 
@@ -291,13 +302,18 @@ export default function CreateOfferPage(): React.JSX.Element {
                 </div>
                 <div>
                   <h2 className="text-base font-bold text-text-primary">Scope of Work</h2>
-                  <p className="text-xs text-text-secondary">Detail your requirements, goals, and expectations</p>
+                  <p className="text-xs text-text-secondary">
+                    Detail your requirements, goals, and expectations
+                  </p>
                 </div>
               </div>
 
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label htmlFor="offer-description" className="text-sm font-semibold text-text-primary">
+                  <label
+                    htmlFor="offer-description"
+                    className="text-sm font-semibold text-text-primary"
+                  >
                     Project Description <span className="text-error">*</span>
                   </label>
                   <span
@@ -381,7 +397,8 @@ export default function CreateOfferPage(): React.JSX.Element {
               )}
 
               <p className="text-xs text-text-secondary">
-                {attachments.length} / {MAX_ATTACHMENTS} files attached (PNG, JPG, PDF, DOC up to 10MB each)
+                {attachments.length} / {MAX_ATTACHMENTS} files attached (PNG, JPG, PDF, DOC up to
+                10MB each)
               </p>
             </div>
           </div>
@@ -409,7 +426,10 @@ export default function CreateOfferPage(): React.JSX.Element {
 
               {/* Budget */}
               <div className="space-y-2">
-                <label htmlFor="offer-budget" className="block text-xs font-semibold text-text-primary uppercase tracking-wider">
+                <label
+                  htmlFor="offer-budget"
+                  className="block text-xs font-semibold text-text-primary uppercase tracking-wider"
+                >
                   Total Budget (USD) <span className="text-error">*</span>
                 </label>
                 <div className="relative">
@@ -424,7 +444,11 @@ export default function CreateOfferPage(): React.JSX.Element {
                     onChange={handleChange}
                     min={MIN_BUDGET}
                     step="1"
-                    className={cn(NEUMORPHIC_INPUT, "pl-8 text-base font-bold", errors.budget && INPUT_ERROR_STYLES)}
+                    className={cn(
+                      NEUMORPHIC_INPUT,
+                      "pl-8 text-base font-bold",
+                      errors.budget && INPUT_ERROR_STYLES
+                    )}
                     placeholder="500"
                   />
                 </div>
@@ -452,7 +476,10 @@ export default function CreateOfferPage(): React.JSX.Element {
 
               {/* Deadline */}
               <div className="space-y-2 pt-2 border-t border-border-light/60 dark:border-border-light/10">
-                <label htmlFor="offer-deadline" className="block text-xs font-semibold text-text-primary uppercase tracking-wider">
+                <label
+                  htmlFor="offer-deadline"
+                  className="block text-xs font-semibold text-text-primary uppercase tracking-wider"
+                >
                   Project Deadline <span className="text-error">*</span>
                 </label>
                 <DatePicker
@@ -467,7 +494,9 @@ export default function CreateOfferPage(): React.JSX.Element {
                   error={!!errors.deadline}
                   placeholder="Select completion deadline"
                 />
-                {errors.deadline && <p className="text-xs text-error font-medium">{errors.deadline}</p>}
+                {errors.deadline && (
+                  <p className="text-xs text-error font-medium">{errors.deadline}</p>
+                )}
               </div>
             </div>
 
@@ -546,7 +575,11 @@ export default function CreateOfferPage(): React.JSX.Element {
                     size="sm"
                     className={checklist.title ? "text-success" : "text-border"}
                   />
-                  <span className={checklist.title ? "text-text-primary font-medium" : "text-text-secondary"}>
+                  <span
+                    className={
+                      checklist.title ? "text-text-primary font-medium" : "text-text-secondary"
+                    }
+                  >
                     Project title (min 10 chars)
                   </span>
                 </div>
@@ -556,7 +589,11 @@ export default function CreateOfferPage(): React.JSX.Element {
                     size="sm"
                     className={checklist.category ? "text-success" : "text-border"}
                   />
-                  <span className={checklist.category ? "text-text-primary font-medium" : "text-text-secondary"}>
+                  <span
+                    className={
+                      checklist.category ? "text-text-primary font-medium" : "text-text-secondary"
+                    }
+                  >
                     Category chosen
                   </span>
                 </div>
@@ -566,7 +603,13 @@ export default function CreateOfferPage(): React.JSX.Element {
                     size="sm"
                     className={checklist.description ? "text-success" : "text-border"}
                   />
-                  <span className={checklist.description ? "text-text-primary font-medium" : "text-text-secondary"}>
+                  <span
+                    className={
+                      checklist.description
+                        ? "text-text-primary font-medium"
+                        : "text-text-secondary"
+                    }
+                  >
                     Scope description (min 50 chars)
                   </span>
                 </div>
@@ -576,7 +619,11 @@ export default function CreateOfferPage(): React.JSX.Element {
                     size="sm"
                     className={checklist.image ? "text-success" : "text-border"}
                   />
-                  <span className={checklist.image ? "text-text-primary font-medium" : "text-text-secondary"}>
+                  <span
+                    className={
+                      checklist.image ? "text-text-primary font-medium" : "text-text-secondary"
+                    }
+                  >
                     At least 1 image attached
                   </span>
                 </div>
@@ -586,7 +633,11 @@ export default function CreateOfferPage(): React.JSX.Element {
                     size="sm"
                     className={checklist.budget ? "text-success" : "text-border"}
                   />
-                  <span className={checklist.budget ? "text-text-primary font-medium" : "text-text-secondary"}>
+                  <span
+                    className={
+                      checklist.budget ? "text-text-primary font-medium" : "text-text-secondary"
+                    }
+                  >
                     Budget (min $10)
                   </span>
                 </div>
@@ -596,7 +647,11 @@ export default function CreateOfferPage(): React.JSX.Element {
                     size="sm"
                     className={checklist.deadline ? "text-success" : "text-border"}
                   />
-                  <span className={checklist.deadline ? "text-text-primary font-medium" : "text-text-secondary"}>
+                  <span
+                    className={
+                      checklist.deadline ? "text-text-primary font-medium" : "text-text-secondary"
+                    }
+                  >
                     Target deadline selected
                   </span>
                 </div>

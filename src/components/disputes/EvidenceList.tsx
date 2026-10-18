@@ -16,11 +16,7 @@ export function EvidenceList({
   onRetry,
 }: EvidenceListProps): React.JSX.Element {
   if (items.length === 0) {
-    return (
-      <p className="text-sm text-text-secondary">
-        No evidence uploaded yet.
-      </p>
-    );
+    return <p className="text-sm text-text-secondary">No evidence uploaded yet.</p>;
   }
 
   return (

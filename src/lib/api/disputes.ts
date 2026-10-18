@@ -30,12 +30,9 @@ export async function listDisputes(
   if (filters?.limit) query.append("limit", String(filters.limit));
 
   const queryString = query.toString();
-  const response = await fetch(
-    `${API_URL}/disputes${queryString ? `?${queryString}` : ""}`,
-    {
-      headers: { Authorization: `Bearer ${token ?? ""}` },
-    }
-  );
+  const response = await fetch(`${API_URL}/disputes${queryString ? `?${queryString}` : ""}`, {
+    headers: { Authorization: `Bearer ${token ?? ""}` },
+  });
 
   if (!response.ok) {
     const error = await response.json();

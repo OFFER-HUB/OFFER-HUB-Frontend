@@ -6,7 +6,8 @@ import { generatePageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = generatePageMetadata({
   title: "Privacy Policy",
-  description: "Learn how OFFER HUB collects, uses, and protects your personal information. Our commitment to your privacy and data security.",
+  description:
+    "Learn how OFFER HUB collects, uses, and protects your personal information. Our commitment to your privacy and data security.",
   path: "/privacy",
 });
 
@@ -23,24 +24,20 @@ export default function PrivacyPage(): React.JSX.Element {
               <h1 className="text-3xl lg:text-4xl font-bold text-text-primary mb-4">
                 Privacy Policy
               </h1>
-              <p className="text-text-secondary">
-                Last updated: {LAST_UPDATED}
-              </p>
+              <p className="text-text-secondary">Last updated: {LAST_UPDATED}</p>
             </header>
 
             <div className="prose prose-lg max-w-none">
               <section className="mb-10">
-                <h2 className="text-2xl font-bold text-text-primary mb-4">
-                  1. Introduction
-                </h2>
+                <h2 className="text-2xl font-bold text-text-primary mb-4">1. Introduction</h2>
                 <p className="text-text-secondary mb-4">
-                  OFFER HUB (&quot;we,&quot; &quot;our,&quot; or &quot;us&quot;) is committed to protecting your privacy. This
-                  Privacy Policy explains how we collect, use, disclose, and safeguard your information
-                  when you use our platform.
+                  OFFER HUB (&quot;we,&quot; &quot;our,&quot; or &quot;us&quot;) is committed to
+                  protecting your privacy. This Privacy Policy explains how we collect, use,
+                  disclose, and safeguard your information when you use our platform.
                 </p>
                 <p className="text-text-secondary">
-                  By using OFFER HUB, you consent to the data practices described in this policy. If you
-                  do not agree with our policies, please do not use our services.
+                  By using OFFER HUB, you consent to the data practices described in this policy. If
+                  you do not agree with our policies, please do not use our services.
                 </p>
               </section>
 
@@ -75,9 +72,7 @@ export default function PrivacyPage(): React.JSX.Element {
                 <h2 className="text-2xl font-bold text-text-primary mb-4">
                   3. How We Use Your Information
                 </h2>
-                <p className="text-text-secondary mb-4">
-                  We use collected information to:
-                </p>
+                <p className="text-text-secondary mb-4">We use collected information to:</p>
                 <ul className="list-disc pl-6 text-text-secondary space-y-2 mb-4">
                   <li>Provide and maintain our services</li>
                   <li>Process transactions and send related information</li>
@@ -135,15 +130,14 @@ export default function PrivacyPage(): React.JSX.Element {
                   <li>Deliver relevant content and features</li>
                 </ul>
                 <p className="text-text-secondary">
-                  You can manage cookie preferences through our cookie consent banner or your browser
-                  settings. Note that disabling certain cookies may affect platform functionality.
+                  You can manage cookie preferences through our cookie consent banner or your
+                  browser settings. Note that disabling certain cookies may affect platform
+                  functionality.
                 </p>
               </section>
 
               <section className="mb-10">
-                <h2 className="text-2xl font-bold text-text-primary mb-4">
-                  6. Data Security
-                </h2>
+                <h2 className="text-2xl font-bold text-text-primary mb-4">6. Data Security</h2>
                 <p className="text-text-secondary mb-4">
                   We implement appropriate technical and organizational measures to protect your
                   information, including:
@@ -161,9 +155,7 @@ export default function PrivacyPage(): React.JSX.Element {
               </section>
 
               <section className="mb-10">
-                <h2 className="text-2xl font-bold text-text-primary mb-4">
-                  7. Your Rights
-                </h2>
+                <h2 className="text-2xl font-bold text-text-primary mb-4">7. Your Rights</h2>
                 <p className="text-text-secondary mb-4">
                   Depending on your location, you may have the following rights:
                 </p>
@@ -193,9 +185,7 @@ export default function PrivacyPage(): React.JSX.Element {
               </section>
 
               <section className="mb-10">
-                <h2 className="text-2xl font-bold text-text-primary mb-4">
-                  8. Data Retention
-                </h2>
+                <h2 className="text-2xl font-bold text-text-primary mb-4">8. Data Retention</h2>
                 <p className="text-text-secondary">
                   We retain your personal information for as long as your account is active or as
                   needed to provide services. We may retain certain information for longer periods
@@ -210,8 +200,8 @@ export default function PrivacyPage(): React.JSX.Element {
                 </h2>
                 <p className="text-text-secondary">
                   Your information may be transferred to and processed in countries other than your
-                  own. We ensure appropriate safeguards are in place to protect your data in accordance
-                  with applicable laws.
+                  own. We ensure appropriate safeguards are in place to protect your data in
+                  accordance with applicable laws.
                 </p>
               </section>
 
@@ -233,16 +223,16 @@ export default function PrivacyPage(): React.JSX.Element {
                 <p className="text-text-secondary">
                   We may update this Privacy Policy from time to time. We will notify you of any
                   material changes by posting the new policy on this page and updating the
-                  &quot;Last updated&quot; date. We encourage you to review this policy periodically.
+                  &quot;Last updated&quot; date. We encourage you to review this policy
+                  periodically.
                 </p>
               </section>
 
               <section className="mb-10">
-                <h2 className="text-2xl font-bold text-text-primary mb-4">
-                  12. Contact Us
-                </h2>
+                <h2 className="text-2xl font-bold text-text-primary mb-4">12. Contact Us</h2>
                 <p className="text-text-secondary mb-4">
-                  If you have questions about this Privacy Policy or our data practices, please contact us:
+                  If you have questions about this Privacy Policy or our data practices, please
+                  contact us:
                 </p>
                 <ul className="list-none text-text-secondary space-y-2">
                   <li>Email: privacy@offer-hub.org</li>

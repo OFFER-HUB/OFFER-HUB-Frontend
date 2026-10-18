@@ -161,7 +161,7 @@ export function NavigationProgress(): React.JSX.Element {
         className="navigation-progress-bar"
         style={{
           width: `${progress}%`,
-          transition: progress === 0 ? "none" : "width 0.2s ease-out"
+          transition: progress === 0 ? "none" : "width 0.2s ease-out",
         }}
       />
     </div>

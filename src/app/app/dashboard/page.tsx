@@ -10,9 +10,7 @@ export default function DashboardRedirectPage() {
   const mode = useModeStore((state) => state.mode);
 
   useEffect(() => {
-    router.replace(
-      mode === "client" ? "/app/client/dashboard" : "/app/freelancer/dashboard"
-    );
+    router.replace(mode === "client" ? "/app/client/dashboard" : "/app/freelancer/dashboard");
   }, [mode, router]);
 
   return (

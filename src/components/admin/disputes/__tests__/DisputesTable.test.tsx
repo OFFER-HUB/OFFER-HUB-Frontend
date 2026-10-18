@@ -5,19 +5,51 @@ import { DisputesTable } from "@/components/admin/disputes/DisputesTable";
 import type { AdminDispute } from "@/types/admin.types";
 
 const base: AdminDispute = {
-  id: "dsp_1", orderId: "ord_1", openedBy: "BUYER", reason: "QUALITY_ISSUE", evidence: [],
-  status: "OPEN", resolutionDecision: null, decisionNote: null,
-  createdAt: "2026-09-11T20:00:00.000Z", updatedAt: "2026-09-11T20:00:00.000Z",
+  id: "dsp_1",
+  orderId: "ord_1",
+  openedBy: "BUYER",
+  reason: "QUALITY_ISSUE",
+  evidence: [],
+  status: "OPEN",
+  resolutionDecision: null,
+  decisionNote: null,
+  createdAt: "2026-09-11T20:00:00.000Z",
+  updatedAt: "2026-09-11T20:00:00.000Z",
   order: {
-    id: "ord_1", title: "Logo redesign", description: null, amount: "220.00", currency: "USD", status: "DISPUTED",
-    buyerId: "usr_b", sellerId: "usr_s", buyer: { id: "usr_b", email: "buyer@offerhub.local" }, seller: { id: "usr_s", email: null },
-    service: null, escrow: null, milestones: [], createdAt: "2026-09-11T19:00:00.000Z",
+    id: "ord_1",
+    title: "Logo redesign",
+    description: null,
+    amount: "220.00",
+    currency: "USD",
+    status: "DISPUTED",
+    buyerId: "usr_b",
+    sellerId: "usr_s",
+    buyer: { id: "usr_b", email: "buyer@offerhub.local" },
+    seller: { id: "usr_s", email: null },
+    service: null,
+    escrow: null,
+    milestones: [],
+    createdAt: "2026-09-11T19:00:00.000Z",
   },
 };
 const ROWS: AdminDispute[] = [
   base,
-  { ...base, id: "dsp_2", status: "UNDER_REVIEW", reason: "NOT_DELIVERED", order: { ...base.order, id: "ord_2", title: "Landing copy" } },
-  { ...base, id: "dsp_3", status: "RESOLVED", openedBy: "SELLER", reason: "OTHER", resolutionDecision: "FULL_RELEASE", order: { ...base.order, id: "ord_3", title: "API integration" } },
+  {
+    ...base,
+    id: "dsp_2",
+    status: "UNDER_REVIEW",
+    reason: "NOT_DELIVERED",
+    order: { ...base.order, id: "ord_2", title: "Landing copy" },
+  },
+  {
+    ...base,
+    id: "dsp_3",
+    status: "RESOLVED",
+    openedBy: "SELLER",
+    reason: "OTHER",
+    resolutionDecision: "FULL_RELEASE",
+    order: { ...base.order, id: "ord_3", title: "API integration" },
+  },
 ];
 
 describe("DisputesTable", () => {

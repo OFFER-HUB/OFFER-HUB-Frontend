@@ -181,9 +181,7 @@ export async function submitKyc(token: string, data: SubmitKycData): Promise<Kyc
 export async function generateTosUrl(token: string, redirectUrl?: string): Promise<string> {
   const targetRedirectUrl =
     redirectUrl ??
-    (typeof window !== "undefined"
-      ? `${window.location.origin}/app/kyc/tos-callback`
-      : undefined);
+    (typeof window !== "undefined" ? `${window.location.origin}/app/kyc/tos-callback` : undefined);
 
   const response = await fetch(`${API_URL}/users/me/kyc/tos-url`, {
     method: "POST",

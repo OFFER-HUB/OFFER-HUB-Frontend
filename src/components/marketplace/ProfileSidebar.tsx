@@ -64,7 +64,9 @@ export function ProfileSidebar() {
             <rect x="60" y="80" width="80" height="100" rx="8" fill="#149A9B" opacity="0.2" />
             <circle cx="100" cy="60" r="30" fill="#149A9B" opacity="0.3" />
             <circle cx="100" cy="60" r="20" fill="#149A9B" opacity="0.5" />
-            <text x="100" y="65" textAnchor="middle" fill="#149A9B" fontSize="20">?</text>
+            <text x="100" y="65" textAnchor="middle" fill="#149A9B" fontSize="20">
+              ?
+            </text>
           </svg>
         </div>
       </div>
@@ -74,7 +76,8 @@ export function ProfileSidebar() {
         <p className="text-xs text-text-secondary uppercase tracking-wider mb-2">Guest User</p>
         <h3 className="font-bold text-text-primary mb-2">Start your journey</h3>
         <p className="text-sm text-text-secondary">
-          Prioritize jobs based on your skills and make employers look for you, not the other way around.
+          Prioritize jobs based on your skills and make employers look for you, not the other way
+          around.
         </p>
       </div>
 

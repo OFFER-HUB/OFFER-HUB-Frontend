@@ -19,8 +19,7 @@ const variantStyles: Record<ButtonVariant, string> = {
     "bg-secondary text-white shadow-[var(--shadow-neumorphic-light)] hover:bg-secondary/90 active:shadow-[var(--shadow-neumorphic-inset-light)]",
   outline:
     "border-2 border-primary text-primary bg-white shadow-[var(--shadow-neumorphic-light)] hover:bg-primary hover:text-white active:shadow-[var(--shadow-neumorphic-inset-light)]",
-  ghost:
-    "text-text-secondary hover:text-text-primary hover:bg-background",
+  ghost: "text-text-secondary hover:text-text-primary hover:bg-background",
 };
 
 const sizeStyles: Record<ButtonSize, string> = {

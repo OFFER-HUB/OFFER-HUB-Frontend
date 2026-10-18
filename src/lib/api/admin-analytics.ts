@@ -97,7 +97,10 @@ export function toAdminAnalyticsData(raw: PlatformAnalytics): AdminAnalyticsData
 /**
  * Fetch platform-wide analytics for the admin dashboard.
  */
-export async function getAdminAnalytics(token: string, range: DateRange): Promise<AdminAnalyticsData> {
+export async function getAdminAnalytics(
+  token: string,
+  range: DateRange
+): Promise<AdminAnalyticsData> {
   const response = await fetch(
     `${API_BASE_URL}/admin/analytics?${buildAnalyticsSearchParams(range).toString()}`,
     { headers: authHeaders(token) }

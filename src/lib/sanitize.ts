@@ -81,9 +81,7 @@ export function sanitizeUrl(url: string): string {
   const allowedProtocols = ["http:", "https:", "mailto:", "tel:"];
 
   // Check if URL starts with an allowed protocol
-  const hasAllowedProtocol = allowedProtocols.some((protocol) =>
-    trimmed.startsWith(protocol)
-  );
+  const hasAllowedProtocol = allowedProtocols.some((protocol) => trimmed.startsWith(protocol));
 
   // If no protocol, assume relative URL (safe)
   if (!trimmed.includes(":")) {

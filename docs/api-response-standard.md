@@ -8,16 +8,16 @@ All API responses follow a consistent structure to simplify frontend handling an
 
 ```typescript
 interface ApiResponse<T = unknown> {
-  ok: boolean;           // Quick success check
-  code: number;          // Numeric status code
-  type: ResponseType;    // "success" | "error" | "warning"
-  title: string;         // Short title for UI
-  message: string;       // Detailed message for user
-  data: T | null;        // Response payload
-  errors: ValidationError[] | null;  // Field-level errors
-  meta: ResponseMeta;    // Pagination/extra info
-  timestamp: string;     // ISO 8601 timestamp
-  traceId?: string;      // Optional request trace ID
+  ok: boolean; // Quick success check
+  code: number; // Numeric status code
+  type: ResponseType; // "success" | "error" | "warning"
+  title: string; // Short title for UI
+  message: string; // Detailed message for user
+  data: T | null; // Response payload
+  errors: ValidationError[] | null; // Field-level errors
+  meta: ResponseMeta; // Pagination/extra info
+  timestamp: string; // ISO 8601 timestamp
+  traceId?: string; // Optional request trace ID
 }
 ```
 
@@ -25,9 +25,9 @@ interface ApiResponse<T = unknown> {
 
 ```typescript
 interface ValidationError {
-  field: string;    // Field name (e.g., "email", "password")
-  rule: string;     // Rule that failed (e.g., "required", "minLength")
-  message: string;  // Human-readable message
+  field: string; // Field name (e.g., "email", "password")
+  rule: string; // Rule that failed (e.g., "required", "minLength")
+  message: string; // Human-readable message
 }
 ```
 
@@ -35,11 +35,11 @@ interface ValidationError {
 
 ```typescript
 interface ResponseMeta {
-  page?: number;       // Current page (1-indexed)
-  perPage?: number;    // Items per page
-  total?: number;      // Total items
+  page?: number; // Current page (1-indexed)
+  perPage?: number; // Items per page
+  total?: number; // Total items
   totalPages?: number; // Total pages
-  [key: string]: unknown;  // Additional context
+  [key: string]: unknown; // Additional context
 }
 ```
 
@@ -47,40 +47,40 @@ interface ResponseMeta {
 
 ### Success Codes (1000-1999)
 
-| Code | Name | Description |
-|------|------|-------------|
-| 1000 | SUCCESS | Generic success |
-| 1001 | CREATED | Resource created |
-| 1002 | UPDATED | Resource updated |
-| 1003 | DELETED | Resource deleted |
+| Code | Name       | Description          |
+| ---- | ---------- | -------------------- |
+| 1000 | SUCCESS    | Generic success      |
+| 1001 | CREATED    | Resource created     |
+| 1002 | UPDATED    | Resource updated     |
+| 1003 | DELETED    | Resource deleted     |
 | 1004 | NO_CONTENT | Success with no data |
 
 ### Warning Codes (2000-2999)
 
-| Code | Name | Description |
-|------|------|-------------|
-| 2000 | WARNING_PARTIAL | Partial success |
+| Code | Name               | Description              |
+| ---- | ------------------ | ------------------------ |
+| 2000 | WARNING_PARTIAL    | Partial success          |
 | 2001 | WARNING_DEPRECATED | Using deprecated feature |
 
 ### Client Error Codes (4000-4999)
 
-| Code | Name | Description |
-|------|------|-------------|
-| 4000 | BAD_REQUEST | Invalid request |
-| 4001 | VALIDATION_ERROR | Validation failed |
-| 4010 | UNAUTHORIZED | Authentication required |
-| 4030 | FORBIDDEN | Permission denied |
-| 4040 | NOT_FOUND | Resource not found |
-| 4090 | CONFLICT | Resource conflict |
-| 4290 | RATE_LIMITED | Too many requests |
+| Code | Name             | Description             |
+| ---- | ---------------- | ----------------------- |
+| 4000 | BAD_REQUEST      | Invalid request         |
+| 4001 | VALIDATION_ERROR | Validation failed       |
+| 4010 | UNAUTHORIZED     | Authentication required |
+| 4030 | FORBIDDEN        | Permission denied       |
+| 4040 | NOT_FOUND        | Resource not found      |
+| 4090 | CONFLICT         | Resource conflict       |
+| 4290 | RATE_LIMITED     | Too many requests       |
 
 ### Server Error Codes (5000-5999)
 
-| Code | Name | Description |
-|------|------|-------------|
-| 5000 | INTERNAL_ERROR | Server error |
-| 5030 | SERVICE_UNAVAILABLE | Service down |
-| 5040 | GATEWAY_TIMEOUT | Upstream timeout |
+| Code | Name                | Description      |
+| ---- | ------------------- | ---------------- |
+| 5000 | INTERNAL_ERROR      | Server error     |
+| 5030 | SERVICE_UNAVAILABLE | Service down     |
+| 5040 | GATEWAY_TIMEOUT     | Upstream timeout |
 
 ## Examples
 
@@ -248,7 +248,7 @@ if (!response.ok && response.errors) {
 
 ```typescript
 const response = await httpGet<User[]>("/api/users", {
-  params: { page: 1, perPage: 20 }
+  params: { page: 1, perPage: 20 },
 });
 
 if (response.ok) {
@@ -256,7 +256,7 @@ if (response.ok) {
   setPagination({
     page: response.meta.page ?? 1,
     totalPages: response.meta.totalPages ?? 1,
-    total: response.meta.total ?? 0
+    total: response.meta.total ?? 0,
   });
 }
 ```

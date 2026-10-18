@@ -172,10 +172,7 @@ function DisputesContent(): React.JSX.Element {
         {isLoading ? (
           <LoadingState message="Loading disputes..." />
         ) : error ? (
-          <ErrorState
-            message={error}
-            onRetry={() => setRefreshKey((k) => k + 1)}
-          />
+          <ErrorState message={error} onRetry={() => setRefreshKey((k) => k + 1)} />
         ) : disputes.length === 0 ? (
           <div className="flex items-center justify-center h-full">
             <EmptyState
@@ -204,9 +201,7 @@ function DisputesContent(): React.JSX.Element {
                   disabled={isLoadingMore}
                   className={cn(PRIMARY_BUTTON, "disabled:opacity-50")}
                 >
-                  {isLoadingMore && (
-                    <LoadingSpinner size="sm" className="text-primary" />
-                  )}
+                  {isLoadingMore && <LoadingSpinner size="sm" className="text-primary" />}
                   {isLoadingMore ? "Loading..." : "Load More"}
                 </button>
               </div>

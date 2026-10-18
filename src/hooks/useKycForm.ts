@@ -37,7 +37,10 @@ export function maskTaxId(value: string, country: string): string {
       return `${digits.slice(0, 2)}-${digits.slice(2, 10)}-${digits.slice(10)}`;
     }
     case "MX":
-      return value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 13);
+      return value
+        .toUpperCase()
+        .replace(/[^A-Z0-9]/g, "")
+        .slice(0, 13);
     case "CO":
       return value.replace(/\D/g, "").slice(0, 15);
     default:
@@ -57,7 +60,10 @@ export function maskPostalCode(value: string, country: string): string {
     case "CO":
       return value.replace(/\D/g, "").slice(0, 6);
     case "AR":
-      return value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 8);
+      return value
+        .toUpperCase()
+        .replace(/[^A-Z0-9]/g, "")
+        .slice(0, 8);
     default:
       return value.slice(0, 20);
   }
@@ -264,8 +270,7 @@ export function useKycForm({
         if (dobDate > new Date()) {
           nextErrors.dateOfBirth = "Date of birth cannot be in the future";
         } else if (age < 18) {
-          nextErrors.dateOfBirth =
-            "You must be at least 18 years old to complete verification";
+          nextErrors.dateOfBirth = "You must be at least 18 years old to complete verification";
         }
       }
       if (!fields.country) nextErrors.country = "Select a payout country";
@@ -275,11 +280,9 @@ export function useKycForm({
       if (!fields.taxId.trim()) {
         nextErrors.taxId = "Tax identification number is required";
       } else if (fields.country === "BR" && !isValidCpf(fields.taxId)) {
-        nextErrors.taxId =
-          "Invalid CPF number. Please enter a valid 11-digit Brazilian CPF";
+        nextErrors.taxId = "Invalid CPF number. Please enter a valid 11-digit Brazilian CPF";
       }
-      if (!fields.addressLine1.trim())
-        nextErrors.addressLine1 = "Street address is required";
+      if (!fields.addressLine1.trim()) nextErrors.addressLine1 = "Street address is required";
       if (!fields.city.trim()) nextErrors.city = "City is required";
       if (!fields.stateProvinceRegion.trim())
         nextErrors.stateProvinceRegion = "State / Province is required";
@@ -289,13 +292,11 @@ export function useKycForm({
     if (step === 3) {
       if (!fields.idDocType) nextErrors.idDocType = "Select an identity document type";
       if (!fields.idDocCountry) nextErrors.idDocCountry = "Select the issuing country";
-      if (!fields.selfieFileUrl)
-        nextErrors.selfieFileUrl = "A clear selfie photo is required";
+      if (!fields.selfieFileUrl) nextErrors.selfieFileUrl = "A clear selfie photo is required";
       if (!fields.idDocFrontFileUrl)
         nextErrors.idDocFrontFileUrl = "Front side of your ID document is required";
       if (fields.idDocType !== "PASSPORT" && !fields.idDocBackFileUrl) {
-        nextErrors.idDocBackFileUrl =
-          "Back side of your ID document is required";
+        nextErrors.idDocBackFileUrl = "Back side of your ID document is required";
       }
     }
 
@@ -303,16 +304,13 @@ export function useKycForm({
       if (!fields.proofOfAddressDocType)
         nextErrors.proofOfAddressDocType = "Select proof of address type";
       if (!fields.proofOfAddressDocFileUrl)
-        nextErrors.proofOfAddressDocFileUrl =
-          "Upload a proof of address document";
+        nextErrors.proofOfAddressDocFileUrl = "Upload a proof of address document";
       if (!fields.sourceOfFundsDocType)
         nextErrors.sourceOfFundsDocType = "Select primary source of funds";
       if (!fields.sourceOfFundsDocFileUrl)
-        nextErrors.sourceOfFundsDocFileUrl =
-          "Upload supporting source of funds document";
+        nextErrors.sourceOfFundsDocFileUrl = "Upload supporting source of funds document";
       if (!fields.purposeOfTransactions)
-        nextErrors.purposeOfTransactions =
-          "Select expected purpose of transactions";
+        nextErrors.purposeOfTransactions = "Select expected purpose of transactions";
       if (
         fields.purposeOfTransactions === "other" &&
         !fields.purposeOfTransactionsExplanation.trim()
@@ -399,9 +397,7 @@ export function useKycForm({
       const saved = await submitKyc(token, payload);
       onSuccess?.(saved);
     } catch (err) {
-      setSubmitError(
-        err instanceof Error ? err.message : "Failed to submit your verification."
-      );
+      setSubmitError(err instanceof Error ? err.message : "Failed to submit your verification.");
     } finally {
       setIsSubmitting(false);
     }
@@ -439,16 +435,18 @@ export function useKycForm({
   }, [fields.country]);
 
   // Expose a typed setField that also applies masking for country-dependent fields
-  function setFieldWithMask<K extends keyof KycFormFields>(
-    key: K,
-    rawValue: KycFormFields[K]
-  ) {
+  function setFieldWithMask<K extends keyof KycFormFields>(key: K, rawValue: KycFormFields[K]) {
     let value = rawValue;
     if (key === "taxId") {
       value = maskTaxId(rawValue as string, fields.country) as KycFormFields[K];
     } else if (key === "postalCode") {
       value = maskPostalCode(rawValue as string, fields.country) as KycFormFields[K];
-    } else if (key === "firstName" || key === "lastName" || key === "city" || key === "stateProvinceRegion") {
+    } else if (
+      key === "firstName" ||
+      key === "lastName" ||
+      key === "city" ||
+      key === "stateProvinceRegion"
+    ) {
       value = cleanLettersOnly(rawValue as string) as KycFormFields[K];
     }
     setField(key, value);

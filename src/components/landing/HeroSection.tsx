@@ -24,7 +24,8 @@ export function HeroSection() {
             <AnimatedSection animation="fade-up" duration={800}>
               {/* Headline with balanced, rhythmic line breaks */}
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-text-primary leading-tight">
-                Find talent,<br />
+                Find talent,
+                <br />
                 <span className="text-primary">hire smart</span>,<br />
                 grow your business.
               </h1>
@@ -32,8 +33,8 @@ export function HeroSection() {
 
             <AnimatedSection animation="fade-up" delay={150} duration={800}>
               <p className="text-lg text-text-secondary max-w-lg leading-relaxed">
-                Connect with skilled freelancers worldwide. Simple hiring,
-                secure payments, and powerful tools to manage your projects.
+                Connect with skilled freelancers worldwide. Simple hiring, secure payments, and
+                powerful tools to manage your projects.
               </p>
             </AnimatedSection>
 

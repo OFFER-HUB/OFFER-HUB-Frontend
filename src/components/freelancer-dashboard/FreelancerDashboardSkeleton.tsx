@@ -6,7 +6,10 @@ export function FreelancerDashboardSkeleton(): React.JSX.Element {
       {/* Stats row */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="h-28 rounded-2xl bg-white shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]" />
+          <div
+            key={i}
+            className="h-28 rounded-2xl bg-white shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]"
+          />
         ))}
       </div>
       {/* Profile completeness + secondary card */}

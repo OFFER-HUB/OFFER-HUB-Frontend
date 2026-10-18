@@ -117,7 +117,10 @@ function PreviewPanel({ data }: PreviewPanelProps) {
         {data.tags.length > 0 && (
           <div className="flex flex-wrap gap-1 pt-1">
             {data.tags.slice(0, 4).map((t) => (
-              <span key={t} className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-text-secondary">
+              <span
+                key={t}
+                className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-text-secondary"
+              >
                 {t}
               </span>
             ))}
@@ -217,7 +220,11 @@ export function PortfolioForm({
               value={formData.description}
               onChange={handleChange}
               rows={4}
-              className={cn(NEUMORPHIC_INPUT, "resize-none", errors.description && INPUT_ERROR_STYLES)}
+              className={cn(
+                NEUMORPHIC_INPUT,
+                "resize-none",
+                errors.description && INPUT_ERROR_STYLES
+              )}
               placeholder="Describe the project, what problem it solved, and the outcome..."
             />
             <p className="mt-1 text-xs text-text-secondary text-right">

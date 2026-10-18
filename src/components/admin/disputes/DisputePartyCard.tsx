@@ -12,14 +12,20 @@ export interface DisputePartyCardProps {
 }
 
 /** The order rows only carry id + email for each side — no username, no history. */
-export function DisputePartyCard({ role, party, openedDispute }: DisputePartyCardProps): React.JSX.Element {
+export function DisputePartyCard({
+  role,
+  party,
+  openedDispute,
+}: DisputePartyCardProps): React.JSX.Element {
   const name = disputePartyName(party);
   return (
     <div className={cn(NEUMORPHIC_INSET, "p-4 rounded-xl")}>
       <div className="flex items-center justify-between mb-3">
         <p className="text-xs font-bold uppercase tracking-wider text-text-secondary">{role}</p>
         {openedDispute && (
-          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-warning/10 text-warning">Opened dispute</span>
+          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-warning/10 text-warning">
+            Opened dispute
+          </span>
         )}
       </div>
       <div className="flex items-center gap-3">

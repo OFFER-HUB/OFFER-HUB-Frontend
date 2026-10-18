@@ -44,23 +44,17 @@ export default function ErrorPage({ error, reset }: ErrorPageProps): React.JSX.E
           </svg>
         </div>
 
-        <h1 className="text-3xl font-bold text-text-primary mb-4">
-          Oops! Something went wrong
-        </h1>
+        <h1 className="text-3xl font-bold text-text-primary mb-4">Oops! Something went wrong</h1>
         <p className="text-text-secondary mb-8 text-lg">
-          We apologize for the inconvenience. An unexpected error has occurred.
-          Our team has been notified and is working to fix the issue.
+          We apologize for the inconvenience. An unexpected error has occurred. Our team has been
+          notified and is working to fix the issue.
         </p>
 
         {process.env.NODE_ENV === "development" && (
           <div className="mb-8 p-4 bg-gray-100 rounded-xl text-left overflow-auto max-h-40">
-            <p className="text-sm font-mono text-error break-all">
-              {error.message}
-            </p>
+            <p className="text-sm font-mono text-error break-all">{error.message}</p>
             {error.digest && (
-              <p className="text-xs font-mono text-text-secondary mt-2">
-                Error ID: {error.digest}
-              </p>
+              <p className="text-xs font-mono text-text-secondary mt-2">Error ID: {error.digest}</p>
             )}
           </div>
         )}

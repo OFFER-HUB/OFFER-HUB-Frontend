@@ -42,8 +42,22 @@ const BASE_ORDER: Order = {
   buyer: { id: "usr_buyer_1", email: "client@brand.io", username: "brand_client" },
   seller: { id: "usr_seller_1", email: "agency@studio.design", username: "design_agency" },
   milestones: [
-    { id: "m1", orderId: "ord_integration_448", title: "Concept Sketches", amount: "100.00", status: "COMPLETED", description: "" },
-    { id: "m2", orderId: "ord_integration_448", title: "Final Vectors & Guidelines", amount: "200.00", status: "OPEN", description: "" },
+    {
+      id: "m1",
+      orderId: "ord_integration_448",
+      title: "Concept Sketches",
+      amount: "100.00",
+      status: "COMPLETED",
+      description: "",
+    },
+    {
+      id: "m2",
+      orderId: "ord_integration_448",
+      title: "Final Vectors & Guidelines",
+      amount: "200.00",
+      status: "OPEN",
+      description: "",
+    },
   ],
 };
 
@@ -145,7 +159,13 @@ describe("Dispute & Refund Lifecycle Integration Flow (#448)", () => {
     // PHASE 2: Admin views the new dispute on the Admin Dashboard
     // ══════════════════════════════════════════════════════════════════════════
     useAuthStore.setState({
-      user: { id: "usr_admin", email: "admin@platform.io", username: "admin", type: "BOTH", isAdmin: true },
+      user: {
+        id: "usr_admin",
+        email: "admin@platform.io",
+        username: "admin",
+        type: "BOTH",
+        isAdmin: true,
+      },
       token: "valid-admin-jwt",
       isAuthenticated: true,
       hasHydrated: true,

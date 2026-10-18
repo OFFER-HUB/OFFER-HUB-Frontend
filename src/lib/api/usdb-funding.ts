@@ -14,7 +14,11 @@ export interface PrepareUsdbTrustlineResult {
 
 export type UsdbFundingApiError = Error & { code?: string; status?: number };
 
-function createUsdbFundingError(message: string, code?: string, status?: number): UsdbFundingApiError {
+function createUsdbFundingError(
+  message: string,
+  code?: string,
+  status?: number
+): UsdbFundingApiError {
   const error = new Error(message) as UsdbFundingApiError;
   error.code = code;
   error.status = status;
@@ -32,9 +36,16 @@ interface ErrorEnvelope {
   error?: { code?: string; message?: string };
 }
 
-async function parseUsdbFundingError(response: Response, fallback: string): Promise<UsdbFundingApiError> {
+async function parseUsdbFundingError(
+  response: Response,
+  fallback: string
+): Promise<UsdbFundingApiError> {
   const json = (await response.json().catch(() => null)) as ErrorEnvelope | null;
-  return createUsdbFundingError(json?.error?.message ?? fallback, json?.error?.code, response.status);
+  return createUsdbFundingError(
+    json?.error?.message ?? fallback,
+    json?.error?.code,
+    response.status
+  );
 }
 
 /**

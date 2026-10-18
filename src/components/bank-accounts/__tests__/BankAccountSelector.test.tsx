@@ -28,7 +28,8 @@ vi.mock("@/lib/api/kyc", async (importOriginal) => {
 });
 
 vi.mock("@/stores/auth-store", () => ({
-  useAuthStore: (selector: (s: { token: string | null }) => unknown) => selector({ token: "jwt-token" }),
+  useAuthStore: (selector: (s: { token: string | null }) => unknown) =>
+    selector({ token: "jwt-token" }),
 }));
 
 const NEW_ACCOUNT: BankAccount = {
@@ -47,7 +48,8 @@ const NEW_ACCOUNT: BankAccount = {
 };
 
 vi.mock("@/components/bank-accounts/BankAccountForm", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@/components/bank-accounts/BankAccountForm")>();
+  const actual =
+    await importOriginal<typeof import("@/components/bank-accounts/BankAccountForm")>();
   return {
     ...actual,
     BankAccountForm: ({ onSuccess }: { onSuccess?: (account: BankAccount) => void }) => (
@@ -156,7 +158,9 @@ describe("BankAccountSelector Account Management", () => {
 
     await screen.findByText("No bank accounts yet");
     expect(
-      screen.getByText("Add a bank account so you can receive your payouts once a client releases funds.")
+      screen.getByText(
+        "Add a bank account so you can receive your payouts once a client releases funds."
+      )
     ).toBeInTheDocument();
   });
 
@@ -189,7 +193,9 @@ describe("BankAccountSelector Account Management", () => {
     await screen.findByText("Banco do Brasil");
     await user.click(screen.getByRole("button", { name: "Set as default" }));
 
-    await waitFor(() => expect(mockSetDefaultBankAccount).toHaveBeenCalledWith("jwt-token", "ba_secondary"));
+    await waitFor(() =>
+      expect(mockSetDefaultBankAccount).toHaveBeenCalledWith("jwt-token", "ba_secondary")
+    );
     expect(await screen.findByText("Default")).toBeInTheDocument();
     expect(await screen.findByText("Default payout account updated")).toBeInTheDocument();
   });
@@ -206,7 +212,9 @@ describe("BankAccountSelector Account Management", () => {
     expect(mockDeleteBankAccount).not.toHaveBeenCalled();
 
     await user.click(screen.getByRole("button", { name: "Delete account" }));
-    await waitFor(() => expect(mockDeleteBankAccount).toHaveBeenCalledWith("jwt-token", "ba_default"));
+    await waitFor(() =>
+      expect(mockDeleteBankAccount).toHaveBeenCalledWith("jwt-token", "ba_default")
+    );
     await waitFor(() => expect(screen.queryByText("BBVA")).not.toBeInTheDocument());
     expect(await screen.findByText("Bank account deleted")).toBeInTheDocument();
   });
@@ -217,9 +225,12 @@ describe("BankAccountSelector Account Management", () => {
     // as a floating toast, disconnected from the confirmation dialog the
     // user was actually looking at.
     mockListBankAccounts.mockResolvedValue([DEFAULT_ACCOUNT]);
-    const blockedError = Object.assign(new Error("Bank account ba_default cannot be deleted: 1 payout(s) reference it"), {
-      code: "BANK_ACCOUNT_HAS_PAYOUTS",
-    });
+    const blockedError = Object.assign(
+      new Error("Bank account ba_default cannot be deleted: 1 payout(s) reference it"),
+      {
+        code: "BANK_ACCOUNT_HAS_PAYOUTS",
+      }
+    );
     mockDeleteBankAccount.mockRejectedValue(blockedError);
     const user = userEvent.setup();
     render(<BankAccountSelector />);
@@ -229,7 +240,9 @@ describe("BankAccountSelector Account Management", () => {
     const dialog = screen.getByRole("alertdialog");
     await user.click(screen.getByRole("button", { name: "Delete account" }));
 
-    const message = await screen.findByText(/can't be removed because a payout already references it/i);
+    const message = await screen.findByText(
+      /can't be removed because a payout already references it/i
+    );
     expect(dialog).toContainElement(message);
     expect(dialog).toBeInTheDocument();
     expect(screen.queryByText(/ba_default cannot be deleted/i)).not.toBeInTheDocument();

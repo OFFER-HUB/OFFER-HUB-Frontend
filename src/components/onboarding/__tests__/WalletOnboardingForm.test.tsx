@@ -101,7 +101,11 @@ describe("WalletOnboardingForm inline optional wallet connect", () => {
       id: "usr_1",
       username: "jane_dev",
       email: "jane@example.com",
-      wallet: { id: "wal_1", publicKey: "GDRXE2BQUC3AZNPVFSCEZ76NJ3WWL25FYFK6RGZGIEKWE4SOOHSUJUJ", type: "EXTERNAL" },
+      wallet: {
+        id: "wal_1",
+        publicKey: "GDRXE2BQUC3AZNPVFSCEZ76NJ3WWL25FYFK6RGZGIEKWE4SOOHSUJUJ",
+        type: "EXTERNAL",
+      },
     };
     render(<WalletOnboardingForm />);
 
@@ -128,7 +132,11 @@ describe("WalletOnboardingForm inline optional wallet connect", () => {
       id: "usr_1",
       username: "jane_dev",
       email: "jane@example.com",
-      wallet: { id: "wal_1", publicKey: "GDRXE2BQUC3AZNPVFSCEZ76NJ3WWL25FYFK6RGZGIEKWE4SOOHSUJUJ", type: "EXTERNAL" },
+      wallet: {
+        id: "wal_1",
+        publicKey: "GDRXE2BQUC3AZNPVFSCEZ76NJ3WWL25FYFK6RGZGIEKWE4SOOHSUJUJ",
+        type: "EXTERNAL",
+      },
     };
     const user = userEvent.setup();
     render(<WalletOnboardingForm />);
@@ -143,7 +151,11 @@ describe("WalletOnboardingForm inline optional wallet connect", () => {
     mockUser = {
       id: "usr_1",
       username: "wallet_user",
-      wallet: { id: "wal_1", publicKey: "GDRXE2BQUC3AZNPVFSCEZ76NJ3WWL25FYFK6RGZGIEKWE4SOOHSUJUJ", type: "EXTERNAL" },
+      wallet: {
+        id: "wal_1",
+        publicKey: "GDRXE2BQUC3AZNPVFSCEZ76NJ3WWL25FYFK6RGZGIEKWE4SOOHSUJUJ",
+        type: "EXTERNAL",
+      },
     };
     const user = userEvent.setup();
     render(<WalletOnboardingForm />);

@@ -40,7 +40,11 @@ export default function AdminDisputesPage(): React.JSX.Element | null {
         <div className="flex items-center gap-3 p-4 rounded-xl bg-error/10 text-error">
           <Icon path={ICON_PATHS.alertCircle} size="md" />
           <span className="text-sm font-medium">{list.error}</span>
-          <button type="button" onClick={() => void list.refetch()} className="ml-auto text-sm underline hover:no-underline">
+          <button
+            type="button"
+            onClick={() => void list.refetch()}
+            className="ml-auto text-sm underline hover:no-underline"
+          >
             Retry
           </button>
         </div>

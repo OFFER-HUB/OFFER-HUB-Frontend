@@ -58,7 +58,10 @@ export async function validateResetToken(token: string): Promise<ValidateResetTo
 /**
  * Reset the user's password using a valid reset token.
  */
-export async function resetPassword(token: string, newPassword: string): Promise<ResetPasswordResponse> {
+export async function resetPassword(
+  token: string,
+  newPassword: string
+): Promise<ResetPasswordResponse> {
   const response = await fetch(`${API_BASE_URL}/auth/password-reset/confirm`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },

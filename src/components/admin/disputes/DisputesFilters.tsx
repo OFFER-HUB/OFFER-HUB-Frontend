@@ -26,11 +26,19 @@ export function DisputesFilters({ filters, onFiltersChange, className }: Dispute
   const hasActive = filters.status !== "ALL" || filters.openedBy !== "ALL";
 
   return (
-    <div className={cn(NEUMORPHIC_CARD, "p-4 flex flex-col sm:flex-row gap-3 sm:items-center", className)}>
+    <div
+      className={cn(
+        NEUMORPHIC_CARD,
+        "p-4 flex flex-col sm:flex-row gap-3 sm:items-center",
+        className
+      )}
+    >
       <div className="relative flex-1 sm:max-w-xs">
         <select
           value={filters.status}
-          onChange={(e) => onFiltersChange({ ...filters, status: e.target.value as AdminDisputeStatusFilter })}
+          onChange={(e) =>
+            onFiltersChange({ ...filters, status: e.target.value as AdminDisputeStatusFilter })
+          }
           className={SELECT}
           aria-label="Filter by status"
         >
@@ -49,7 +57,9 @@ export function DisputesFilters({ filters, onFiltersChange, className }: Dispute
       <div className="relative flex-1 sm:max-w-xs">
         <select
           value={filters.openedBy}
-          onChange={(e) => onFiltersChange({ ...filters, openedBy: e.target.value as AdminDisputeOpenedByFilter })}
+          onChange={(e) =>
+            onFiltersChange({ ...filters, openedBy: e.target.value as AdminDisputeOpenedByFilter })
+          }
           className={SELECT}
           aria-label="Filter by who opened the dispute"
         >

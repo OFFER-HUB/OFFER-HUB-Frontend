@@ -165,7 +165,8 @@ export default function BrowseOffersPage(): React.JSX.Element {
                 Explore Client Project Offers
               </h1>
               <p className="text-base text-text-secondary leading-relaxed">
-                Discover high-value project opportunities and submit proposals directly to verified clients with escrow security.
+                Discover high-value project opportunities and submit proposals directly to verified
+                clients with escrow security.
               </p>
             </div>
 
@@ -205,7 +206,11 @@ export default function BrowseOffersPage(): React.JSX.Element {
                     "shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]"
                   )}
                 >
-                  <Icon path={ICON_PATHS.search} size="sm" className="text-text-secondary/60 flex-shrink-0" />
+                  <Icon
+                    path={ICON_PATHS.search}
+                    size="sm"
+                    className="text-text-secondary/60 flex-shrink-0"
+                  />
                   <input
                     type="text"
                     placeholder="Search offers by project title, requirements, or keywords..."
@@ -256,7 +261,11 @@ export default function BrowseOffersPage(): React.JSX.Element {
                         : "bg-white text-text-secondary shadow-[2px_2px_4px_#d1d5db,-2px_-2px_4px_#ffffff] hover:text-text-primary hover:bg-white"
                     )}
                   >
-                    <Icon path={cat.iconPath} size="sm" className={isActive ? "text-white" : "text-text-secondary/70"} />
+                    <Icon
+                      path={cat.iconPath}
+                      size="sm"
+                      className={isActive ? "text-white" : "text-text-secondary/70"}
+                    />
                     {cat.label}
                   </button>
                 );
@@ -279,21 +288,27 @@ export default function BrowseOffersPage(): React.JSX.Element {
               <div className="flex items-center gap-2">
                 <Icon path={ICON_PATHS.filter} size="sm" className="text-primary" />
                 <span>Filters & Budget</span>
-                {hasActiveFilters && (
-                  <span className="w-2 h-2 rounded-full bg-primary" />
-                )}
+                {hasActiveFilters && <span className="w-2 h-2 rounded-full bg-primary" />}
               </div>
               <Icon
                 path={ICON_PATHS.chevronDown}
                 size="sm"
-                className={cn("transition-transform duration-200", isMobileFiltersOpen && "rotate-180")}
+                className={cn(
+                  "transition-transform duration-200",
+                  isMobileFiltersOpen && "rotate-180"
+                )}
               />
             </button>
           </div>
 
           <div className="flex flex-col lg:flex-row gap-7 items-start">
             {/* Desktop Filters Sidebar */}
-            <div className={cn("w-full lg:w-64 xl:w-72 flex-shrink-0", isMobileFiltersOpen ? "block" : "hidden lg:block")}>
+            <div
+              className={cn(
+                "w-full lg:w-64 xl:w-72 flex-shrink-0",
+                isMobileFiltersOpen ? "block" : "hidden lg:block"
+              )}
+            >
               <div className="lg:sticky lg:top-24">
                 <MarketplaceFilters filters={filters} onChange={setFilters} priceLabel="Budget" />
               </div>
@@ -305,7 +320,9 @@ export default function BrowseOffersPage(): React.JSX.Element {
               <div className="flex flex-wrap items-center justify-between gap-3 p-4 rounded-2xl bg-white/70 backdrop-blur-sm shadow-[3px_3px_6px_#d1d5db,-3px_-3px_6px_#ffffff]">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="text-xs font-bold text-text-primary">
-                    {isLoading ? "Searching..." : `${offers.length} ${offers.length === 1 ? "offer" : "offers"} found`}
+                    {isLoading
+                      ? "Searching..."
+                      : `${offers.length} ${offers.length === 1 ? "offer" : "offers"} found`}
                   </span>
 
                   {filters.category && (
@@ -380,11 +397,7 @@ export default function BrowseOffersPage(): React.JSX.Element {
                 <>
                   <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                     {offers.map((offer) => (
-                      <OfferCard
-                        key={offer.id}
-                        offer={offer}
-                        highlightQuery={searchText}
-                      />
+                      <OfferCard key={offer.id} offer={offer} highlightQuery={searchText} />
                     ))}
                   </div>
 

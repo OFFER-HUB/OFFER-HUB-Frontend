@@ -37,12 +37,8 @@ export function DisputeTimeline({ events }: DisputeTimelineProps): React.JSX.Ele
               />
             </div>
             <div className="flex-1 pb-4">
-              <p className="text-text-primary text-sm font-medium">
-                {event.description}
-              </p>
-              <p className="text-text-secondary text-xs mt-1">
-                {formatDateTime(event.timestamp)}
-              </p>
+              <p className="text-text-primary text-sm font-medium">{event.description}</p>
+              <p className="text-text-secondary text-xs mt-1">{formatDateTime(event.timestamp)}</p>
               <p className="text-text-secondary text-xs">by {event.actor}</p>
             </div>
           </div>

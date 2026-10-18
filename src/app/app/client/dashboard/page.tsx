@@ -39,16 +39,8 @@ export default function ClientDashboardPage(): React.JSX.Element {
   const { setMode } = useModeStore();
   const user = useAuthStore((s) => s.user);
 
-  const {
-    stats,
-    activities,
-    offers,
-    walletBalance,
-    isLoading,
-    isRefreshing,
-    isMounted,
-    refetch,
-  } = useClientDashboardData();
+  const { stats, activities, offers, walletBalance, isLoading, isRefreshing, isMounted, refetch } =
+    useClientDashboardData();
 
   // Live on-chain USDC balance of the connected wallet (SCF D1.1), independent
   // of the platform-ledger `walletBalance` above.
@@ -94,7 +86,10 @@ export default function ClientDashboardPage(): React.JSX.Element {
             onChainUsdc={
               onChainBalance.address === null
                 ? null
-                : { amount: onChainBalance.balances?.usdc.balance ?? "0", isLoading: onChainBalance.isLoading }
+                : {
+                    amount: onChainBalance.balances?.usdc.balance ?? "0",
+                    isLoading: onChainBalance.isLoading,
+                  }
             }
           />
         </div>

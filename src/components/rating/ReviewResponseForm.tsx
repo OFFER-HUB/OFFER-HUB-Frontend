@@ -13,9 +13,7 @@ interface ReviewResponseFormProps {
   onSubmit: (content: string) => Promise<void>;
 }
 
-export function ReviewResponseForm({
-  onSubmit,
-}: ReviewResponseFormProps): React.JSX.Element {
+export function ReviewResponseForm({ onSubmit }: ReviewResponseFormProps): React.JSX.Element {
   const [content, setContent] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -56,7 +54,9 @@ export function ReviewResponseForm({
       setIsOpen(false);
     } catch (submitError) {
       setError(
-        submitError instanceof Error ? submitError.message : "Failed to submit response. Please try again."
+        submitError instanceof Error
+          ? submitError.message
+          : "Failed to submit response. Please try again."
       );
       setShowConfirmModal(false);
     } finally {
@@ -83,16 +83,28 @@ export function ReviewResponseForm({
         </div>
 
         <div className="flex items-center justify-between gap-3 text-sm">
-          <p className={cn(content.trim().length >= MIN_RESPONSE_LENGTH ? "text-success" : "text-text-secondary")}>
+          <p
+            className={cn(
+              content.trim().length >= MIN_RESPONSE_LENGTH ? "text-success" : "text-text-secondary"
+            )}
+          >
             Min {MIN_RESPONSE_LENGTH} characters
           </p>
-          <p className="text-text-secondary">{content.length}/{MAX_RESPONSE_LENGTH}</p>
+          <p className="text-text-secondary">
+            {content.length}/{MAX_RESPONSE_LENGTH}
+          </p>
         </div>
 
-        {error ? <div className="rounded-xl bg-error/10 p-3 text-sm text-error">{error}</div> : null}
+        {error ? (
+          <div className="rounded-xl bg-error/10 p-3 text-sm text-error">{error}</div>
+        ) : null}
 
         <div className="flex justify-end">
-          <button type="submit" disabled={isSubmitting} className={cn(PRIMARY_BUTTON, "justify-center")}>
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className={cn(PRIMARY_BUTTON, "justify-center")}
+          >
             {isSubmitting ? (
               <>
                 <span className="h-4 w-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />

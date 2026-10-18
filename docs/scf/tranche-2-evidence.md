@@ -8,10 +8,10 @@ Last updated: 2026-09-29. All transactions are on Stellar **testnet**. BlindPay 
 
 Two accounts appear in every escrow:
 
-| Role | Account | Custody |
-|---|---|---|
+| Role                                                               | Account                                                    | Custody                                                                                                                           |
+| ------------------------------------------------------------------ | ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
 | Buyer (deployer, funder, approver, release signer, dispute opener) | `GBUFHWMF2GCVS3MEBM7Q55XR73UHUVI5VYUDHSEXTHAJXORYULOX274N` | **Non-custodial.** External wallet, signed in the user's own wallet through Stellar Wallets Kit. The server stores no key for it. |
-| Platform (dispute resolver only) | `GBTA5SOFPHAHPJKZGGH4KVI6SZNUJZZKTQ6BKGSIGTZ466VO45KQ2NCD` | Held by the platform. Signs `resolve_dispute` only. |
+| Platform (dispute resolver only)                                   | `GBTA5SOFPHAHPJKZGGH4KVI6SZNUJZZKTQ6BKGSIGTZ466VO45KQ2NCD` | Held by the platform. Signs `resolve_dispute` only.                                                                               |
 
 `GBUFHWMF…274N` is the **buyer**, not the platform. It appears as the deployer of all three escrows because the buyer creates the escrow from their own wallet.
 
@@ -21,29 +21,29 @@ Explorer link format: `https://stellar.expert/explorer/testnet/tx/<hash>`
 
 ### Order 1: standard release, paid out in Brazil (PIX). Escrow `CD5SOA4ORLMLLJJKPV76OXXE5R5ANQN7IVA3VYB2UWXPR4NXTBIO5DN6`
 
-| Operation | Signer | Transaction hash |
-|---|---|---|
-| Create (deploy) | Buyer | `f23666eeeabd7eea413df79b7612ff48064a4de6f4356994d8e3755a337cd887` |
-| Fund | Buyer | `02bc539c1d6e97ef876f7066646224c033db19899c0eae5809404e26d28aa6f1` |
-| Approve milestone | Buyer | `fd579a13e31052547551a9ca0541f261e2d4f0f7e4b99c2556a4048a0debd1a7` |
-| Release | Buyer | `f74329d8776209001d0138e1a3118a41b4df43248e8c1748889cb609098e00c9` |
+| Operation         | Signer | Transaction hash                                                   |
+| ----------------- | ------ | ------------------------------------------------------------------ |
+| Create (deploy)   | Buyer  | `f23666eeeabd7eea413df79b7612ff48064a4de6f4356994d8e3755a337cd887` |
+| Fund              | Buyer  | `02bc539c1d6e97ef876f7066646224c033db19899c0eae5809404e26d28aa6f1` |
+| Approve milestone | Buyer  | `fd579a13e31052547551a9ca0541f261e2d4f0f7e4b99c2556a4048a0debd1a7` |
+| Release           | Buyer  | `f74329d8776209001d0138e1a3118a41b4df43248e8c1748889cb609098e00c9` |
 
 ### Order 2: standard release, paid out in Argentina. Escrow `CAVODPJ67RZ2GHZSTQ35DPS6WPWUSG3AXRWBTAITY252KCYBEJP4WEWJ`
 
-| Operation | Signer | Transaction hash |
-|---|---|---|
-| Create (deploy) | Buyer | `ce68da706ad153a1b1710bec5ce07281f736e1e3d72d496f775ba6db7bafb36f` |
-| Fund | Buyer | `cb7ca13c30492e410ffbc91f33a7f415ecc8a05969cce72b535d4dd2a2b09862` |
-| Approve milestone | Buyer | `556cb50c867ee9e7b95892961e29ab6038906f6396ffec74024be5bae7054b26` |
-| Release | Buyer | `29f03199fd8273836826b77f765171c5fb85f32b5931ef41e14f019abfff197b` |
+| Operation         | Signer | Transaction hash                                                   |
+| ----------------- | ------ | ------------------------------------------------------------------ |
+| Create (deploy)   | Buyer  | `ce68da706ad153a1b1710bec5ce07281f736e1e3d72d496f775ba6db7bafb36f` |
+| Fund              | Buyer  | `cb7ca13c30492e410ffbc91f33a7f415ecc8a05969cce72b535d4dd2a2b09862` |
+| Approve milestone | Buyer  | `556cb50c867ee9e7b95892961e29ab6038906f6396ffec74024be5bae7054b26` |
+| Release           | Buyer  | `29f03199fd8273836826b77f765171c5fb85f32b5931ef41e14f019abfff197b` |
 
 ### Order 3: dispute resolved as a 50/50 SPLIT, seller share paid out in Mexico (SPEI). Escrow `CDJAMUCJQW6C7XLCABJWVZW7HTILHJPU2AUXWQQSS2HGWDKO2AYZSMO3`
 
-| Operation | Signer | Transaction hash |
-|---|---|---|
-| Create (deploy) | Buyer | `d9cda7c5d14aec7793d5d6641a37b37a3f53baa2b0ab7fb685b49f6d0166a5d5` |
-| Fund | Buyer | `67fb483c90639db2ee36bc290b821cf87c6a49412ee5aef18aeee9eac80717e0` |
-| Open dispute (`dispute_escrow`) | Buyer | `1bee20e6edcac14865f05b449c0227260f08e6a0989477f5e0e43ee774ecb91e` |
+| Operation                                  | Signer                          | Transaction hash                                                   |
+| ------------------------------------------ | ------------------------------- | ------------------------------------------------------------------ |
+| Create (deploy)                            | Buyer                           | `d9cda7c5d14aec7793d5d6641a37b37a3f53baa2b0ab7fb685b49f6d0166a5d5` |
+| Fund                                       | Buyer                           | `67fb483c90639db2ee36bc290b821cf87c6a49412ee5aef18aeee9eac80717e0` |
+| Open dispute (`dispute_escrow`)            | Buyer                           | `1bee20e6edcac14865f05b449c0227260f08e6a0989477f5e0e43ee774ecb91e` |
 | Resolve dispute, SPLIT (`resolve_dispute`) | **Platform** (dispute resolver) | `e005da67e466f13c53219d6e35ba79d1dfc576f1d836505f89fef75c9ee072f5` |
 
 The `resolve_dispute` distribution is 75.0000000 to the buyer (`GBUFHWMF…274N`) and 75.0000000 to the seller wallet (`GDBZCKNH…5GDU4`), an exact 50/50 split of the $150 escrow. The seller's half was then paid out through BlindPay to their Mexican bank account (receipt in section 3).
@@ -54,28 +54,28 @@ Two refunds are included: one from earlier development QA (kept for completeness
 
 **Production refund.** Escrow `CB3AE4Y7DJKA5X6SHESTM52EHYCCGMZNWFVXFGC6JZHJQ7GLJ3E3LZKJ`, 2026-09-29.
 
-| Operation | Signer | Transaction hash |
-|---|---|---|
-| Create (deploy) | Buyer | `b71a089b23901c1c217dfee7c3ea14343e6c4e8999bc97f69cdf421d8bc1eb4f` |
-| Fund | Buyer | `aa0bc9cfc1693087a05fc7867b18594a78f4533b342ab1f285ae35eddc228544` |
-| Open dispute (`dispute_escrow`) | Buyer (`GBUFHWMF…274N`) | `54abefa4c13d5ed97d22a9cf310a7b958795fd816bc84bb6aa7344dd68808796` |
+| Operation                                                                                | Signer                                     | Transaction hash                                                   |
+| ---------------------------------------------------------------------------------------- | ------------------------------------------ | ------------------------------------------------------------------ |
+| Create (deploy)                                                                          | Buyer                                      | `b71a089b23901c1c217dfee7c3ea14343e6c4e8999bc97f69cdf421d8bc1eb4f` |
+| Fund                                                                                     | Buyer                                      | `aa0bc9cfc1693087a05fc7867b18594a78f4533b342ab1f285ae35eddc228544` |
+| Open dispute (`dispute_escrow`)                                                          | Buyer (`GBUFHWMF…274N`)                    | `54abefa4c13d5ed97d22a9cf310a7b958795fd816bc84bb6aa7344dd68808796` |
 | Resolve dispute, full refund (`resolve_dispute`, 150.0000000 returned 100% to the buyer) | **Platform** (production, `GBTA5SOF…2NCD`) | `b7af1fcd0bae6bd2651335cffa5fa2dea8c86f72fbbb140671e5680165f7c0b3` |
 
 **Earlier development-environment refund.** Escrow `CDMTNLSLTXWXHROYLTE76QV2MDWS6CKIK5Q4QBM6YR4BZX3R5RFZPKF4`, 2026-09-13.
 
-| Operation | Signer | Transaction hash |
-|---|---|---|
-| Open dispute (`dispute_escrow`) | Buyer (`GBUFHWMF…274N`) | `7f00febf08d524c68ea803a8207a2e3b84b9917af49d3d96db4ccc9fd91bbac4` |
+| Operation                                                                                | Signer                                                             | Transaction hash                                                   |
+| ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------ |
+| Open dispute (`dispute_escrow`)                                                          | Buyer (`GBUFHWMF…274N`)                                            | `7f00febf08d524c68ea803a8207a2e3b84b9917af49d3d96db4ccc9fd91bbac4` |
 | Resolve dispute, full refund (`resolve_dispute`, 500.0000000 returned 100% to the buyer) | Platform key of our **development** environment (`GBUXD4L2…26NOA`) | `d3b6fcc4a92eab9b9f99a9eccba74514aed3ff4b0a22025ccd307bad2f046547` |
 
 ## 2. Key custody
 
 Which keys the server holds, and for which role:
 
-| Server-held key | Role | What it signs |
-|---|---|---|
-| Platform account (1 wallet) | Dispute resolver on every escrow | `resolve_dispute` only: the platform leg of a refund and the SPLIT resolution |
-| Legacy custodial wallets (109 wallets, encrypted at rest with AES-256-GCM) | Users created under the original custodial model, including email-only users | Their owners' actions, server-side. This is the legacy path |
+| Server-held key                                                            | Role                                                                         | What it signs                                                                 |
+| -------------------------------------------------------------------------- | ---------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| Platform account (1 wallet)                                                | Dispute resolver on every escrow                                             | `resolve_dispute` only: the platform leg of a refund and the SPLIT resolution |
+| Legacy custodial wallets (109 wallets, encrypted at rest with AES-256-GCM) | Users created under the original custodial model, including email-only users | Their owners' actions, server-side. This is the legacy path                   |
 
 Non-custodial wallets (12 as of 2026-09-26) are external wallets connected through Stellar Wallets Kit. The server stores only the public key and never has a secret for them.
 
@@ -93,12 +93,12 @@ The original submission listed 7 corridors. **Peru, Chile and Costa Rica are for
 
 Bank deposit receipts (BlindPay tracking pages, one per corridor):
 
-| Corridor | Receipt |
-|---|---|
-| Brazil (PIX), Order 1 | https://app.blindpay.com/e/track/po_0rqm1fx9D3Zw |
-| Argentina (Transfers 3.0), Order 2 | https://app.blindpay.com/e/track/po_g1LC5obYYMOz |
+| Corridor                             | Receipt                                          |
+| ------------------------------------ | ------------------------------------------------ |
+| Brazil (PIX), Order 1                | https://app.blindpay.com/e/track/po_0rqm1fx9D3Zw |
+| Argentina (Transfers 3.0), Order 2   | https://app.blindpay.com/e/track/po_g1LC5obYYMOz |
 | Mexico (SPEI), Order 3 (SPLIT share) | https://app.blindpay.com/e/track/po_Odv0H6Sfqxlp |
-| Colombia (ACH) | https://app.blindpay.com/e/track/po_dwgZFNgGuHn2 |
+| Colombia (ACH)                       | https://app.blindpay.com/e/track/po_dwgZFNgGuHn2 |
 
 The Colombia receipt shows the name "Andrés Marín". It comes from our earlier corridor QA, run with a first test customer before the demo persona used in the video was created. It is the same BlindPay sandbox instance and the same payout pipeline.
 

@@ -40,13 +40,21 @@ function formatMoney(value: string): string {
 function formatTime(iso: string): string {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return "";
-  return d.toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+  return d.toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
 }
 
 /**
  * Compact list of the latest wallet movements.
  */
-export function RecentTransactions({ transactions, className }: RecentTransactionsProps): React.JSX.Element {
+export function RecentTransactions({
+  transactions,
+  className,
+}: RecentTransactionsProps): React.JSX.Element {
   return (
     <div
       className={cn(
@@ -59,7 +67,9 @@ export function RecentTransactions({ transactions, className }: RecentTransactio
       <div className="flex items-center justify-between gap-2 mb-4">
         <div>
           <h2 className="text-lg font-bold text-text-primary">Recent Transactions</h2>
-          <p className="text-xs text-text-secondary mt-0.5">Latest account credits, debits & escrow</p>
+          <p className="text-xs text-text-secondary mt-0.5">
+            Latest account credits, debits & escrow
+          </p>
         </div>
         <Link
           href="/app/wallet/transactions"
@@ -97,14 +107,13 @@ export function RecentTransactions({ transactions, className }: RecentTransactio
                   <Icon path={typeStyle.icon} size="md" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-sm text-text-primary truncate">{tx.description}</p>
+                  <p className="font-semibold text-sm text-text-primary truncate">
+                    {tx.description}
+                  </p>
                   <p className="text-xs text-text-secondary">{formatTime(tx.createdAt)}</p>
                 </div>
                 <span
-                  className={cn(
-                    "font-bold text-sm tabular-nums shrink-0",
-                    typeStyle.amountClass
-                  )}
+                  className={cn("font-bold text-sm tabular-nums shrink-0", typeStyle.amountClass)}
                 >
                   {typeStyle.prefix}
                   {formatMoney(tx.amount)}

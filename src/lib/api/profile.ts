@@ -57,7 +57,7 @@ export class ProfileApiError extends Error {
   constructor(
     message: string,
     public readonly code: string,
-    public readonly status: number,
+    public readonly status: number
   ) {
     super(message);
     this.name = "ProfileApiError";
@@ -82,7 +82,8 @@ export async function updateProfile(
 
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
-    const message = body?.error?.message ?? body?.message ?? "Something went wrong. Please try again.";
+    const message =
+      body?.error?.message ?? body?.message ?? "Something went wrong. Please try again.";
     const code = body?.error?.code ?? "UNKNOWN_ERROR";
     throw new ProfileApiError(message, code, response.status);
   }
@@ -151,11 +152,13 @@ function mapMissingField(field: string): ProfileCompletenessData["missingFields"
 }
 
 function normalizeProfileCompleteness(payload: unknown): ProfileCompletenessData {
-  const raw = (payload && typeof payload === "object" ? payload : {}) as Partial<
-    ProfileCompletenessApiResponse
-  >;
+  const raw = (
+    payload && typeof payload === "object" ? payload : {}
+  ) as Partial<ProfileCompletenessApiResponse>;
   const percentage = toCompletenessPercentage(raw.percentage);
-  const missing = Array.isArray(raw.missing) ? raw.missing.filter((field) => typeof field === "string") : [];
+  const missing = Array.isArray(raw.missing)
+    ? raw.missing.filter((field) => typeof field === "string")
+    : [];
 
   return {
     percentage,

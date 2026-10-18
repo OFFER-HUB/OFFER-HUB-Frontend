@@ -43,7 +43,9 @@ function initials(name: string): string {
   return name.charAt(0).toUpperCase() || "?";
 }
 
-export default async function PublicFreelancerProfilePage({ params }: PageProps): Promise<React.JSX.Element> {
+export default async function PublicFreelancerProfilePage({
+  params,
+}: PageProps): Promise<React.JSX.Element> {
   const { id } = await params;
   const summary = await getPublicFreelancerSummary(id);
 
@@ -131,10 +133,7 @@ export default async function PublicFreelancerProfilePage({ params }: PageProps)
                 <div className="flex flex-col xs:flex-row gap-3 justify-center sm:justify-start">
                   <Link
                     href={`/marketplace/freelancers/${id}/reviews`}
-                    className={cn(
-                      PRIMARY_BUTTON,
-                      "justify-center px-6 py-3 text-sm font-semibold"
-                    )}
+                    className={cn(PRIMARY_BUTTON, "justify-center px-6 py-3 text-sm font-semibold")}
                   >
                     View all reviews
                   </Link>

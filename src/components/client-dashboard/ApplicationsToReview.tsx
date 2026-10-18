@@ -60,9 +60,7 @@ function OfferRow({ offer }: { offer: Offer }): React.JSX.Element {
           className={cn(
             "min-w-[28px] h-7 px-2 rounded-full flex items-center justify-center",
             "text-xs font-bold",
-            isUrgent
-              ? "bg-warning text-white"
-              : "bg-primary text-white"
+            isUrgent ? "bg-warning text-white" : "bg-primary text-white"
           )}
         >
           {offer.applicantsCount}
@@ -123,7 +121,10 @@ export function ApplicationsToReview({
           ? Array.from({ length: 3 }).map((_, i) => (
               <div
                 key={i}
-                className={cn("flex items-center gap-4 p-4 rounded-xl animate-pulse", NEUMORPHIC_INSET)}
+                className={cn(
+                  "flex items-center gap-4 p-4 rounded-xl animate-pulse",
+                  NEUMORPHIC_INSET
+                )}
               >
                 <div className="w-10 h-10 rounded-lg bg-gray-200 flex-shrink-0" />
                 <div className="flex-1">
@@ -133,9 +134,9 @@ export function ApplicationsToReview({
                 <div className="w-7 h-7 rounded-full bg-gray-200" />
               </div>
             ))
-          : offersWithApplicants.slice(0, 5).map((offer) => (
-              <OfferRow key={offer.id} offer={offer} />
-            ))}
+          : offersWithApplicants
+              .slice(0, 5)
+              .map((offer) => <OfferRow key={offer.id} offer={offer} />)}
       </div>
     </div>
   );

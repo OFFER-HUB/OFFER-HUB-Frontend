@@ -142,9 +142,8 @@ function SectionHeader() {
         Our Global Community
       </h2>
       <p className="text-text-secondary text-lg">
-        Connect with talented freelancers and clients from around the world.
-        Our community spans across continents, bringing diverse skills and
-        opportunities together.
+        Connect with talented freelancers and clients from around the world. Our community spans
+        across continents, bringing diverse skills and opportunities together.
       </p>
     </div>
   );

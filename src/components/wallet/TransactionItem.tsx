@@ -154,8 +154,12 @@ export function TransactionItem({
             <Icon path={config.icon} size="md" />
           </div>
           <div className="min-w-0">
-            <p className="text-sm font-semibold text-text-primary truncate">{transaction.description}</p>
-            <p className="text-xs text-text-secondary mt-1">{formatDateTime(transaction.createdAt)}</p>
+            <p className="text-sm font-semibold text-text-primary truncate">
+              {transaction.description}
+            </p>
+            <p className="text-xs text-text-secondary mt-1">
+              {formatDateTime(transaction.createdAt)}
+            </p>
           </div>
         </div>
         <span className={cn("text-sm font-semibold shrink-0", config.amountClass)}>{amount}</span>

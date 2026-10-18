@@ -8,10 +8,6 @@ export const metadata: Metadata = generatePageMetadata({
   path: "/terms",
 });
 
-export default function TermsLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function TermsLayout({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }

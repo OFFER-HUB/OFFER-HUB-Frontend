@@ -129,7 +129,6 @@ export default function OrderDetailPage(): React.JSX.Element {
 
       {/* Main Two-Column Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        
         {/* Left Column: Order Documentation & Progress (8 Cols) */}
         <div className="lg:col-span-8 space-y-7">
           <OrderSummaryHeader
@@ -180,7 +179,6 @@ export default function OrderDetailPage(): React.JSX.Element {
 
         {/* Right Column: Action Hub & Counterparty (4 Cols, Sticky) */}
         <div className="lg:col-span-4 space-y-6 lg:sticky lg:top-20">
-          
           {/* Action Center */}
           {roles.isBuyer && (
             <BuyerActionPanel
@@ -211,9 +209,7 @@ export default function OrderDetailPage(): React.JSX.Element {
             />
           )}
 
-          {roles.isSeller && roles.isPayoutExpected && (
-            <PayoutStatusCard orderId={order.id} />
-          )}
+          {roles.isSeller && roles.isPayoutExpected && <PayoutStatusCard orderId={order.id} />}
 
           {/* Secure Payment Contract (Escrow Details) - Sticky on Desktop */}
           {order.escrow && (
@@ -241,7 +237,9 @@ export default function OrderDetailPage(): React.JSX.Element {
             <div className="space-y-2.5 text-xs">
               <div className="flex items-center justify-between text-text-secondary">
                 <span>Agreed Project Price:</span>
-                <span className="font-semibold text-text-primary font-mono">${amount.toFixed(2)}</span>
+                <span className="font-semibold text-text-primary font-mono">
+                  ${amount.toFixed(2)}
+                </span>
               </div>
               <div className="flex items-center justify-between text-text-secondary">
                 <span>Escrow Smart Contract:</span>
@@ -254,7 +252,11 @@ export default function OrderDetailPage(): React.JSX.Element {
             </div>
 
             <div className="pt-3 flex items-start gap-2 text-[11px] text-text-secondary leading-relaxed">
-              <Icon path={ICON_PATHS.lock} size="sm" className="text-primary flex-shrink-0 mt-0.5" />
+              <Icon
+                path={ICON_PATHS.lock}
+                size="sm"
+                className="text-primary flex-shrink-0 mt-0.5"
+              />
               <span>Funds remain safely held in smart escrow until the order is signed off.</span>
             </div>
           </div>
@@ -265,7 +267,6 @@ export default function OrderDetailPage(): React.JSX.Element {
             participant={roles.counterparty}
           />
         </div>
-
       </div>
 
       {/* Modals */}

@@ -35,8 +35,7 @@ export const useOnboardingStore = create<OnboardingState>()(
 
       setTourStep: (step: number) => set({ currentTourStep: step }),
 
-      isTooltipDismissed: (tooltipId: string) =>
-        get().dismissedTooltips.includes(tooltipId),
+      isTooltipDismissed: (tooltipId: string) => get().dismissedTooltips.includes(tooltipId),
     }),
     {
       name: "offerhub-onboarding",

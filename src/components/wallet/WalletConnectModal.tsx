@@ -51,14 +51,25 @@ export function WalletConnectModal({
     if (!isOpen) return;
     let cancelled = false;
     StellarWalletsKit.refreshSupportedWallets()
-      .then((supported) => { if (!cancelled) { setWallets(supported); setLoadError(null); } })
-      .catch((err: unknown) => { if (!cancelled) setLoadError(toWalletErrorMessage(err, "Could not load wallets.")); });
-    return () => { cancelled = true; };
+      .then((supported) => {
+        if (!cancelled) {
+          setWallets(supported);
+          setLoadError(null);
+        }
+      })
+      .catch((err: unknown) => {
+        if (!cancelled) setLoadError(toWalletErrorMessage(err, "Could not load wallets."));
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [isOpen]);
 
   useEffect(() => {
     if (!isOpen) return;
-    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
     window.addEventListener("keydown", handler);
     dialogRef.current?.focus();
     return () => window.removeEventListener("keydown", handler);
@@ -102,7 +113,9 @@ export function WalletConnectModal({
       onConnected?.(connected);
       onClose();
     } catch (err) {
-      setConnectError(toWalletErrorMessage(err, `Could not connect to ${wallet.name}. Please try again.`));
+      setConnectError(
+        toWalletErrorMessage(err, `Could not connect to ${wallet.name}. Please try again.`)
+      );
     } finally {
       setConnectingId(null);
     }
@@ -147,7 +160,7 @@ export function WalletConnectModal({
           "relative w-full max-w-sm outline-none",
           "bg-white rounded-3xl p-6",
           "shadow-2xl border border-border/40",
-          "animate-scale-in",
+          "animate-scale-in"
         )}
       >
         {/* Header */}
@@ -157,7 +170,9 @@ export function WalletConnectModal({
               {linkedWallet ? "Wallet connected" : "Connect wallet"}
             </h2>
             <p className="text-sm text-text-secondary mt-0.5">
-              {linkedWallet ? "Your Stellar wallet is active" : "Choose a wallet to sign in securely"}
+              {linkedWallet
+                ? "Your Stellar wallet is active"
+                : "Choose a wallet to sign in securely"}
             </p>
           </div>
 
@@ -169,11 +184,15 @@ export function WalletConnectModal({
             className={cn(
               "w-8 h-8 flex items-center justify-center rounded-xl shrink-0 ml-3",
               "text-text-secondary hover:text-text-primary hover:bg-background transition-colors",
-              "disabled:opacity-40 disabled:cursor-not-allowed",
+              "disabled:opacity-40 disabled:cursor-not-allowed"
             )}
           >
             <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
-              <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+              <path
+                fillRule="evenodd"
+                d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                clipRule="evenodd"
+              />
             </svg>
           </button>
         </div>
@@ -202,7 +221,7 @@ export function WalletConnectModal({
                 className={cn(
                   "flex-1 py-2.5 rounded-xl text-sm font-semibold",
                   "text-text-secondary hover:text-error bg-background hover:bg-error/10 transition-colors cursor-pointer",
-                  "disabled:opacity-60 disabled:cursor-not-allowed",
+                  "disabled:opacity-60 disabled:cursor-not-allowed"
                 )}
               >
                 {isDisconnecting ? "Disconnecting..." : "Disconnect"}
@@ -212,7 +231,7 @@ export function WalletConnectModal({
                 onClick={onClose}
                 className={cn(
                   "flex-1 py-2.5 rounded-xl text-sm font-semibold text-white",
-                  "bg-primary hover:bg-primary-hover active:scale-[0.98] transition-all cursor-pointer shadow-md",
+                  "bg-primary hover:bg-primary-hover active:scale-[0.98] transition-all cursor-pointer shadow-md"
                 )}
               >
                 Done
@@ -222,9 +241,14 @@ export function WalletConnectModal({
         ) : (
           <>
             {loadError ? (
-              <p role="alert" className="text-sm text-error text-center py-4">{loadError}</p>
+              <p role="alert" className="text-sm text-error text-center py-4">
+                {loadError}
+              </p>
             ) : wallets === null ? (
-              <div role="status" className="flex items-center justify-center gap-2.5 py-10 text-sm text-text-secondary">
+              <div
+                role="status"
+                className="flex items-center justify-center gap-2.5 py-10 text-sm text-text-secondary"
+              >
                 <LoadingSpinner size="sm" />
                 Detecting wallets…
               </div>
@@ -247,10 +271,8 @@ export function WalletConnectModal({
                           "bg-background/80 hover:bg-background border border-border/50 hover:border-primary/40",
                           "transition-all duration-150 outline-none cursor-pointer",
                           "focus-visible:ring-2 focus-visible:ring-primary/30",
-                          available
-                            ? "hover:scale-[1.01] active:scale-[0.99]"
-                            : "opacity-60",
-                          "disabled:cursor-not-allowed",
+                          available ? "hover:scale-[1.01] active:scale-[0.99]" : "opacity-60",
+                          "disabled:cursor-not-allowed"
                         )}
                       >
                         <Image
@@ -262,10 +284,12 @@ export function WalletConnectModal({
                         />
 
                         <div className="flex-1 min-w-0">
-                          <p className={cn(
-                            "font-semibold text-sm truncate",
-                            available ? "text-text-primary" : "text-text-secondary",
-                          )}>
+                          <p
+                            className={cn(
+                              "font-semibold text-sm truncate",
+                              available ? "text-text-primary" : "text-text-secondary"
+                            )}
+                          >
                             {wallet.name}
                           </p>
                           <p className="text-xs text-text-secondary mt-0.5">
@@ -277,8 +301,16 @@ export function WalletConnectModal({
                           {isThisConnecting ? (
                             <LoadingSpinner size="sm" />
                           ) : available ? (
-                            <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-text-secondary">
-                              <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                            <svg
+                              viewBox="0 0 20 20"
+                              fill="currentColor"
+                              className="w-4 h-4 text-text-secondary"
+                            >
+                              <path
+                                fillRule="evenodd"
+                                d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                                clipRule="evenodd"
+                              />
                             </svg>
                           ) : (
                             <span className="text-xs font-semibold text-primary">Install</span>
@@ -292,7 +324,9 @@ export function WalletConnectModal({
             )}
 
             {connectError && (
-              <p role="alert" className="mt-3 text-xs text-error text-center">{connectError}</p>
+              <p role="alert" className="mt-3 text-xs text-error text-center">
+                {connectError}
+              </p>
             )}
 
             {wallets !== null && !loadError && (
@@ -304,6 +338,6 @@ export function WalletConnectModal({
         )}
       </div>
     </div>,
-    document.body,
+    document.body
   );
 }

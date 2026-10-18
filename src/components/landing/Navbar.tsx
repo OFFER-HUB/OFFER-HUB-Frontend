@@ -80,9 +80,10 @@ export function Navbar(): React.JSX.Element {
     setIsMobileMenuOpen(false);
   }
 
-  const navLinks = mounted && isAuthenticated
-    ? [{ href: "/app/dashboard", label: "Dashboard" }, ...PUBLIC_NAV_LINKS]
-    : PUBLIC_NAV_LINKS;
+  const navLinks =
+    mounted && isAuthenticated
+      ? [{ href: "/app/dashboard", label: "Dashboard" }, ...PUBLIC_NAV_LINKS]
+      : PUBLIC_NAV_LINKS;
 
   return (
     <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md shadow-[var(--shadow-neumorphic-light)]">
@@ -143,12 +144,7 @@ export function Navbar(): React.JSX.Element {
               </button>
 
               {isMarketplaceMenuOpen && (
-                <div
-                  className={cn(
-                    "absolute left-0 top-full pt-2 w-56",
-                    "z-50"
-                  )}
-                >
+                <div className={cn("absolute left-0 top-full pt-2 w-56", "z-50")}>
                   <div
                     className={cn(
                       "py-2 rounded-xl bg-white",
@@ -157,11 +153,7 @@ export function Navbar(): React.JSX.Element {
                     )}
                   >
                     {MARKETPLACE_LINKS.map((link) => (
-                      <Link
-                        key={link.href}
-                        href={link.href}
-                        className={DROPDOWN_ITEM}
-                      >
+                      <Link key={link.href} href={link.href} className={DROPDOWN_ITEM}>
                         <Icon path={link.icon} size="sm" className="text-text-secondary" />
                         {link.label}
                       </Link>
@@ -208,7 +200,11 @@ export function Navbar(): React.JSX.Element {
                         My Profile
                       </Link>
                       <Link href="/app/settings" onClick={closeUserMenu} className={DROPDOWN_ITEM}>
-                        <Icon path={ICON_PATHS.settings} size="sm" className="text-text-secondary" />
+                        <Icon
+                          path={ICON_PATHS.settings}
+                          size="sm"
+                          className="text-text-secondary"
+                        />
                         Settings
                       </Link>
                       <div className="border-t border-border-light my-1" />
@@ -245,10 +241,7 @@ export function Navbar(): React.JSX.Element {
             onClick={toggleMobileMenu}
             aria-label="Toggle menu"
           >
-            <Icon
-              path={isMobileMenuOpen ? ICON_PATHS.close : ICON_PATHS.menu}
-              size="lg"
-            />
+            <Icon path={isMobileMenuOpen ? ICON_PATHS.close : ICON_PATHS.menu} size="lg" />
           </button>
         </nav>
 

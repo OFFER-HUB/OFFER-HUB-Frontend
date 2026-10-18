@@ -17,7 +17,13 @@ import type { KycProfile } from "@/lib/api/kyc";
 
 // ─── Re-exported utilities & constants (used by BankAccountForm and tests) ───
 
-export { cleanLettersOnly, maskTaxId, maskPostalCode, isValidCpf, calculateAge } from "@/hooks/useKycForm";
+export {
+  cleanLettersOnly,
+  maskTaxId,
+  maskPostalCode,
+  isValidCpf,
+  calculateAge,
+} from "@/hooks/useKycForm";
 
 // Strictly the 4 BlindPay supported payout countries
 export const KYC_CORRIDORS = [
@@ -70,7 +76,12 @@ const GLOBAL_COUNTRIES = [
   { code: "OTHER", name: "Other" },
 ];
 
-import type { KycIdDocType, ProofOfAddressDocType, SourceOfFundsDocType, PurposeOfTransactions } from "@/lib/api/kyc";
+import type {
+  KycIdDocType,
+  ProofOfAddressDocType,
+  SourceOfFundsDocType,
+  PurposeOfTransactions,
+} from "@/lib/api/kyc";
 
 const ID_DOC_TYPES: { value: KycIdDocType; label: string; description: string }[] = [
   { value: "PASSPORT", label: "Passport", description: "International travel document" },
@@ -164,9 +175,7 @@ export function KycForm({
             <span className="text-xs font-semibold uppercase tracking-wider text-primary">
               Step {currentStep} of {totalSteps}
             </span>
-            <h3 className="text-base font-bold text-text-primary">
-              {stepTitles[currentStep - 1]}
-            </h3>
+            <h3 className="text-base font-bold text-text-primary">{stepTitles[currentStep - 1]}</h3>
           </div>
           <div className="flex items-center gap-1.5">
             {stepTitles.map((title, idx) => {
@@ -209,18 +218,11 @@ export function KycForm({
         {/* Enhanced KYC notice for Colombia */}
         {fields.country === "CO" && (
           <div className="mt-3.5 p-3 rounded-xl bg-primary/5 border border-primary/20 flex items-start gap-2.5 text-xs text-text-primary">
-            <Icon
-              path={ICON_PATHS.infoCircle}
-              size="sm"
-              className="text-primary shrink-0 mt-0.5"
-            />
+            <Icon path={ICON_PATHS.infoCircle} size="sm" className="text-primary shrink-0 mt-0.5" />
             <div>
-              <span className="font-semibold text-primary">
-                Colombia Enhanced Verification:
-              </span>{" "}
-              In accordance with BlindPay compliance standards, accounts in Colombia require
-              enhanced verification and are reviewed manually by BlindPay (typically within 1
-              business day).
+              <span className="font-semibold text-primary">Colombia Enhanced Verification:</span> In
+              accordance with BlindPay compliance standards, accounts in Colombia require enhanced
+              verification and are reviewed manually by BlindPay (typically within 1 business day).
             </div>
           </div>
         )}
@@ -270,9 +272,7 @@ export function KycForm({
                 );
               })}
             </div>
-            {errors.country && (
-              <p className="mt-1.5 text-xs text-error">{errors.country}</p>
-            )}
+            {errors.country && <p className="mt-1.5 text-xs text-error">{errors.country}</p>}
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -293,9 +293,7 @@ export function KycForm({
                 className={cn(NEUMORPHIC_INPUT, errors.firstName && "ring-2 ring-error/50")}
                 aria-invalid={Boolean(errors.firstName)}
               />
-              {errors.firstName && (
-                <p className="mt-1.5 text-xs text-error">{errors.firstName}</p>
-              )}
+              {errors.firstName && <p className="mt-1.5 text-xs text-error">{errors.firstName}</p>}
             </div>
 
             <div>
@@ -315,9 +313,7 @@ export function KycForm({
                 className={cn(NEUMORPHIC_INPUT, errors.lastName && "ring-2 ring-error/50")}
                 aria-invalid={Boolean(errors.lastName)}
               />
-              {errors.lastName && (
-                <p className="mt-1.5 text-xs text-error">{errors.lastName}</p>
-              )}
+              {errors.lastName && <p className="mt-1.5 text-xs text-error">{errors.lastName}</p>}
             </div>
           </div>
 
@@ -339,9 +335,7 @@ export function KycForm({
             <p className="mt-1 text-[11px] text-text-secondary">
               Must be at least 18 years old to use payout corridors.
             </p>
-            {errors.dateOfBirth && (
-              <p className="mt-1 text-xs text-error">{errors.dateOfBirth}</p>
-            )}
+            {errors.dateOfBirth && <p className="mt-1 text-xs text-error">{errors.dateOfBirth}</p>}
           </div>
         </div>
       )}
@@ -396,8 +390,7 @@ export function KycForm({
               htmlFor={`${formId}-addressLine2`}
               className="block text-sm font-medium text-text-primary mb-2"
             >
-              Address Line 2{" "}
-              <span className="text-text-secondary font-normal">(optional)</span>
+              Address Line 2 <span className="text-text-secondary font-normal">(optional)</span>
             </label>
             <input
               id={`${formId}-addressLine2`}
@@ -706,9 +699,7 @@ export function KycForm({
                 rows={3}
                 maxLength={500}
                 value={fields.purposeOfTransactionsExplanation}
-                onChange={(e) =>
-                  setField("purposeOfTransactionsExplanation", e.target.value)
-                }
+                onChange={(e) => setField("purposeOfTransactionsExplanation", e.target.value)}
                 placeholder="Detail why you are using this payout corridor..."
                 className={cn(
                   NEUMORPHIC_INPUT,
@@ -751,8 +742,8 @@ export function KycForm({
             </div>
             <div className="grid grid-cols-2 gap-2 text-xs text-text-secondary">
               <div>
-                <span className="text-text-primary font-medium">Name:</span>{" "}
-                {fields.firstName} {fields.lastName}
+                <span className="text-text-primary font-medium">Name:</span> {fields.firstName}{" "}
+                {fields.lastName}
               </div>
               <div>
                 <span className="text-text-primary font-medium">Birth Date:</span>{" "}
@@ -787,8 +778,7 @@ export function KycForm({
             </div>
             <div className="grid grid-cols-2 gap-2 text-xs text-text-secondary">
               <div>
-                <span className="text-text-primary font-medium">Tax ID:</span>{" "}
-                {fields.taxId}
+                <span className="text-text-primary font-medium">Tax ID:</span> {fields.taxId}
               </div>
               <div>
                 <span className="text-text-primary font-medium">Postal Code:</span>{" "}
@@ -820,8 +810,7 @@ export function KycForm({
             </div>
             <div className="grid grid-cols-2 gap-2 text-xs text-text-secondary mb-3">
               <div>
-                <span className="text-text-primary font-medium">Type:</span>{" "}
-                {fields.idDocType}
+                <span className="text-text-primary font-medium">Type:</span> {fields.idDocType}
               </div>
               <div>
                 <span className="text-text-primary font-medium">Country:</span>{" "}

@@ -23,12 +23,7 @@ export function PasswordRequirements({ password, show }: PasswordRequirementsPro
   if (!show) return null;
 
   return (
-    <div
-      className={cn(
-        "flex flex-wrap gap-1.5 mt-2",
-        "animate-fade-in"
-      )}
-    >
+    <div className={cn("flex flex-wrap gap-1.5 mt-2", "animate-fade-in")}>
       {requirements.map((req, index) => {
         const met = req.test(password);
         return (
@@ -44,11 +39,23 @@ export function PasswordRequirements({ password, show }: PasswordRequirementsPro
             style={{ animationDelay: `${index * 0.05}s` }}
           >
             {met ? (
-              <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+              <svg
+                className="w-2.5 h-2.5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={3}
+              >
                 <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
               </svg>
             ) : (
-              <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <svg
+                className="w-2.5 h-2.5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
                 <circle cx="12" cy="12" r="10" />
               </svg>
             )}

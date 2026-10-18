@@ -25,7 +25,9 @@ export function OrderProgressStepper({
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-base font-bold text-[#111827]">Order Lifecycle Progress</h2>
         <span className="text-xs font-semibold text-text-secondary">
-          Step {Math.min(ORDER_PROGRESS_MILESTONES.findIndex((m) => m.step >= currentStep) + 1 || 1, 4)} of 4
+          Step{" "}
+          {Math.min(ORDER_PROGRESS_MILESTONES.findIndex((m) => m.step >= currentStep) + 1 || 1, 4)}{" "}
+          of 4
         </span>
       </div>
       <div className="relative px-2 sm:px-6">
@@ -42,8 +44,10 @@ export function OrderProgressStepper({
                   className={cn(
                     "w-11 h-11 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center font-bold text-xs sm:text-sm mb-3 transition-all relative z-10",
                     isPassed && "bg-primary text-white shadow-[3px_3px_8px_#cbd5e1]",
-                    isCurrent && "bg-background text-primary ring-2 ring-primary shadow-[4px_4px_10px_#cbd5e1,-4px_-4px_10px_#ffffff]",
-                    isPending && "bg-background text-text-secondary/70 shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]"
+                    isCurrent &&
+                      "bg-background text-primary ring-2 ring-primary shadow-[4px_4px_10px_#cbd5e1,-4px_-4px_10px_#ffffff]",
+                    isPending &&
+                      "bg-background text-text-secondary/70 shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]"
                   )}
                 >
                   {isPassed ? (
@@ -69,7 +73,11 @@ export function OrderProgressStepper({
                 <span
                   className={cn(
                     "text-xs text-center transition-colors",
-                    isCurrent ? "font-bold text-[#111827]" : isPassed ? "font-semibold text-text-primary" : "text-text-secondary"
+                    isCurrent
+                      ? "font-bold text-[#111827]"
+                      : isPassed
+                        ? "font-semibold text-text-primary"
+                        : "text-text-secondary"
                   )}
                 >
                   {milestone.label}

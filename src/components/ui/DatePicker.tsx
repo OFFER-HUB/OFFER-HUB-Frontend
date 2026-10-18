@@ -16,8 +16,18 @@ interface DatePickerProps {
 
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const MONTHS = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December"
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
 ];
 
 export function DatePicker({
@@ -57,32 +67,36 @@ export function DatePicker({
     const month = date.getMonth();
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
-    
+
     const days: Date[] = [];
-    
+
     // Add days from previous month to fill the first week
     for (let i = 0; i < firstDay.getDay(); i++) {
       days.push(new Date(year, month, -firstDay.getDay() + i + 1));
     }
-    
+
     // Add days of current month
     for (let i = 1; i <= lastDay.getDate(); i++) {
       days.push(new Date(year, month, i));
     }
-    
+
     // Add days from next month to fill the last week
     const remainingDays = 42 - days.length; // 6 rows * 7 days
     for (let i = 1; i <= remainingDays; i++) {
       days.push(new Date(year, month + 1, i));
     }
-    
+
     return days;
   }
 
   function isDateDisabled(date: Date): boolean {
     if (!minDateObj) return false;
     const dateOnly = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-    const minDateOnly = new Date(minDateObj.getFullYear(), minDateObj.getMonth(), minDateObj.getDate());
+    const minDateOnly = new Date(
+      minDateObj.getFullYear(),
+      minDateObj.getMonth(),
+      minDateObj.getDate()
+    );
     return dateOnly < minDateOnly;
   }
 
@@ -202,10 +216,7 @@ export function DatePicker({
           {/* Day headers */}
           <div className="grid grid-cols-7 gap-1 mb-2">
             {DAYS.map((day) => (
-              <div
-                key={day}
-                className="text-center text-xs font-medium text-text-secondary py-2"
-              >
+              <div key={day} className="text-center text-xs font-medium text-text-secondary py-2">
                 {day}
               </div>
             ))}
@@ -230,13 +241,12 @@ export function DatePicker({
                     inCurrentMonth ? "text-text-primary" : "text-text-secondary/50",
                     disabled && "opacity-30 cursor-not-allowed",
                     !disabled && !selected && "hover:bg-primary/10 cursor-pointer",
-                    selected && cn(
-                      "bg-primary text-white",
-                      "shadow-[2px_2px_4px_#d1d5db,-2px_-2px_4px_#ffffff]"
-                    ),
-                    today && !selected && cn(
-                      "ring-2 ring-primary/50"
-                    )
+                    selected &&
+                      cn(
+                        "bg-primary text-white",
+                        "shadow-[2px_2px_4px_#d1d5db,-2px_-2px_4px_#ffffff]"
+                      ),
+                    today && !selected && cn("ring-2 ring-primary/50")
                   )}
                 >
                   {date.getDate()}

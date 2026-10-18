@@ -1,4 +1,4 @@
-export type ApplicationStatus = 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'WITHDRAWN';
+export type ApplicationStatus = "PENDING" | "ACCEPTED" | "REJECTED" | "WITHDRAWN";
 
 export interface Application {
   id: string;
@@ -36,9 +36,12 @@ export interface ApplicationFilters {
   cursor?: string;
 }
 
-export const APPLICATION_STATUS_CONFIG: Record<ApplicationStatus, { label: string; color: string; bg: string }> = {
-  PENDING: { label: 'Pending', color: 'text-warning', bg: 'bg-warning/10' },
-  ACCEPTED: { label: 'Accepted', color: 'text-success', bg: 'bg-success/10' },
-  REJECTED: { label: 'Rejected', color: 'text-error', bg: 'bg-error/10' },
-  WITHDRAWN: { label: 'Withdrawn', color: 'text-text-secondary', bg: 'bg-gray-100' },
+export const APPLICATION_STATUS_CONFIG: Record<
+  ApplicationStatus,
+  { label: string; color: string; bg: string }
+> = {
+  PENDING: { label: "Pending", color: "text-warning", bg: "bg-warning/10" },
+  ACCEPTED: { label: "Accepted", color: "text-success", bg: "bg-success/10" },
+  REJECTED: { label: "Rejected", color: "text-error", bg: "bg-error/10" },
+  WITHDRAWN: { label: "Withdrawn", color: "text-text-secondary", bg: "bg-gray-100" },
 };

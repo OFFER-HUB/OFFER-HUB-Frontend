@@ -75,7 +75,7 @@ export function useNotificationSSE(): void {
 
       const backoff = Math.min(
         MIN_BACKOFF_MS * Math.pow(BACKOFF_MULTIPLIER, retryCountRef.current),
-        MAX_BACKOFF_MS,
+        MAX_BACKOFF_MS
       );
       retryCountRef.current += 1;
 

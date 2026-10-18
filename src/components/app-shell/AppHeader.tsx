@@ -59,17 +59,11 @@ export function AppHeader({ onMenuClick }: AppHeaderProps): React.JSX.Element {
 
     function handleClickOutside(event: MouseEvent): void {
       // Close user menu
-      if (
-        userMenuRef.current &&
-        !userMenuRef.current.contains(event.target as Node)
-      ) {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
         setIsUserMenuOpen(false);
       }
       // Close notification dropdown
-      if (
-        notifRef.current &&
-        !notifRef.current.contains(event.target as Node)
-      ) {
+      if (notifRef.current && !notifRef.current.contains(event.target as Node)) {
         setIsNotifOpen(false);
       }
       // Close marketplace dropdown
@@ -243,19 +237,11 @@ export function AppHeader({ onMenuClick }: AppHeaderProps): React.JSX.Element {
           <button
             onClick={toggleNotif}
             className={cn(ICON_BUTTON, "relative cursor-pointer")}
-            aria-label={
-              unreadCount > 0
-                ? `${unreadCount} unread notifications`
-                : "Notifications"
-            }
+            aria-label={unreadCount > 0 ? `${unreadCount} unread notifications` : "Notifications"}
             aria-expanded={isNotifOpen}
             aria-haspopup="dialog"
           >
-            <Icon
-              path={ICON_PATHS.bell}
-              size="md"
-              className="text-text-secondary"
-            />
+            <Icon path={ICON_PATHS.bell} size="md" className="text-text-secondary" />
             {unreadCount > 0 && (
               <span
                 className={cn(
@@ -270,10 +256,7 @@ export function AppHeader({ onMenuClick }: AppHeaderProps): React.JSX.Element {
             )}
           </button>
 
-          <NotificationDropdown
-            isOpen={isNotifOpen}
-            onClose={() => setIsNotifOpen(false)}
-          />
+          <NotificationDropdown isOpen={isNotifOpen} onClose={() => setIsNotifOpen(false)} />
         </div>
 
         {/* User Avatar + Menu */}
@@ -284,8 +267,7 @@ export function AppHeader({ onMenuClick }: AppHeaderProps): React.JSX.Element {
               className={cn(
                 USER_AVATAR_BUTTON,
                 "overflow-hidden transition-all duration-300",
-                isUserMenuOpen &&
-                  "shadow-[inset_4px_4px_8px_#d1d5db,inset_-4px_-4px_8px_#ffffff]"
+                isUserMenuOpen && "shadow-[inset_4px_4px_8px_#d1d5db,inset_-4px_-4px_8px_#ffffff]"
               )}
             >
               {user.avatarUrl ? (
@@ -295,9 +277,7 @@ export function AppHeader({ onMenuClick }: AppHeaderProps): React.JSX.Element {
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <span className="animate-fade-in">
-                  {user.username.charAt(0).toUpperCase()}
-                </span>
+                <span className="animate-fade-in">{user.username.charAt(0).toUpperCase()}</span>
               )}
             </button>
 
@@ -305,13 +285,11 @@ export function AppHeader({ onMenuClick }: AppHeaderProps): React.JSX.Element {
               <div className={cn(DROPDOWN_MENU, "-right-1 top-[calc(100%+0.75rem)]")}>
                 <div className="px-5 py-4 mb-2 border-b border-background">
                   <p className="text-sm font-bold text-text-primary truncate">
-                    {(user.firstName && user.lastName)
+                    {user.firstName && user.lastName
                       ? `${user.firstName} ${user.lastName}`
                       : user.firstName || user.username}
                   </p>
-                  <p className="text-xs text-text-secondary truncate mt-0.5">
-                    {user.email}
-                  </p>
+                  <p className="text-xs text-text-secondary truncate mt-0.5">{user.email}</p>
                 </div>
                 <div className="flex flex-col gap-1 pb-3">
                   <Link
@@ -372,10 +350,7 @@ export function AppHeader({ onMenuClick }: AppHeaderProps): React.JSX.Element {
                     />
                   </Link>
                   <div className="border-t border-background my-2 mx-4" />
-                  <button
-                    onClick={handleLogout}
-                    className={cn(DROPDOWN_ITEM_DANGER, "stagger-4")}
-                  >
+                  <button onClick={handleLogout} className={cn(DROPDOWN_ITEM_DANGER, "stagger-4")}>
                     <div className="flex items-center gap-3">
                       <Icon path={ICON_PATHS.logout} size="sm" />
                       <span>Sign Out</span>

@@ -74,7 +74,11 @@ export function useRegisterForm(): UseRegisterFormReturn {
   }
 
   function mapRegistrationErrors(data: {
-    error?: { code?: string; message?: string; details?: { providers?: string[]; validationErrors?: string[] } };
+    error?: {
+      code?: string;
+      message?: string;
+      details?: { providers?: string[]; validationErrors?: string[] };
+    };
   }): AuthFormErrors {
     const newErrors: AuthFormErrors = {};
 

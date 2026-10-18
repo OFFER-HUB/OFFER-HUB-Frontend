@@ -75,18 +75,10 @@ export function RateClientModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-        onClick={onClose}
-      />
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
 
       {/* Modal */}
-      <div
-        className={cn(
-          NEUMORPHIC_CARD,
-          "relative w-full max-w-lg animate-scale-in"
-        )}
-      >
+      <div className={cn(NEUMORPHIC_CARD, "relative w-full max-w-lg animate-scale-in")}>
         {/* Close button */}
         <button
           type="button"
@@ -149,9 +141,7 @@ export function RateClientModal({
 
           {/* Comment */}
           <div className="mb-6">
-            <label className="block text-sm font-medium text-text-primary mb-2">
-              Your review
-            </label>
+            <label className="block text-sm font-medium text-text-primary mb-2">Your review</label>
             <div className={cn("rounded-xl", NEUMORPHIC_INSET)}>
               <textarea
                 value={comment}
@@ -169,9 +159,7 @@ export function RateClientModal({
               {errors.comment ? (
                 <p className="text-error text-sm">{errors.comment}</p>
               ) : (
-                <p className="text-text-secondary text-sm">
-                  Min {MIN_COMMENT_LENGTH} characters
-                </p>
+                <p className="text-text-secondary text-sm">Min {MIN_COMMENT_LENGTH} characters</p>
               )}
               <p className="text-text-secondary text-sm">
                 {comment.length}/{MAX_COMMENT_LENGTH}
@@ -193,11 +181,7 @@ export function RateClientModal({
             >
               Cancel
             </button>
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className={cn(PRIMARY_BUTTON, "flex-1")}
-            >
+            <button type="submit" disabled={isSubmitting} className={cn(PRIMARY_BUTTON, "flex-1")}>
               {isSubmitting ? (
                 <span className="flex items-center justify-center gap-2">
                   <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
