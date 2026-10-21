@@ -1,0 +1,21 @@
+{
+  "default_branch": "main",
+  "branches": [
+    "feat/issue-487-feat-wallet-verify-and-finalize-the-claim-your",
+    "fix/issue-385-refactor-client-extract-inline-logic-components",
+    "main",
+    "origin"
+  ],
+  "parent": {
+    "feat/issue-487-feat-wallet-verify-and-finalize-the-claim-your": "main",
+    "fix/issue-385-refactor-client-extract-inline-logic-components": "main",
+    "main": null,
+    "origin": "main"
+  },
+  "order": [
+    "main",
+    "feat/issue-487-feat-wallet-verify-and-finalize-the-claim-your",
+    "fix/issue-385-refactor-client-extract-inline-logic-components",
+    "origin"
+  ]
+}

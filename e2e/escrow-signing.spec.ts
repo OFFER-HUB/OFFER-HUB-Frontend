@@ -18,6 +18,37 @@ async function openReleaseFundsModal(page: import("@playwright/test").Page) {
 }
 
 test.describe("D2.1 client-side signing — Release Funds", () => {
+  test("Claim Your Wallet flow: set_options signer swap completes without moving funds", async ({ page }) => {
+    await seedSignedInSession(page);
+    await seedWalletConfig(page, {}); // default: approve, no delay
+    await mockOrderApi(page, {
+      order: buildOrder(),
+      claimPrepare: { step: "claim", signer: "buyer", unsignedXdr: FAKE_XDR, expiresAt: FUTURE_EXPIRY },
+    });
+
+    await page.goto(`/app/orders/${ORDER_ID}`);
+    await page.getByRole("button", { name: "Claim Your Wallet" }).click();
+    await page.getByRole("button", { name: "Confirm" }).click();
+
+    const dialog = page.getByRole("dialog", { name: "Transaction confirmed" });
+    await expect(dialog).toBeVisible();
+    await dialog.getByRole("button", { name: "Done" }).click();
+
+    // The signer swap is a set_options operation — funds stay put, only the
+    // signing key changes to the user's own keypair.
+    await expect(page.getByText("Wallet Claimed")).toBeVisible();
+  });
+
+  test("unclaimed users see T3 cutover messaging with the 90-day window", async ({ page }) => {
+    await seedSignedInSession(page);
+    await mockOrderApi(page, { order: buildOrder({ walletClaimed: false }) });
+
+    await page.goto(`/app/orders/${ORDER_ID}`);
+
+    await expect(page.getByText(/T3 cutover/i)).toBeVisible();
+    await expect(page.getByText(/90-day window/i)).toBeVisible();
+  });
+
   test("clicking Release Funds opens EscrowSigningModal in awaiting_signature state", async ({ page }) => {
     await seedSignedInSession(page);
     // Slow enough for the transient "awaiting_signature" state to be reliably observable.
@@ -33,6 +64,7 @@ test.describe("D2.1 client-side signing — Release Funds", () => {
     await expect(dialog).toBeVisible();
     await expect(dialog.getByText("Check your wallet extension to sign")).toBeVisible();
   });
+
 
   test("simulated wallet approval completes the flow and the order status updates", async ({ page }) => {
     await seedSignedInSession(page);

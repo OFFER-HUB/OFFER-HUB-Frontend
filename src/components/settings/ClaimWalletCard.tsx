@@ -30,6 +30,22 @@ const STEP_LABEL: Record<Exclude<ClaimStep, "idle">, string> = {
 };
 
 /**
+ * The T3 cutover deadline. After this date, custodial wallets that have not
+ * been claimed will be subject to the backend's 90-day enforcement window.
+ * Kept in sync with the API repo's enforcement issue.
+ */
+const T3_CUTOVER_DATE = new Date("2025-12-31T00:00:00Z");
+
+function formatCutoverDate(date: Date): string {
+  return new Intl.DateTimeFormat("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    timeZone: "UTC",
+  }).format(date);
+}
+
+/**
  * "Claim Your Wallet" — hands a server-held wallet over to its owner.
  *
  * The three steps the migration plan promises: explain, connect, sign. The
@@ -104,6 +120,38 @@ export function ClaimWalletCard(): React.JSX.Element {
         <SuccessState result={result} />
       ) : (
         <div className="space-y-4">
+          {/* T3 cutover notice — the reason this matters now */}
+          <div
+            role="note"
+            className={cn(
+              NEUMORPHIC_INSET,
+              "rounded-2xl p-4 border border-warning/30 bg-warning/5"
+            )}
+          >
+            <div className="flex items-start gap-2">
+              <Icon
+                path={ICON_PATHS.alertTriangle}
+                size="sm"
+                className="text-warning shrink-0 mt-0.5"
+              />
+              <div className="text-sm text-text-secondary leading-relaxed">
+                <p className="font-semibold text-text-primary mb-1">
+                  Claim before the T3 cutover
+                </p>
+                <p>
+                  OfferHub is migrating to T3 on{" "}
+                  <span className="font-semibold text-text-primary">
+                    {formatCutoverDate(T3_CUTOVER_DATE)}
+                  </span>
+                  . After that date, unclaimed custodial wallets fall under a 
+                  <span className="font-semibold text-text-primary">90-day window</span> — if you
+                  haven&#39;t claimed your wallet by the end of it, OfferHub will no longer be able
+                  to sign on your behalf and your funds may become inaccessible.
+                </p>
+              </div>
+            </div>
+          </div>
+
           {/* Step 1 — what this actually does */}
           <div className={cn(NEUMORPHIC_INSET, "rounded-2xl p-4")}>
             <StepHeading n={1} title="What this does" />
@@ -126,7 +174,7 @@ export function ClaimWalletCard(): React.JSX.Element {
                   size="sm"
                   className="text-warning shrink-0 mt-0.5"
                 />
-                This cannot be undone. Keep your wallet&apos;s recovery phrase safe.
+                This cannot be undone. Keep your wallet&#39;s recovery phrase safe.
               </li>
             </ul>
           </div>
