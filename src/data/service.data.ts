@@ -1,4 +1,4 @@
-import type { Service, ServiceCategory, ServiceOrder } from "@/types/service.types";
+import type { Service, ServiceCategory, ServiceFormData, ServiceFormErrors, ServiceOrder } from "@/types/service.types";
 
 export const MIN_TITLE_LENGTH = 10;
 export const MIN_DESCRIPTION_LENGTH = 50;
@@ -152,4 +152,39 @@ export function getServiceById(id: string): Service | undefined {
 
 export function getOrdersByServiceId(serviceId: string): ServiceOrder[] {
   return MOCK_SERVICE_ORDERS.filter((o) => o.serviceId === serviceId);
+}
+
+
+export function validateServiceForm(data: ServiceFormData): ServiceFormErrors {
+  const errors: ServiceFormErrors = {};
+
+  if (!data.title.trim()) {
+    errors.title = "Title is required";
+  } else if (data.title.trim().length < MIN_TITLE_LENGTH) {
+    errors.title = `Title must be at least ${MIN_TITLE_LENGTH} characters`;
+  }
+
+  if (!data.description.trim()) {
+    errors.description = "Description is required";
+  } else if (data.description.trim().length < MIN_DESCRIPTION_LENGTH) {
+    errors.description = `Description must be at least ${MIN_DESCRIPTION_LENGTH} characters`;
+  } else if (data.description.trim().length > MAX_DESCRIPTION_LENGTH) {
+    errors.description = `Description must be less than ${MAX_DESCRIPTION_LENGTH} characters`;
+  }
+
+  if (!data.category) {
+    errors.category = "Please select a category";
+  }
+
+  if (!data.price || data.price < MIN_PRICE) {
+    errors.price = `Price must be at least $${MIN_PRICE}`;
+  }
+
+  if (!data.deliveryDays || data.deliveryDays < MIN_DELIVERY_DAYS) {
+    errors.deliveryDays = `Delivery time must be at least ${MIN_DELIVERY_DAYS} day`;
+  } else if (data.deliveryDays > MAX_DELIVERY_DAYS) {
+    errors.deliveryDays = `Delivery time cannot exceed ${MAX_DELIVERY_DAYS} days`;
+  }
+
+  return errors;
 }
