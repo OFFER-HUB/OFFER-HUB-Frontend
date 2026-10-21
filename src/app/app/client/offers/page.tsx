@@ -2,130 +2,19 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { cn } from "@/lib/cn";
 import { useModeStore } from "@/stores/mode-store";
 import { useAuthStore } from "@/stores/auth-store";
 import { Icon, ICON_PATHS, LoadingSpinner } from "@/components/ui/Icon";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
-import { StatusBadge } from "@/components/ui/StatusBadge";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { NEUMORPHIC_CARD, NEUMORPHIC_INSET, PRIMARY_BUTTON } from "@/lib/styles";
-import { getMyOffers, deleteOffer, type Offer } from "@/lib/api/offers";
-import type { ClientOffer, FilterStatus, OfferStatus } from "@/types/client-offer.types";
-
-function mapApiOfferToClientOffer(offer: Offer): ClientOffer {
-  const categoryMap: Record<string, string> = {
-    WEB_DEVELOPMENT: "Web Development",
-    MOBILE_DEVELOPMENT: "Mobile Development",
-    DESIGN: "Design & Creative",
-    WRITING: "Writing & Translation",
-    MARKETING: "Marketing & Sales",
-    VIDEO: "Video & Animation",
-    MUSIC: "Music & Audio",
-    DATA: "Data & Analytics",
-    OTHER: "Other",
-  };
-
-  return {
-    id: offer.id,
-    title: offer.title,
-    category: categoryMap[offer.category] || offer.category,
-    budget: parseFloat(offer.budget),
-    deadline: offer.deadline.split("T")[0],
-    status: offer.status.toLowerCase() as OfferStatus,
-    applicants: offer.applicantsCount,
-    createdAt: offer.createdAt.split("T")[0],
-  };
-}
+import { NEUMORPHIC_CARD, PRIMARY_BUTTON } from "@/lib/styles";
+import { getMyOffers, deleteOffer } from "@/lib/api/offers";
+import type { ClientOffer, FilterStatus } from "@/types/client-offer.types";
+import { mapApiOfferToClientOffer, formatFilterLabel, countByStatus } from "@/lib/client-offers";
+import { OfferRow } from "@/components/offers/OfferRow";
+import { OfferFilterBar } from "@/components/offers/OfferFilterBar";
 
 const FILTER_STATUSES: FilterStatus[] = ["all", "active", "pending", "closed"];
-
-interface OfferRowProps {
-  offer: ClientOffer;
-  onDelete: (id: string) => void;
-}
-
-function OfferRow({ offer, onDelete }: OfferRowProps): React.JSX.Element {
-  return (
-    <div
-      className={cn(
-        "flex flex-col sm:flex-row sm:items-center gap-4 p-4 rounded-xl",
-        NEUMORPHIC_INSET
-      )}
-    >
-      <div className="flex-1 min-w-0">
-        <Link
-          href={`/app/client/offers/${offer.id}`}
-          className="font-medium text-text-primary hover:text-primary transition-colors"
-        >
-          {offer.title}
-        </Link>
-        <div className="flex flex-wrap items-center gap-2 mt-1">
-          <span className="text-sm text-text-secondary">{offer.category}</span>
-          <span className="text-text-secondary">•</span>
-          <span className="text-sm text-text-secondary">${offer.budget.toLocaleString()}</span>
-          <span className="text-text-secondary">•</span>
-          <span className="text-sm text-text-secondary">{offer.applicants} applicants</span>
-        </div>
-      </div>
-
-      <div className="flex items-center gap-3">
-        <StatusBadge status={offer.status} />
-
-        <div className="flex items-center gap-2">
-          <Link
-            href={`/app/client/offers/${offer.id}`}
-            className={cn(
-              "p-2 rounded-xl bg-white text-primary",
-              "shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]",
-              "hover:shadow-[2px_2px_4px_#d1d5db,-2px_-2px_4px_#ffffff]",
-              "active:shadow-[inset_3px_3px_6px_rgba(0,0,0,0.1)]",
-              "transition-all duration-200"
-            )}
-            title="View"
-          >
-            <Icon path={ICON_PATHS.eye} size="sm" />
-          </Link>
-          <Link
-            href={`/app/client/offers/${offer.id}/edit`}
-            className={cn(
-              "p-2 rounded-xl bg-white text-primary",
-              "shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]",
-              "hover:shadow-[2px_2px_4px_#d1d5db,-2px_-2px_4px_#ffffff]",
-              "active:shadow-[inset_3px_3px_6px_rgba(0,0,0,0.1)]",
-              "transition-all duration-200"
-            )}
-            title="Edit"
-          >
-            <Icon path={ICON_PATHS.edit} size="sm" />
-          </Link>
-          <button
-            onClick={() => onDelete(offer.id)}
-            className={cn(
-              "p-2 rounded-xl bg-white text-error",
-              "shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]",
-              "hover:shadow-[2px_2px_4px_#d1d5db,-2px_-2px_4px_#ffffff]",
-              "active:shadow-[inset_3px_3px_6px_rgba(0,0,0,0.1)]",
-              "transition-all duration-200"
-            )}
-            title="Delete"
-          >
-            <Icon path={ICON_PATHS.trash} size="sm" />
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function formatFilterLabel(status: FilterStatus): string {
-  return status.charAt(0).toUpperCase() + status.slice(1);
-}
-
-function countByStatus(offers: ClientOffer[], status: FilterStatus): number {
-  if (status === "all") return offers.length;
-  return offers.filter((o) => o.status === status).length;
-}
 
 export default function ManageOffersPage(): React.JSX.Element {
   const { setMode } = useModeStore();
@@ -210,22 +99,12 @@ export default function ManageOffersPage(): React.JSX.Element {
           </div>
         ) : (
           <>
-            <div className="flex flex-wrap gap-2 mb-6">
-              {FILTER_STATUSES.map((status) => (
-                <button
-                  key={status}
-                  onClick={() => setFilter(status)}
-                  className={cn(
-                    "px-4 py-2 rounded-lg text-sm font-medium transition-all cursor-pointer",
-                    filter === status
-                      ? "bg-primary text-white shadow-[2px_2px_4px_#d1d5db,-2px_-2px_4px_#ffffff]"
-                      : "text-text-secondary hover:text-text-primary hover:bg-background"
-                  )}
-                >
-                  {formatFilterLabel(status)} ({countByStatus(offers, status)})
-                </button>
-              ))}
-            </div>
+            <OfferFilterBar
+              statuses={FILTER_STATUSES}
+              activeFilter={filter}
+              offers={offers}
+              onFilterChange={setFilter}
+            />
 
             {filteredOffers.length === 0 ? (
               <EmptyState
@@ -259,5 +138,6 @@ export default function ManageOffersPage(): React.JSX.Element {
     </div>
   );
 }
+
 
 
