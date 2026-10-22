@@ -228,6 +228,27 @@ function MyListPage() {
 }
 ```
 
+## Claim Your Wallet Flow
+
+The Claim Your Wallet flow lets a custodial user swap the escrow signer to their own key via `set_options` without moving funds. Because T3's cutover enforces a 90-day window, this flow must surface clear messaging and handle every state below.
+
+### Required States
+
+| Scenario | Component |
+|----------|-----------|
+| Checking claim eligibility | `LoadingState variant="inline"` |
+| Eligibility check failed | `ErrorState variant="inline"` with retry |
+| User has not claimed yet (90-day window messaging) | `EmptyState` with T3 cutover copy and a "Claim Your Wallet" action |
+| Claim transaction submitting | `LoadingSpinner` inside the claim button |
+| Claim transaction failed | `ErrorState` with retry |
+| Claim completed | Success confirmation (no state component required) |
+
+### Messaging Guidelines
+
+- Unclaimed users MUST see a notice explaining the T3 cutover and the 90-day window before it is enforced.
+- Copy MUST match the API repo's 90-day enforcement behavior; do not hardcode a different deadline.
+- The claim action MUST clarify that funds are not moved — only the signer is swapped to the user's own key.
+
 ## Pages Requiring State Components
 
 ### Must Have EmptyState:
@@ -236,6 +257,7 @@ function MyListPage() {
 - Disputes list (`/app/freelancer/disputes`) - when no disputes
 - Chat list (`/app/chat`) - when no conversations
 - Portfolio (`/app/freelancer/portfolio`) - when no portfolio items
+- Claim Your Wallet (`/app/wallet/claim`) - when the user has not claimed yet (with T3 cutover / 90-day window messaging)
 
 ### Should Have Loading/Error States (when API integration is added):
 - All list pages

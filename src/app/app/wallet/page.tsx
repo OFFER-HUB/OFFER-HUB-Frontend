@@ -7,6 +7,7 @@ import { cn } from "@/lib/cn";
 import { Icon, ICON_PATHS } from "@/components/ui/Icon";
 import { useWalletBalance } from "@/hooks/useWalletBalance";
 import { getWalletDashboard, type WalletDashboardData } from "@/lib/api/wallet";
+import { ClaimWalletCard } from "@/components/wallet/ClaimWalletCard";
 import { STELLAR_NETWORK } from "@/config/wallet";
 import {
   BalanceCard,
@@ -279,6 +280,14 @@ export default function WalletPage(): React.JSX.Element {
       {STELLAR_NETWORK === "testnet" && isExternalWallet && (
         <div className="mb-6">
           <UsdbTestnetFundingCard />
+        </div>
+      )}
+
+      {/* Claim Your Wallet: custodial users must swap their signer to their own
+          key before the T3 cutover / 90-day window closes. */}
+      {!isExternalWallet && (
+        <div className="mb-6">
+          <ClaimWalletCard />
         </div>
       )}
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AuthLayout } from "@/components/auth/AuthLayout";
 import { AuthInput } from "@/components/auth/AuthInput";
@@ -19,6 +20,11 @@ import {
 function truncateAddress(address: string): string {
   return `${address.slice(0, 6)}…${address.slice(-4)}`;
 }
+
+// T3 cutover: custodial wallets must be claimed (set_options signer swap to
+// the user's own key) before the 90-day window closes. This constant mirrors
+// the API repo's enforcement window and must stay in sync with it.
+const T3_CLAIM_WINDOW_DAYS = 90;
 
 const ROLE_OPTIONS: ReadonlyArray<{ id: OnboardingAccountType; label: string }> = [
   { id: "BUYER",  label: "Client"     },
@@ -107,6 +113,10 @@ export function WalletOnboardingForm() {
 
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // A wallet-first account that still shows the backend auto-generated
+  // username is a custodial wallet that has not been claimed yet.
+  const isUnclaimedCustodialWallet = isWalletFirstAccount && !user?.email;
 
   const needsStep2 = step1.type === "SELLER" || step1.type === "BOTH";
 
@@ -251,6 +261,30 @@ export function WalletOnboardingForm() {
               {truncateAddress(walletAddress)}
             </span>
           </div>
+        </div>
+      )}
+
+      {isUnclaimedCustodialWallet && (
+        <div
+          role="status"
+          className={cn(
+            "mb-4 p-3 rounded-xl text-xs leading-relaxed",
+            "bg-amber-50 text-amber-800 border border-amber-200",
+          )}
+        >
+          <p className="font-semibold mb-1">Claim your wallet before the T3 cutover</p>
+          <p>
+            This wallet is currently custodial. Claim it to swap the signer to
+            your own key — your funds stay put and any escrow already in flight
+            completes under the original keypair as designed. Unclaimed wallets
+            will be locked after the {T3_CLAIM_WINDOW_DAYS}-day window closes.
+          </p>
+          <Link
+            href="/app/wallet/claim"
+            className="inline-block mt-2 font-semibold text-amber-900 underline underline-offset-2 hover:text-amber-950"
+          >
+            Claim your wallet now
+          </Link>
         </div>
       )}
 
@@ -412,6 +446,20 @@ export function WalletOnboardingForm() {
             </div>
           )}
 
+          {walletAddress && !isUnclaimedCustodialWallet && (
+            <p className="text-xs text-text-secondary">
+              Your wallet is claimed and secured by your own key. Escrows in
+              flight continue under the original keypair until they settle.
+            </p>
+          )}
+
+          {isUnclaimedCustodialWallet && (
+            <p className="text-xs text-amber-700">
+              You can finish your profile now, but claim your wallet within{" "}
+              {T3_CLAIM_WINDOW_DAYS} days of the T3 cutover to keep full access.
+            </p>
+          )}
+
           {submitError && (
             <div className="p-3 rounded-xl bg-error/10 text-error text-sm">{submitError}</div>
           )}
@@ -485,6 +533,24 @@ export function WalletOnboardingForm() {
               <p className="text-xs text-text-secondary ml-auto">{step2.bio.length}/500</p>
             </div>
           </div>
+
+          {isUnclaimedCustodialWallet && (
+            <div
+              role="status"
+              className={cn(
+                "p-3 rounded-xl text-xs leading-relaxed",
+                "bg-amber-50 text-amber-800 border border-amber-200",
+              )}
+            >
+              <p className="font-semibold mb-1">Don&apos;t forget to claim your wallet</p>
+              <p>
+                The T3 cutover enforces a {T3_CLAIM_WINDOW_DAYS}-day window for
+                custodial wallets. Claiming swaps the signer to your own key
+                without moving funds, and in-flight escrows still settle under
+                the original keypair.
+              </p>
+            </div>
+          )}
 
           {submitError && (
             <div className="p-3 rounded-xl bg-error/10 text-error text-sm">{submitError}</div>

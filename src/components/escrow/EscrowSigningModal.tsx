@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { cn } from "@/lib/cn";
 import { Icon, ICON_PATHS, LoadingSpinner } from "@/components/ui/Icon";
@@ -13,6 +13,7 @@ import {
   truncateHash,
   type EscrowSigningCopyOverride,
 } from "@/lib/escrow-signing-copy";
+import { CLAIM_WALLET_CUTOVER_DAYS, CLAIM_WALLET_DEADLINE_LABEL } from "@/lib/wallet-claim-copy";
 import type { EscrowSigningState, EscrowSigningError } from "@/hooks/useEscrowSigning";
 import type { EscrowOperation, EscrowStepName } from "@/lib/api/escrow";
 
@@ -78,6 +79,13 @@ const NEUMORPHIC_SECONDARY_BUTTON = cn(
  * All copy data lives in `src/lib/escrow-signing-copy.ts`.
  * Keyboard a11y (Escape / Tab-cycling / focus-on-open) lives in `useFocusTrapModal`.
  */
+/**
+ * Operations that swap the escrow signer to the user's own key without
+ * moving funds. These are the steps the "Claim Your Wallet" flow drives,
+ * and the ones that must surface the T3 cutover / 90-day window messaging.
+ */
+const CLAIM_WALLET_OPERATIONS: ReadonlySet<EscrowOperation> = new Set(["set_options"]);
+
 export function EscrowSigningModal({
   isOpen,
   state,
@@ -97,6 +105,7 @@ export function EscrowSigningModal({
     setCopied(false);
   }
 
+  const isClaimWalletFlow = operation !== undefined && CLAIM_WALLET_OPERATIONS.has(operation);
   const isBlocking = state === "awaiting_signature" || state === "submitting";
 
   const { dialogRef } = useFocusTrapModal({ isOpen, onClose, isBlocking });
@@ -113,6 +122,14 @@ export function EscrowSigningModal({
       console.error("Failed to copy transaction hash:", err);
     }
   }
+
+  // Reset the "copied" affordance whenever the modal is dismissed so a
+  // subsequent claim (or any other signing flow) starts from a clean slate.
+  useEffect(() => {
+    if (!isOpen) {
+      setCopied(false);
+    }
+  }, [isOpen]);
 
   const title = stateTitle(state, error);
   const stepInfo = getStepInfo(operation, step, copy);
@@ -168,6 +185,29 @@ export function EscrowSigningModal({
               </h2>
             </div>
           </div>
+
+          {isClaimWalletFlow && (
+            <div
+              role="note"
+              className={cn(
+                "flex items-start gap-2 rounded-xl px-3 py-2",
+                "bg-amber-50 border border-amber-200 text-amber-900"
+              )}
+            >
+              <Icon
+                path={ICON_PATHS.alertTriangle}
+                size="sm"
+                className="w-4 h-4 text-amber-600 shrink-0 mt-0.5"
+              />
+              <p className="text-[11px] leading-relaxed">
+                <span className="font-bold">T3 cutover: </span>
+                Claim your wallet before {CLAIM_WALLET_DEADLINE_LABEL}. Custodial
+                signing is enforced for {CLAIM_WALLET_CUTOVER_DAYS} days after
+                cutover — after that, unclaimed wallets can no longer sign
+                escrow actions.
+              </p>
+            </div>
+          )}
 
           {!isBlocking && (
             <button
@@ -262,6 +302,18 @@ export function EscrowSigningModal({
               </div>
             </div>
 
+            {isClaimWalletFlow && (
+              <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-[11px] text-amber-900 flex items-start gap-2 text-left">
+                <Icon path={ICON_PATHS.infoCircle} size="sm" className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                <span>
+                  <span className="font-bold">No funds move in this step. </span>
+                  You are only swapping the escrow signer to your own key. Any
+                  escrow already in flight will still complete under the
+                  original keypair as designed.
+                </span>
+              </div>
+            )}
+
             {/* Popup instruction banner */}
             <div className="p-3 rounded-xl bg-primary/5 border border-primary/20 text-xs text-text-secondary flex items-center justify-center gap-2">
               <Icon path={ICON_PATHS.infoCircle} size="sm" className="w-4 h-4 text-primary shrink-0" />
@@ -310,6 +362,22 @@ export function EscrowSigningModal({
                 {stepInfo?.confirmedMessage ?? "Funds are secured in smart escrow."}
               </p>
             </div>
+
+            {isClaimWalletFlow && (
+              <div className="rounded-2xl p-3.5 bg-emerald-50 border border-emerald-200 space-y-1.5 text-left">
+                <div className="flex items-center gap-1.5">
+                  <Icon path={ICON_PATHS.check} size="sm" className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                  <span className="text-[11px] font-bold text-emerald-900 uppercase tracking-wider">
+                    Wallet claimed
+                  </span>
+                </div>
+                <p className="text-[11px] text-emerald-800 leading-relaxed">
+                  Your escrow signer is now your own key. You are covered for the
+                  T3 cutover — no further action is needed before the{" "}
+                  {CLAIM_WALLET_CUTOVER_DAYS}-day window closes.
+                </p>
+              </div>
+            )}
 
             {/* 2-Step Release Notice for Buyer */}
             {stepInfo && operation === "release" && step === "approve_milestone" && (
@@ -459,6 +527,23 @@ export function EscrowSigningModal({
                 {errorCopy(error).actionHint}
               </p>
             </div>
+
+            {isClaimWalletFlow && (
+              <div className="rounded-2xl p-3.5 bg-amber-50 border border-amber-200 space-y-1.5 text-left">
+                <div className="flex items-center gap-1.5">
+                  <Icon path={ICON_PATHS.alertTriangle} size="sm" className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                  <span className="text-[11px] font-bold text-amber-900 uppercase tracking-wider">
+                    Claim deadline
+                  </span>
+                </div>
+                <p className="text-[11px] text-amber-800 leading-relaxed">
+                  If this claim keeps failing, contact support before{" "}
+                  {CLAIM_WALLET_DEADLINE_LABEL}. After the {CLAIM_WALLET_CUTOVER_DAYS}-day
+                  window closes, custodial signing is disabled and unclaimed
+                  wallets can no longer sign escrow actions.
+                </p>
+              </div>
+            )}
 
             <div className="space-y-2 pt-2">
               <button
