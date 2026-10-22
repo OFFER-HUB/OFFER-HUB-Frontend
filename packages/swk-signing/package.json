@@ -1,0 +1,45 @@
+{
+  "name": "@offer-hub/swk-signing",
+  "version": "0.1.0",
+  "description": "Client-side Stellar/Soroban signing helpers for OFFER-HUB wallet integrations.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "examples"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json && node ./scripts/build-cjs.mjs",
+    "prepare": "npm run build",
+    "prepack": "npm run build",
+    "check:blank-project": "node ./scripts/check-blank-project.mjs"
+  },
+  "keywords": [
+    "stellar",
+    "soroban",
+    "wallet",
+    "swk",
+    "signing",
+    "escrow"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/OFFER-HUB/OFFER-HUB-Frontend.git"
+  },
+  "dependencies": {
+    "@stellar/stellar-sdk": "^16.2.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  }
+}
