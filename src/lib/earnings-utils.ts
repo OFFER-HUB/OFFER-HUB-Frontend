@@ -38,6 +38,10 @@ export function parseMoney(s: string): number {
   return Number.isNaN(n) ? 0 : n;
 }
 
+export function pctVsPrevious(current: string, previous: string): number | null {
+  return pctChange(parseMoney(current), parseMoney(previous));
+}
+
 export function pctChange(current: number, prev: number): number | null {
   if (prev === 0) return null;
   return ((current - prev) / prev) * 100;

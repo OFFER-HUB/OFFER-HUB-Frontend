@@ -1,4 +1,6 @@
 import { API_URL } from "@/config/api";
+import type { ApiResponse } from "@/types/api-response.types";
+import type { PublicValidationResults } from "@/types/stats.types";
 
 export interface PlatformStatsSummary {
   users: number;
@@ -49,5 +51,26 @@ export async function getPlatformStats(
   }
 
   const result = await response.json();
+  return result.data;
+}
+
+export async function getPublicValidationResults(): Promise<PublicValidationResults> {
+  const response = await fetch(`${API_URL}/config/validation-results`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch public validation results");
+  }
+
+  const result: ApiResponse<PublicValidationResults> = await response.json();
+  if (!result.data) {
+    throw new Error("Public validation results are unavailable");
+  }
+
   return result.data;
 }
