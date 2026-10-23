@@ -1,4 +1,5 @@
 import {
+  Account,
   Asset,
   Keypair,
   Networks,
@@ -49,13 +50,12 @@ export function createEscrowSigningPayload({
     : Keypair.random().publicKey();
   const asset = assetCode && assetIssuer ? new Asset(assetCode, assetIssuer) : Asset.native();
 
-  const tx = new TransactionBuilder(
-    { accountId: () => normalizedSourceAccount, sequenceNumber: () => "0" } as never,
-    {
-      fee: String(fee),
-      networkPassphrase,
-    }
-  )
+  const sourceAccountObject = new Account(normalizedSourceAccount, "0");
+
+  const tx = new TransactionBuilder(sourceAccountObject, {
+    fee: String(fee),
+    networkPassphrase,
+  })
     .addOperation(
       Operation.payment({
         destination: normalizedContractId,

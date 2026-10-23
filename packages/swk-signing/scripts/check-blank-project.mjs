@@ -18,6 +18,7 @@ writeFileSync(
       type: 'module',
       dependencies: {
         '@offer-hub/swk-signing': 'file:' + pkgDir,
+        '@stellar/stellar-sdk': '^16.2.0',
       },
     },
     null,
