@@ -22,7 +22,7 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
     "@creit.tech/stellar-wallets-kit": "^2.5.0",
     "@tailwindcss/postcss": "^4.1.18",
