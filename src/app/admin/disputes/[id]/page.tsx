@@ -16,7 +16,8 @@ import { StatusBadge } from "@/components/admin/disputes/DisputesTable";
 import { DisputePartyCard } from "@/components/admin/disputes/DisputePartyCard";
 import { DisputeMilestones } from "@/components/admin/disputes/DisputeMilestones";
 import { DisputeResolutionForm } from "@/components/admin/disputes/DisputeResolutionForm";
-import { ORDER_STATUS_CONFIG } from "@/types/order.types";
+import { DisputeLifecycleStepper } from "@/components/admin/disputes/DisputeLifecycleStepper";
+import { DisputeEvidenceList } from "@/components/admin/disputes/DisputeEvidenceList";
 import { STELLAR_EXPLORER_URL } from "@/config/wallet";
 import {
   ADMIN_DISPUTE_REASON_LABELS,
@@ -89,14 +90,6 @@ export default function AdminDisputeDetailPage(): React.JSX.Element | null {
 
   const dispute = detail.dispute;
   const { order } = dispute;
-  const orderStatus = ORDER_STATUS_CONFIG[order.status] ?? {
-    label: order.status,
-    color: "text-text-secondary",
-    bg: "bg-text-secondary/10",
-  };
-
-  const isUnderReview = dispute.status === "UNDER_REVIEW";
-  const isResolved = dispute.status === "RESOLVED";
 
   async function handleTakeForReview() {
     setActionError(null);
@@ -229,189 +222,10 @@ export default function AdminDisputeDetailPage(): React.JSX.Element | null {
         {/* Left Column: Documentation, Progress & Evidence (8 Cols) */}
         <div className="lg:col-span-8 space-y-7">
           {/* Dispute Progress Stepper */}
-          <div className={cn(NEUMORPHIC_CARD, "p-6 sm:p-7 space-y-4")}>
-            <div className="flex items-center justify-between">
-              <p className="text-xs font-bold uppercase tracking-wider text-text-secondary">
-                Adjudication Lifecycle
-              </p>
-              <span className="text-xs font-semibold text-primary">
-                {dispute.status === "OPEN"
-                  ? "Stage 1: Awaiting Review"
-                  : dispute.status === "UNDER_REVIEW"
-                    ? "Stage 2: Under Investigation"
-                    : "Stage 3: Adjudication Completed"}
-              </span>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
-              {/* Step 1 */}
-              <div
-                className={cn(
-                  "p-3.5 rounded-2xl flex items-center gap-3 transition-all",
-                  "bg-white shadow-[2px_2px_5px_#d1d5db,-2px_-2px_5px_#ffffff]"
-                )}
-              >
-                <div className="w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold shrink-0 bg-success text-white shadow-[1px_1px_3px_#d1d5db,-1px_-1px_3px_#ffffff]">
-                  ✓
-                </div>
-                <div className="min-w-0">
-                  <p className="text-xs font-bold text-text-primary truncate">1. Dispute Opened</p>
-                  <p className="text-[10px] text-text-secondary truncate">
-                    By {dispute.openedBy === "BUYER" ? "Buyer" : "Seller"}
-                  </p>
-                </div>
-              </div>
-
-              {/* Step 2 */}
-              <div
-                className={cn(
-                  "p-3.5 rounded-2xl flex items-center gap-3 transition-all",
-                  isUnderReview
-                    ? "bg-primary/5 shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]"
-                    : isResolved
-                      ? "bg-white shadow-[2px_2px_5px_#d1d5db,-2px_-2px_5px_#ffffff]"
-                      : "opacity-60 bg-background shadow-[inset_1px_1px_2px_#d1d5db,inset_-1px_-1px_2px_#ffffff]"
-                )}
-              >
-                <div
-                  className={cn(
-                    "w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold shrink-0 transition-all",
-                    isResolved
-                      ? "bg-success text-white shadow-[1px_1px_3px_#d1d5db,-1px_-1px_3px_#ffffff]"
-                      : isUnderReview
-                        ? "bg-primary text-white shadow-[2px_2px_4px_#d1d5db,-2px_-2px_4px_#ffffff] animate-pulse"
-                        : "bg-background text-text-secondary shadow-[inset_1px_1px_2px_#d1d5db,inset_-1px_-1px_2px_#ffffff]"
-                  )}
-                >
-                  {isResolved ? "✓" : "2"}
-                </div>
-                <div className="min-w-0">
-                  <p
-                    className={cn(
-                      "text-xs font-bold truncate",
-                      isUnderReview
-                        ? "text-primary"
-                        : isResolved
-                          ? "text-text-primary"
-                          : "text-text-secondary"
-                    )}
-                  >
-                    2. Under Review
-                  </p>
-                  <p className="text-[10px] text-text-secondary truncate">
-                    Administrator evaluation
-                  </p>
-                </div>
-              </div>
-
-              {/* Step 3 */}
-              <div
-                className={cn(
-                  "p-3.5 rounded-2xl flex items-center gap-3 transition-all",
-                  isResolved
-                    ? "bg-primary/5 shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]"
-                    : "opacity-60 bg-background shadow-[inset_1px_1px_2px_#d1d5db,inset_-1px_-1px_2px_#ffffff]"
-                )}
-              >
-                <div
-                  className={cn(
-                    "w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold shrink-0 transition-all",
-                    isResolved
-                      ? "bg-success text-white shadow-[2px_2px_4px_#d1d5db,-2px_-2px_4px_#ffffff]"
-                      : "bg-background text-text-secondary shadow-[inset_1px_1px_2px_#d1d5db,inset_-1px_-1px_2px_#ffffff]"
-                  )}
-                >
-                  {isResolved ? "✓" : "3"}
-                </div>
-                <div className="min-w-0">
-                  <p
-                    className={cn(
-                      "text-xs font-bold truncate",
-                      isResolved ? "text-primary" : "text-text-secondary"
-                    )}
-                  >
-                    3. Settled
-                  </p>
-                  <p className="text-[10px] text-text-secondary truncate">On-chain distribution</p>
-                </div>
-              </div>
-            </div>
-          </div>
+          <DisputeLifecycleStepper status={dispute.status} openedBy={dispute.openedBy} />
 
           {/* Evidence & Documentation */}
-          <section className={cn(NEUMORPHIC_CARD, "p-6 sm:p-7 space-y-4")}>
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-lg font-bold text-text-primary">Dispute Evidence</h2>
-                <p className="text-xs text-text-secondary mt-0.5">
-                  Uploaded documentation and proofs submitted with this claim
-                </p>
-              </div>
-              {Array.isArray(dispute.evidence) && dispute.evidence.length > 0 && (
-                <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-primary/10 text-primary">
-                  {dispute.evidence.length} {dispute.evidence.length === 1 ? "file" : "files"}
-                </span>
-              )}
-            </div>
-
-            {!Array.isArray(dispute.evidence) || dispute.evidence.length === 0 ? (
-              <div className={cn(NEUMORPHIC_INSET, "p-6 rounded-2xl text-center space-y-2")}>
-                <div className="w-10 h-10 rounded-xl mx-auto flex items-center justify-center text-text-secondary bg-white shadow-[2px_2px_4px_#d1d5db,-2px_-2px_4px_#ffffff]">
-                  <Icon path={ICON_PATHS.paperclip} size="sm" />
-                </div>
-                <p className="text-sm text-text-secondary font-medium">
-                  No evidence was attached when the dispute was opened.
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {dispute.evidence.map((url, idx) => (
-                  <div
-                    key={url}
-                    className={cn(
-                      NEUMORPHIC_INSET,
-                      "p-4 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-all",
-                      "hover:shadow-[inset_3px_3px_6px_#cbd5e1,inset_-3px_-3px_6px_#ffffff]"
-                    )}
-                  >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-8 h-8 rounded-xl bg-white shadow-[2px_2px_4px_#d1d5db,-2px_-2px_4px_#ffffff] flex items-center justify-center text-primary shrink-0">
-                        <Icon path={ICON_PATHS.paperclip} size="sm" />
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-xs font-semibold text-text-secondary">
-                          Evidence Attachment #{idx + 1}
-                        </p>
-                        <a
-                          href={url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-sm font-semibold text-primary hover:underline truncate block"
-                        >
-                          {url}
-                        </a>
-                      </div>
-                    </div>
-
-                    <a
-                      href={url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={cn(
-                        "self-start sm:self-auto inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0",
-                        "bg-white text-primary shadow-[2px_2px_4px_#d1d5db,-2px_-2px_4px_#ffffff]",
-                        "hover:shadow-[1px_1px_2px_#d1d5db,-1px_-1px_2px_#ffffff]",
-                        "active:shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]"
-                      )}
-                    >
-                      <span>Open Link</span>
-                      <Icon path={ICON_PATHS.externalLink} size="sm" className="w-3.5 h-3.5" />
-                    </a>
-                  </div>
-                ))}
-              </div>
-            )}
-          </section>
+          <DisputeEvidenceList evidence={dispute.evidence} />
 
           {/* Order Milestones */}
           <section className={cn(NEUMORPHIC_CARD, "p-6 sm:p-7 space-y-4")}>
