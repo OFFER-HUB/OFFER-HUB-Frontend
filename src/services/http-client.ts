@@ -140,10 +140,7 @@ async function request<T>(
 /**
  * HTTP GET request
  */
-export async function httpGet<T>(
-  path: string,
-  options?: RequestOptions
-): Promise<ApiResponse<T>> {
+export async function httpGet<T>(path: string, options?: RequestOptions): Promise<ApiResponse<T>> {
   return request<T>("GET", path, undefined, options);
 }
 

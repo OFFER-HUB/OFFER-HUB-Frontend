@@ -38,16 +38,12 @@ export function NotificationToast({ notification, onDismiss }: Props): React.JSX
         "flex items-start gap-3 w-80 p-4 rounded-2xl bg-white",
         "shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff]",
         "transition-all duration-300",
-        visible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2",
+        visible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2"
       )}
     >
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-text-primary truncate">
-          {notification.title}
-        </p>
-        <p className="text-xs text-text-secondary mt-0.5 line-clamp-2">
-          {notification.message}
-        </p>
+        <p className="text-sm font-semibold text-text-primary truncate">{notification.title}</p>
+        <p className="text-xs text-text-secondary mt-0.5 line-clamp-2">{notification.message}</p>
       </div>
       <button
         type="button"

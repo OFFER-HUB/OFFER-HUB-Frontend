@@ -11,7 +11,10 @@ interface EarningsZeroStateProps {
   endDate: string;
 }
 
-export function EarningsZeroState({ startDate, endDate }: EarningsZeroStateProps): React.JSX.Element {
+export function EarningsZeroState({
+  startDate,
+  endDate,
+}: EarningsZeroStateProps): React.JSX.Element {
   return (
     <Card variant="neumorphic" padding="lg" className="mb-6 text-center">
       <EmptyState

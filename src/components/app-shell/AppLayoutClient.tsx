@@ -102,10 +102,7 @@ export function AppLayoutClient({ children }: AppLayoutClientProps): React.JSX.E
           />
         )}
 
-        <AppSidebar
-          isOpen={isSidebarOpen}
-          onClose={() => setIsSidebarOpen(false)}
-        />
+        <AppSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
         <main
           id="main-content"

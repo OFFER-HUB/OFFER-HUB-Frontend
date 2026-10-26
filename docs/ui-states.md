@@ -160,16 +160,16 @@ import { LoadingSpinner } from "@/components/ui/Icon";
 
 ### When to Use Each Component
 
-| Scenario | Component |
-|----------|-----------|
-| Page is loading data | `LoadingState` |
-| Section within page is loading | `LoadingState variant="inline"` |
-| Full page transition | `LoadingState variant="fullscreen"` |
-| List has no items | `EmptyState` |
-| Search returned no results | `EmptyState` with search-related message |
-| API request failed | `ErrorState` with retry |
-| Network error | `ErrorState` with connection message |
-| Button is submitting | `LoadingSpinner` inside button |
+| Scenario                       | Component                                |
+| ------------------------------ | ---------------------------------------- |
+| Page is loading data           | `LoadingState`                           |
+| Section within page is loading | `LoadingState variant="inline"`          |
+| Full page transition           | `LoadingState variant="fullscreen"`      |
+| List has no items              | `EmptyState`                             |
+| Search returned no results     | `EmptyState` with search-related message |
+| API request failed             | `ErrorState` with retry                  |
+| Network error                  | `ErrorState` with connection message     |
+| Button is submitting           | `LoadingSpinner` inside button           |
 
 ### Standard Pattern for Data Fetching
 
@@ -222,7 +222,9 @@ function MyListPage() {
   // Success - render data
   return (
     <div>
-      {data.map(item => <ItemCard key={item.id} item={item} />)}
+      {data.map((item) => (
+        <ItemCard key={item.id} item={item} />
+      ))}
     </div>
   );
 }
@@ -231,6 +233,7 @@ function MyListPage() {
 ## Pages Requiring State Components
 
 ### Must Have EmptyState:
+
 - Services list (`/app/freelancer/services`) - when no services
 - Orders section in service detail - when no orders
 - Disputes list (`/app/freelancer/disputes`) - when no disputes
@@ -238,6 +241,7 @@ function MyListPage() {
 - Portfolio (`/app/freelancer/portfolio`) - when no portfolio items
 
 ### Should Have Loading/Error States (when API integration is added):
+
 - All list pages
 - All detail pages
 - All forms with async submission
@@ -245,6 +249,7 @@ function MyListPage() {
 ## Accessibility
 
 All state components include proper ARIA attributes:
+
 - `role="status"` for loading states
 - `role="alert"` for error states
 - Proper `aria-label` on spinners

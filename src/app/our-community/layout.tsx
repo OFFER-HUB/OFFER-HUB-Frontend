@@ -8,14 +8,6 @@ export const metadata: Metadata = generatePageMetadata({
   path: "/our-community",
 });
 
-export default function OurCommunityLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="bg-gray-950 min-h-screen">
-      {children}
-    </div>
-  );
+export default function OurCommunityLayout({ children }: { children: React.ReactNode }) {
+  return <div className="bg-gray-950 min-h-screen">{children}</div>;
 }

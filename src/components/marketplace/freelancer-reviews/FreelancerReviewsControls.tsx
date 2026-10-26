@@ -59,7 +59,9 @@ export function FreelancerReviewsControls({
   }
 
   return (
-    <div className={cn("space-y-4", isPending && "opacity-70 pointer-events-none transition-opacity")}>
+    <div
+      className={cn("space-y-4", isPending && "opacity-70 pointer-events-none transition-opacity")}
+    >
       {showSort ? (
         <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
           <label className="flex items-center gap-2 text-sm text-text-secondary">

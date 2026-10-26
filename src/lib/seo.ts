@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 
 export const SITE_CONFIG = {
   name: "OFFER HUB",
-  description: "Connect with top freelancers and clients on OFFER HUB - the premier marketplace for professional services. Find talent, post projects, and grow your business.",
+  description:
+    "Connect with top freelancers and clients on OFFER HUB - the premier marketplace for professional services. Find talent, post projects, and grow your business.",
   url: process.env.NEXT_PUBLIC_SITE_URL || "https://offer-hub.org",
   locale: "en_US",
   twitterHandle: "@offerhub",
@@ -60,9 +61,7 @@ export function generatePageMetadata({
       site: SITE_CONFIG.twitterHandle,
       images: [ogImage.url],
     },
-    robots: noIndex
-      ? { index: false, follow: false }
-      : { index: true, follow: true },
+    robots: noIndex ? { index: false, follow: false } : { index: true, follow: true },
   };
 }
 
@@ -74,9 +73,7 @@ export function getOrganizationSchema(): object {
     url: SITE_CONFIG.url,
     logo: `${SITE_CONFIG.url}/OFFER-HUB-logo.png`,
     description: SITE_CONFIG.description,
-    sameAs: [
-      `https://twitter.com/${SITE_CONFIG.twitterHandle.replace("@", "")}`,
-    ],
+    sameAs: [`https://twitter.com/${SITE_CONFIG.twitterHandle.replace("@", "")}`],
   };
 }
 
@@ -131,9 +128,7 @@ export function getServiceSchema({
   };
 }
 
-export function getFAQSchema(
-  faqs: Array<{ question: string; answer: string }>
-): object {
+export function getFAQSchema(faqs: Array<{ question: string; answer: string }>): object {
   return {
     "@context": "https://schema.org",
     "@type": "FAQPage",
@@ -148,9 +143,7 @@ export function getFAQSchema(
   };
 }
 
-export function getBreadcrumbSchema(
-  items: Array<{ name: string; url: string }>
-): object {
+export function getBreadcrumbSchema(items: Array<{ name: string; url: string }>): object {
   return {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",

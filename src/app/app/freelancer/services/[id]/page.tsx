@@ -6,17 +6,18 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { cn } from "@/lib/cn";
 import { Icon, ICON_PATHS } from "@/components/ui/Icon";
 import { NEUMORPHIC_CARD, PRIMARY_BUTTON, ICON_BUTTON } from "@/lib/styles";
-import {
-  SERVICE_CATEGORIES,
-  ORDER_STATUS_LABELS,
-  ORDER_STATUS_COLORS,
-} from "@/data/service.data";
+import { SERVICE_CATEGORIES, ORDER_STATUS_LABELS, ORDER_STATUS_COLORS } from "@/data/service.data";
 import { getChatIdByOrderId } from "@/data/chat.data";
 import { hasClientRating } from "@/data/rating.data";
 import { RateClientModal } from "@/components/rating";
 import { Toast } from "@/components/ui/Toast";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
-import { getServiceById, updateServiceStatus, deleteService, getServiceOrders } from "@/lib/api/services";
+import {
+  getServiceById,
+  updateServiceStatus,
+  deleteService,
+  getServiceOrders,
+} from "@/lib/api/services";
 import { useAuthStore } from "@/stores/auth-store";
 import type { Service, ServiceOrder, ServiceStatus } from "@/types/service.types";
 
@@ -254,7 +255,7 @@ export default function ServiceDetailsPage({ params }: PageProps): React.JSX.Ele
           setService(data);
         })
         .catch((error) => {
-          console.error('Failed to fetch service:', error);
+          console.error("Failed to fetch service:", error);
         })
         .finally(() => {
           setIsFetchingService(false);
@@ -273,7 +274,7 @@ export default function ServiceDetailsPage({ params }: PageProps): React.JSX.Ele
           setOrders(data);
         })
         .catch((error) => {
-          console.error('Failed to fetch orders:', error);
+          console.error("Failed to fetch orders:", error);
           setOrders([]);
         })
         .finally(() => {
@@ -297,7 +298,7 @@ export default function ServiceDetailsPage({ params }: PageProps): React.JSX.Ele
       const updatedService = await updateServiceStatus(token, id, { status: newStatus });
       setService(updatedService);
     } catch (error) {
-      console.error('Failed to update service status:', error);
+      console.error("Failed to update service status:", error);
     }
   }
 
@@ -316,7 +317,7 @@ export default function ServiceDetailsPage({ params }: PageProps): React.JSX.Ele
       await deleteService(token, id);
       router.push(`/app/freelancer/services?deleted=${encodeURIComponent(deletedServiceName)}`);
     } catch (error) {
-      console.error('Failed to delete service:', error);
+      console.error("Failed to delete service:", error);
     } finally {
       setIsDeleting(false);
       setDeleteModalOpen(false);
@@ -388,23 +389,21 @@ export default function ServiceDetailsPage({ params }: PageProps): React.JSX.Ele
             Back to Services
           </button>
         </div>
-
       </div>
     );
   }
 
-  const activeOrders = orders.filter((o) =>
-    o.status === "IN_PROGRESS" ||
-    o.status === "DELIVERED" ||
-    o.status === "ORDER_CREATED" ||
-    o.status === "FUNDS_RESERVED" ||
-    o.status === "ESCROW_CREATING" ||
-    o.status === "ESCROW_FUNDING" ||
-    o.status === "ESCROW_FUNDED"
+  const activeOrders = orders.filter(
+    (o) =>
+      o.status === "IN_PROGRESS" ||
+      o.status === "DELIVERED" ||
+      o.status === "ORDER_CREATED" ||
+      o.status === "FUNDS_RESERVED" ||
+      o.status === "ESCROW_CREATING" ||
+      o.status === "ESCROW_FUNDING" ||
+      o.status === "ESCROW_FUNDED"
   );
-  const completedOrders = orders.filter(
-    (o) => o.status === "RELEASED" || o.status === "CLOSED"
-  );
+  const completedOrders = orders.filter((o) => o.status === "RELEASED" || o.status === "CLOSED");
 
   return (
     <div className="space-y-4">
@@ -443,7 +442,9 @@ export default function ServiceDetailsPage({ params }: PageProps): React.JSX.Ele
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4 border-t border-border-light">
                 <div>
                   <p className="text-text-secondary text-sm mb-1">Price</p>
-                  <p className="text-xl font-bold text-primary">${parseFloat(service.price).toFixed(2)}</p>
+                  <p className="text-xl font-bold text-primary">
+                    ${parseFloat(service.price).toFixed(2)}
+                  </p>
                 </div>
                 <div>
                   <p className="text-text-secondary text-sm mb-1">Delivery</p>

@@ -16,16 +16,7 @@ export function buildWalletTransactionsCsv(data: WalletTransactionsData): string
   lines.push(row(["Currency", data.currency]));
   lines.push(row(["Transaction count", String(data.transactions.length)]));
   lines.push("");
-  lines.push(
-    row([
-      "Date",
-      "Type",
-      "Amount",
-      "Description",
-      "Related order",
-      "Running balance",
-    ])
-  );
+  lines.push(row(["Date", "Type", "Amount", "Description", "Related order", "Running balance"]));
 
   for (const transaction of data.transactions) {
     lines.push(

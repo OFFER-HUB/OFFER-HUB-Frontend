@@ -97,7 +97,9 @@ export default function CreateServicePage(): React.JSX.Element {
   }
 
   const selectedCategoryLabel = useMemo(() => {
-    return SERVICE_CATEGORIES.find((c) => c.value === formData.category)?.label || "Select Category";
+    return (
+      SERVICE_CATEGORIES.find((c) => c.value === formData.category)?.label || "Select Category"
+    );
   }, [formData.category]);
 
   // Validation checklist
@@ -109,7 +111,8 @@ export default function CreateServicePage(): React.JSX.Element {
         formData.description.trim().length >= MIN_DESCRIPTION_LENGTH &&
         formData.description.trim().length <= MAX_DESCRIPTION_LENGTH,
       price: formData.price >= MIN_PRICE,
-      delivery: formData.deliveryDays >= MIN_DELIVERY_DAYS && formData.deliveryDays <= MAX_DELIVERY_DAYS,
+      delivery:
+        formData.deliveryDays >= MIN_DELIVERY_DAYS && formData.deliveryDays <= MAX_DELIVERY_DAYS,
     };
   }, [formData]);
 
@@ -185,14 +188,19 @@ export default function CreateServicePage(): React.JSX.Element {
                 </div>
                 <div>
                   <h2 className="text-base font-bold text-text-primary">General Information</h2>
-                  <p className="text-xs text-text-secondary">Give your service a memorable title and industry category</p>
+                  <p className="text-xs text-text-secondary">
+                    Give your service a memorable title and industry category
+                  </p>
                 </div>
               </div>
 
               {/* Title Field */}
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label htmlFor="service-title" className="text-sm font-semibold text-text-primary">
+                  <label
+                    htmlFor="service-title"
+                    className="text-sm font-semibold text-text-primary"
+                  >
                     Service Title <span className="text-error">*</span>
                   </label>
                   <span
@@ -215,15 +223,21 @@ export default function CreateServicePage(): React.JSX.Element {
                   className={cn(NEUMORPHIC_INPUT, errors.title && INPUT_ERROR_STYLES)}
                   placeholder="e.g., Professional Next.js Web Development & Redesign"
                 />
-                {errors.title && <p className="mt-1.5 text-xs text-error font-medium">{errors.title}</p>}
+                {errors.title && (
+                  <p className="mt-1.5 text-xs text-error font-medium">{errors.title}</p>
+                )}
                 <p className="mt-1.5 text-xs text-text-secondary">
-                  Write a clear, concise headline that explicitly communicates what you will deliver.
+                  Write a clear, concise headline that explicitly communicates what you will
+                  deliver.
                 </p>
               </div>
 
               {/* Category Field */}
               <div>
-                <label htmlFor="service-category" className="block text-sm font-semibold text-text-primary mb-1.5">
+                <label
+                  htmlFor="service-category"
+                  className="block text-sm font-semibold text-text-primary mb-1.5"
+                >
                   Category <span className="text-error">*</span>
                 </label>
                 <div className="relative">
@@ -250,7 +264,9 @@ export default function CreateServicePage(): React.JSX.Element {
                     <Icon path={ICON_PATHS.chevronDown} size="sm" />
                   </div>
                 </div>
-                {errors.category && <p className="mt-1.5 text-xs text-error font-medium">{errors.category}</p>}
+                {errors.category && (
+                  <p className="mt-1.5 text-xs text-error font-medium">{errors.category}</p>
+                )}
               </div>
             </div>
 
@@ -267,13 +283,18 @@ export default function CreateServicePage(): React.JSX.Element {
                 </div>
                 <div>
                   <h2 className="text-base font-bold text-text-primary">Service Scope & Details</h2>
-                  <p className="text-xs text-text-secondary">Explain your process, deliverables, and requirements</p>
+                  <p className="text-xs text-text-secondary">
+                    Explain your process, deliverables, and requirements
+                  </p>
                 </div>
               </div>
 
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label htmlFor="service-description" className="text-sm font-semibold text-text-primary">
+                  <label
+                    htmlFor="service-description"
+                    className="text-sm font-semibold text-text-primary"
+                  >
                     Detailed Description <span className="text-error">*</span>
                   </label>
                   <span
@@ -282,11 +303,12 @@ export default function CreateServicePage(): React.JSX.Element {
                       formData.description.length < MIN_DESCRIPTION_LENGTH
                         ? "text-text-secondary"
                         : formData.description.length > MAX_DESCRIPTION_LENGTH
-                        ? "text-error"
-                        : "text-success"
+                          ? "text-error"
+                          : "text-success"
                     )}
                   >
-                    {formData.description.length} / {MIN_DESCRIPTION_LENGTH} min ({MAX_DESCRIPTION_LENGTH} max)
+                    {formData.description.length} / {MIN_DESCRIPTION_LENGTH} min (
+                    {MAX_DESCRIPTION_LENGTH} max)
                   </span>
                 </div>
                 <textarea
@@ -311,7 +333,8 @@ export default function CreateServicePage(): React.JSX.Element {
                     Pro tip for higher conversion
                   </span>
                   <p>
-                    Clear bullet points outlining what the buyer will receive help build confidence and reduce revision cycles.
+                    Clear bullet points outlining what the buyer will receive help build confidence
+                    and reduce revision cycles.
                   </p>
                 </div>
               </div>
@@ -329,15 +352,22 @@ export default function CreateServicePage(): React.JSX.Element {
                   <Icon path={ICON_PATHS.currency} size="sm" />
                 </div>
                 <div>
-                  <h2 className="text-base font-bold text-text-primary">Pricing & Delivery Schedule</h2>
-                  <p className="text-xs text-text-secondary">Set a competitive rate and realistic delivery timeframe</p>
+                  <h2 className="text-base font-bold text-text-primary">
+                    Pricing & Delivery Schedule
+                  </h2>
+                  <p className="text-xs text-text-secondary">
+                    Set a competitive rate and realistic delivery timeframe
+                  </p>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 {/* Price input & quick presets */}
                 <div className="space-y-3">
-                  <label htmlFor="service-price" className="block text-sm font-semibold text-text-primary">
+                  <label
+                    htmlFor="service-price"
+                    className="block text-sm font-semibold text-text-primary"
+                  >
                     Fixed Price (USD) <span className="text-error">*</span>
                   </label>
                   <div className="relative">
@@ -352,7 +382,11 @@ export default function CreateServicePage(): React.JSX.Element {
                       onChange={handleChange}
                       min={MIN_PRICE}
                       step="1"
-                      className={cn(NEUMORPHIC_INPUT, "pl-8 text-base font-bold", errors.price && INPUT_ERROR_STYLES)}
+                      className={cn(
+                        NEUMORPHIC_INPUT,
+                        "pl-8 text-base font-bold",
+                        errors.price && INPUT_ERROR_STYLES
+                      )}
                       placeholder="50"
                     />
                   </div>
@@ -364,9 +398,7 @@ export default function CreateServicePage(): React.JSX.Element {
                       <button
                         key={amount}
                         type="button"
-                        onClick={() =>
-                          setFormData((prev) => ({ ...prev, price: amount }))
-                        }
+                        onClick={() => setFormData((prev) => ({ ...prev, price: amount }))}
                         className={cn(
                           "px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer",
                           formData.price === amount
@@ -382,7 +414,10 @@ export default function CreateServicePage(): React.JSX.Element {
 
                 {/* Delivery days & presets */}
                 <div className="space-y-3">
-                  <label htmlFor="service-delivery" className="block text-sm font-semibold text-text-primary">
+                  <label
+                    htmlFor="service-delivery"
+                    className="block text-sm font-semibold text-text-primary"
+                  >
                     Estimated Delivery Time <span className="text-error">*</span>
                   </label>
                   <div className="relative">
@@ -394,14 +429,20 @@ export default function CreateServicePage(): React.JSX.Element {
                       onChange={handleChange}
                       min={MIN_DELIVERY_DAYS}
                       max={MAX_DELIVERY_DAYS}
-                      className={cn(NEUMORPHIC_INPUT, "pr-16 text-base font-bold", errors.deliveryDays && INPUT_ERROR_STYLES)}
+                      className={cn(
+                        NEUMORPHIC_INPUT,
+                        "pr-16 text-base font-bold",
+                        errors.deliveryDays && INPUT_ERROR_STYLES
+                      )}
                       placeholder="3"
                     />
                     <span className="absolute right-4 top-1/2 -translate-y-1/2 text-text-secondary text-sm font-medium">
                       {formData.deliveryDays === 1 ? "day" : "days"}
                     </span>
                   </div>
-                  {errors.deliveryDays && <p className="text-xs text-error font-medium">{errors.deliveryDays}</p>}
+                  {errors.deliveryDays && (
+                    <p className="text-xs text-error font-medium">{errors.deliveryDays}</p>
+                  )}
 
                   {/* Preset chips */}
                   <div className="flex flex-wrap gap-1.5 pt-1">
@@ -506,7 +547,11 @@ export default function CreateServicePage(): React.JSX.Element {
                     size="sm"
                     className={checklist.title ? "text-success" : "text-border"}
                   />
-                  <span className={checklist.title ? "text-text-primary font-medium" : "text-text-secondary"}>
+                  <span
+                    className={
+                      checklist.title ? "text-text-primary font-medium" : "text-text-secondary"
+                    }
+                  >
                     Clear title (min 5 chars)
                   </span>
                 </div>
@@ -516,7 +561,11 @@ export default function CreateServicePage(): React.JSX.Element {
                     size="sm"
                     className={checklist.category ? "text-success" : "text-border"}
                   />
-                  <span className={checklist.category ? "text-text-primary font-medium" : "text-text-secondary"}>
+                  <span
+                    className={
+                      checklist.category ? "text-text-primary font-medium" : "text-text-secondary"
+                    }
+                  >
                     Category selected
                   </span>
                 </div>
@@ -526,7 +575,13 @@ export default function CreateServicePage(): React.JSX.Element {
                     size="sm"
                     className={checklist.description ? "text-success" : "text-border"}
                   />
-                  <span className={checklist.description ? "text-text-primary font-medium" : "text-text-secondary"}>
+                  <span
+                    className={
+                      checklist.description
+                        ? "text-text-primary font-medium"
+                        : "text-text-secondary"
+                    }
+                  >
                     Scope description (min 20 chars)
                   </span>
                 </div>
@@ -536,7 +591,11 @@ export default function CreateServicePage(): React.JSX.Element {
                     size="sm"
                     className={checklist.price ? "text-success" : "text-border"}
                   />
-                  <span className={checklist.price ? "text-text-primary font-medium" : "text-text-secondary"}>
+                  <span
+                    className={
+                      checklist.price ? "text-text-primary font-medium" : "text-text-secondary"
+                    }
+                  >
                     Price at least $5
                   </span>
                 </div>
@@ -546,7 +605,11 @@ export default function CreateServicePage(): React.JSX.Element {
                     size="sm"
                     className={checklist.delivery ? "text-success" : "text-border"}
                   />
-                  <span className={checklist.delivery ? "text-text-primary font-medium" : "text-text-secondary"}>
+                  <span
+                    className={
+                      checklist.delivery ? "text-text-primary font-medium" : "text-text-secondary"
+                    }
+                  >
                     Delivery time specified
                   </span>
                 </div>

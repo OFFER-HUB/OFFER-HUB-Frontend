@@ -45,7 +45,9 @@ export function WalletRow({
           <span
             className={cn(
               "rounded-full px-2.5 py-1 text-xs font-semibold",
-              wallet.isActive ? "bg-success/10 text-success" : "bg-text-secondary/10 text-text-secondary"
+              wallet.isActive
+                ? "bg-success/10 text-success"
+                : "bg-text-secondary/10 text-text-secondary"
             )}
           >
             {wallet.isActive ? "Active" : "Disconnected"}
@@ -63,7 +65,10 @@ export function WalletRow({
                 type="button"
                 disabled={busy}
                 onClick={() => onSetPrimary(wallet)}
-                className={cn(ACTION_BUTTON_DEFAULT, "w-auto px-4 py-2 text-xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed")}
+                className={cn(
+                  ACTION_BUTTON_DEFAULT,
+                  "w-auto px-4 py-2 text-xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                )}
               >
                 Set as primary
               </button>
@@ -76,7 +81,10 @@ export function WalletRow({
                   disabled={busy}
                   onClick={() => onDisconnect(wallet)}
                   aria-busy={busy}
-                  className={cn(ACTION_BUTTON_DANGER, "w-auto px-4 py-2 text-xs disabled:opacity-50 disabled:cursor-not-allowed")}
+                  className={cn(
+                    ACTION_BUTTON_DANGER,
+                    "w-auto px-4 py-2 text-xs disabled:opacity-50 disabled:cursor-not-allowed"
+                  )}
                 >
                   {busy ? <LoadingSpinner size="sm" /> : "Confirm disconnect"}
                 </button>
@@ -94,7 +102,10 @@ export function WalletRow({
                 type="button"
                 disabled={busy}
                 onClick={() => setConfirmingDisconnect(true)}
-                className={cn(ACTION_BUTTON_DANGER, "w-auto px-4 py-2 text-xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed")}
+                className={cn(
+                  ACTION_BUTTON_DANGER,
+                  "w-auto px-4 py-2 text-xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                )}
               >
                 Disconnect
               </button>
@@ -106,7 +117,10 @@ export function WalletRow({
             disabled={busy}
             onClick={() => onReconnect(wallet)}
             aria-busy={busy}
-            className={cn(ACTION_BUTTON_DEFAULT, "w-auto px-4 py-2 text-xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed")}
+            className={cn(
+              ACTION_BUTTON_DEFAULT,
+              "w-auto px-4 py-2 text-xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            )}
           >
             {busy ? <LoadingSpinner size="sm" /> : "Activate"}
           </button>

@@ -352,7 +352,10 @@ export function BankAccountForm({
           {/* Account Number / Pix Key */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label htmlFor={accountNumberId} className="block text-sm font-medium text-text-primary">
+              <label
+                htmlFor={accountNumberId}
+                className="block text-sm font-medium text-text-primary"
+              >
                 {isPix
                   ? "Pix Key"
                   : rail === "SPEI_BITSO"
@@ -418,9 +421,7 @@ export function BankAccountForm({
                 className={cn(NEUMORPHIC_INPUT, errors.bankName && "ring-2 ring-error/50")}
                 aria-invalid={Boolean(errors.bankName)}
               />
-              {errors.bankName && (
-                <p className="mt-1.5 text-xs text-error">{errors.bankName}</p>
-              )}
+              {errors.bankName && <p className="mt-1.5 text-xs text-error">{errors.bankName}</p>}
             </div>
 
             <div>
@@ -470,10 +471,7 @@ export function BankAccountForm({
                             id={detailId}
                             value={details[key] ?? ""}
                             onChange={(e) => handleDetailChange(key, e.target.value)}
-                            className={cn(
-                              SELECT_STYLES,
-                              detailError && "ring-2 ring-error/50"
-                            )}
+                            className={cn(SELECT_STYLES, detailError && "ring-2 ring-error/50")}
                             aria-invalid={Boolean(detailError)}
                           >
                             <option value="">Select account type...</option>
@@ -486,9 +484,7 @@ export function BankAccountForm({
                             className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-text-secondary"
                           />
                         </div>
-                        {detailError && (
-                          <p className="mt-1.5 text-xs text-error">{detailError}</p>
-                        )}
+                        {detailError && <p className="mt-1.5 text-xs text-error">{detailError}</p>}
                       </div>
                     );
                   }
@@ -537,10 +533,7 @@ export function BankAccountForm({
                             id={detailId}
                             value={details[key] ?? ""}
                             onChange={(e) => handleDetailChange(key, e.target.value)}
-                            className={cn(
-                              SELECT_STYLES,
-                              detailError && "ring-2 ring-error/50"
-                            )}
+                            className={cn(SELECT_STYLES, detailError && "ring-2 ring-error/50")}
                             aria-invalid={Boolean(detailError)}
                           >
                             <option value="">Select document type...</option>
@@ -556,9 +549,7 @@ export function BankAccountForm({
                             className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-text-secondary"
                           />
                         </div>
-                        {detailError && (
-                          <p className="mt-1.5 text-xs text-error">{detailError}</p>
-                        )}
+                        {detailError && <p className="mt-1.5 text-xs text-error">{detailError}</p>}
                       </div>
                     );
                   }
@@ -620,9 +611,7 @@ export function BankAccountForm({
                         className={cn(NEUMORPHIC_INPUT, detailError && "ring-2 ring-error/50")}
                         aria-invalid={Boolean(detailError)}
                       />
-                      {detailError && (
-                        <p className="mt-1.5 text-xs text-error">{detailError}</p>
-                      )}
+                      {detailError && <p className="mt-1.5 text-xs text-error">{detailError}</p>}
                     </div>
                   );
                 })}

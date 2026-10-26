@@ -34,9 +34,7 @@ export function ImageGallery({
 
   return (
     <div className={cn("space-y-3", className)}>
-      <p className="text-xs font-medium text-text-secondary uppercase tracking-wide">
-        Gallery
-      </p>
+      <p className="text-xs font-medium text-text-secondary uppercase tracking-wide">Gallery</p>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
         {images.map((img, index) => {
           const loaded = loadedIds[img.id];
@@ -111,18 +109,11 @@ export function ImageGallery({
                   type="text"
                   value={img.caption ?? ""}
                   onChange={(e) =>
-                    onCaptionChange(
-                      index,
-                      e.target.value.slice(0, MAX_IMAGE_CAPTION_LENGTH)
-                    )
+                    onCaptionChange(index, e.target.value.slice(0, MAX_IMAGE_CAPTION_LENGTH))
                   }
                   disabled={disabled}
                   placeholder="Caption / alt text (optional)"
-                  className={cn(
-                    NEUMORPHIC_INPUT,
-                    "w-full text-xs py-2",
-                    disabled && "opacity-60"
-                  )}
+                  className={cn(NEUMORPHIC_INPUT, "w-full text-xs py-2", disabled && "opacity-60")}
                   maxLength={MAX_IMAGE_CAPTION_LENGTH}
                 />
                 <span className="text-[10px] text-text-secondary mt-0.5 block text-right">

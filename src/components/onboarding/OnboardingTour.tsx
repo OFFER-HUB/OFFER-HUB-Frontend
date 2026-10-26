@@ -30,8 +30,9 @@ const dashboardSteps: Step[] = [
       <div className="py-1">
         <h4 className="font-semibold text-text-primary mb-1">Switch Modes</h4>
         <p className="text-sm text-text-secondary">
-          Toggle between <strong className="text-primary">Freelancer</strong> and <strong className="text-secondary">Client</strong> mode.
-          As a Freelancer, you offer services. As a Client, you hire freelancers.
+          Toggle between <strong className="text-primary">Freelancer</strong> and{" "}
+          <strong className="text-secondary">Client</strong> mode. As a Freelancer, you offer
+          services. As a Client, you hire freelancers.
         </p>
       </div>
     ),
@@ -43,8 +44,7 @@ const dashboardSteps: Step[] = [
       <div className="py-1">
         <h4 className="font-semibold text-text-primary mb-1">Your Balance</h4>
         <p className="text-sm text-text-secondary">
-          View your available funds and reserved amounts.
-          You can add funds or withdraw anytime.
+          View your available funds and reserved amounts. You can add funds or withdraw anytime.
         </p>
       </div>
     ),
@@ -56,8 +56,8 @@ const dashboardSteps: Step[] = [
       <div className="py-1">
         <h4 className="font-semibold text-text-primary mb-1">Your Services</h4>
         <p className="text-sm text-text-secondary">
-          Create and manage your services here.
-          Clients will find and hire you through your service listings.
+          Create and manage your services here. Clients will find and hire you through your service
+          listings.
         </p>
       </div>
     ),
@@ -69,8 +69,8 @@ const dashboardSteps: Step[] = [
       <div className="py-1">
         <h4 className="font-semibold text-text-primary mb-1">Orders</h4>
         <p className="text-sm text-text-secondary">
-          Track all your orders - both as a freelancer (work you&apos;re doing)
-          and as a client (services you&apos;ve hired).
+          Track all your orders - both as a freelancer (work you&apos;re doing) and as a client
+          (services you&apos;ve hired).
         </p>
       </div>
     ),
@@ -82,8 +82,7 @@ const dashboardSteps: Step[] = [
       <div className="py-1">
         <h4 className="font-semibold text-text-primary mb-1">Your Profile</h4>
         <p className="text-sm text-text-secondary">
-          Complete your profile to build trust with clients.
-          Add your skills, bio, and portfolio.
+          Complete your profile to build trust with clients. Add your skills, bio, and portfolio.
         </p>
       </div>
     ),
@@ -95,8 +94,8 @@ const dashboardSteps: Step[] = [
       <div className="py-1">
         <h4 className="font-semibold text-text-primary mb-1">Marketplace</h4>
         <p className="text-sm text-text-secondary">
-          Browse services and offers from other freelancers.
-          Find the perfect match for your project needs.
+          Browse services and offers from other freelancers. Find the perfect match for your project
+          needs.
         </p>
       </div>
     ),
@@ -223,7 +222,7 @@ export function OnboardingTour({ steps = dashboardSteps, run }: OnboardingTourPr
   if (!mounted || !isStoreHydrated || !isAuthenticated) return null;
 
   // Allow manual run override
-  const isRunning = run !== undefined ? run : (shouldRun && !hasCompletedTour);
+  const isRunning = run !== undefined ? run : shouldRun && !hasCompletedTour;
 
   return (
     <Joyride

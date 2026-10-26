@@ -17,7 +17,11 @@ export function decodeSessionToken(token: string): SessionTokenPayload | null {
     const padded = base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), "=");
     const parsed: unknown = JSON.parse(atob(padded));
 
-    if (typeof parsed !== "object" || parsed === null || typeof (parsed as { sub?: unknown }).sub !== "string") {
+    if (
+      typeof parsed !== "object" ||
+      parsed === null ||
+      typeof (parsed as { sub?: unknown }).sub !== "string"
+    ) {
       return null;
     }
     return parsed as SessionTokenPayload;

@@ -49,13 +49,18 @@ export function WalletSignInButton({
 
   return (
     <div className={cn("flex flex-col gap-6", className)}>
-
       {/* Supported wallet logos */}
       <div className="flex items-center justify-center gap-6">
         {WALLETS.map((wallet) => (
           <div key={wallet.id} className="flex flex-col items-center gap-1" title={wallet.name}>
             <span className="shadow-[2px_2px_4px_#d1d5db,-2px_-2px_4px_#ffffff] rounded-xl p-0.5 bg-white">
-              <Image src={wallet.src} alt={wallet.name} width={36} height={36} className="rounded-lg" />
+              <Image
+                src={wallet.src}
+                alt={wallet.name}
+                width={36}
+                height={36}
+                className="rounded-lg"
+              />
             </span>
             <span className="text-[10px] text-text-secondary font-medium">{wallet.name}</span>
           </div>
@@ -75,19 +80,26 @@ export function WalletSignInButton({
           "hover:bg-primary-hover hover:shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff] hover:scale-[1.02]",
           "active:shadow-[inset_4px_4px_8px_rgba(0,0,0,0.2)] active:scale-[0.98]",
           "disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100",
-          "transition-all duration-200 flex items-center justify-center gap-2",
+          "transition-all duration-200 flex items-center justify-center gap-2"
         )}
       >
         {isAuthenticating ? (
           <LoadingSpinner size="sm" />
         ) : (
-          <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 opacity-90" aria-hidden="true">
-            <path fillRule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clipRule="evenodd" />
+          <svg
+            viewBox="0 0 20 20"
+            fill="currentColor"
+            className="w-4 h-4 opacity-90"
+            aria-hidden="true"
+          >
+            <path
+              fillRule="evenodd"
+              d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z"
+              clipRule="evenodd"
+            />
           </svg>
         )}
-        <span>
-          {step === "idle" ? "Sign in with wallet" : STEP_LABEL[step]}
-        </span>
+        <span>{step === "idle" ? "Sign in with wallet" : STEP_LABEL[step]}</span>
       </button>
 
       {/* Security note */}

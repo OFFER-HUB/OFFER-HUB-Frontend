@@ -82,10 +82,7 @@ export function RateFreelancerModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-        onClick={handleClose}
-      />
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={handleClose} />
       <div
         className={cn(
           NEUMORPHIC_CARD,
@@ -108,9 +105,7 @@ export function RateFreelancerModal({
             <h2 className="text-xl font-bold text-text-primary mb-2">
               Thank you for your feedback!
             </h2>
-            <p className="text-text-secondary mb-6">
-              Your rating has been submitted successfully.
-            </p>
+            <p className="text-text-secondary mb-6">Your rating has been submitted successfully.</p>
             <button type="button" onClick={handleClose} className={PRIMARY_BUTTON}>
               Close
             </button>
@@ -118,9 +113,7 @@ export function RateFreelancerModal({
         ) : (
           <>
             <div className="mb-6">
-              <h2 className="text-xl font-bold text-text-primary mb-1">
-                Rate Freelancer
-              </h2>
+              <h2 className="text-xl font-bold text-text-primary mb-1">Rate Freelancer</h2>
               <p className="text-text-secondary text-sm">
                 How was your experience with {freelancerName}?
               </p>
@@ -133,23 +126,17 @@ export function RateFreelancerModal({
 
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
-                <label className="block text-text-primary font-medium mb-3">
-                  Your Rating
-                </label>
+                <label className="block text-text-primary font-medium mb-3">Your Rating</label>
                 <div className="flex items-center gap-4">
                   <StarRating value={rating} onChange={setRating} size="lg" />
                   {rating > 0 && (
-                    <span className="text-text-secondary font-medium">
-                      {RATING_LABELS[rating]}
-                    </span>
+                    <span className="text-text-secondary font-medium">{RATING_LABELS[rating]}</span>
                   )}
                 </div>
               </div>
 
               <div>
-                <label className="block text-text-primary font-medium mb-3">
-                  Your Review
-                </label>
+                <label className="block text-text-primary font-medium mb-3">Your Review</label>
                 <div className={cn("rounded-xl", NEUMORPHIC_INSET)}>
                   <textarea
                     value={comment}
@@ -165,9 +152,7 @@ export function RateFreelancerModal({
               </div>
 
               {error && (
-                <div className="p-3 rounded-xl bg-error/10 text-error text-sm">
-                  {error}
-                </div>
+                <div className="p-3 rounded-xl bg-error/10 text-error text-sm">{error}</div>
               )}
 
               <div className="flex items-center justify-end gap-3 pt-2">

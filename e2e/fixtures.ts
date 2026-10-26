@@ -110,7 +110,11 @@ export async function seedWalletConfig(page: Page, config: E2EWalletConfig): Pro
 }
 
 function json(route: Route, body: unknown, status = 200): Promise<void> {
-  return route.fulfill({ status, contentType: "application/json", body: JSON.stringify({ data: body }) });
+  return route.fulfill({
+    status,
+    contentType: "application/json",
+    body: JSON.stringify({ data: body }),
+  });
 }
 
 export interface MockOrderApiOptions {
@@ -134,7 +138,10 @@ export interface MockOrderApiOptions {
  * asks for.
  */
 export async function mockOrderApi(page: Page, options: MockOrderApiOptions): Promise<void> {
-  const orderAfterRelease = options.orderAfterRelease ?? { ...options.order, status: "RELEASED" as const };
+  const orderAfterRelease = options.orderAfterRelease ?? {
+    ...options.order,
+    status: "RELEASED" as const,
+  };
   let released = false;
 
   // Playwright runs the most-recently-registered matching route first, so the
@@ -144,7 +151,11 @@ export async function mockOrderApi(page: Page, options: MockOrderApiOptions): Pr
   await page.route("**/api/v1/**", (route) => json(route, {}));
 
   await page.route("**/api/v1/reviews/order/**", (route) =>
-    route.fulfill({ status: 404, contentType: "application/json", body: JSON.stringify({ error: { message: "Not found" } }) })
+    route.fulfill({
+      status: 404,
+      contentType: "application/json",
+      body: JSON.stringify({ error: { message: "Not found" } }),
+    })
   );
 
   await page.route(`**/api/v1/orders/${options.order.id}`, (route) =>
@@ -153,7 +164,10 @@ export async function mockOrderApi(page: Page, options: MockOrderApiOptions): Pr
 
   await page.route("**/api/v1/orders/**/escrow/submit", async (route) => {
     released = true;
-    await json(route, options.submitResponse ?? { transactionHash: "e2e-fake-tx-hash", order: orderAfterRelease });
+    await json(
+      route,
+      options.submitResponse ?? { transactionHash: "e2e-fake-tx-hash", order: orderAfterRelease }
+    );
   });
 
   await page.route("**/api/v1/orders/**/resolution/release/prepare", (route) =>

@@ -54,9 +54,7 @@ export function FavoritesList(): React.JSX.Element {
               <span
                 className={cn(
                   "min-w-5 h-5 px-1.5 rounded-full text-[10px] font-bold flex items-center justify-center",
-                  activeTab === tab.id
-                    ? "bg-white/20 text-white"
-                    : "bg-primary/10 text-primary"
+                  activeTab === tab.id ? "bg-white/20 text-white" : "bg-primary/10 text-primary"
                 )}
               >
                 {counts[tab.id]}
@@ -67,8 +65,8 @@ export function FavoritesList(): React.JSX.Element {
       </div>
 
       {/* Content */}
-      {activeTab === "offers" && (
-        offers.length === 0 ? (
+      {activeTab === "offers" &&
+        (offers.length === 0 ? (
           <EmptyState label="offers" />
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -76,11 +74,10 @@ export function FavoritesList(): React.JSX.Element {
               <OfferCard key={offer.id} offer={offer} />
             ))}
           </div>
-        )
-      )}
+        ))}
 
-      {activeTab === "services" && (
-        services.length === 0 ? (
+      {activeTab === "services" &&
+        (services.length === 0 ? (
           <EmptyState label="services" />
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -88,11 +85,10 @@ export function FavoritesList(): React.JSX.Element {
               <ServiceCard key={service.id} service={service} />
             ))}
           </div>
-        )
-      )}
+        ))}
 
-      {activeTab === "freelancers" && (
-        freelancers.length === 0 ? (
+      {activeTab === "freelancers" &&
+        (freelancers.length === 0 ? (
           <EmptyState label="freelancers" />
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -100,8 +96,7 @@ export function FavoritesList(): React.JSX.Element {
               <FreelancerCard key={freelancer.id} freelancer={freelancer} />
             ))}
           </div>
-        )
-      )}
+        ))}
     </div>
   );
 }

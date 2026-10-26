@@ -30,15 +30,14 @@ export function CTASection() {
 
           <AnimatedSection animation="fade-up" delay={100} duration={700}>
             <h2 className="text-3xl lg:text-4xl font-bold text-text-primary mb-4">
-              Want to know more about{" "}
-              <span className="text-primary">OFFER-HUB</span>?
+              Want to know more about <span className="text-primary">OFFER-HUB</span>?
             </h2>
           </AnimatedSection>
 
           <AnimatedSection animation="fade-up" delay={200} duration={700}>
             <p className="text-text-secondary mb-8 leading-relaxed text-lg">
-              Book a free demo and learn more about OFFER-HUB, its offerings and use-cases.
-              We would love to help you with all your queries.
+              Book a free demo and learn more about OFFER-HUB, its offerings and use-cases. We would
+              love to help you with all your queries.
             </p>
           </AnimatedSection>
 

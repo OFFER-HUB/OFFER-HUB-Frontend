@@ -36,7 +36,9 @@ export function BalanceChart({ data, className }: BalanceChartProps): React.JSX.
     >
       <div className="mb-4">
         <h2 className="text-lg font-bold text-text-primary">Earnings vs Withdrawals</h2>
-        <p className="text-xs text-text-secondary mt-0.5">Earnings and withdrawals comparison over time</p>
+        <p className="text-xs text-text-secondary mt-0.5">
+          Earnings and withdrawals comparison over time
+        </p>
       </div>
       <div className="min-w-0 overflow-hidden">
         <BalanceChartInner data={data} />

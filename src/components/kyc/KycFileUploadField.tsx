@@ -70,13 +70,12 @@ export function KycFileUploadField({
 
         <label
           htmlFor={inputId}
-          className={cn(ACTION_BUTTON_SUBTLE, "w-auto ml-auto px-3 py-2 text-xs cursor-pointer shrink-0")}
-        >
-          {isUploading ? (
-            <LoadingSpinner size="sm" />
-          ) : (
-            <Icon path={ICON_PATHS.upload} size="sm" />
+          className={cn(
+            ACTION_BUTTON_SUBTLE,
+            "w-auto ml-auto px-3 py-2 text-xs cursor-pointer shrink-0"
           )}
+        >
+          {isUploading ? <LoadingSpinner size="sm" /> : <Icon path={ICON_PATHS.upload} size="sm" />}
           {value ? "Replace" : "Upload"}
         </label>
         <input

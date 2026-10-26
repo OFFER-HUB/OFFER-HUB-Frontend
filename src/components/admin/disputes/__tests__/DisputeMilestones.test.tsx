@@ -10,7 +10,9 @@ describe("DisputeMilestones", () => {
   });
 
   it("labels an OPEN milestone as Open", () => {
-    const milestones: AdminDisputeMilestone[] = [{ id: "m1", title: "Design", amount: "50.00", status: "OPEN" }];
+    const milestones: AdminDisputeMilestone[] = [
+      { id: "m1", title: "Design", amount: "50.00", status: "OPEN" },
+    ];
     render(<DisputeMilestones milestones={milestones} currency="USD" />);
     expect(screen.getByText("Open")).toBeInTheDocument();
   });

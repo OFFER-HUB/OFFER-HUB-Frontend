@@ -26,7 +26,10 @@ export function AuthLayout({ children }: AuthLayoutProps) {
           />
           <span className="hidden sm:inline">Back</span>
         </Link>
-        <Logo size="md" className="hover:opacity-80 transition-opacity cursor-pointer absolute left-1/2 -translate-x-1/2" />
+        <Logo
+          size="md"
+          className="hover:opacity-80 transition-opacity cursor-pointer absolute left-1/2 -translate-x-1/2"
+        />
         <div className="w-16" />
       </header>
 

@@ -208,13 +208,18 @@ export function EscrowSigningModal({
             <div className="space-y-1">
               <p className="text-sm font-semibold text-text-primary">Preparing transaction…</p>
               <p className="text-xs text-text-secondary max-w-sm mx-auto leading-relaxed">
-                Fetching the unsigned transaction from the escrow smart contract and preparing cryptographic parameters for your wallet…
+                Fetching the unsigned transaction from the escrow smart contract and preparing
+                cryptographic parameters for your wallet…
               </p>
             </div>
 
             {stepInfo && (
               <div className="p-3.5 rounded-2xl bg-background shadow-[inset_1px_1px_3px_#d1d5db,inset_-1px_-1px_3px_#ffffff] border border-white/60 text-left text-xs text-text-secondary flex items-start gap-2.5">
-                <Icon path={ICON_PATHS.shield} size="sm" className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                <Icon
+                  path={ICON_PATHS.shield}
+                  size="sm"
+                  className="w-4 h-4 text-primary shrink-0 mt-0.5"
+                />
                 <div>
                   <span className="font-semibold text-text-primary">{stepInfo.actionTitle}: </span>
                   <span>{stepInfo.actionExplanation}</span>
@@ -240,14 +245,19 @@ export function EscrowSigningModal({
                 {walletName ? ` (${walletName})` : ""}
               </p>
               <p className="text-xs text-text-secondary leading-relaxed max-w-sm mx-auto">
-                A signing prompt has been triggered. Please review and authorize this on-chain smart contract transaction.
+                A signing prompt has been triggered. Please review and authorize this on-chain smart
+                contract transaction.
               </p>
             </div>
 
             {/* Context & Security Guarantee Card */}
             <div className="p-3.5 rounded-2xl bg-background shadow-[inset_1px_1px_3px_#d1d5db,inset_-1px_-1px_3px_#ffffff] border border-white/60 text-left space-y-2">
               <div className="flex items-center gap-1.5">
-                <Icon path={ICON_PATHS.shield} size="sm" className="w-4 h-4 text-primary shrink-0" />
+                <Icon
+                  path={ICON_PATHS.shield}
+                  size="sm"
+                  className="w-4 h-4 text-primary shrink-0"
+                />
                 <span className="text-xs font-bold text-text-primary">
                   {stepInfo?.actionTitle ?? "Smart Contract Authorization"}
                 </span>
@@ -264,10 +274,12 @@ export function EscrowSigningModal({
 
             {/* Popup instruction banner */}
             <div className="p-3 rounded-xl bg-primary/5 border border-primary/20 text-xs text-text-secondary flex items-center justify-center gap-2">
-              <Icon path={ICON_PATHS.infoCircle} size="sm" className="w-4 h-4 text-primary shrink-0" />
-              <span className="font-medium text-[11px]">
-                Please approve in your wallet popup.
-              </span>
+              <Icon
+                path={ICON_PATHS.infoCircle}
+                size="sm"
+                className="w-4 h-4 text-primary shrink-0"
+              />
+              <span className="font-medium text-[11px]">Please approve in your wallet popup.</span>
             </div>
           </div>
         )}
@@ -284,12 +296,17 @@ export function EscrowSigningModal({
             <div className="space-y-1">
               <p className="text-sm font-semibold text-text-primary">Submitting to Stellar…</p>
               <p className="text-xs text-text-secondary max-w-sm mx-auto leading-relaxed">
-                Broadcasting your signed transaction to the Stellar network and awaiting consensus validation on the ledger.
+                Broadcasting your signed transaction to the Stellar network and awaiting consensus
+                validation on the ledger.
               </p>
             </div>
 
             <div className="p-2.5 rounded-xl bg-background shadow-[inset_1px_1px_3px_#d1d5db,inset_-1px_-1px_3px_#ffffff] text-[11px] text-text-secondary flex items-center justify-center gap-1.5 border border-white/60">
-              <Icon path={ICON_PATHS.clock} size="sm" className="w-3.5 h-3.5 text-primary shrink-0" />
+              <Icon
+                path={ICON_PATHS.clock}
+                size="sm"
+                className="w-3.5 h-3.5 text-primary shrink-0"
+              />
               <span>Consensus usually takes 3–5 seconds. Please do not close this window.</span>
             </div>
           </div>
@@ -303,9 +320,7 @@ export function EscrowSigningModal({
             </div>
 
             <div className="space-y-1">
-              <p className="text-sm font-bold text-text-primary">
-                On-Chain Action Confirmed
-              </p>
+              <p className="text-sm font-bold text-text-primary">On-Chain Action Confirmed</p>
               <p className="text-xs text-text-secondary leading-relaxed">
                 {stepInfo?.confirmedMessage ?? "Funds are secured in smart escrow."}
               </p>
@@ -324,7 +339,11 @@ export function EscrowSigningModal({
                 </div>
 
                 <p className="text-[11px] text-text-secondary leading-relaxed">
-                  Delivery has been approved on-chain. On Stellar, releasing escrow payment requires two separate cryptographic signatures for buyer security. Once you close this modal, click <strong className="text-text-primary">&ldquo;Release Funds&rdquo;</strong> again to finalize the payment transfer to the freelancer.
+                  Delivery has been approved on-chain. On Stellar, releasing escrow payment requires
+                  two separate cryptographic signatures for buyer security. Once you close this
+                  modal, click{" "}
+                  <strong className="text-text-primary">&ldquo;Release Funds&rdquo;</strong> again
+                  to finalize the payment transfer to the freelancer.
                 </p>
 
                 <div className="grid grid-cols-2 gap-2 pt-1">
@@ -356,7 +375,11 @@ export function EscrowSigningModal({
               <div className="rounded-2xl p-3.5 bg-background shadow-[inset_1px_1px_3px_#d1d5db,inset_-1px_-1px_3px_#ffffff] border border-white/60 space-y-2.5 text-left">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5">
-                    <Icon path={ICON_PATHS.shield} size="sm" className="w-3.5 h-3.5 text-primary shrink-0" />
+                    <Icon
+                      path={ICON_PATHS.shield}
+                      size="sm"
+                      className="w-3.5 h-3.5 text-primary shrink-0"
+                    />
                     <span className="text-[11px] font-bold text-text-primary uppercase tracking-wider">
                       Transaction Hash
                     </span>
@@ -367,7 +390,8 @@ export function EscrowSigningModal({
                 </div>
 
                 <p className="text-[11px] text-text-secondary leading-snug">
-                  This unique hash is permanent proof of your transaction on the Stellar blockchain. You can verify it on any block explorer.
+                  This unique hash is permanent proof of your transaction on the Stellar blockchain.
+                  You can verify it on any block explorer.
                 </p>
 
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 p-2 rounded-xl bg-white/80 border border-black/5">
@@ -420,11 +444,7 @@ export function EscrowSigningModal({
             )}
 
             <div className="pt-2">
-              <button
-                type="button"
-                onClick={onClose}
-                className={SOLID_PRIMARY_BUTTON}
-              >
+              <button type="button" onClick={onClose} className={SOLID_PRIMARY_BUTTON}>
                 <span>Done</span>
               </button>
             </div>
@@ -439,9 +459,7 @@ export function EscrowSigningModal({
             </div>
 
             <div className="space-y-1">
-              <p className="text-sm font-bold text-text-primary">
-                {errorCopy(error).title}
-              </p>
+              <p className="text-sm font-bold text-text-primary">{errorCopy(error).title}</p>
               <p role="alert" className="text-xs text-text-secondary leading-relaxed">
                 {errorCopy(error).message}
               </p>
@@ -450,7 +468,11 @@ export function EscrowSigningModal({
             {/* Action hint card */}
             <div className="rounded-2xl p-3.5 bg-background shadow-[inset_1px_1px_3px_#d1d5db,inset_-1px_-1px_3px_#ffffff] border border-white/60 space-y-1.5 text-left">
               <div className="flex items-center gap-1.5">
-                <Icon path={ICON_PATHS.infoCircle} size="sm" className="w-3.5 h-3.5 text-primary shrink-0" />
+                <Icon
+                  path={ICON_PATHS.infoCircle}
+                  size="sm"
+                  className="w-3.5 h-3.5 text-primary shrink-0"
+                />
                 <span className="text-[11px] font-bold text-text-primary uppercase tracking-wider">
                   Recommended Next Step
                 </span>
@@ -461,20 +483,12 @@ export function EscrowSigningModal({
             </div>
 
             <div className="space-y-2 pt-2">
-              <button
-                type="button"
-                onClick={onRetry}
-                className={SOLID_PRIMARY_BUTTON}
-              >
+              <button type="button" onClick={onRetry} className={SOLID_PRIMARY_BUTTON}>
                 <span>Retry</span>
               </button>
 
               {error.code !== "XDR_EXPIRED" && (
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className={NEUMORPHIC_SECONDARY_BUTTON}
-                >
+                <button type="button" onClick={onClose} className={NEUMORPHIC_SECONDARY_BUTTON}>
                   <span>Cancel</span>
                 </button>
               )}

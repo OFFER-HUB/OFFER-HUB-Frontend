@@ -11,7 +11,10 @@ export interface DisputeMilestonesProps {
 }
 
 /** The order's milestone breakdown — what a SPLIT resolution is decided on. */
-export function DisputeMilestones({ milestones, currency }: DisputeMilestonesProps): React.JSX.Element {
+export function DisputeMilestones({
+  milestones,
+  currency,
+}: DisputeMilestonesProps): React.JSX.Element {
   if (milestones.length === 0) {
     return (
       <p className="text-sm text-text-secondary">
@@ -38,7 +41,9 @@ export function DisputeMilestones({ milestones, currency }: DisputeMilestonesPro
               )}
             >
               <Icon
-                path={released ? ICON_PATHS.currency : completed ? ICON_PATHS.check : ICON_PATHS.clock}
+                path={
+                  released ? ICON_PATHS.currency : completed ? ICON_PATHS.check : ICON_PATHS.clock
+                }
                 size="sm"
               />
             </span>

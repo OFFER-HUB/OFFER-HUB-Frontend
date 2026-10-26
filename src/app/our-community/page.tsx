@@ -39,11 +39,7 @@ export default function OurCommunityPage() {
     <>
       <Navbar />
       <main className="min-h-screen bg-background">
-        <CommunityMapSection
-          users={users}
-          isLoading={isLoading}
-          error={error}
-        />
+        <CommunityMapSection users={users} isLoading={isLoading} error={error} />
         <JoinCommunityCTA />
       </main>
       <Footer />

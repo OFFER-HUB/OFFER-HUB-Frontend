@@ -71,7 +71,10 @@ function Pagination({
   const pages = Array.from({ length: totalPages }, (_, index) => index + 1);
 
   return (
-    <nav className="flex flex-wrap items-center justify-center gap-2 pt-2" aria-label="Transaction pages">
+    <nav
+      className="flex flex-wrap items-center justify-center gap-2 pt-2"
+      aria-label="Transaction pages"
+    >
       <button
         type="button"
         onClick={() => onPageChange(currentPage - 1)}
@@ -145,7 +148,9 @@ export function TransactionList({
         <p className="text-xs font-semibold uppercase tracking-wider text-text-secondary">
           Showing {start}-{end} of {totalItems} transactions
         </p>
-        <p className="text-xs font-semibold uppercase tracking-wider text-text-secondary">Grouped by transaction date</p>
+        <p className="text-xs font-semibold uppercase tracking-wider text-text-secondary">
+          Grouped by transaction date
+        </p>
       </div>
 
       {groups.map((group) => (

@@ -55,20 +55,14 @@ export function ChatInfoPanel({ participant, sharedFiles, onClose }: ChatInfoPan
             "shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]"
           )}
         >
-          <span className="text-2xl font-bold text-text-primary">
-            {participant.avatar}
-          </span>
+          <span className="text-2xl font-bold text-text-primary">{participant.avatar}</span>
         </div>
-        <h3 className="text-lg font-bold text-text-primary mb-1">
-          {participant.name}
-        </h3>
+        <h3 className="text-lg font-bold text-text-primary mb-1">{participant.name}</h3>
         <p className="text-sm text-text-secondary mb-3">{participant.title}</p>
         <span
           className={cn(
             "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium",
-            participant.isOnline
-              ? "bg-green-100 text-green-700"
-              : "bg-gray-100 text-gray-600"
+            participant.isOnline ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600"
           )}
         >
           <span
@@ -107,16 +101,10 @@ export function ChatInfoPanel({ participant, sharedFiles, onClose }: ChatInfoPan
                   "shadow-[inset_1px_1px_2px_#d1d5db,inset_-1px_-1px_2px_#ffffff]"
                 )}
               >
-                <Icon
-                  path={FILE_ICONS[file.type]}
-                  size="md"
-                  className={FILE_COLORS[file.type]}
-                />
+                <Icon path={FILE_ICONS[file.type]} size="md" className={FILE_COLORS[file.type]} />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-text-primary truncate">
-                  {file.name}
-                </p>
+                <p className="text-sm font-medium text-text-primary truncate">{file.name}</p>
                 <p className="text-xs text-text-secondary">
                   {file.count} files • {file.size}
                 </p>

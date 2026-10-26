@@ -23,12 +23,7 @@ export function MessageBubble({
   const isError = message.status === "error";
 
   return (
-    <div
-      className={cn(
-        "flex gap-3",
-        isOwn ? "justify-end" : "justify-start"
-      )}
-    >
+    <div className={cn("flex gap-3", isOwn ? "justify-end" : "justify-start")}>
       {/* Other user avatar */}
       {!isOwn && showAvatar && (
         <div
@@ -46,12 +41,7 @@ export function MessageBubble({
 
       {!isOwn && !showAvatar && <div className="w-8" />}
 
-      <div
-        className={cn(
-          "max-w-[70%] sm:max-w-[60%]",
-          isOwn ? "order-1" : "order-2"
-        )}
-      >
+      <div className={cn("max-w-[70%] sm:max-w-[60%]", isOwn ? "order-1" : "order-2")}>
         <div
           className={cn(
             "px-4 py-3 rounded-2xl relative",
@@ -60,8 +50,8 @@ export function MessageBubble({
                   isSending
                     ? "bg-primary/75 text-white/90 animate-pulse-soft"
                     : isError
-                    ? "bg-error/10 border border-error/20 text-error"
-                    : "bg-primary text-white",
+                      ? "bg-error/10 border border-error/20 text-error"
+                      : "bg-primary text-white",
                   "rounded-br-md",
                   "shadow-[4px_4px_8px_#d1d5db,-2px_-2px_4px_#ffffff]"
                 )
@@ -78,8 +68,14 @@ export function MessageBubble({
 
           {isOwn && isSending && (
             <div className="absolute right-2 bottom-1 flex items-center gap-0.5 opacity-80 scale-75 origin-bottom-right">
-              <span className="w-1.5 h-1.5 rounded-full bg-white animate-bounce" style={{ animationDelay: "-0.3s" }}></span>
-              <span className="w-1.5 h-1.5 rounded-full bg-white animate-bounce" style={{ animationDelay: "-0.15s" }}></span>
+              <span
+                className="w-1.5 h-1.5 rounded-full bg-white animate-bounce"
+                style={{ animationDelay: "-0.3s" }}
+              ></span>
+              <span
+                className="w-1.5 h-1.5 rounded-full bg-white animate-bounce"
+                style={{ animationDelay: "-0.15s" }}
+              ></span>
               <span className="w-1.5 h-1.5 rounded-full bg-white animate-bounce"></span>
             </div>
           )}

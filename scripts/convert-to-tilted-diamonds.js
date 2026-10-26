@@ -1,9 +1,9 @@
 #!/usr/bin/env node
-const fs = require('fs');
-const path = require('path');
+const fs = require("fs");
+const path = require("path");
 
-const svgPath = path.join(__dirname, '../public/our-community/community-map.svg');
-const svgContent = fs.readFileSync(svgPath, 'utf-8');
+const svgPath = path.join(__dirname, "../public/our-community/community-map.svg");
+const svgContent = fs.readFileSync(svgPath, "utf-8");
 
 // Extract all polygon elements
 const polygonRegex = /<polygon points="([^"]*)" fill="([^"]*)"\s*\/>/g;
@@ -21,8 +21,8 @@ while ((match = polygonRegex.exec(svgContent)) !== null) {
   const fill = match[2];
 
   // Parse the 4 points
-  const coords = pointsStr.split(' ').map(p => {
-    const [x, y] = p.split(',').map(Number);
+  const coords = pointsStr.split(" ").map((p) => {
+    const [x, y] = p.split(",").map(Number);
     return { x, y };
   });
 
@@ -41,12 +41,12 @@ while ((match = polygonRegex.exec(svgContent)) !== null) {
     return `${newX.toFixed(1)},${newY.toFixed(1)}`;
   });
 
-  tiltedDiamonds.push(`<polygon points="${rotatedPoints.join(' ')}" fill="${fill}"/>`);
+  tiltedDiamonds.push(`<polygon points="${rotatedPoints.join(" ")}" fill="${fill}"/>`);
 }
 
 // Build new SVG
 const newSvg = `<svg width="1240" height="431" viewBox="0 0 1240 431" fill="none" xmlns="http://www.w3.org/2000/svg">
-${tiltedDiamonds.join('\n')}
+${tiltedDiamonds.join("\n")}
 </svg>`;
 
 // Write output

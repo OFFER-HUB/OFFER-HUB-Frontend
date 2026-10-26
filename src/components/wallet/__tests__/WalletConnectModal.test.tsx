@@ -48,7 +48,8 @@ const mockConnectWallet = vi.fn();
 const mockDisconnectWallet = vi.fn();
 const mockSetPrimaryWallet = vi.fn();
 let mockToken: string | null = "jwt-token";
-let mockUser: { id: string; wallet?: { id: string; publicKey: string; type: string } } | null = null;
+let mockUser: { id: string; wallet?: { id: string; publicKey: string; type: string } } | null =
+  null;
 
 vi.mock("@/stores/auth-store", () => ({
   useAuthStore: (
@@ -123,11 +124,13 @@ describe("WalletConnectModal — persisting the link server-side", () => {
 
     await user.click(await screen.findByRole("button", { name: "Connect Freighter" }));
 
-    await waitFor(() => expect(mockConnectWalletApi).toHaveBeenCalledWith("jwt-token", {
-      publicKey: PUBLIC_KEY,
-      signature: SIGNED,
-      challenge: CHALLENGE,
-    }));
+    await waitFor(() =>
+      expect(mockConnectWalletApi).toHaveBeenCalledWith("jwt-token", {
+        publicKey: PUBLIC_KEY,
+        signature: SIGNED,
+        challenge: CHALLENGE,
+      })
+    );
 
     expect(mockSetWallet).toHaveBeenCalledWith("freighter");
     expect(mockRequestChallenge).toHaveBeenCalledWith(PUBLIC_KEY);
@@ -222,7 +225,7 @@ describe("WalletConnectModal — wallet list rendering", () => {
 describe("WalletConnectModal — display reflects the account, not the browser session", () => {
   const OTHER_ACCOUNTS_KEY = "GBUFHWMF2GCVS3MEBM7Q55XR73UHUVI5VYUDHSEXTHAJXORYULOX274N";
 
-  it("shows the wallet-selection list, not a false \"connected\" state, when the account has no linked wallet", async () => {
+  it('shows the wallet-selection list, not a false "connected" state, when the account has no linked wallet', async () => {
     mockUser = { id: "usr_1" }; // no `wallet` — nothing linked to this account
     render(<WalletConnectModal isOpen onClose={vi.fn()} />);
 
@@ -232,7 +235,10 @@ describe("WalletConnectModal — display reflects the account, not the browser s
   });
 
   it("shows connected only once the account's own linked wallet is present, using its address", () => {
-    mockUser = { id: "usr_1", wallet: { id: "wal_1", publicKey: OTHER_ACCOUNTS_KEY, type: "EXTERNAL" } };
+    mockUser = {
+      id: "usr_1",
+      wallet: { id: "wal_1", publicKey: OTHER_ACCOUNTS_KEY, type: "EXTERNAL" },
+    };
     render(<WalletConnectModal isOpen onClose={vi.fn()} />);
 
     expect(screen.getByText("Wallet connected")).toBeInTheDocument();
@@ -240,7 +246,10 @@ describe("WalletConnectModal — display reflects the account, not the browser s
   });
 
   it("disconnecting calls the backend with the linked wallet's id, then clears it from the store", async () => {
-    mockUser = { id: "usr_1", wallet: { id: "wal_1", publicKey: OTHER_ACCOUNTS_KEY, type: "EXTERNAL" } };
+    mockUser = {
+      id: "usr_1",
+      wallet: { id: "wal_1", publicKey: OTHER_ACCOUNTS_KEY, type: "EXTERNAL" },
+    };
     const user = userEvent.setup();
     render(<WalletConnectModal isOpen onClose={vi.fn()} />);
 

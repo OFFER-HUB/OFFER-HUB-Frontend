@@ -17,7 +17,12 @@ interface KycFormModalProps {
   onSaved: (profile: KycProfile) => void;
 }
 
-function KycFormModal({ isOpen, existingProfile, onClose, onSaved }: KycFormModalProps): React.JSX.Element | null {
+function KycFormModal({
+  isOpen,
+  existingProfile,
+  onClose,
+  onSaved,
+}: KycFormModalProps): React.JSX.Element | null {
   const titleId = useId();
   const dialogRef = useRef<HTMLDivElement>(null);
 
@@ -54,7 +59,10 @@ function KycFormModal({ isOpen, existingProfile, onClose, onSaved }: KycFormModa
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className={cn(NEUMORPHIC_CARD, "relative w-full max-w-2xl my-8 outline-none bg-white animate-scale-in")}
+        className={cn(
+          NEUMORPHIC_CARD,
+          "relative w-full max-w-2xl my-8 outline-none bg-white animate-scale-in"
+        )}
       >
         <div className="flex items-start justify-between mb-5">
           <h2 id={titleId} className="text-lg font-bold text-text-primary">
@@ -135,7 +143,8 @@ export function KycStatusCard({ className }: KycStatusCardProps): React.JSX.Elem
       const url = await generateTosUrl(token);
       window.open(url, "_blank", "noopener,noreferrer");
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Could not start terms-of-service acceptance.";
+      const message =
+        error instanceof Error ? error.message : "Could not start terms-of-service acceptance.";
       setTosError(message);
       setToast({ type: "error", message });
     } finally {
@@ -160,7 +169,8 @@ export function KycStatusCard({ className }: KycStatusCardProps): React.JSX.Elem
         )}
       </div>
       <p className="text-sm text-text-secondary mb-5">
-        Required before your first payout — BlindPay needs this to settle your USDC as local currency.
+        Required before your first payout — BlindPay needs this to settle your USDC as local
+        currency.
       </p>
 
       {loadError !== null ? (
@@ -168,14 +178,19 @@ export function KycStatusCard({ className }: KycStatusCardProps): React.JSX.Elem
           {loadError}
         </p>
       ) : profile === undefined ? (
-        <div role="status" className="flex items-center justify-center gap-2.5 py-8 text-sm text-text-secondary">
+        <div
+          role="status"
+          className="flex items-center justify-center gap-2.5 py-8 text-sm text-text-secondary"
+        >
           <LoadingSpinner size="sm" />
           Loading KYC status...
         </div>
       ) : profile === null ? (
         <div className={cn(NEUMORPHIC_INSET, "rounded-2xl p-6 text-center")}>
           <Icon path={ICON_PATHS.shield} size="lg" className="mx-auto mb-2 text-text-secondary" />
-          <p className="text-sm font-medium text-text-primary">You haven&apos;t submitted your KYC yet</p>
+          <p className="text-sm font-medium text-text-primary">
+            You haven&apos;t submitted your KYC yet
+          </p>
           <p className="mt-1 mb-4 text-sm text-text-secondary">
             Submit your information so BlindPay can verify your identity.
           </p>
@@ -189,8 +204,15 @@ export function KycStatusCard({ className }: KycStatusCardProps): React.JSX.Elem
           </button>
         </div>
       ) : isComplete ? (
-        <div className={cn(NEUMORPHIC_INSET, "rounded-2xl p-4 flex items-center justify-between gap-3 flex-wrap")}>
-          <p className="text-sm text-text-primary">Your identity has been verified with BlindPay.</p>
+        <div
+          className={cn(
+            NEUMORPHIC_INSET,
+            "rounded-2xl p-4 flex items-center justify-between gap-3 flex-wrap"
+          )}
+        >
+          <p className="text-sm text-text-primary">
+            Your identity has been verified with BlindPay.
+          </p>
           <button
             type="button"
             onClick={() => setIsFormOpen(true)}
@@ -202,15 +224,18 @@ export function KycStatusCard({ className }: KycStatusCardProps): React.JSX.Elem
       ) : (
         <div className={cn(NEUMORPHIC_INSET, "rounded-2xl p-4 flex flex-col gap-3")}>
           <p className="text-sm text-text-primary">
-            Your information is saved. One step left: accept BlindPay&apos;s terms of service — this opens in a new
-            tab and brings you back here automatically once you accept.
+            Your information is saved. One step left: accept BlindPay&apos;s terms of service — this
+            opens in a new tab and brings you back here automatically once you accept.
           </p>
           <div className="flex flex-wrap gap-2">
             <button
               type="button"
               disabled={isStartingTos}
               onClick={handleAcceptTerms}
-              className={cn(ACTION_BUTTON_DEFAULT, "w-auto px-4 py-2 text-xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed")}
+              className={cn(
+                ACTION_BUTTON_DEFAULT,
+                "w-auto px-4 py-2 text-xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              )}
             >
               {isStartingTos ? (
                 <LoadingSpinner size="sm" />

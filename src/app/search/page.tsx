@@ -3,12 +3,7 @@
 import { Suspense } from "react";
 import { cn } from "@/lib/cn";
 import { Navbar } from "@/components/landing/Navbar";
-import {
-  SearchInput,
-  SearchFilters,
-  SearchResults,
-  SearchTabStrip,
-} from "@/components/search";
+import { SearchInput, SearchFilters, SearchResults, SearchTabStrip } from "@/components/search";
 import { Icon, ICON_PATHS } from "@/components/ui/Icon";
 import { useSearchUrlState } from "@/hooks/useSearchUrlState";
 import { useSearchResults } from "@/hooks/useSearchResults";

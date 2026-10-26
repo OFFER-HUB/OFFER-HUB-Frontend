@@ -112,25 +112,13 @@ export const ACTION_BUTTON_BASE = cn(
   "transition-all duration-200"
 );
 
-export const ACTION_BUTTON_DEFAULT = cn(
-  ACTION_BUTTON_BASE,
-  "text-primary"
-);
+export const ACTION_BUTTON_DEFAULT = cn(ACTION_BUTTON_BASE, "text-primary");
 
-export const ACTION_BUTTON_WARNING = cn(
-  ACTION_BUTTON_BASE,
-  "text-warning cursor-pointer"
-);
+export const ACTION_BUTTON_WARNING = cn(ACTION_BUTTON_BASE, "text-warning cursor-pointer");
 
-export const ACTION_BUTTON_DANGER = cn(
-  ACTION_BUTTON_BASE,
-  "text-error cursor-pointer"
-);
+export const ACTION_BUTTON_DANGER = cn(ACTION_BUTTON_BASE, "text-error cursor-pointer");
 
-export const ACTION_BUTTON_SUBTLE = cn(
-  ACTION_BUTTON_BASE,
-  "text-text-secondary"
-);
+export const ACTION_BUTTON_SUBTLE = cn(ACTION_BUTTON_BASE, "text-text-secondary");
 
 export const SCROLLABLE_CONTAINER = cn(
   "h-full min-h-0 overflow-y-auto",

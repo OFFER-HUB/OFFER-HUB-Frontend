@@ -52,9 +52,7 @@ export function OrderDeliverablesCard({
 
   const [activeTab, setActiveTab] = useState<TabType>("files");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [fileCategory, setFileCategory] = useState<string>(
-    isBuyer ? "reference" : "deliverable"
-  );
+  const [fileCategory, setFileCategory] = useState<string>(isBuyer ? "reference" : "deliverable");
   const [fileNote, setFileNote] = useState("");
   const [isUploading, setIsUploading] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -250,9 +248,7 @@ export function OrderDeliverablesCard({
               <span
                 className={cn(
                   "px-2 py-0.5 rounded-full text-[10px] font-bold transition-all",
-                  activeTab === "files"
-                    ? "bg-primary text-white"
-                    : "bg-black/5 text-text-secondary"
+                  activeTab === "files" ? "bg-primary text-white" : "bg-black/5 text-text-secondary"
                 )}
               >
                 {attachments.length}
@@ -307,17 +303,9 @@ export function OrderDeliverablesCard({
           >
             <div className="flex items-center gap-2.5">
               <Icon
-                path={
-                  statusMessage.type === "success"
-                    ? ICON_PATHS.check
-                    : ICON_PATHS.alertCircle
-                }
+                path={statusMessage.type === "success" ? ICON_PATHS.check : ICON_PATHS.alertCircle}
                 size="sm"
-                className={
-                  statusMessage.type === "success"
-                    ? "text-emerald-600"
-                    : "text-rose-600"
-                }
+                className={statusMessage.type === "success" ? "text-emerald-600" : "text-rose-600"}
               />
               <span className="font-semibold">{statusMessage.text}</span>
             </div>
@@ -484,8 +472,7 @@ export function OrderDeliverablesCard({
                   {attachments.map((file) => {
                     const isImage = file.mimeType?.startsWith("image/");
                     const isPdf = file.mimeType?.includes("pdf");
-                    const isZip =
-                      file.mimeType?.includes("zip") || file.name.endsWith(".zip");
+                    const isZip = file.mimeType?.includes("zip") || file.name.endsWith(".zip");
 
                     return (
                       <div
@@ -516,11 +503,7 @@ export function OrderDeliverablesCard({
                                 <div
                                   className={cn(
                                     "w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 text-white font-bold text-xs shadow-[2px_2px_5px_#cbd5e1]",
-                                    isPdf
-                                      ? "bg-rose-600"
-                                      : isZip
-                                        ? "bg-amber-600"
-                                        : "bg-slate-700"
+                                    isPdf ? "bg-rose-600" : isZip ? "bg-amber-600" : "bg-slate-700"
                                   )}
                                 >
                                   <Icon
@@ -570,9 +553,7 @@ export function OrderDeliverablesCard({
                             <span
                               className={cn(
                                 "w-2 h-2 rounded-full",
-                                file.uploaderRole === "buyer"
-                                  ? "bg-blue-500"
-                                  : "bg-emerald-500"
+                                file.uploaderRole === "buyer" ? "bg-blue-500" : "bg-emerald-500"
                               )}
                             />
                             <span className="font-bold text-text-primary">
@@ -602,7 +583,11 @@ export function OrderDeliverablesCard({
                                 rel="noopener noreferrer"
                                 className="px-3 py-1.5 rounded-xl bg-background text-primary font-bold text-xs shadow-[2px_2px_5px_#d1d5db,-2px_-2px_5px_#ffffff] hover:shadow-[inset_1px_1px_3px_#d1d5db,inset_-1px_-1px_3px_#ffffff] transition-all flex items-center gap-1.5"
                               >
-                                <Icon path={ICON_PATHS.externalLink} size="sm" className="w-3.5 h-3.5" />
+                                <Icon
+                                  path={ICON_PATHS.externalLink}
+                                  size="sm"
+                                  className="w-3.5 h-3.5"
+                                />
                                 <span>Open</span>
                               </a>
                             )}
@@ -647,7 +632,8 @@ export function OrderDeliverablesCard({
                     Project Updates Unlock Once Payment is Confirmed
                   </h3>
                   <p className="text-xs text-text-secondary max-w-md mx-auto leading-relaxed mt-1">
-                    Work progress updates, deliverables delivery, and milestone notes will become active once the escrow funds are reserved and the order enters "In Progress".
+                    Work progress updates, deliverables delivery, and milestone notes will become
+                    active once the escrow funds are reserved and the order enters "In Progress".
                   </p>
                 </div>
                 <div className="pt-2">

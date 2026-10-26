@@ -34,7 +34,9 @@ export function FreelancerSearchCard({
 }: FreelancerSearchCardProps): React.JSX.Element {
   const u = hit.user;
   const displayName =
-    u.firstName && u.lastName ? `${u.firstName} ${u.lastName}` : u.username || u.email?.split("@")[0] || "Freelancer";
+    u.firstName && u.lastName
+      ? `${u.firstName} ${u.lastName}`
+      : u.username || u.email?.split("@")[0] || "Freelancer";
   const initials =
     u.firstName && u.lastName
       ? `${u.firstName.charAt(0)}${u.lastName.charAt(0)}`
@@ -64,7 +66,13 @@ export function FreelancerSearchCard({
             )}
           >
             {u.avatarUrl ? (
-              <Image src={u.avatarUrl} alt="" width={64} height={64} className="w-full h-full object-cover" />
+              <Image
+                src={u.avatarUrl}
+                alt=""
+                width={64}
+                height={64}
+                className="w-full h-full object-cover"
+              />
             ) : (
               <div className="w-full h-full flex items-center justify-center bg-background text-primary font-bold text-lg">
                 {initials.toUpperCase()}
@@ -91,7 +99,8 @@ export function FreelancerSearchCard({
             <HighlightedText text={cats || "Freelancer"} query={query} />
           </p>
           <p className="text-xs text-text-secondary mt-2">
-            {hit.serviceCount} active service{hit.serviceCount === 1 ? "" : "s"} · from ${hit.minPrice.toFixed(0)}
+            {hit.serviceCount} active service{hit.serviceCount === 1 ? "" : "s"} · from $
+            {hit.minPrice.toFixed(0)}
           </p>
         </div>
       </div>

@@ -11,10 +11,7 @@ export interface CompressImageOptions {
   quality?: number;
 }
 
-export async function compressImageFile(
-  file: File,
-  options?: CompressImageOptions
-): Promise<File> {
+export async function compressImageFile(file: File, options?: CompressImageOptions): Promise<File> {
   const maxEdge = options?.maxEdge ?? DEFAULT_MAX_EDGE;
   const quality = options?.quality ?? DEFAULT_QUALITY;
 

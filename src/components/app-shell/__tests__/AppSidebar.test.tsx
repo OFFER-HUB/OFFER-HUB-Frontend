@@ -49,9 +49,15 @@ describe("AppSidebar", () => {
     expect(screen.queryByText("Favorites")).not.toBeInTheDocument();
 
     expect(screen.getByRole("link", { name: /dashboard/i })).toHaveAttribute("href", "/admin");
-    expect(screen.getByRole("link", { name: /analytics/i })).toHaveAttribute("href", "/admin/analytics");
+    expect(screen.getByRole("link", { name: /analytics/i })).toHaveAttribute(
+      "href",
+      "/admin/analytics"
+    );
     expect(screen.getByRole("link", { name: /users/i })).toHaveAttribute("href", "/admin/users");
-    expect(screen.getByRole("link", { name: /disputes/i })).toHaveAttribute("href", "/admin/disputes");
+    expect(screen.getByRole("link", { name: /disputes/i })).toHaveAttribute(
+      "href",
+      "/admin/disputes"
+    );
   });
 
   it("shows the regular marketplace nav and mode toggle for a non-admin, with no admin section", () => {

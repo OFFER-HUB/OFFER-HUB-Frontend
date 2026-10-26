@@ -1,9 +1,9 @@
 #!/usr/bin/env node
-const fs = require('fs');
-const path = require('path');
+const fs = require("fs");
+const path = require("path");
 
-const svgPath = path.join(__dirname, '../public/our-community/community-map.svg');
-const svgContent = fs.readFileSync(svgPath, 'utf-8');
+const svgPath = path.join(__dirname, "../public/our-community/community-map.svg");
+const svgContent = fs.readFileSync(svgPath, "utf-8");
 
 // Extract all path elements
 const pathRegex = /<path[^>]*d="([^"]*)"[^>]*fill="([^"]*)"[^>]*\/>/g;
@@ -15,8 +15,10 @@ function parsePath(d) {
   if (numbers.length < 4) return null;
 
   // Find min/max to get bounding box
-  let minX = Infinity, maxX = -Infinity;
-  let minY = Infinity, maxY = -Infinity;
+  let minX = Infinity,
+    maxX = -Infinity;
+  let minY = Infinity,
+    maxY = -Infinity;
 
   // Parse pairs of coordinates
   for (let i = 0; i < numbers.length - 1; i += 2) {
@@ -54,13 +56,15 @@ while ((match = pathRegex.exec(svgContent)) !== null) {
     const x = parsed.centerX - size / 2;
     const y = parsed.centerY - size / 2;
 
-    rects.push(`<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${size}" height="${size}" fill="${fill}"/>`);
+    rects.push(
+      `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${size}" height="${size}" fill="${fill}"/>`
+    );
   }
 }
 
 // Build new SVG
 const newSvg = `<svg width="1240" height="431" viewBox="0 0 1240 431" fill="none" xmlns="http://www.w3.org/2000/svg">
-${rects.join('\n')}
+${rects.join("\n")}
 </svg>`;
 
 // Write output

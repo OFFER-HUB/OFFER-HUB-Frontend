@@ -37,9 +37,7 @@ export function BentoCard({
       )}
       {...props}
     >
-      {title && (
-        <h3 className="text-xl font-semibold text-text-primary mb-4">{title}</h3>
-      )}
+      {title && <h3 className="text-xl font-semibold text-text-primary mb-4">{title}</h3>}
       <div className="text-text-secondary">{children}</div>
     </div>
   );

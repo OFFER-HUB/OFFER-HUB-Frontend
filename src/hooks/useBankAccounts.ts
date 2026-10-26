@@ -87,9 +87,7 @@ export function useBankAccounts({
   const [toast, setToast] = useState<ToastState | null>(null);
 
   // KYC gate state
-  const [kycProfile, setKycProfile] = useState<KycProfile | null | undefined>(
-    propKycProfile
-  );
+  const [kycProfile, setKycProfile] = useState<KycProfile | null | undefined>(propKycProfile);
   const [isCheckingKyc, setIsCheckingKyc] = useState<boolean>(
     propKycProfile === undefined && propIsKycApproved === undefined
   );
@@ -154,9 +152,7 @@ export function useBankAccounts({
   // ── KYC gate evaluation ────────────────────────────────────────────────────
   // A user is verified when they have completed KYC and accepted BlindPay ToS
   const isKycApproved =
-    propIsKycApproved !== undefined
-      ? propIsKycApproved
-      : Boolean(kycProfile?.blindpayTosId);
+    propIsKycApproved !== undefined ? propIsKycApproved : Boolean(kycProfile?.blindpayTosId);
 
   const isKycSubmitted = Boolean(kycProfile);
   const isKycPending = isKycSubmitted && !isKycApproved;
@@ -172,9 +168,7 @@ export function useBankAccounts({
 
   function handleAdded(account: BankAccount) {
     setAccounts((prev) => {
-      const withoutDuplicates = (prev ?? []).filter(
-        (existing) => existing.id !== account.id
-      );
+      const withoutDuplicates = (prev ?? []).filter((existing) => existing.id !== account.id);
       const next = account.isDefault
         ? withoutDuplicates.map((existing) => ({ ...existing, isDefault: false }))
         : withoutDuplicates;
@@ -226,9 +220,7 @@ export function useBankAccounts({
     setBusyId(account.id);
     try {
       await deleteBankAccount(token, account.id);
-      setAccounts((prev) =>
-        (prev ?? []).filter((existing) => existing.id !== account.id)
-      );
+      setAccounts((prev) => (prev ?? []).filter((existing) => existing.id !== account.id));
       setPendingDelete(null);
       setToast({ type: "success", message: "Bank account deleted" });
     } catch (error) {

@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { onboardingSchema, onboardingStep1Schema, onboardingStep2Schema } from "@/types/onboarding.types";
+import {
+  onboardingSchema,
+  onboardingStep1Schema,
+  onboardingStep2Schema,
+} from "@/types/onboarding.types";
 
 describe("onboardingStep1Schema", () => {
   const valid = {
@@ -24,7 +28,9 @@ describe("onboardingStep1Schema", () => {
   });
 
   it("rejects a username with invalid characters", () => {
-    expect(onboardingStep1Schema.safeParse({ ...valid, username: "Ada Lovelace" }).success).toBe(false);
+    expect(onboardingStep1Schema.safeParse({ ...valid, username: "Ada Lovelace" }).success).toBe(
+      false
+    );
   });
 
   it("rejects a missing country", () => {
@@ -51,11 +57,15 @@ describe("onboardingStep1Schema", () => {
   });
 
   it("still rejects a real but invalid email", () => {
-    expect(onboardingStep1Schema.safeParse({ ...valid, email: "not-an-email" }).success).toBe(false);
+    expect(onboardingStep1Schema.safeParse({ ...valid, email: "not-an-email" }).success).toBe(
+      false
+    );
   });
 
   it("still accepts a valid email", () => {
-    expect(onboardingStep1Schema.safeParse({ ...valid, email: "ada@example.com" }).success).toBe(true);
+    expect(onboardingStep1Schema.safeParse({ ...valid, email: "ada@example.com" }).success).toBe(
+      true
+    );
   });
 });
 
@@ -70,7 +80,9 @@ describe("onboardingStep2Schema", () => {
   });
 
   it("rejects an empty professional title", () => {
-    expect(onboardingStep2Schema.safeParse({ ...valid, professionalTitle: "" }).success).toBe(false);
+    expect(onboardingStep2Schema.safeParse({ ...valid, professionalTitle: "" }).success).toBe(
+      false
+    );
   });
 
   it("rejects a bio shorter than 20 characters", () => {

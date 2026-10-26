@@ -102,13 +102,16 @@ export function ServiceCard({ service, className }: ServiceCardProps): React.JSX
                 className="w-4 h-4 rounded-full bg-primary/15 text-primary flex items-center justify-center flex-shrink-0"
                 title="Verified Freelancer"
               >
-                <Icon path={ICON_PATHS.check} size="sm" className="w-2.5 h-2.5 text-primary" strokeWidth={3} />
+                <Icon
+                  path={ICON_PATHS.check}
+                  size="sm"
+                  className="w-2.5 h-2.5 text-primary"
+                  strokeWidth={3}
+                />
               </div>
             </div>
             {handle && (
-              <p className="text-xs text-text-secondary/70 truncate font-mono">
-                {handle}
-              </p>
+              <p className="text-xs text-text-secondary/70 truncate font-mono">{handle}</p>
             )}
             <p className="text-sm font-semibold text-text-secondary mt-0.5 truncate">
               {service.title}
@@ -119,18 +122,24 @@ export function ServiceCard({ service, className }: ServiceCardProps): React.JSX
         {/* Professional Metrics Line: Rating + Location */}
         <div className="flex items-center gap-2.5 mb-3.5 text-xs">
           <div className="flex items-center gap-1 font-bold text-text-primary bg-amber-500/10 text-amber-700 px-2 py-0.5 rounded-lg shrink-0">
-            <Icon path={ICON_PATHS.star} size="sm" className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
+            <Icon
+              path={ICON_PATHS.star}
+              size="sm"
+              className="w-3.5 h-3.5 text-amber-500 fill-amber-500"
+            />
             <span>{rating.toFixed(1)}</span>
           </div>
           <span className="text-text-secondary/30">•</span>
           <div className="flex items-center gap-1 text-text-secondary font-medium truncate">
-            <Icon path={ICON_PATHS.mapPin} size="sm" className="w-3.5 h-3.5 text-text-secondary/60 flex-shrink-0" />
+            <Icon
+              path={ICON_PATHS.mapPin}
+              size="sm"
+              className="w-3.5 h-3.5 text-text-secondary/60 flex-shrink-0"
+            />
             <span className="truncate">{location}</span>
           </div>
           <span className="text-text-secondary/30 shrink-0">•</span>
-          <span className="text-emerald-700 font-semibold text-xs shrink-0">
-            Verified Pro
-          </span>
+          <span className="text-emerald-700 font-semibold text-xs shrink-0">Verified Pro</span>
         </div>
 
         {/* Category & Delivery Highlights */}
@@ -145,7 +154,11 @@ export function ServiceCard({ service, className }: ServiceCardProps): React.JSX
             {categoryLabel}
           </span>
           <span className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-medium text-text-secondary bg-background/60 rounded-xl">
-            <Icon path={ICON_PATHS.clock} size="sm" className="w-3.5 h-3.5 text-text-secondary/60" />
+            <Icon
+              path={ICON_PATHS.clock}
+              size="sm"
+              className="w-3.5 h-3.5 text-text-secondary/60"
+            />
             {service.deliveryDays} days delivery
           </span>
         </div>
@@ -177,7 +190,11 @@ export function ServiceCard({ service, className }: ServiceCardProps): React.JSX
             )}
           >
             <span>View Service</span>
-            <Icon path={ICON_PATHS.arrowRight} size="sm" className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+            <Icon
+              path={ICON_PATHS.arrowRight}
+              size="sm"
+              className="w-4 h-4 transition-transform group-hover:translate-x-1"
+            />
           </div>
         </div>
       </Link>

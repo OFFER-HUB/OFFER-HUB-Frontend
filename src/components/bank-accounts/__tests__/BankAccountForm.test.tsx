@@ -14,7 +14,8 @@ vi.mock("@/lib/api/bank-accounts", async (importOriginal) => {
 });
 
 vi.mock("@/stores/auth-store", () => ({
-  useAuthStore: (selector: (s: { token: string | null }) => unknown) => selector({ token: "jwt-token" }),
+  useAuthStore: (selector: (s: { token: string | null }) => unknown) =>
+    selector({ token: "jwt-token" }),
 }));
 
 const NEW_ACCOUNT = {
@@ -177,7 +178,11 @@ describe("BankAccountForm", () => {
     // Expected 'CVU' | 'CBU' | 'ALIAS', received 'cbu'" — the form was
     // sending its default lower-case, which is what real dropdown value was
     // set to.
-    mockAddBankAccount.mockResolvedValue({ ...NEW_ACCOUNT, country: "AR", rail: "TRANSFERS_BITSO" });
+    mockAddBankAccount.mockResolvedValue({
+      ...NEW_ACCOUNT,
+      country: "AR",
+      rail: "TRANSFERS_BITSO",
+    });
     const user = userEvent.setup();
     render(<BankAccountForm />);
 

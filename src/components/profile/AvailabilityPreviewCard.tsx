@@ -5,12 +5,18 @@ import type { FreelancerAvailability } from "@/lib/api/availability";
 
 function availabilityBadgeLabel(a: FreelancerAvailability): { text: string; className: string } {
   if (a.vacationMode) {
-    return { text: "Vacation", className: "bg-amber-500/15 text-amber-800 border border-amber-500/30" };
+    return {
+      text: "Vacation",
+      className: "bg-amber-500/15 text-amber-800 border border-amber-500/30",
+    };
   }
   if (a.availableForWork) {
     return { text: "Available", className: "bg-success/10 text-success border border-success/25" };
   }
-  return { text: "Unavailable", className: "bg-gray-200/80 text-text-secondary border border-gray-300" };
+  return {
+    text: "Unavailable",
+    className: "bg-gray-200/80 text-text-secondary border border-gray-300",
+  };
 }
 
 export interface AvailabilityPreviewCardProps {
@@ -34,7 +40,9 @@ export function AvailabilityPreviewCard({
         "shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff]"
       )}
     >
-      <p className="text-xs font-medium text-text-secondary uppercase tracking-wide mb-3">Profile preview</p>
+      <p className="text-xs font-medium text-text-secondary uppercase tracking-wide mb-3">
+        Profile preview
+      </p>
       <div className="flex flex-col items-center text-center gap-3 sm:flex-row sm:text-left sm:items-start">
         <div className="relative flex-shrink-0">
           {avatarUrl && !avatarUrl.startsWith("blob:") ? (
@@ -56,7 +64,9 @@ export function AvailabilityPreviewCard({
           <span
             className={cn(
               "absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full border-2 border-white",
-              availability.availableForWork && !availability.vacationMode ? "bg-green-500" : "bg-gray-400"
+              availability.availableForWork && !availability.vacationMode
+                ? "bg-green-500"
+                : "bg-gray-400"
             )}
             title={badge.text}
           />
@@ -78,7 +88,10 @@ export function AvailabilityPreviewCard({
             </div>
             <div className="flex justify-between gap-2">
               <dt>Timezone</dt>
-              <dd className="font-medium text-text-primary truncate max-w-[60%]" title={availability.timezone}>
+              <dd
+                className="font-medium text-text-primary truncate max-w-[60%]"
+                title={availability.timezone}
+              >
                 {availability.timezone}
               </dd>
             </div>

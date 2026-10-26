@@ -34,7 +34,9 @@ export function CategoryBreakdown({ data }: CategoryBreakdownProps): React.JSX.E
                 />
               </div>
 
-              <div className="text-xs text-text-secondary">{category.percentage.toFixed(1)}% of active services</div>
+              <div className="text-xs text-text-secondary">
+                {category.percentage.toFixed(1)}% of active services
+              </div>
             </div>
           ))}
         </div>
@@ -42,4 +44,3 @@ export function CategoryBreakdown({ data }: CategoryBreakdownProps): React.JSX.E
     </div>
   );
 }
-

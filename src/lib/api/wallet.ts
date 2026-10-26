@@ -58,12 +58,12 @@ function authHeaders(token: string): HeadersInit {
 function hasWalletDashboardShape(data: unknown): data is WalletDashboardData {
   return Boolean(
     data &&
-      typeof data === "object" &&
-      "balance" in data &&
-      "monthly" in data &&
-      "withdrawals" in data &&
-      "chart" in data &&
-      "recentTransactions" in data
+    typeof data === "object" &&
+    "balance" in data &&
+    "monthly" in data &&
+    "withdrawals" in data &&
+    "chart" in data &&
+    "recentTransactions" in data
   );
 }
 
@@ -144,21 +144,16 @@ export async function createWithdrawalRequest(
     } satisfies WithdrawalApiPayload),
   });
 
-  const json = (await response.json().catch(() => null)) as
-    | {
-        message?: string;
-        title?: string;
-        data?: WithdrawalRequestData;
-        error?: { message?: string };
-      }
-    | null;
+  const json = (await response.json().catch(() => null)) as {
+    message?: string;
+    title?: string;
+    data?: WithdrawalRequestData;
+    error?: { message?: string };
+  } | null;
 
   if (!response.ok) {
     const message =
-      json?.error?.message ??
-      json?.message ??
-      json?.title ??
-      "Failed to create withdrawal request";
+      json?.error?.message ?? json?.message ?? json?.title ?? "Failed to create withdrawal request";
     throw new Error(message);
   }
 

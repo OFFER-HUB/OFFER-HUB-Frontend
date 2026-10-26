@@ -10,9 +10,7 @@ export interface FreelancerAvailability {
   updatedAt?: string;
 }
 
-export type UpdateAvailabilityPayload = Partial<
-  Omit<FreelancerAvailability, "updatedAt">
->;
+export type UpdateAvailabilityPayload = Partial<Omit<FreelancerAvailability, "updatedAt">>;
 
 function getDefaultTimezone(): string {
   if (typeof Intl === "undefined") return "UTC";
@@ -43,9 +41,7 @@ export function listIanaTimezones(): string[] {
   return ["UTC"];
 }
 
-export async function getFreelancerAvailability(
-  token: string
-): Promise<FreelancerAvailability> {
+export async function getFreelancerAvailability(token: string): Promise<FreelancerAvailability> {
   const response = await fetch(`${API_URL}/freelancer/availability`, {
     headers: {
       Authorization: `Bearer ${token}`,
@@ -80,10 +76,7 @@ export async function updateFreelancerAvailability(
 
   if (!response.ok) {
     const errBody = await response.json().catch(() => ({}));
-    const message =
-      errBody.error?.message ||
-      errBody.message ||
-      "Failed to update availability";
+    const message = errBody.error?.message || errBody.message || "Failed to update availability";
     throw new Error(message);
   }
 

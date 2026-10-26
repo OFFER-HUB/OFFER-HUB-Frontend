@@ -63,12 +63,8 @@ export function ContactMethods() {
               {iconMap[method.icon]}
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="text-sm font-medium text-text-primary">
-                {method.title}
-              </h3>
-              <p className="text-xs text-text-secondary mt-0.5">
-                {method.description}
-              </p>
+              <h3 className="text-sm font-medium text-text-primary">{method.title}</h3>
+              <p className="text-xs text-text-secondary mt-0.5">{method.description}</p>
             </div>
             <span className="text-xs font-medium text-primary truncate max-w-[120px]">
               {method.value}

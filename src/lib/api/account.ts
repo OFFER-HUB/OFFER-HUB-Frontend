@@ -16,10 +16,7 @@ export interface DeleteAccountError {
  * @throws {DeleteAccountError} on known validation failures
  * @throws {Error} on network or unexpected errors
  */
-export async function deleteAccount(
-  token: string,
-  payload: DeleteAccountPayload
-): Promise<void> {
+export async function deleteAccount(token: string, payload: DeleteAccountPayload): Promise<void> {
   const response = await fetch(`${API_URL}/users/me`, {
     method: "DELETE",
     headers: {
@@ -52,7 +49,10 @@ export async function deleteAccount(
   }
 
   if (rawCode === "INVALID_PASSWORD" || response.status === 401) {
-    throw { code: "INVALID_PASSWORD", message: "Incorrect password. Please try again." } satisfies DeleteAccountError;
+    throw {
+      code: "INVALID_PASSWORD",
+      message: "Incorrect password. Please try again.",
+    } satisfies DeleteAccountError;
   }
 
   throw { code: "UNKNOWN", message } satisfies DeleteAccountError;

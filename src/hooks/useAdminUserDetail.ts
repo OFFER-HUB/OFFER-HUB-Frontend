@@ -38,7 +38,8 @@ export function useAdminUserDetail(userId: string | null): UseAdminUserDetailRes
         const result = await getAdminUserDetail(token, userId);
         if (!cancelled) setDetail(result);
       } catch (err) {
-        if (!cancelled) setError(err instanceof Error ? err.message : "Failed to load user details");
+        if (!cancelled)
+          setError(err instanceof Error ? err.message : "Failed to load user details");
       } finally {
         if (!cancelled) setIsLoading(false);
       }

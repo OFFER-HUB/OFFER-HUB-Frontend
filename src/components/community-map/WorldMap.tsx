@@ -52,10 +52,10 @@ export const WorldMap = memo(function WorldMap({ users }: WorldMapProps) {
         return { user, polygon: polygonData, region };
       })
       .filter(Boolean) as Array<{
-        user: MapUser;
-        polygon: { index: number; points: string; x: number; y: number; region: string };
-        region: string;
-      }>;
+      user: MapUser;
+      polygon: { index: number; points: string; x: number; y: number; region: string };
+      region: string;
+    }>;
   }, [users]);
 
   const handleMouseEnter = (user: MapUser, e: React.MouseEvent) => {
@@ -80,21 +80,21 @@ export const WorldMap = memo(function WorldMap({ users }: WorldMapProps) {
         {/* SVG Filters for glow and shadow effects */}
         <defs>
           <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+            <feGaussianBlur stdDeviation="2" result="coloredBlur" />
             <feMerge>
-              <feMergeNode in="coloredBlur"/>
-              <feMergeNode in="SourceGraphic"/>
+              <feMergeNode in="coloredBlur" />
+              <feMergeNode in="SourceGraphic" />
             </feMerge>
           </filter>
           <filter id="glow-hover" x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+            <feGaussianBlur stdDeviation="3" result="coloredBlur" />
             <feMerge>
-              <feMergeNode in="coloredBlur"/>
-              <feMergeNode in="SourceGraphic"/>
+              <feMergeNode in="coloredBlur" />
+              <feMergeNode in="SourceGraphic" />
             </feMerge>
           </filter>
           <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
-            <feDropShadow dx="0" dy="1" stdDeviation="1.5" floodOpacity="0.2"/>
+            <feDropShadow dx="0" dy="1" stdDeviation="1.5" floodOpacity="0.2" />
           </filter>
         </defs>
 
@@ -112,7 +112,9 @@ export const WorldMap = memo(function WorldMap({ users }: WorldMapProps) {
         {usersWithPolygons.map(({ user, polygon }) => {
           const isHovered = hoveredUserId === user.id;
           const color = isHovered ? HOVER_MARKER_COLOR : DEFAULT_MARKER_COLOR;
-          const filterEffects = isHovered ? "url(#glow-hover) url(#shadow)" : "url(#glow) url(#shadow)";
+          const filterEffects = isHovered
+            ? "url(#glow-hover) url(#shadow)"
+            : "url(#glow) url(#shadow)";
 
           return (
             <circle

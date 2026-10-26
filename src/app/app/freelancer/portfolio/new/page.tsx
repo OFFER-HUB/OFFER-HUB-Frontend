@@ -23,17 +23,12 @@ export default function PortfolioNewPage(): React.JSX.Element {
     <div className="space-y-4 pb-8">
       {/* Header */}
       <div className="flex items-center gap-4">
-        <Link
-          href="/app/freelancer/portfolio"
-          className={cn(ICON_BUTTON, "shrink-0")}
-        >
+        <Link href="/app/freelancer/portfolio" className={cn(ICON_BUTTON, "shrink-0")}>
           <Icon path={ICON_PATHS.chevronLeft} size="md" className="text-text-primary" />
         </Link>
         <div>
           <h1 className="text-2xl font-bold text-text-primary">Add Project</h1>
-          <p className="text-sm text-text-secondary">
-            Add a new project to your portfolio
-          </p>
+          <p className="text-sm text-text-secondary">Add a new project to your portfolio</p>
         </div>
       </div>
 

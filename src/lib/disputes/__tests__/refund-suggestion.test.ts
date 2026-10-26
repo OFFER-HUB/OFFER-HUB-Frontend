@@ -2,14 +2,24 @@ import { describe, it, expect } from "vitest";
 import { amountsSumTo, suggestRefundSplit } from "@/lib/disputes/refund-suggestion";
 import type { AdminDisputeMilestone } from "@/types/admin.types";
 
-const m = (id: string, amount: string, status: AdminDisputeMilestone["status"]): AdminDisputeMilestone => ({
-  id, title: id, amount, status,
+const m = (
+  id: string,
+  amount: string,
+  status: AdminDisputeMilestone["status"]
+): AdminDisputeMilestone => ({
+  id,
+  title: id,
+  amount,
+  status,
 });
 
 describe("suggestRefundSplit", () => {
   it("refunds everything on a milestone-free order (same as the backend's calculateRefundableAmount)", () => {
     expect(suggestRefundSplit({ amount: "220.00", milestones: [] })).toEqual({
-      refundAmount: "220.00", releaseAmount: "0.00", completedMilestones: 0, totalMilestones: 0,
+      refundAmount: "220.00",
+      releaseAmount: "0.00",
+      completedMilestones: 0,
+      totalMilestones: 0,
     });
   });
 
@@ -18,7 +28,12 @@ describe("suggestRefundSplit", () => {
       amount: "150.00",
       milestones: [m("design", "50.00", "COMPLETED"), m("build", "100.00", "OPEN")],
     });
-    expect(result).toEqual({ refundAmount: "100.00", releaseAmount: "50.00", completedMilestones: 1, totalMilestones: 2 });
+    expect(result).toEqual({
+      refundAmount: "100.00",
+      releaseAmount: "50.00",
+      completedMilestones: 1,
+      totalMilestones: 2,
+    });
   });
 
   it("never suggests more refund than the order amount when milestones drift", () => {

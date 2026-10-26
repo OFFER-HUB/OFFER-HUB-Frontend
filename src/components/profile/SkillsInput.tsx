@@ -199,11 +199,7 @@ export function SkillsInput() {
               boxShadow: NEU_RAISED,
             }}
           >
-            {adding ? (
-              <LoadingSpinner size="sm" />
-            ) : (
-              <Icon path={ICON_PATHS.plus} size="sm" />
-            )}
+            {adding ? <LoadingSpinner size="sm" /> : <Icon path={ICON_PATHS.plus} size="sm" />}
             Add
           </button>
         </div>
@@ -255,11 +251,7 @@ export function SkillsInput() {
             >
               Your skills ({skills.length})
             </p>
-            <div
-              role="list"
-              aria-label="Your skills"
-              className="flex flex-wrap gap-2"
-            >
+            <div role="list" aria-label="Your skills" className="flex flex-wrap gap-2">
               {skills.map((skill, index) => (
                 <div
                   key={skill.id}
@@ -281,22 +273,13 @@ export function SkillsInput() {
           </div>
         )}
 
-        <div
-          className="flex flex-wrap gap-4 pt-2 border-t"
-          style={{ borderColor: "#B4B9C915" }}
-        >
+        <div className="flex flex-wrap gap-4 pt-2 border-t" style={{ borderColor: "#B4B9C915" }}>
           {SKILL_LEVELS.map((level) => {
             const s = LEVEL_STYLES[level as keyof typeof LEVEL_STYLES];
             return (
               <div key={level} className="flex items-center gap-1.5">
-                <span
-                  className="w-2 h-2 rounded-full"
-                  style={{ backgroundColor: s.text }}
-                />
-                <span
-                  className="text-xs font-medium"
-                  style={{ color: "#6D758F" }}
-                >
+                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: s.text }} />
+                <span className="text-xs font-medium" style={{ color: "#6D758F" }}>
                   {level}
                 </span>
               </div>

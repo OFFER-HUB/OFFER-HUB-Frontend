@@ -64,9 +64,7 @@ export function MapTooltip({ user, position }: MapTooltipProps) {
 
           {/* Info */}
           <div className="flex-1 min-w-0">
-            <p className="text-white font-medium text-sm truncate">
-              {user.name}
-            </p>
+            <p className="text-white font-medium text-sm truncate">{user.name}</p>
             <p className="text-gray-400 text-xs mt-0.5 flex items-center gap-1">
               <svg
                 className="w-3 h-3 flex-shrink-0"

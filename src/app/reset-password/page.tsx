@@ -40,7 +40,11 @@ function ResetPasswordContent(): React.JSX.Element {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [errors, setErrors] = useState<{ password?: string; confirmPassword?: string; general?: string }>({});
+  const [errors, setErrors] = useState<{
+    password?: string;
+    confirmPassword?: string;
+    general?: string;
+  }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const passwordStrength = useMemo(() => getPasswordStrength(password), [password]);
@@ -162,8 +166,18 @@ function ResetPasswordContent(): React.JSX.Element {
       <AuthLayout>
         <div className="py-6 text-center">
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-success/10">
-            <svg className="h-8 w-8 text-success" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+            <svg
+              className="h-8 w-8 text-success"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2.5}
+                d="M5 13l4 4L19 7"
+              />
             </svg>
           </div>
           <h1 className="mt-6 text-xl font-bold text-text-primary">Password updated!</h1>
@@ -269,9 +283,7 @@ export default function ResetPasswordPage(): React.JSX.Element {
           <div className="py-8 text-center">
             <div className="mx-auto h-10 w-10 rounded-full border-2 border-primary border-t-transparent animate-spin" />
             <h1 className="mt-6 text-xl font-bold text-text-primary">Loading reset page</h1>
-            <p className="mt-2 text-sm text-text-secondary">
-              Preparing your password reset form.
-            </p>
+            <p className="mt-2 text-sm text-text-secondary">Preparing your password reset form.</p>
           </div>
         </AuthLayout>
       }

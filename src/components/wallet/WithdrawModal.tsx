@@ -87,7 +87,7 @@ export function WithdrawModal({
         <div className="text-sm text-text-secondary text-center mb-2">
           Please review the withdrawal details carefully before confirming.
         </div>
-        
+
         <div className="rounded-2xl border border-border bg-background p-4 space-y-3 shadow-inner">
           <div className="flex justify-between items-center pb-2 border-b border-border/50">
             <span className="text-text-secondary font-medium">Withdraw amount</span>
@@ -105,9 +105,7 @@ export function WithdrawModal({
 
           <div className="flex justify-between items-center py-1">
             <span className="text-text-secondary font-medium">Withdrawal fee</span>
-            <span className="text-text-primary font-medium">
-              {formatCurrency(fee, currency)}
-            </span>
+            <span className="text-text-primary font-medium">{formatCurrency(fee, currency)}</span>
           </div>
 
           <div className="flex justify-between items-center py-1">
@@ -126,7 +124,8 @@ export function WithdrawModal({
         <div className="p-3 rounded-xl bg-warning/10 border border-warning/20 text-xs text-warning flex items-start gap-2">
           <span className="mt-0.5 select-none font-bold">⚠️</span>
           <span>
-            Withdrawals sent to the wrong address cannot be reversed. Ensure the destination address supports USD settlements.
+            Withdrawals sent to the wrong address cannot be reversed. Ensure the destination address
+            supports USD settlements.
           </span>
         </div>
       </div>
@@ -159,7 +158,8 @@ export function WithdrawModal({
       setPendingValues(null);
       onSuccess?.(response);
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Failed to submit withdrawal request.";
+      const message =
+        error instanceof Error ? error.message : "Failed to submit withdrawal request.";
       if (message.toLowerCase().includes("insufficient")) {
         setSubmitError("Insufficient balance for this withdrawal request.");
       } else {
@@ -188,7 +188,10 @@ export function WithdrawModal({
           aria-label="Close withdrawal modal"
         />
         <div
-          className={cn(NEUMORPHIC_CARD, "relative w-full max-w-2xl max-h-[90vh] overflow-y-auto p-5 sm:p-6")}
+          className={cn(
+            NEUMORPHIC_CARD,
+            "relative w-full max-w-2xl max-h-[90vh] overflow-y-auto p-5 sm:p-6"
+          )}
           role="dialog"
           aria-modal="true"
           aria-label="Withdraw funds"
@@ -247,7 +250,9 @@ export function WithdrawModal({
                   </div>
                   <div className="p-3 rounded-xl bg-background sm:col-span-2">
                     <p className="text-text-secondary">Destination</p>
-                    <p className="font-semibold text-text-primary break-all">{result.destination}</p>
+                    <p className="font-semibold text-text-primary break-all">
+                      {result.destination}
+                    </p>
                   </div>
                 </div>
 

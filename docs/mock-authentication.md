@@ -103,6 +103,7 @@ This document explains the mock authentication system used in the OfferHub front
 ### Private Routes (Require Authentication)
 
 All routes under `/app/*`:
+
 - `/app/dashboard`
 - `/app/client/*`
 - `/app/freelancer/*`
@@ -125,29 +126,35 @@ All routes under `/app/*`:
 ### Auth Route Behavior
 
 When authenticated:
+
 - Accessing `/login` or `/register` → Redirected to `/app/dashboard`
 
 When not authenticated:
+
 - Accessing `/app/*` → Redirected to `/login?redirect=/app/...`
 
 ## Edge Cases Handled
 
 ### Page Refresh
+
 - Auth state persists via `auth-state` cookie
 - Middleware checks cookie on every navigation
 - User remains authenticated after refresh
 
 ### Direct URL Access
+
 - Unauthenticated access to `/app/*` → Redirected to login
 - Redirect parameter captured for post-login navigation
 - Example: `/app/profile` → `/login?redirect=/app/profile`
 
 ### Redirect After Login
+
 - URL parameter `redirect` captured in login page
 - After successful login, user redirected to intended destination
 - Default redirect: `/app/dashboard`
 
 ### Already Authenticated
+
 - Accessing `/login` or `/register` while authenticated
 - Middleware redirects to `/app/dashboard`
 - Prevents unnecessary re-authentication
@@ -204,7 +211,7 @@ When not authenticated:
 ### Using Auth Store in Components
 
 ```tsx
-import { useAuthStore } from '@/stores/auth-store';
+import { useAuthStore } from "@/stores/auth-store";
 
 function MyComponent() {
   const { user, isAuthenticated, login, logout } = useAuthStore();
@@ -229,9 +236,9 @@ function MyComponent() {
 const login = useAuthStore((state) => state.login);
 
 const mockUser = {
-  id: '1',
-  email: 'test@example.com',
-  username: 'test'
+  id: "1",
+  email: "test@example.com",
+  username: "test",
 };
 
 login(mockUser);
@@ -243,8 +250,8 @@ login(mockUser);
 const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 const user = useAuthStore((state) => state.user);
 
-console.log('Authenticated:', isAuthenticated);
-console.log('User:', user);
+console.log("Authenticated:", isAuthenticated);
+console.log("User:", user);
 ```
 
 ## Migration to Real Authentication
@@ -265,11 +272,13 @@ When integrating with a real backend, update the following:
 ### Login doesn't redirect to dashboard
 
 **Possible causes:**
+
 - Cookie not being set properly
 - Middleware not reading cookie correctly
 - JavaScript disabled in browser
 
 **Solution:**
+
 - Check browser console for errors
 - Verify `auth-state` cookie is set in DevTools → Application → Cookies
 - Ensure 100ms delay is present before redirect
@@ -277,11 +286,13 @@ When integrating with a real backend, update the following:
 ### Auth state lost on refresh
 
 **Possible causes:**
+
 - Cookie expired or deleted
 - Browser privacy settings blocking cookies
 - Cookie domain mismatch
 
 **Solution:**
+
 - Check cookie expiry (default 7 days)
 - Verify browser allows cookies
 - Check cookie settings in `src/lib/cookies.ts`
@@ -289,11 +300,13 @@ When integrating with a real backend, update the following:
 ### Middleware not protecting routes
 
 **Possible causes:**
+
 - Route not matching middleware config
 - Cookie not accessible to middleware
 - Middleware config issue
 
 **Solution:**
+
 - Verify route matches pattern in middleware config
 - Check cookie is set and accessible
 - Review middleware matcher in `src/middleware.ts`

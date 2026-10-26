@@ -21,8 +21,15 @@ const AUTH_TABS: ReadonlyArray<{ id: AuthTabId; label: string }> = [
 ];
 
 export function RegisterForm() {
-  const { formData, errors, isLoading, isSuccess, handleChange, handleSubmit, handleWalletSignedIn } =
-    useRegisterForm();
+  const {
+    formData,
+    errors,
+    isLoading,
+    isSuccess,
+    handleChange,
+    handleSubmit,
+    handleWalletSignedIn,
+  } = useRegisterForm();
 
   const [passwordFocused, setPasswordFocused] = useState(false);
   const [activeTab, setActiveTab] = useState<AuthTabId>("email");
@@ -184,11 +191,7 @@ export function RegisterForm() {
             <WalletSignInButton disabled={isLoading} onSignedIn={handleWalletSignedIn} />
           </div>
         ) : (
-          <div
-            role="tabpanel"
-            id="register-panel-email"
-            aria-labelledby="register-tab-email"
-          >
+          <div role="tabpanel" id="register-panel-email" aria-labelledby="register-tab-email">
             {/* Social Auth */}
             <SocialAuthButtons />
 

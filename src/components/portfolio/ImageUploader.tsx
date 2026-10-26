@@ -77,9 +77,7 @@ export function ImageUploader({
 
       try {
         const { url } = await uploadPortfolioImage(token, compressed, (pct) => {
-          setPending((prev) =>
-            prev.map((r) => (r.id === rowId ? { ...r, progress: pct } : r))
-          );
+          setPending((prev) => prev.map((r) => (r.id === rowId ? { ...r, progress: pct } : r)));
         });
         URL.revokeObjectURL(previewUrl);
         setPending((prev) => prev.filter((r) => r.id !== rowId));
@@ -168,9 +166,7 @@ export function ImageUploader({
           )}
         </div>
         <p className="text-sm text-text-primary font-medium px-2">
-          {canAddMore
-            ? "Drag images here or click to browse"
-            : "Maximum number of images reached"}
+          {canAddMore ? "Drag images here or click to browse" : "Maximum number of images reached"}
         </p>
         <p className="text-xs text-text-secondary max-w-sm px-2">
           JPEG, PNG, WebP, or GIF · up to {MAX_FILE_SIZE / (1024 * 1024)}MB each
@@ -195,25 +191,17 @@ export function ImageUploader({
               className="flex items-center gap-3 p-2 rounded-xl bg-white shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]"
             >
               <div className="relative w-14 h-14 rounded-lg overflow-hidden shrink-0 bg-gray-100">
-                <img
-                  src={row.previewUrl}
-                  alt=""
-                  className="w-full h-full object-cover"
-                />
+                <img src={row.previewUrl} alt="" className="w-full h-full object-cover" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-xs text-text-secondary truncate max-w-xs">
-                  {row.file.name}
-                </p>
+                <p className="text-xs text-text-secondary truncate max-w-xs">{row.file.name}</p>
                 <div className="mt-1 h-2 rounded-full bg-gray-200 overflow-hidden">
                   <div
                     className="h-full bg-primary transition-[width] duration-150 ease-out rounded-full"
                     style={{ width: `${row.progress}%` }}
                   />
                 </div>
-                <p className="text-[10px] text-text-secondary mt-0.5">
-                  Uploading… {row.progress}%
-                </p>
+                <p className="text-[10px] text-text-secondary mt-0.5">Uploading… {row.progress}%</p>
               </div>
             </div>
           ))}

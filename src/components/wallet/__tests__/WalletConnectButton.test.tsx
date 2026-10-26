@@ -20,7 +20,8 @@ vi.mock("@/components/wallet/WalletConnectModal", () => ({
 
 const mockDisconnectWallet = vi.fn();
 const mockSetPrimaryWallet = vi.fn();
-let mockUser: { id: string; wallet?: { id: string; publicKey: string; type: string } } | null = null;
+let mockUser: { id: string; wallet?: { id: string; publicKey: string; type: string } } | null =
+  null;
 let mockToken: string | null = "jwt-token";
 
 vi.mock("@/stores/auth-store", () => ({

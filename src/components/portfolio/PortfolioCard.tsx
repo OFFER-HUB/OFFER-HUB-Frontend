@@ -36,7 +36,8 @@ export function PortfolioCard({
       className={cn(
         NEUMORPHIC_CARD,
         "overflow-hidden p-0 flex flex-col transition-all duration-200",
-        isDragging && "opacity-60 scale-[0.98] shadow-[10px_10px_20px_#d1d5db,-10px_-10px_20px_#ffffff]"
+        isDragging &&
+          "opacity-60 scale-[0.98] shadow-[10px_10px_20px_#d1d5db,-10px_-10px_20px_#ffffff]"
       )}
     >
       {/* Thumbnail */}
@@ -64,9 +65,7 @@ export function PortfolioCard({
         <span
           className={cn(
             "absolute top-2 left-2 px-2 py-0.5 text-xs font-medium rounded-lg",
-            item.isPublic
-              ? "bg-success/90 text-white"
-              : "bg-black/60 text-white"
+            item.isPublic ? "bg-success/90 text-white" : "bg-black/60 text-white"
           )}
         >
           {item.isPublic ? "Public" : "Private"}
@@ -91,9 +90,7 @@ export function PortfolioCard({
           {PORTFOLIO_CATEGORY_LABELS[item.category]}
         </span>
 
-        <h3 className="font-semibold text-text-primary mb-1 line-clamp-1 text-sm">
-          {item.title}
-        </h3>
+        <h3 className="font-semibold text-text-primary mb-1 line-clamp-1 text-sm">{item.title}</h3>
         <p className="text-xs text-text-secondary line-clamp-2 mb-3 flex-1">
           {item.description || "No description"}
         </p>

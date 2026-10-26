@@ -71,7 +71,11 @@ export function OrderSummaryHeader({
               )}
               title="Copy Order ID"
             >
-              <Icon path={copiedId ? ICON_PATHS.check : ICON_PATHS.copy} size="sm" className="w-3.5 h-3.5" />
+              <Icon
+                path={copiedId ? ICON_PATHS.check : ICON_PATHS.copy}
+                size="sm"
+                className="w-3.5 h-3.5"
+              />
               <span>{copiedId ? "Copied" : `#${order.id.slice(-8)}`}</span>
             </button>
 
@@ -108,9 +112,12 @@ export function OrderSummaryHeader({
 
         <div className="flex items-center justify-between md:justify-end gap-6 pt-4 md:pt-0 border-t md:border-t-0 border-black/5">
           <div className="text-left md:text-right">
-            <p className="text-xs font-bold uppercase tracking-wider text-text-secondary">Order Amount</p>
+            <p className="text-xs font-bold uppercase tracking-wider text-text-secondary">
+              Order Amount
+            </p>
             <p className="text-2xl sm:text-3xl font-extrabold text-primary font-mono tracking-tight">
-              ${amount.toFixed(2)} <span className="text-xs text-text-secondary uppercase">USD</span>
+              ${amount.toFixed(2)}{" "}
+              <span className="text-xs text-text-secondary uppercase">USD</span>
             </p>
           </div>
 

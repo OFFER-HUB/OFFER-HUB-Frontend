@@ -44,7 +44,9 @@ const REASON_MAP: Record<string, DisputeReason> = {
 };
 
 /** Maps frontend dispute reason to API enum value. */
-export function toApiDisputeReason(reason: DisputeReason): "NOT_DELIVERED" | "QUALITY_ISSUE" | "OTHER" {
+export function toApiDisputeReason(
+  reason: DisputeReason
+): "NOT_DELIVERED" | "QUALITY_ISSUE" | "OTHER" {
   switch (reason) {
     case "quality_issues":
       return "QUALITY_ISSUE";
@@ -69,18 +71,9 @@ export function toApiDisputeStatus(status?: string): string | undefined {
 
 function unwrapPayload<T>(json: unknown): T {
   let current: unknown = json;
-  while (
-    current !== null &&
-    typeof current === "object" &&
-    "data" in (current as object)
-  ) {
+  while (current !== null && typeof current === "object" && "data" in (current as object)) {
     const inner = (current as { data: unknown }).data;
-    if (
-      inner !== null &&
-      typeof inner === "object" &&
-      "success" in inner &&
-      "data" in inner
-    ) {
+    if (inner !== null && typeof inner === "object" && "success" in inner && "data" in inner) {
       current = (inner as { data: unknown }).data;
       continue;
     }
@@ -98,10 +91,7 @@ function displayName(user?: { email?: string | null; id?: string }): string {
   return user.email?.split("@")[0] ?? user.id ?? "Unknown";
 }
 
-function mapEvidence(
-  evidence: unknown,
-  fallbackDate: string
-): DisputeEvidence[] {
+function mapEvidence(evidence: unknown, fallbackDate: string): DisputeEvidence[] {
   if (!evidence) return [];
   const items = Array.isArray(evidence) ? evidence : [];
   return items.map((item, index) => {
@@ -140,19 +130,11 @@ function mapEvidence(
 
 function buildEvents(api: ApiDispute, status: DisputeStatus): DisputeEvent[] {
   const createdAt =
-    typeof api.createdAt === "string"
-      ? api.createdAt
-      : new Date(api.createdAt).toISOString();
+    typeof api.createdAt === "string" ? api.createdAt : new Date(api.createdAt).toISOString();
   const updatedAt =
-    typeof api.updatedAt === "string"
-      ? api.updatedAt
-      : new Date(api.updatedAt).toISOString();
+    typeof api.updatedAt === "string" ? api.updatedAt : new Date(api.updatedAt).toISOString();
   const opener =
-    api.openedBy === "SELLER"
-      ? "freelancer"
-      : api.openedBy === "BUYER"
-        ? "client"
-        : "admin";
+    api.openedBy === "SELLER" ? "freelancer" : api.openedBy === "BUYER" ? "client" : "admin";
   const openerLabel =
     opener === "freelancer" ? "Freelancer" : opener === "client" ? "Client" : "Support";
 
@@ -208,26 +190,17 @@ function buildEvents(api: ApiDispute, status: DisputeStatus): DisputeEvent[] {
   return events;
 }
 
-export function mapApiDisputeToDispute(
-  api: ApiDispute,
-  currentUserId?: string
-): Dispute {
+export function mapApiDisputeToDispute(api: ApiDispute, currentUserId?: string): Dispute {
   const order = api.order;
   const status = STATUS_MAP[api.status] ?? "open";
   const reason = REASON_MAP[api.reason] ?? "other";
   const createdAt =
-    typeof api.createdAt === "string"
-      ? api.createdAt
-      : new Date(api.createdAt).toISOString();
+    typeof api.createdAt === "string" ? api.createdAt : new Date(api.createdAt).toISOString();
   const updatedAt =
-    typeof api.updatedAt === "string"
-      ? api.updatedAt
-      : new Date(api.updatedAt).toISOString();
+    typeof api.updatedAt === "string" ? api.updatedAt : new Date(api.updatedAt).toISOString();
 
   const isSeller =
-    currentUserId && order?.sellerId
-      ? order.sellerId === currentUserId
-      : api.openedBy === "SELLER";
+    currentUserId && order?.sellerId ? order.sellerId === currentUserId : api.openedBy === "SELLER";
 
   return {
     id: api.id,
@@ -247,9 +220,6 @@ export function mapApiDisputeToDispute(
   };
 }
 
-export function mapApiDisputesToDisputes(
-  items: ApiDispute[],
-  currentUserId?: string
-): Dispute[] {
+export function mapApiDisputesToDisputes(items: ApiDispute[], currentUserId?: string): Dispute[] {
   return items.map((item) => mapApiDisputeToDispute(item, currentUserId));
 }

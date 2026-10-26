@@ -5,9 +5,11 @@
  * Toggle between local and production API using NEXT_PUBLIC_USE_LOCAL_API.
  */
 
-const USE_LOCAL_API = process.env.NEXT_PUBLIC_USE_LOCAL_API === 'true';
-const LOCAL_API_URL = process.env.NEXT_PUBLIC_LOCAL_API_URL || 'http://localhost:4000/api/v1';
-const PRODUCTION_API_URL = process.env.NEXT_PUBLIC_PRODUCTION_API_URL || 'https://offer-hub-api-production.up.railway.app/api/v1';
+const USE_LOCAL_API = process.env.NEXT_PUBLIC_USE_LOCAL_API === "true";
+const LOCAL_API_URL = process.env.NEXT_PUBLIC_LOCAL_API_URL || "http://localhost:4000/api/v1";
+const PRODUCTION_API_URL =
+  process.env.NEXT_PUBLIC_PRODUCTION_API_URL ||
+  "https://offer-hub-api-production.up.railway.app/api/v1";
 
 /**
  * Get the current API base URL based on environment configuration
@@ -29,6 +31,6 @@ export const BACKEND_URL = API_URL.replace("/api/v1", "");
 /**
  * Log current API configuration (only in development)
  */
-if (process.env.NODE_ENV === 'development') {
-  console.log(`[API Config] Using ${USE_LOCAL_API ? 'LOCAL' : 'PRODUCTION'} API: ${API_URL}`);
+if (process.env.NODE_ENV === "development") {
+  console.log(`[API Config] Using ${USE_LOCAL_API ? "LOCAL" : "PRODUCTION"} API: ${API_URL}`);
 }

@@ -27,10 +27,7 @@ function FAQAccordionItem({ item, isOpen, onToggle, index }: FAQAccordionItemPro
       )}
       style={{ animationDelay: `${index * 0.05}s`, animationFillMode: "forwards" }}
     >
-      <button
-        onClick={onToggle}
-        className="w-full flex items-center justify-between p-5 text-left"
-      >
+      <button onClick={onToggle} className="w-full flex items-center justify-between p-5 text-left">
         <span
           className={cn(
             "text-sm font-medium transition-colors duration-200",
@@ -48,20 +45,12 @@ function FAQAccordionItem({ item, isOpen, onToggle, index }: FAQAccordionItemPro
           )}
         >
           <svg
-            className={cn(
-              "w-4 h-4 transition-transform duration-300",
-              isOpen && "rotate-180"
-            )}
+            className={cn("w-4 h-4 transition-transform duration-300", isOpen && "rotate-180")}
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M19 9l-7 7-7-7"
-            />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
           </svg>
         </div>
       </button>
@@ -73,9 +62,7 @@ function FAQAccordionItem({ item, isOpen, onToggle, index }: FAQAccordionItemPro
       >
         <div className="px-5 pb-5 pt-0">
           <div className="border-t border-border-light pt-4">
-            <p className="text-sm text-text-secondary leading-relaxed">
-              {item.answer}
-            </p>
+            <p className="text-sm text-text-secondary leading-relaxed">{item.answer}</p>
           </div>
         </div>
       </div>

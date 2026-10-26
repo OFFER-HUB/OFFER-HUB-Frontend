@@ -43,17 +43,21 @@ function TosCallbackContent(): React.JSX.Element {
       })
       .catch((error: unknown) => {
         setState("error");
-        const raw = error instanceof Error ? error.message : "Could not confirm terms-of-service acceptance.";
+        const raw =
+          error instanceof Error ? error.message : "Could not confirm terms-of-service acceptance.";
         let friendly = raw;
         if (raw.includes("invalid_cpf_tax_id")) {
-          friendly = "The Brazilian CPF provided is invalid according to BlindPay. Please return to settings, edit your KYC information with a valid CPF, and accept terms again.";
+          friendly =
+            "The Brazilian CPF provided is invalid according to BlindPay. Please return to settings, edit your KYC information with a valid CPF, and accept terms again.";
         }
         setErrorMessage(friendly);
       });
   }, [hasHydrated, token, tosId, router]);
 
   if (!hasHydrated || (state === "processing" && !missingTosId && !missingToken)) {
-    return <LoadingState variant="fullscreen" message="Confirming your BlindPay terms acceptance..." />;
+    return (
+      <LoadingState variant="fullscreen" message="Confirming your BlindPay terms acceptance..." />
+    );
   }
 
   if (missingTosId) {

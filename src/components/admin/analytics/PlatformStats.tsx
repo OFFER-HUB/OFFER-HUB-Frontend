@@ -51,7 +51,9 @@ function StatCard({
     >
       <div className="flex items-center justify-between gap-4">
         <div className="flex-1 min-w-0">
-          <p className="text-xs font-semibold uppercase tracking-wider text-text-secondary">{title}</p>
+          <p className="text-xs font-semibold uppercase tracking-wider text-text-secondary">
+            {title}
+          </p>
           <p className="text-2xl font-bold text-text-primary mt-1 truncate">
             {formatValue(value, format)}
           </p>
@@ -151,4 +153,3 @@ export function PlatformStats({ stats }: PlatformStatsProps): React.JSX.Element 
     </div>
   );
 }
-

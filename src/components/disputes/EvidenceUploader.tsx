@@ -33,7 +33,11 @@ export function EvidenceUploader({ token, onChange }: EvidenceUploaderProps): Re
   }
 
   function validateFile(file: File): string | null {
-    if (!DISPUTE_EVIDENCE_ALLOWED_TYPES.includes(file.type as (typeof DISPUTE_EVIDENCE_ALLOWED_TYPES)[number])) {
+    if (
+      !DISPUTE_EVIDENCE_ALLOWED_TYPES.includes(
+        file.type as (typeof DISPUTE_EVIDENCE_ALLOWED_TYPES)[number]
+      )
+    ) {
       return "Unsupported file type. Use images, PDF, DOC/DOCX or TXT.";
     }
     if (file.size > DISPUTE_EVIDENCE_MAX_SIZE) {
@@ -59,9 +63,7 @@ export function EvidenceUploader({ token, onChange }: EvidenceUploaderProps): Re
         description: target.description,
         onProgress: (progress) => {
           setItems((prev) =>
-            prev.map((entry) =>
-              entry.localId === itemId ? { ...entry, progress } : entry
-            )
+            prev.map((entry) => (entry.localId === itemId ? { ...entry, progress } : entry))
           );
         },
       });
@@ -123,7 +125,10 @@ export function EvidenceUploader({ token, onChange }: EvidenceUploaderProps): Re
         type: file.type,
         size: file.size,
         description: "",
-        previewUrl: file.type.startsWith("image/") || file.type === "application/pdf" ? URL.createObjectURL(file) : undefined,
+        previewUrl:
+          file.type.startsWith("image/") || file.type === "application/pdf"
+            ? URL.createObjectURL(file)
+            : undefined,
         progress: 0,
         status: "queued",
       });
@@ -162,10 +167,12 @@ export function EvidenceUploader({ token, onChange }: EvidenceUploaderProps): Re
     <div className={NEUMORPHIC_CARD}>
       <h2 className="text-lg font-semibold text-text-primary mb-2">Upload Evidence</h2>
       <p className="text-text-secondary text-sm mb-3">
-        Helpful evidence includes contracts, delivery screenshots, milestone proof, payment receipts, and key chat excerpts.
+        Helpful evidence includes contracts, delivery screenshots, milestone proof, payment
+        receipts, and key chat excerpts.
       </p>
       <p className="text-text-secondary text-xs mb-4">
-        {items.length}/{DISPUTE_EVIDENCE_MAX_FILES} files used • Images, PDF, DOC/DOCX, TXT • 10MB max each
+        {items.length}/{DISPUTE_EVIDENCE_MAX_FILES} files used • Images, PDF, DOC/DOCX, TXT • 10MB
+        max each
       </p>
 
       <div
@@ -193,7 +200,9 @@ export function EvidenceUploader({ token, onChange }: EvidenceUploaderProps): Re
         }}
         className={cn(
           "flex flex-col items-center justify-center p-6 sm:p-8 rounded-xl border-2 border-dashed transition-all duration-200 cursor-pointer",
-          dropActive ? "border-primary bg-primary/5" : "border-border hover:border-primary/60 hover:bg-primary/5"
+          dropActive
+            ? "border-primary bg-primary/5"
+            : "border-border hover:border-primary/60 hover:bg-primary/5"
         )}
       >
         <Icon path={ICON_PATHS.upload} size="xl" className="text-text-secondary mb-2" />
@@ -226,9 +235,7 @@ export function EvidenceUploader({ token, onChange }: EvidenceUploaderProps): Re
           <div className="space-y-2">
             {items.map((item) => (
               <label key={`${item.localId}-desc`} className="block">
-                <span className="text-xs text-text-secondary">
-                  Description for {item.name}
-                </span>
+                <span className="text-xs text-text-secondary">Description for {item.name}</span>
                 <input
                   type="text"
                   value={item.description}

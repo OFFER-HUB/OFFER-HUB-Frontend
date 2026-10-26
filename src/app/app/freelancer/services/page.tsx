@@ -64,8 +64,8 @@ function ServiceCard({ service, onDelete }: ServiceCardProps): React.JSX.Element
                 service.status === "ACTIVE"
                   ? "bg-success"
                   : service.status === "PAUSED"
-                  ? "bg-warning"
-                  : "bg-text-secondary"
+                    ? "bg-warning"
+                    : "bg-text-secondary"
               )}
             />
             {STATUS_LABELS[service.status]}
@@ -237,7 +237,9 @@ function ServicesPageContent(): React.JSX.Element {
     const archived = services.filter((s) => s.status === "ARCHIVED").length;
     const totalOrders = services.reduce((acc, s) => acc + (s.totalOrders || 0), 0);
 
-    const ratedServices = services.filter((s) => s.averageRating && parseFloat(s.averageRating) > 0);
+    const ratedServices = services.filter(
+      (s) => s.averageRating && parseFloat(s.averageRating) > 0
+    );
     const avgRating =
       ratedServices.length > 0
         ? (
@@ -483,7 +485,8 @@ function ServicesPageContent(): React.JSX.Element {
           </div>
           <h3 className="text-lg font-bold text-text-primary">No services found</h3>
           <p className="text-sm text-text-secondary max-w-sm mx-auto">
-            You don't have any services with status "{STATUS_LABELS[activeFilter as ServiceStatus] || activeFilter}".
+            You don't have any services with status "
+            {STATUS_LABELS[activeFilter as ServiceStatus] || activeFilter}".
           </p>
           <button
             type="button"

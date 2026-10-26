@@ -49,7 +49,9 @@ function BreakdownList({
         <div className="py-12 flex flex-col items-center justify-center text-center rounded-2xl bg-background shadow-[var(--shadow-neumorphic-inset-light)] p-6">
           <Icon path={iconPath} size="lg" className="text-text-secondary/50 mb-2" />
           <p className="text-sm font-semibold text-text-primary">No data in this range</p>
-          <p className="text-xs text-text-secondary mt-1">Breakdown will display here when orders settle.</p>
+          <p className="text-xs text-text-secondary mt-1">
+            Breakdown will display here when orders settle.
+          </p>
         </div>
       ) : (
         <ul className="space-y-4">

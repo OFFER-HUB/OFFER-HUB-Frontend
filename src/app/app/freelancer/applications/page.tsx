@@ -17,7 +17,7 @@ export default function MyApplicationsPage(): React.JSX.Element {
 
   const [applications, setApplications] = useState<Application[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [filterStatus, setFilterStatus] = useState<ApplicationStatus | 'ALL'>('ALL');
+  const [filterStatus, setFilterStatus] = useState<ApplicationStatus | "ALL">("ALL");
   const [withdrawingId, setWithdrawingId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -26,11 +26,11 @@ export default function MyApplicationsPage(): React.JSX.Element {
 
       setIsLoading(true);
       try {
-        const filters = filterStatus !== 'ALL' ? { status: filterStatus } : undefined;
+        const filters = filterStatus !== "ALL" ? { status: filterStatus } : undefined;
         const apps = await getMyApplications(token, filters);
         setApplications(apps);
       } catch (error) {
-        console.error('Failed to fetch applications:', error);
+        console.error("Failed to fetch applications:", error);
       } finally {
         setIsLoading(false);
       }
@@ -46,7 +46,7 @@ export default function MyApplicationsPage(): React.JSX.Element {
       await withdrawApplication(token, withdrawingId);
       setApplications((prev) => prev.filter((app) => app.id !== withdrawingId));
     } catch (error) {
-      console.error('Failed to withdraw application:', error);
+      console.error("Failed to withdraw application:", error);
     } finally {
       setWithdrawingId(null);
     }
@@ -78,10 +78,10 @@ export default function MyApplicationsPage(): React.JSX.Element {
         >
           <div className="flex flex-wrap gap-2">
             <button
-              onClick={() => setFilterStatus('ALL')}
+              onClick={() => setFilterStatus("ALL")}
               className={cn(
                 "px-4 py-2 rounded-lg text-sm font-medium transition-colors",
-                filterStatus === 'ALL'
+                filterStatus === "ALL"
                   ? "bg-primary text-white"
                   : "bg-background text-text-secondary hover:text-text-primary"
               )}
@@ -111,16 +111,16 @@ export default function MyApplicationsPage(): React.JSX.Element {
             icon={ICON_PATHS.briefcase}
             message="No applications found. Start applying to offers!"
             actionLabel="Browse Offers"
-            onAction={() => router.push('/marketplace/offers')}
+            onAction={() => router.push("/marketplace/offers")}
           />
         ) : (
           <div className="space-y-4">
             {applications.map((app) => {
               const statusConfig = APPLICATION_STATUS_CONFIG[app.status];
-              const appliedDate = new Date(app.createdAt).toLocaleDateString('en-US', {
-                month: 'short',
-                day: 'numeric',
-                year: 'numeric',
+              const appliedDate = new Date(app.createdAt).toLocaleDateString("en-US", {
+                month: "short",
+                day: "numeric",
+                year: "numeric",
               });
 
               return (
@@ -137,7 +137,13 @@ export default function MyApplicationsPage(): React.JSX.Element {
                         <h3 className="text-lg font-semibold text-text-primary flex-1">
                           {app.offer?.title}
                         </h3>
-                        <span className={cn("px-3 py-1 rounded-lg text-xs font-medium", statusConfig.bg, statusConfig.color)}>
+                        <span
+                          className={cn(
+                            "px-3 py-1 rounded-lg text-xs font-medium",
+                            statusConfig.bg,
+                            statusConfig.color
+                          )}
+                        >
                           {statusConfig.label}
                         </span>
                       </div>
@@ -149,7 +155,9 @@ export default function MyApplicationsPage(): React.JSX.Element {
                         {app.proposedRate && (
                           <>
                             <span>•</span>
-                            <span className="text-primary font-medium">Your rate: ${app.proposedRate}</span>
+                            <span className="text-primary font-medium">
+                              Your rate: ${app.proposedRate}
+                            </span>
                           </>
                         )}
                       </div>
@@ -160,7 +168,9 @@ export default function MyApplicationsPage(): React.JSX.Element {
                           "shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]"
                         )}
                       >
-                        <p className="text-sm font-medium text-text-primary mb-1">Your Cover Letter:</p>
+                        <p className="text-sm font-medium text-text-primary mb-1">
+                          Your Cover Letter:
+                        </p>
                         <p className="text-sm text-text-secondary">{app.coverLetter}</p>
                       </div>
 
@@ -176,7 +186,7 @@ export default function MyApplicationsPage(): React.JSX.Element {
                           View Offer
                         </button>
 
-                        {app.status === 'PENDING' && (
+                        {app.status === "PENDING" && (
                           <button
                             onClick={() => setWithdrawingId(app.id)}
                             className={cn(

@@ -61,9 +61,7 @@ export function ConnectionStatus({ status, className }: ConnectionStatusProps) {
       aria-label={`Chat connection status: ${config.label}`}
     >
       <span className={cn("w-2 h-2 rounded-full flex-shrink-0", config.dotClass)} />
-      <span className={cn("text-[11px] font-medium", config.textClass)}>
-        {config.label}
-      </span>
+      <span className={cn("text-[11px] font-medium", config.textClass)}>{config.label}</span>
     </div>
   );
 }

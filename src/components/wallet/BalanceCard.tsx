@@ -48,8 +48,7 @@ export function BalanceCard({
 }: BalanceCardProps): React.JSX.Element {
   const availN = parseFloat(available);
   const resN = parseFloat(reserved);
-  const totalN =
-    !Number.isNaN(availN) && !Number.isNaN(resN) ? availN + resN : Number.NaN;
+  const totalN = !Number.isNaN(availN) && !Number.isNaN(resN) ? availN + resN : Number.NaN;
   const totalDisplay = Number.isNaN(totalN)
     ? formatMoney(available, currency)
     : new Intl.NumberFormat("en-US", { style: "currency", currency }).format(totalN);
@@ -69,7 +68,9 @@ export function BalanceCard({
           <p className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-text-primary tracking-tight">
             {totalDisplay}
           </p>
-          <p className="text-xs text-text-secondary mt-2">Available funds plus active escrow reserves</p>
+          <p className="text-xs text-text-secondary mt-2">
+            Available funds plus active escrow reserves
+          </p>
         </div>
         <div
           className={cn(
@@ -94,7 +95,9 @@ export function BalanceCard({
             <span className="h-2 w-2 rounded-full bg-success" />
             Available for Payout
           </p>
-          <p className="text-xl sm:text-2xl font-bold text-success tracking-tight">{formatMoney(available, currency)}</p>
+          <p className="text-xl sm:text-2xl font-bold text-success tracking-tight">
+            {formatMoney(available, currency)}
+          </p>
           <p className="text-[11px] text-text-secondary mt-0.5">Ready for instant withdrawal</p>
         </div>
         <div className="flex flex-col justify-between">
@@ -102,7 +105,9 @@ export function BalanceCard({
             <span className="h-2 w-2 rounded-full bg-warning" />
             Locked in Escrow
           </p>
-          <p className="text-xl sm:text-2xl font-bold text-warning tracking-tight">{formatMoney(reserved, currency)}</p>
+          <p className="text-xl sm:text-2xl font-bold text-warning tracking-tight">
+            {formatMoney(reserved, currency)}
+          </p>
           <p className="text-[11px] text-text-secondary mt-0.5">Released upon milestone approval</p>
         </div>
       </div>

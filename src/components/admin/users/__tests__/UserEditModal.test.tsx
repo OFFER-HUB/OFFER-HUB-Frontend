@@ -40,18 +40,39 @@ beforeEach(() => {
 
 describe("diffUserPayload", () => {
   it("contains only the fields that differ from the row — untouched nulls are not sent as empty strings", () => {
-    const form = { email: "buyer@offerhub.local", type: "SELLER" as const, professionalTitle: "", location: "", timezone: "", bio: "" };
+    const form = {
+      email: "buyer@offerhub.local",
+      type: "SELLER" as const,
+      professionalTitle: "",
+      location: "",
+      timezone: "",
+      bio: "",
+    };
     expect(diffUserPayload(USER, form)).toEqual({ type: "SELLER" });
   });
 
   it("sends a cleared field as an empty string only when it previously had a value", () => {
     const withTitle = { ...USER, professionalTitle: "Designer" };
-    const form = { email: "buyer@offerhub.local", type: "BUYER" as const, professionalTitle: "  ", location: "", timezone: "", bio: "" };
+    const form = {
+      email: "buyer@offerhub.local",
+      type: "BUYER" as const,
+      professionalTitle: "  ",
+      location: "",
+      timezone: "",
+      bio: "",
+    };
     expect(diffUserPayload(withTitle, form)).toEqual({ professionalTitle: "" });
   });
 
   it("is empty when nothing changed", () => {
-    const form = { email: "buyer@offerhub.local", type: "BUYER" as const, professionalTitle: "", location: "", timezone: "", bio: "" };
+    const form = {
+      email: "buyer@offerhub.local",
+      type: "BUYER" as const,
+      professionalTitle: "",
+      location: "",
+      timezone: "",
+      bio: "",
+    };
     expect(diffUserPayload(USER, form)).toEqual({});
   });
 });
@@ -71,7 +92,9 @@ describe("UserEditModal", () => {
 
   it("lets a wallet-only account with no email change role", async () => {
     const onSave = vi.fn().mockResolvedValue(undefined);
-    render(<UserEditModal isOpen user={WALLET_ONLY} onClose={vi.fn()} onSave={onSave} onBan={vi.fn()} />);
+    render(
+      <UserEditModal isOpen user={WALLET_ONLY} onClose={vi.fn()} onSave={onSave} onBan={vi.fn()} />
+    );
 
     await userEvent.selectOptions(screen.getByLabelText("Role"), "BOTH");
     await userEvent.click(screen.getByRole("button", { name: "Save Changes" }));

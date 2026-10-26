@@ -173,10 +173,7 @@ export default function OfferDetailPage(): React.JSX.Element {
         <Navbar />
         <div className="flex-1 flex items-center justify-center p-6">
           <div className="max-w-md w-full p-8 rounded-3xl bg-background shadow-[8px_8px_20px_#d1d5db,-8px_-8px_20px_#ffffff] text-center border border-white/60">
-            <EmptyState
-              icon={ICON_PATHS.alertCircle}
-              message={error || "Offer not found."}
-            />
+            <EmptyState icon={ICON_PATHS.alertCircle} message={error || "Offer not found."} />
             <Link
               href="/marketplace/offers"
               className="mt-6 inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-primary text-white font-medium shadow-[4px_4px_10px_#cbd5e1,-4px_-4px_10px_#ffffff] hover:bg-primary-hover transition-all"
@@ -197,7 +194,7 @@ export default function OfferDetailPage(): React.JSX.Element {
     year: "numeric",
   });
   const category = CATEGORY_MAP[offer.category] || offer.category;
-  
+
   const createdDate = new Date(offer.createdAt).toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
@@ -212,14 +209,20 @@ export default function OfferDetailPage(): React.JSX.Element {
     : null;
 
   const clientFullName = [offer.user?.firstName, offer.user?.lastName].filter(Boolean).join(" ");
-  const clientDisplayName = clientFullName || offer.user?.username || offer.user?.email?.split("@")[0] || "Client";
+  const clientDisplayName =
+    clientFullName || offer.user?.username || offer.user?.email?.split("@")[0] || "Client";
   const clientHandle = offer.user?.username ? `@${offer.user.username}` : null;
   const clientLocation = offer.user?.location || offer.user?.country || null;
   const clientTitle = offer.user?.professionalTitle || null;
   const clientBio = offer.user?.bio || null;
 
   const userInitials = clientFullName
-    ? clientFullName.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase()
+    ? clientFullName
+        .split(" ")
+        .map((w) => w[0])
+        .slice(0, 2)
+        .join("")
+        .toUpperCase()
     : clientDisplayName.slice(0, 2).toUpperCase();
 
   const validAttachments = offer.attachments?.filter((att) => att.url.startsWith("https://")) ?? [];
@@ -229,7 +232,6 @@ export default function OfferDetailPage(): React.JSX.Element {
       <Navbar />
       <main className="min-h-screen bg-background text-text-primary pb-24">
         <div className="max-w-[1340px] mx-auto px-4 sm:px-6 lg:px-8 pt-8">
-          
           {/* Top Bar: Navigation & Quick Actions */}
           <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
             <div className="flex items-center gap-2">
@@ -250,7 +252,9 @@ export default function OfferDetailPage(): React.JSX.Element {
                 <span>/</span>
                 <span>{category}</span>
                 <span>/</span>
-                <span className="text-text-primary font-medium truncate max-w-[240px]">{offer.title}</span>
+                <span className="text-text-primary font-medium truncate max-w-[240px]">
+                  {offer.title}
+                </span>
               </div>
             </div>
 
@@ -267,8 +271,14 @@ export default function OfferDetailPage(): React.JSX.Element {
                 )}
                 title="Copy Offer ID"
               >
-                <Icon path={copiedOfferId ? ICON_PATHS.check : ICON_PATHS.copy} size="sm" className={copiedOfferId ? "text-primary" : ""} />
-                <span className="font-mono text-[11px]">{copiedOfferId ? "ID Copied" : offer.id}</span>
+                <Icon
+                  path={copiedOfferId ? ICON_PATHS.check : ICON_PATHS.copy}
+                  size="sm"
+                  className={copiedOfferId ? "text-primary" : ""}
+                />
+                <span className="font-mono text-[11px]">
+                  {copiedOfferId ? "ID Copied" : offer.id}
+                </span>
               </button>
 
               <button
@@ -283,7 +293,11 @@ export default function OfferDetailPage(): React.JSX.Element {
                 )}
                 title="Share offer"
               >
-                <Icon path={copiedLink ? ICON_PATHS.check : ICON_PATHS.share} size="sm" className={copiedLink ? "text-primary" : ""} />
+                <Icon
+                  path={copiedLink ? ICON_PATHS.check : ICON_PATHS.share}
+                  size="sm"
+                  className={copiedLink ? "text-primary" : ""}
+                />
                 <span>{copiedLink ? "Link Copied" : "Share"}</span>
               </button>
             </div>
@@ -325,7 +339,9 @@ export default function OfferDetailPage(): React.JSX.Element {
                   <div className="flex items-center gap-2">
                     <span className="font-bold text-base text-[#111827]">{clientDisplayName}</span>
                     {clientHandle && (
-                      <span className="text-xs text-text-secondary font-medium">{clientHandle}</span>
+                      <span className="text-xs text-text-secondary font-medium">
+                        {clientHandle}
+                      </span>
                     )}
                   </div>
                   <div className="flex flex-wrap items-center gap-3 text-xs text-text-secondary mt-0.5">
@@ -335,7 +351,11 @@ export default function OfferDetailPage(): React.JSX.Element {
                     {clientTitle && clientLocation && <span>•</span>}
                     {clientLocation && (
                       <span className="flex items-center gap-1">
-                        <Icon path={ICON_PATHS.mapPin} size="sm" className="w-3.5 h-3.5 text-text-secondary" />
+                        <Icon
+                          path={ICON_PATHS.mapPin}
+                          size="sm"
+                          className="w-3.5 h-3.5 text-text-secondary"
+                        />
                         <span>{clientLocation}</span>
                       </span>
                     )}
@@ -354,15 +374,21 @@ export default function OfferDetailPage(): React.JSX.Element {
                 <div className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white/70 shadow-[2px_2px_5px_#e2e8f0] border border-white">
                   <Icon path={ICON_PATHS.currency} size="sm" className="text-primary" />
                   <div>
-                    <p className="text-[10px] uppercase font-bold text-text-secondary tracking-wider">Project Budget</p>
-                    <p className="text-xs font-bold text-text-primary font-mono">${budget.toLocaleString()} USD</p>
+                    <p className="text-[10px] uppercase font-bold text-text-secondary tracking-wider">
+                      Project Budget
+                    </p>
+                    <p className="text-xs font-bold text-text-primary font-mono">
+                      ${budget.toLocaleString()} USD
+                    </p>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white/70 shadow-[2px_2px_5px_#e2e8f0] border border-white">
                   <Icon path={ICON_PATHS.clock} size="sm" className="text-primary" />
                   <div>
-                    <p className="text-[10px] uppercase font-bold text-text-secondary tracking-wider">Submission Deadline</p>
+                    <p className="text-[10px] uppercase font-bold text-text-secondary tracking-wider">
+                      Submission Deadline
+                    </p>
                     <p className="text-xs font-bold text-text-primary">{deadline}</p>
                   </div>
                 </div>
@@ -370,8 +396,12 @@ export default function OfferDetailPage(): React.JSX.Element {
                 <div className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white/70 shadow-[2px_2px_5px_#e2e8f0] border border-white">
                   <Icon path={ICON_PATHS.users} size="sm" className="text-primary" />
                   <div>
-                    <p className="text-[10px] uppercase font-bold text-text-secondary tracking-wider">Applications</p>
-                    <p className="text-xs font-bold text-text-primary">{offer.applicantsCount} candidate{offer.applicantsCount !== 1 ? "s" : ""}</p>
+                    <p className="text-[10px] uppercase font-bold text-text-secondary tracking-wider">
+                      Applications
+                    </p>
+                    <p className="text-xs font-bold text-text-primary">
+                      {offer.applicantsCount} candidate{offer.applicantsCount !== 1 ? "s" : ""}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -432,10 +462,8 @@ export default function OfferDetailPage(): React.JSX.Element {
 
           {/* Main Layout Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            
             {/* Left Content Area (8 Cols) */}
             <div className="lg:col-span-8 space-y-8">
-              
               {/* TAB 1: OVERVIEW */}
               {activeTab === "overview" && (
                 <div className="space-y-8">
@@ -483,7 +511,10 @@ export default function OfferDetailPage(): React.JSX.Element {
                                 )}
                               >
                                 <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
-                                  <Icon path={isImage ? ICON_PATHS.image : ICON_PATHS.document} size="sm" />
+                                  <Icon
+                                    path={isImage ? ICON_PATHS.image : ICON_PATHS.document}
+                                    size="sm"
+                                  />
                                 </div>
                                 <div className="flex-1 min-w-0">
                                   <p className="text-xs font-bold text-text-primary truncate group-hover:text-primary transition-colors">
@@ -493,7 +524,11 @@ export default function OfferDetailPage(): React.JSX.Element {
                                     {(attachment.size / 1024).toFixed(1)} KB • Open File
                                   </p>
                                 </div>
-                                <Icon path={ICON_PATHS.externalLink} size="sm" className="text-text-secondary group-hover:text-primary transition-colors flex-shrink-0" />
+                                <Icon
+                                  path={ICON_PATHS.externalLink}
+                                  size="sm"
+                                  className="text-text-secondary group-hover:text-primary transition-colors flex-shrink-0"
+                                />
                               </a>
                             );
                           })}
@@ -536,14 +571,18 @@ export default function OfferDetailPage(): React.JSX.Element {
                         <span className="text-[11px] font-bold uppercase tracking-wider text-text-secondary block mb-1">
                           Current Proposals
                         </span>
-                        <p className="text-sm font-semibold text-text-primary">{offer.applicantsCount} applicants</p>
+                        <p className="text-sm font-semibold text-text-primary">
+                          {offer.applicantsCount} applicants
+                        </p>
                       </div>
 
                       <div className="p-4 rounded-2xl bg-white/60 shadow-[2px_2px_6px_#e2e8f0] border border-white">
                         <span className="text-[11px] font-bold uppercase tracking-wider text-text-secondary block mb-1">
                           Offer Identifier
                         </span>
-                        <p className="text-xs font-mono font-semibold text-text-primary truncate">{offer.id}</p>
+                        <p className="text-xs font-mono font-semibold text-text-primary truncate">
+                          {offer.id}
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -573,9 +612,13 @@ export default function OfferDetailPage(): React.JSX.Element {
 
                     <div className="flex-1 space-y-2">
                       <div className="flex flex-wrap items-center gap-2">
-                        <h3 className="text-xl font-extrabold text-[#111827]">{clientDisplayName}</h3>
+                        <h3 className="text-xl font-extrabold text-[#111827]">
+                          {clientDisplayName}
+                        </h3>
                         {clientHandle && (
-                          <span className="text-sm font-medium text-text-secondary">{clientHandle}</span>
+                          <span className="text-sm font-medium text-text-secondary">
+                            {clientHandle}
+                          </span>
                         )}
                       </div>
 
@@ -586,13 +629,21 @@ export default function OfferDetailPage(): React.JSX.Element {
                       <div className="flex flex-wrap items-center gap-4 text-xs text-text-secondary pt-1">
                         {clientLocation && (
                           <span className="flex items-center gap-1.5">
-                            <Icon path={ICON_PATHS.mapPin} size="sm" className="w-4 h-4 text-text-secondary" />
+                            <Icon
+                              path={ICON_PATHS.mapPin}
+                              size="sm"
+                              className="w-4 h-4 text-text-secondary"
+                            />
                             <span>{clientLocation}</span>
                           </span>
                         )}
                         {memberSince && (
                           <span className="flex items-center gap-1.5">
-                            <Icon path={ICON_PATHS.calendar} size="sm" className="w-4 h-4 text-text-secondary" />
+                            <Icon
+                              path={ICON_PATHS.calendar}
+                              size="sm"
+                              className="w-4 h-4 text-text-secondary"
+                            />
                             <span>Member since {memberSince}</span>
                           </span>
                         )}
@@ -644,7 +695,8 @@ export default function OfferDetailPage(): React.JSX.Element {
                         Application & Escrow Workflow
                       </h2>
                       <p className="text-xs text-text-secondary mt-0.5">
-                        Clear process protecting both client expectations and freelancer compensation.
+                        Clear process protecting both client expectations and freelancer
+                        compensation.
                       </p>
                     </div>
                   </div>
@@ -658,7 +710,8 @@ export default function OfferDetailPage(): React.JSX.Element {
                         <h4 className="font-bold text-sm text-[#111827]">Submit Your Proposal</h4>
                       </div>
                       <p className="text-xs text-text-secondary leading-relaxed pl-10">
-                        Describe your approach, delivery estimate, and proposed rate. The client receives your pitch immediately.
+                        Describe your approach, delivery estimate, and proposed rate. The client
+                        receives your pitch immediately.
                       </p>
                     </div>
 
@@ -670,7 +723,8 @@ export default function OfferDetailPage(): React.JSX.Element {
                         <h4 className="font-bold text-sm text-[#111827]">Escrow Deposit</h4>
                       </div>
                       <p className="text-xs text-text-secondary leading-relaxed pl-10">
-                        When the client accepts your application, funds are reserved in an escrow contract before work commences.
+                        When the client accepts your application, funds are reserved in an escrow
+                        contract before work commences.
                       </p>
                     </div>
 
@@ -682,7 +736,8 @@ export default function OfferDetailPage(): React.JSX.Element {
                         <h4 className="font-bold text-sm text-[#111827]">Work & Delivery</h4>
                       </div>
                       <p className="text-xs text-text-secondary leading-relaxed pl-10">
-                        Use the dedicated order workspace for chat, file deliveries, and progress review.
+                        Use the dedicated order workspace for chat, file deliveries, and progress
+                        review.
                       </p>
                     </div>
 
@@ -694,7 +749,8 @@ export default function OfferDetailPage(): React.JSX.Element {
                         <h4 className="font-bold text-sm text-[#111827]">Approval & Payout</h4>
                       </div>
                       <p className="text-xs text-text-secondary leading-relaxed pl-10">
-                        Upon client sign-off, escrowed funds are released directly to your OfferHub balance.
+                        Upon client sign-off, escrowed funds are released directly to your OfferHub
+                        balance.
                       </p>
                     </div>
                   </div>
@@ -753,12 +809,10 @@ export default function OfferDetailPage(): React.JSX.Element {
                   </div>
                 </div>
               )}
-
             </div>
 
             {/* Right Sticky Sidebar (4 Cols) */}
             <div className="lg:col-span-4 space-y-6 lg:sticky lg:top-24">
-              
               {/* Budget & Action Card */}
               <div
                 className={cn(
@@ -771,14 +825,16 @@ export default function OfferDetailPage(): React.JSX.Element {
                   <span className="text-xs font-bold uppercase tracking-wider text-text-secondary">
                     Target Budget
                   </span>
-                  <span className="text-xs font-medium text-text-secondary">
-                    Fixed Project
-                  </span>
+                  <span className="text-xs font-medium text-text-secondary">Fixed Project</span>
                 </div>
 
                 <div className="flex items-baseline gap-2 mb-6">
                   <span className="text-4xl font-extrabold text-[#111827] tracking-tight font-mono">
-                    ${budget.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
+                    $
+                    {budget.toLocaleString("en-US", {
+                      minimumFractionDigits: 0,
+                      maximumFractionDigits: 2,
+                    })}
                   </span>
                   <span className="text-xs font-semibold text-text-secondary uppercase">USD</span>
                 </div>
@@ -835,9 +891,7 @@ export default function OfferDetailPage(): React.JSX.Element {
                       <Icon path={ICON_PATHS.checkCircle} size="sm" />
                       <span>Proposal Submitted</span>
                     </div>
-                    <p className="text-xs text-text-secondary">
-                      You have applied to this offer.
-                    </p>
+                    <p className="text-xs text-text-secondary">You have applied to this offer.</p>
                   </div>
                 ) : (
                   <button
@@ -889,7 +943,11 @@ export default function OfferDetailPage(): React.JSX.Element {
                     )}
                     {clientLocation && (
                       <p className="text-xs text-text-secondary mt-0.5 flex items-center gap-1">
-                        <Icon path={ICON_PATHS.mapPin} size="sm" className="w-3 h-3 text-text-secondary" />
+                        <Icon
+                          path={ICON_PATHS.mapPin}
+                          size="sm"
+                          className="w-3 h-3 text-text-secondary"
+                        />
                         <span>{clientLocation}</span>
                       </p>
                     )}
@@ -916,20 +974,12 @@ export default function OfferDetailPage(): React.JSX.Element {
                   <span>Contact Client</span>
                 </Link>
               </div>
-
             </div>
-
           </div>
         </div>
       </main>
 
-      {toast && (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          onClose={() => setToast(null)}
-        />
-      )}
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
       {/* Apply Modal */}
       {offer && (

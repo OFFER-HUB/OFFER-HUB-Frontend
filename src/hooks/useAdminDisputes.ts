@@ -5,7 +5,10 @@ import { useAuthStore } from "@/stores/auth-store";
 import { getAdminDisputes } from "@/lib/api/admin-disputes";
 import type { AdminDispute, AdminDisputesFilters } from "@/types/admin.types";
 
-export const DEFAULT_ADMIN_DISPUTES_FILTERS: AdminDisputesFilters = { status: "ALL", openedBy: "ALL" };
+export const DEFAULT_ADMIN_DISPUTES_FILTERS: AdminDisputesFilters = {
+  status: "ALL",
+  openedBy: "ALL",
+};
 const PAGE_SIZE = 10;
 
 export interface UseAdminDisputesResult {

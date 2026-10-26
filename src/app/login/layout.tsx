@@ -9,10 +9,6 @@ export const metadata: Metadata = generatePageMetadata({
   noIndex: true, // Auth pages should not be indexed
 });
 
-export default function LoginLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function LoginLayout({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }

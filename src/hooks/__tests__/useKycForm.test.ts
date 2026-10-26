@@ -229,7 +229,8 @@ describe("useKycForm — step 1 validation", () => {
 
 // ─── Step 2 validation ────────────────────────────────────────────────────────
 
-describe("useKycForm — step 2 validation", () => {  it("blocks on step 2 when taxId is empty", async () => {
+describe("useKycForm — step 2 validation", () => {
+  it("blocks on step 2 when taxId is empty", async () => {
     const { result } = renderHook(() => useKycForm());
     await flush();
     act(() => result.current.handleNext()); // step 1 → 2 (prefilled)

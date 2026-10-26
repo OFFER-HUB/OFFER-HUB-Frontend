@@ -55,7 +55,8 @@ export default function EarningsAnalyticsPage(): React.JSX.Element {
         </div>
         <h1 className="text-2xl font-bold text-text-primary mb-2">Earnings Analytics</h1>
         <p className="text-text-secondary mb-6">
-          Sign in to your freelancer account to view live income analytics, trends, and client breakdowns.
+          Sign in to your freelancer account to view live income analytics, trends, and client
+          breakdowns.
         </p>
         <Link href="/login?redirect=/app/analytics/earnings">
           <Button variant="primary" size="md">
@@ -89,7 +90,8 @@ export default function EarningsAnalyticsPage(): React.JSX.Element {
   const currentTotalEarnings = parseMoney(data.currentPeriod.totalEarnings);
   const isZeroEarnings = currentTotalEarnings === 0 && data.currentPeriod.orderCount === 0;
   const hasChartData = data.monthly && data.monthly.length > 0;
-  const hasBreakdownData = (data.byClient && data.byClient.length > 0) || (data.byCategory && data.byCategory.length > 0);
+  const hasBreakdownData =
+    (data.byClient && data.byClient.length > 0) || (data.byCategory && data.byCategory.length > 0);
 
   return (
     <div className="w-full max-w-7xl mx-auto pb-12 transition-all duration-300 ease-in-out">
@@ -160,14 +162,21 @@ export default function EarningsAnalyticsPage(): React.JSX.Element {
       <EarningsSummaryCards data={data} />
 
       {/* Zero State if 0 Earnings / Orders */}
-      {isZeroEarnings ? (
-        <EarningsZeroState startDate={startDate} endDate={endDate} />
-      ) : null}
+      {isZeroEarnings ? <EarningsZeroState startDate={startDate} endDate={endDate} /> : null}
 
       {/* Monthly Interactive Revenue Chart (Rendered when chart data exists) */}
       {hasChartData ? (
-        <div className={cn("mb-6 transition-opacity duration-200", isRefreshing && "opacity-60 pointer-events-none")}>
-          <EarningsChart data={data.monthly} currency={data.currency} monthlyGoal={data.monthlyGoal} />
+        <div
+          className={cn(
+            "mb-6 transition-opacity duration-200",
+            isRefreshing && "opacity-60 pointer-events-none"
+          )}
+        >
+          <EarningsChart
+            data={data.monthly}
+            currency={data.currency}
+            monthlyGoal={data.monthlyGoal}
+          />
         </div>
       ) : null}
 

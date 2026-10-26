@@ -27,12 +27,7 @@ export function ErrorState({
           "bg-error/10"
         )}
       >
-        <Icon
-          path={ICON_PATHS.alertCircle}
-          size="xl"
-          className="text-error"
-          ariaHidden
-        />
+        <Icon path={ICON_PATHS.alertCircle} size="xl" className="text-error" ariaHidden />
       </div>
       <h3 className="text-lg font-semibold text-text-primary mb-2">{title}</h3>
       <p className="text-text-secondary mb-4 max-w-md mx-auto">{message}</p>
@@ -51,10 +46,7 @@ export function ErrorState({
 
   if (variant === "inline") {
     return (
-      <div
-        className="flex items-center gap-3 p-4 rounded-xl bg-error/10 text-error"
-        role="alert"
-      >
+      <div className="flex items-center gap-3 p-4 rounded-xl bg-error/10 text-error" role="alert">
         <Icon path={ICON_PATHS.alertCircle} size="md" ariaHidden />
         <p className="flex-1">{message}</p>
         {onRetry && (

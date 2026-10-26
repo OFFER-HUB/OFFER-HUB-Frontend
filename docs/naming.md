@@ -21,16 +21,16 @@ src/
 
 ### Files by Type
 
-| Type | Convention | Example |
-|------|------------|---------|
-| Components | PascalCase.tsx | `UserProfile.tsx` |
-| Hooks | use-xxx.ts | `use-auth.ts` |
-| Types | xxx.types.ts | `api-response.types.ts` |
-| Schemas | xxx.schema.ts | `user.schema.ts` |
-| Constants | xxx.constants.ts | `routes.constants.ts` |
-| Utilities | kebab-case.ts | `http-client.ts` |
-| Pages | page.tsx (Next.js) | `app/dashboard/page.tsx` |
-| Layouts | layout.tsx (Next.js) | `app/dashboard/layout.tsx` |
+| Type       | Convention           | Example                    |
+| ---------- | -------------------- | -------------------------- |
+| Components | PascalCase.tsx       | `UserProfile.tsx`          |
+| Hooks      | use-xxx.ts           | `use-auth.ts`              |
+| Types      | xxx.types.ts         | `api-response.types.ts`    |
+| Schemas    | xxx.schema.ts        | `user.schema.ts`           |
+| Constants  | xxx.constants.ts     | `routes.constants.ts`      |
+| Utilities  | kebab-case.ts        | `http-client.ts`           |
+| Pages      | page.tsx (Next.js)   | `app/dashboard/page.tsx`   |
+| Layouts    | layout.tsx (Next.js) | `app/dashboard/layout.tsx` |
 
 ## Code Elements
 
@@ -51,6 +51,7 @@ async function fetchUserProfile() { ... }
 ### Constants: SCREAMING_SNAKE_CASE or camelCase
 
 Use SCREAMING_SNAKE_CASE for true constants (compile-time values):
+
 ```typescript
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const API_VERSION = "v1";
@@ -58,6 +59,7 @@ const DEFAULT_PAGE_SIZE = 20;
 ```
 
 Use camelCase for runtime constants:
+
 ```typescript
 const defaultConfig = { ... };
 const initialState = { ... };

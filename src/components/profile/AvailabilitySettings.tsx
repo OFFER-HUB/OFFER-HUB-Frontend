@@ -3,7 +3,12 @@
 import { useMemo, useState } from "react";
 import { cn } from "@/lib/cn";
 import { Icon, ICON_PATHS, LoadingSpinner } from "@/components/ui/Icon";
-import { NEUMORPHIC_CARD, NEUMORPHIC_INPUT, INPUT_ERROR_STYLES, PRIMARY_BUTTON } from "@/lib/styles";
+import {
+  NEUMORPHIC_CARD,
+  NEUMORPHIC_INPUT,
+  INPUT_ERROR_STYLES,
+  PRIMARY_BUTTON,
+} from "@/lib/styles";
 import { useAvailabilityForm } from "@/hooks/useAvailabilityForm";
 import { ToggleSwitch } from "@/components/ui/ToggleSwitch";
 import { AvailabilityPreviewCard } from "@/components/profile/AvailabilityPreviewCard";
@@ -124,7 +129,11 @@ export function AvailabilitySettings(): React.JSX.Element {
     return (
       <div className={NEUMORPHIC_CARD}>
         <div className="flex items-start gap-3">
-          <Icon path={ICON_PATHS.alertCircle} className="text-error flex-shrink-0 mt-0.5" size="md" />
+          <Icon
+            path={ICON_PATHS.alertCircle}
+            className="text-error flex-shrink-0 mt-0.5"
+            size="md"
+          />
           <div>
             <p className="text-sm font-medium text-text-primary">Could not load settings</p>
             <p className="text-sm text-text-secondary mt-1">{loadError}</p>
@@ -186,8 +195,9 @@ export function AvailabilitySettings(): React.JSX.Element {
           <div className="rounded-xl p-3 mb-4 bg-primary/5 border border-primary/15">
             <p className="text-xs font-medium text-text-primary">Marketplace visibility</p>
             <p className="text-xs text-text-secondary mt-1 leading-relaxed">
-              When you are available for work and not on vacation, you are more likely to appear in relevant
-              marketplace results. Unavailable or vacation mode reduces visibility for new opportunities.
+              When you are available for work and not on vacation, you are more likely to appear in
+              relevant marketplace results. Unavailable or vacation mode reduces visibility for new
+              opportunities.
             </p>
           </div>
 
@@ -222,7 +232,9 @@ export function AvailabilitySettings(): React.JSX.Element {
               className={cn(NEUMORPHIC_INPUT, hoursError && INPUT_ERROR_STYLES)}
             />
             {hoursError && <p className="text-sm text-error mt-1">{hoursError}</p>}
-            <p className="text-xs text-text-secondary">Between {MIN_HOURS} and {MAX_HOURS} hours.</p>
+            <p className="text-xs text-text-secondary">
+              Between {MIN_HOURS} and {MAX_HOURS} hours.
+            </p>
           </div>
 
           <div className="mt-6 space-y-2">
@@ -239,7 +251,9 @@ export function AvailabilitySettings(): React.JSX.Element {
           </div>
 
           <div className="mt-6">
-            <p className="text-sm font-medium text-text-primary mb-2">Schedule preferences (optional)</p>
+            <p className="text-sm font-medium text-text-primary mb-2">
+              Schedule preferences (optional)
+            </p>
             <p className="text-xs text-text-secondary mb-3">Days you prefer to collaborate.</p>
             <div className="flex flex-wrap gap-2">
               {WEEKDAYS.map(({ value, label }) => {
@@ -286,7 +300,11 @@ export function AvailabilitySettings(): React.JSX.Element {
       </div>
 
       <div className="lg:col-span-2 lg:sticky lg:top-6">
-        <AvailabilityPreviewCard availability={form} displayName={displayName} avatarUrl={avatarUrl} />
+        <AvailabilityPreviewCard
+          availability={form}
+          displayName={displayName}
+          avatarUrl={avatarUrl}
+        />
       </div>
     </div>
   );

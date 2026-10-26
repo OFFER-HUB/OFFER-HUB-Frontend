@@ -81,7 +81,13 @@ export default function ClientPurchasesPage() {
   }
 
   function getStatusConfig(status: string) {
-    return STATUS_CONFIG[status] || { label: status, color: "text-text-secondary", bgColor: "bg-gray-100" };
+    return (
+      STATUS_CONFIG[status] || {
+        label: status,
+        color: "text-text-secondary",
+        bgColor: "bg-gray-100",
+      }
+    );
   }
 
   return (
@@ -119,14 +125,13 @@ export default function ClientPurchasesPage() {
           <LoadingSpinner className="text-primary" />
         </div>
       ) : error ? (
-        <EmptyState
-          icon={ICON_PATHS.alertCircle}
-          message={error}
-        />
+        <EmptyState icon={ICON_PATHS.alertCircle} message={error} />
       ) : purchases.length === 0 ? (
         <EmptyState
           icon={ICON_PATHS.shoppingCart}
-          message={statusFilter ? "No purchases match this filter" : "You haven't hired any services yet"}
+          message={
+            statusFilter ? "No purchases match this filter" : "You haven't hired any services yet"
+          }
           linkHref="/marketplace/services"
           linkText="Browse Services"
         />
@@ -152,14 +157,14 @@ export default function ClientPurchasesPage() {
                   {/* Left: Order Info */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-3 mb-2">
-                      <h3 className="font-semibold text-text-primary truncate">
-                        {serviceTitle}
-                      </h3>
-                      <span className={cn(
-                        "px-2.5 py-1 rounded-full text-xs font-medium",
-                        statusConfig.bgColor,
-                        statusConfig.color
-                      )}>
+                      <h3 className="font-semibold text-text-primary truncate">{serviceTitle}</h3>
+                      <span
+                        className={cn(
+                          "px-2.5 py-1 rounded-full text-xs font-medium",
+                          statusConfig.bgColor,
+                          statusConfig.color
+                        )}
+                      >
                         {statusConfig.label}
                       </span>
                     </div>
@@ -189,7 +194,11 @@ export default function ClientPurchasesPage() {
                         ${parseFloat(order.amount).toLocaleString()}
                       </p>
                     </div>
-                    <Icon path={ICON_PATHS.chevronRight} size="md" className="text-text-secondary" />
+                    <Icon
+                      path={ICON_PATHS.chevronRight}
+                      size="md"
+                      className="text-text-secondary"
+                    />
                   </div>
                 </div>
               </Link>

@@ -84,6 +84,7 @@ import { cn } from "../../lib/cn";
 ```
 
 Configuration in `tsconfig.json`:
+
 ```json
 {
   "compilerOptions": {
@@ -110,15 +111,17 @@ All design tokens are defined as CSS variables in `globals.css`:
 Uses CSS-first configuration with `@theme` directive instead of JavaScript config.
 
 Theme customization happens in `globals.css`:
+
 ```css
 @theme {
-  --color-primary: #149A9B;
+  --color-primary: #149a9b;
 }
 ```
 
 ### Dark Mode
 
 Dark mode is class-based (`.dark` on `<html>`):
+
 ```css
 @custom-variant dark (&:where(.dark, .dark *));
 ```
@@ -126,6 +129,7 @@ Dark mode is class-based (`.dark` on `<html>`):
 ## Authentication
 
 Auth.js v5 is configured in `src/auth.ts` and exposes:
+
 - `auth()` - Get session (server-side)
 - `handlers` - API route handlers
 - `signIn()` - Sign in function

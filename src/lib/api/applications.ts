@@ -1,5 +1,10 @@
 import { API_URL } from "@/config/api";
-import type { Application, CreateApplicationPayload, UpdateApplicationStatusPayload, ApplicationFilters } from '@/types/application.types';
+import type {
+  Application,
+  CreateApplicationPayload,
+  UpdateApplicationStatusPayload,
+  ApplicationFilters,
+} from "@/types/application.types";
 
 const API_BASE_URL = API_URL;
 
@@ -12,17 +17,17 @@ export async function applyToOffer(
   payload: CreateApplicationPayload
 ): Promise<Application> {
   const response = await fetch(`${API_BASE_URL}/applications/offers/${offerId}`, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
     },
     body: JSON.stringify(payload),
   });
 
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.error?.message || 'Failed to apply to offer');
+    throw new Error(error.error?.message || "Failed to apply to offer");
   }
 
   const data = await response.json();
@@ -37,20 +42,20 @@ export async function getMyApplications(
   filters?: ApplicationFilters
 ): Promise<Application[]> {
   const params = new URLSearchParams();
-  if (filters?.status) params.append('status', filters.status);
-  if (filters?.limit) params.append('limit', filters.limit.toString());
-  if (filters?.cursor) params.append('cursor', filters.cursor);
+  if (filters?.status) params.append("status", filters.status);
+  if (filters?.limit) params.append("limit", filters.limit.toString());
+  if (filters?.cursor) params.append("cursor", filters.cursor);
 
   const response = await fetch(`${API_BASE_URL}/applications/my?${params}`, {
     headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
     },
   });
 
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.error?.message || 'Failed to fetch applications');
+    throw new Error(error.error?.message || "Failed to fetch applications");
   }
 
   const data = await response.json();
@@ -66,20 +71,20 @@ export async function getOfferApplications(
   filters?: ApplicationFilters
 ): Promise<Application[]> {
   const params = new URLSearchParams();
-  if (filters?.status) params.append('status', filters.status);
-  if (filters?.limit) params.append('limit', filters.limit.toString());
-  if (filters?.cursor) params.append('cursor', filters.cursor);
+  if (filters?.status) params.append("status", filters.status);
+  if (filters?.limit) params.append("limit", filters.limit.toString());
+  if (filters?.cursor) params.append("cursor", filters.cursor);
 
   const response = await fetch(`${API_BASE_URL}/applications/offers/${offerId}?${params}`, {
     headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
     },
   });
 
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.error?.message || 'Failed to fetch applications');
+    throw new Error(error.error?.message || "Failed to fetch applications");
   }
 
   const data = await response.json();
@@ -95,17 +100,17 @@ export async function updateApplicationStatus(
   payload: UpdateApplicationStatusPayload
 ): Promise<Application> {
   const response = await fetch(`${API_BASE_URL}/applications/${applicationId}/status`, {
-    method: 'PATCH',
+    method: "PATCH",
     headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
     },
     body: JSON.stringify(payload),
   });
 
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.error?.message || 'Failed to update application status');
+    throw new Error(error.error?.message || "Failed to update application status");
   }
 
   const data = await response.json();
@@ -115,21 +120,18 @@ export async function updateApplicationStatus(
 /**
  * Freelancer: Retirar aplicación
  */
-export async function withdrawApplication(
-  token: string,
-  applicationId: string
-): Promise<void> {
+export async function withdrawApplication(token: string, applicationId: string): Promise<void> {
   const response = await fetch(`${API_BASE_URL}/applications/${applicationId}`, {
-    method: 'DELETE',
+    method: "DELETE",
     headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
     },
   });
 
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.error?.message || 'Failed to withdraw application');
+    throw new Error(error.error?.message || "Failed to withdraw application");
   }
 }
 
@@ -142,14 +144,14 @@ export async function getApplicationById(
 ): Promise<Application> {
   const response = await fetch(`${API_BASE_URL}/applications/${applicationId}`, {
     headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
     },
   });
 
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.error?.message || 'Failed to fetch application');
+    throw new Error(error.error?.message || "Failed to fetch application");
   }
 
   const data = await response.json();

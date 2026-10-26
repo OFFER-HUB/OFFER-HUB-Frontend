@@ -125,7 +125,7 @@ export function useWalletAuth(): UseWalletAuthResult {
         if (effectiveKey !== challengeKey) {
           throw new Error(
             "Your wallet signed with a different account than the one selected. " +
-            "Please ensure the correct account is active in your wallet and try again."
+              "Please ensure the correct account is active in your wallet and try again."
           );
         }
 

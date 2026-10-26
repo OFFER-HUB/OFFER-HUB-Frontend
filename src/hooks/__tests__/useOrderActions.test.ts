@@ -161,7 +161,10 @@ describe("useOrderActions — handleOpenDispute", () => {
     const { result } = setup({ isBuyer: true });
 
     await act(async () => {
-      await result.current.handleOpenDispute("QUALITY_ISSUE", "Work was incomplete and low quality.");
+      await result.current.handleOpenDispute(
+        "QUALITY_ISSUE",
+        "Work was incomplete and low quality."
+      );
     });
 
     expect(runByKey["dispute_0"]).toHaveBeenCalledOnce();
@@ -218,7 +221,11 @@ describe("useOrderActions — handleRequestRefund", () => {
     });
 
     expect(runByKey["refund_0"]).toHaveBeenCalledOnce();
-    expect(mockRequestRefund).toHaveBeenCalledWith("jwt-token", ORDER_ID, "The work was never delivered.");
+    expect(mockRequestRefund).toHaveBeenCalledWith(
+      "jwt-token",
+      ORDER_ID,
+      "The work was never delivered."
+    );
   });
 
   it("goes through refundSigning.run() without calling requestRefund directly for the client-signing path", async () => {
@@ -259,7 +266,10 @@ describe("useOrderActions — handleMarkCompleted", () => {
   it("calls markOrderCompleted for an INVISIBLE-wallet seller (legacy path)", async () => {
     const { result } = setup();
     const { markOrderCompleted } = await import("@/lib/api/orders");
-    (markOrderCompleted as ReturnType<typeof vi.fn>).mockResolvedValue({ id: ORDER_ID, status: "IN_PROGRESS" });
+    (markOrderCompleted as ReturnType<typeof vi.fn>).mockResolvedValue({
+      id: ORDER_ID,
+      status: "IN_PROGRESS",
+    });
     useLegacyPath("release_1");
 
     await act(async () => {
@@ -316,7 +326,10 @@ describe("useOrderActions — handleCreateEscrow (D2.1)", () => {
   it("reaches the custodial createEscrow call for an INVISIBLE wallet (legacy path)", async () => {
     const { result } = setup();
     const { createEscrow } = await import("@/lib/api/orders");
-    (createEscrow as ReturnType<typeof vi.fn>).mockResolvedValue({ id: ORDER_ID, status: "ESCROW_CREATING" });
+    (createEscrow as ReturnType<typeof vi.fn>).mockResolvedValue({
+      id: ORDER_ID,
+      status: "ESCROW_CREATING",
+    });
     useLegacyPath("create_0");
 
     await act(async () => {
@@ -359,7 +372,10 @@ describe("useOrderActions — handleFundEscrow (D2.1)", () => {
   it("reaches the custodial fundEscrow call for an INVISIBLE wallet (legacy path)", async () => {
     const { result } = setup();
     const { fundEscrow } = await import("@/lib/api/orders");
-    (fundEscrow as ReturnType<typeof vi.fn>).mockResolvedValue({ id: ORDER_ID, status: "ESCROW_FUNDED" });
+    (fundEscrow as ReturnType<typeof vi.fn>).mockResolvedValue({
+      id: ORDER_ID,
+      status: "ESCROW_FUNDED",
+    });
     useLegacyPath("fund_0");
 
     await act(async () => {

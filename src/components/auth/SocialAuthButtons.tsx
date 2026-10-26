@@ -11,9 +11,7 @@ interface SocialAuthButtonsProps {
 export function SocialAuthButtons({ mode = "login", disabled = false }: SocialAuthButtonsProps) {
   const handleOAuth = (provider: "google" | "github") => {
     // Determine callback URL based on mode
-    const callbackUrl = mode === "link"
-      ? "/app/profile?linked=true"
-      : "/auth/callback";
+    const callbackUrl = mode === "link" ? "/app/profile?linked=true" : "/auth/callback";
 
     signIn(provider, { callbackUrl });
   };

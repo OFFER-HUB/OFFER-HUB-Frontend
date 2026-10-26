@@ -44,7 +44,9 @@ export function WalletManagementCard(): React.JSX.Element {
       })
       .catch((err: unknown) => {
         if (cancelled) return;
-        setLoadError(err instanceof ConnectWalletError ? err.message : "Could not load your wallets.");
+        setLoadError(
+          err instanceof ConnectWalletError ? err.message : "Could not load your wallets."
+        );
       });
 
     return () => {
@@ -60,7 +62,9 @@ export function WalletManagementCard(): React.JSX.Element {
       const updated = await reconnectWalletApi(token, wallet.id);
       setWallets(updated);
     } catch (err) {
-      setActionError(err instanceof ConnectWalletError ? err.message : "Could not reactivate this wallet.");
+      setActionError(
+        err instanceof ConnectWalletError ? err.message : "Could not reactivate this wallet."
+      );
     } finally {
       setBusyWalletId(null);
     }
@@ -74,9 +78,13 @@ export function WalletManagementCard(): React.JSX.Element {
       const updated = await setPrimaryWalletApi(token, wallet.id);
       setWallets(updated);
       const primary = updated.find((w) => w.isPrimary);
-      setPrimaryWallet(primary ? { id: primary.id, publicKey: primary.publicKey, type: primary.type } : undefined);
+      setPrimaryWallet(
+        primary ? { id: primary.id, publicKey: primary.publicKey, type: primary.type } : undefined
+      );
     } catch (err) {
-      setActionError(err instanceof ConnectWalletError ? err.message : "Could not set this wallet as primary.");
+      setActionError(
+        err instanceof ConnectWalletError ? err.message : "Could not set this wallet as primary."
+      );
     } finally {
       setBusyWalletId(null);
     }
@@ -92,7 +100,9 @@ export function WalletManagementCard(): React.JSX.Element {
       // Disconnecting the primary does not auto-promote another one.
       if (wallet.isPrimary) setPrimaryWallet(undefined);
     } catch (err) {
-      setActionError(err instanceof ConnectWalletError ? err.message : "Could not disconnect this wallet.");
+      setActionError(
+        err instanceof ConnectWalletError ? err.message : "Could not disconnect this wallet."
+      );
     } finally {
       setBusyWalletId(null);
     }
@@ -109,9 +119,14 @@ export function WalletManagementCard(): React.JSX.Element {
       </p>
 
       {loadError !== null ? (
-        <p role="alert" className="text-sm text-error">{loadError}</p>
+        <p role="alert" className="text-sm text-error">
+          {loadError}
+        </p>
       ) : wallets === null ? (
-        <div role="status" className="flex items-center justify-center gap-2.5 py-8 text-sm text-text-secondary">
+        <div
+          role="status"
+          className="flex items-center justify-center gap-2.5 py-8 text-sm text-text-secondary"
+        >
           <LoadingSpinner size="sm" />
           Loading wallets...
         </div>
@@ -133,7 +148,9 @@ export function WalletManagementCard(): React.JSX.Element {
       )}
 
       {actionError !== null && (
-        <p role="alert" className="mt-3 text-sm text-error">{actionError}</p>
+        <p role="alert" className="mt-3 text-sm text-error">
+          {actionError}
+        </p>
       )}
     </div>
   );

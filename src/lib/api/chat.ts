@@ -67,10 +67,7 @@ export async function sendMessage(
  * Fire-and-forget — errors are silently swallowed so a failed typing
  * ping never blocks the user.
  */
-export async function sendTypingStatus(
-  conversationId: string,
-  isTyping: boolean
-): Promise<void> {
+export async function sendTypingStatus(conversationId: string, isTyping: boolean): Promise<void> {
   try {
     await httpPost(`${BASE}/${conversationId}/typing`, { isTyping });
   } catch {
@@ -113,8 +110,6 @@ export function getChatSSEUrl(conversationId: string, token: string): string {
 /**
  * Fetch conversation detail (participant info etc.) by ID.
  */
-export async function getConversation(
-  conversationId: string
-): Promise<ApiResponse<Conversation>> {
+export async function getConversation(conversationId: string): Promise<ApiResponse<Conversation>> {
   return httpGet<Conversation>(`${BASE}/${conversationId}`);
 }

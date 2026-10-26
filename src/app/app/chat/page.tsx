@@ -49,9 +49,7 @@ export default function ChatPage(): React.JSX.Element {
         >
           <Icon path={ICON_PATHS.chat} size="xl" className="text-primary" />
         </div>
-        <h2 className="text-xl font-bold text-text-primary mb-2">
-          Your Messages
-        </h2>
+        <h2 className="text-xl font-bold text-text-primary mb-2">Your Messages</h2>
         <p className="text-text-secondary text-center max-w-xs text-sm">
           Select a conversation from the list to start messaging
         </p>

@@ -213,7 +213,8 @@ export function WalletConnectButton({
             className={cn(
               TRIGGER_BASE,
               "px-3 py-2.5 text-sm text-text-primary sm:px-4",
-              isMenuOpen && "shadow-[var(--shadow-neumorphic-inset-light)] dark:shadow-[var(--shadow-neumorphic-inset-dark)]"
+              isMenuOpen &&
+                "shadow-[var(--shadow-neumorphic-inset-light)] dark:shadow-[var(--shadow-neumorphic-inset-dark)]"
             )}
           >
             <span className={STELLAR_BADGE}>
@@ -250,7 +251,10 @@ export function WalletConnectButton({
                   type="button"
                   onClick={handleDisconnect}
                   disabled={isDisconnecting}
-                  className={cn(DROPDOWN_ITEM_DANGER, "disabled:opacity-60 disabled:cursor-not-allowed")}
+                  className={cn(
+                    DROPDOWN_ITEM_DANGER,
+                    "disabled:opacity-60 disabled:cursor-not-allowed"
+                  )}
                 >
                   <div className="flex items-center gap-3">
                     <Icon path={ICON_PATHS.logout} size="sm" />

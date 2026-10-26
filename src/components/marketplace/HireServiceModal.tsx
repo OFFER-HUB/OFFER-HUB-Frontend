@@ -24,14 +24,24 @@ export function HireServiceModal({
   if (!isOpen) return null;
 
   const price = parseFloat(service.price);
-  const freelancerFullName = [service.user?.firstName, service.user?.lastName].filter(Boolean).join(" ");
+  const freelancerFullName = [service.user?.firstName, service.user?.lastName]
+    .filter(Boolean)
+    .join(" ");
   const freelancerDisplayName =
-    freelancerFullName || service.user?.username || service.user?.email?.split("@")[0] || "Specialist";
+    freelancerFullName ||
+    service.user?.username ||
+    service.user?.email?.split("@")[0] ||
+    "Specialist";
   const freelancerHandle = service.user?.username ? `@${service.user.username}` : null;
   const professionalTitle = service.user?.professionalTitle || null;
 
   const userInitials = freelancerFullName
-    ? freelancerFullName.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase()
+    ? freelancerFullName
+        .split(" ")
+        .map((w) => w[0])
+        .slice(0, 2)
+        .join("")
+        .toUpperCase()
     : freelancerDisplayName.slice(0, 2).toUpperCase();
 
   async function handleSubmit(e: React.FormEvent) {
@@ -113,9 +123,7 @@ export function HireServiceModal({
           )}
         >
           {/* Service Title */}
-          <h3 className="text-base font-bold text-[#111827] mb-3 leading-snug">
-            {service.title}
-          </h3>
+          <h3 className="text-base font-bold text-[#111827] mb-3 leading-snug">{service.title}</h3>
 
           {/* Specialist Identity */}
           <div className="flex items-center gap-3 pb-4 mb-4 border-b border-black/5">
@@ -123,9 +131,7 @@ export function HireServiceModal({
               {userInitials}
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-xs font-bold text-[#111827] truncate">
-                {freelancerDisplayName}
-              </p>
+              <p className="text-xs font-bold text-[#111827] truncate">{freelancerDisplayName}</p>
               <p className="text-[11px] text-text-secondary truncate">
                 {professionalTitle ? `${professionalTitle} • ` : ""}
                 {freelancerHandle || service.user?.email}
@@ -157,9 +163,7 @@ export function HireServiceModal({
               <span className="text-[10px] font-bold uppercase tracking-wider text-text-secondary block mb-0.5">
                 Protection
               </span>
-              <span className="text-xs font-bold text-text-primary">
-                Smart Escrow
-              </span>
+              <span className="text-xs font-bold text-text-primary">Smart Escrow</span>
             </div>
           </div>
         </div>
@@ -169,7 +173,10 @@ export function HireServiceModal({
           {/* Requirements Input */}
           <div>
             <div className="flex items-center justify-between mb-1.5">
-              <label htmlFor="modal-requirements" className="text-xs font-bold text-[#111827] uppercase tracking-wider">
+              <label
+                htmlFor="modal-requirements"
+                className="text-xs font-bold text-[#111827] uppercase tracking-wider"
+              >
                 Project Instructions & Details
               </label>
               <span className="text-[11px] text-text-secondary font-medium">Optional</span>
@@ -190,8 +197,14 @@ export function HireServiceModal({
               placeholder="Describe your specific goals, guidelines, preferred style, or reference links for this project..."
             />
             <p className="text-[11px] text-text-secondary mt-1.5 flex items-center gap-1">
-              <Icon path={ICON_PATHS.infoCircle} size="sm" className="w-3.5 h-3.5 text-primary flex-shrink-0" />
-              <span>You will also be able to upload files and chat directly in the order workspace.</span>
+              <Icon
+                path={ICON_PATHS.infoCircle}
+                size="sm"
+                className="w-3.5 h-3.5 text-primary flex-shrink-0"
+              />
+              <span>
+                You will also be able to upload files and chat directly in the order workspace.
+              </span>
             </p>
           </div>
 
@@ -207,11 +220,10 @@ export function HireServiceModal({
               <Icon path={ICON_PATHS.shield} size="sm" />
             </div>
             <div>
-              <p className="font-bold text-[#111827] text-xs mb-0.5">
-                Escrow Payment Protection
-              </p>
+              <p className="font-bold text-[#111827] text-xs mb-0.5">Escrow Payment Protection</p>
               <p className="text-[11px] text-text-secondary">
-                Funds remain securely reserved in escrow. Payment is only released to {freelancerDisplayName} after you inspect and approve the completed delivery.
+                Funds remain securely reserved in escrow. Payment is only released to{" "}
+                {freelancerDisplayName} after you inspect and approve the completed delivery.
               </p>
             </div>
           </div>

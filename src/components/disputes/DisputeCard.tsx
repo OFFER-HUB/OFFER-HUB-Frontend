@@ -51,22 +51,16 @@ export function DisputeCard({ dispute, detailHref }: DisputeCardProps): React.JS
             >
               {DISPUTE_STATUS_LABELS[dispute.status]}
             </span>
-            <span className="text-text-secondary text-sm">
-              {formatDate(dispute.createdAt)}
-            </span>
+            <span className="text-text-secondary text-sm">{formatDate(dispute.createdAt)}</span>
           </div>
           <h3 className="text-lg font-semibold text-text-primary mb-1 truncate">
             {dispute.offerTitle}
           </h3>
-          {counterparty && (
-            <p className="text-text-secondary text-sm mb-1">{counterparty}</p>
-          )}
+          {counterparty && <p className="text-text-secondary text-sm mb-1">{counterparty}</p>}
           <p className="text-text-secondary text-sm mb-2">
             Reason: {DISPUTE_REASON_LABELS[dispute.reason]}
           </p>
-          <p className="text-text-secondary text-sm line-clamp-2">
-            {dispute.description}
-          </p>
+          <p className="text-text-secondary text-sm line-clamp-2">{dispute.description}</p>
         </div>
         <Icon
           path={ICON_PATHS.chevronRight}
@@ -87,8 +81,7 @@ export function DisputeCard({ dispute, detailHref }: DisputeCardProps): React.JS
       {dispute.resolution && (
         <div className={cn("mt-4 p-3 rounded-lg", NEUMORPHIC_INSET)}>
           <p className="text-sm text-text-secondary">
-            <span className="font-medium text-success">Resolution:</span>{" "}
-            {dispute.resolution}
+            <span className="font-medium text-success">Resolution:</span> {dispute.resolution}
           </p>
         </div>
       )}

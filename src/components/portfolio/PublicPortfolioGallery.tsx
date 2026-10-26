@@ -9,19 +9,19 @@ import { PortfolioLightbox, type LightboxState } from "@/components/portfolio/Po
 
 const CARD = cn(
   "rounded-3xl bg-white overflow-hidden",
-  "shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff]",
+  "shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff]"
 );
 
 interface PublicPortfolioGalleryProps {
   projects: PublicPortfolioProject[];
 }
 
-export function PublicPortfolioGallery({ projects }: PublicPortfolioGalleryProps): React.JSX.Element {
+export function PublicPortfolioGallery({
+  projects,
+}: PublicPortfolioGalleryProps): React.JSX.Element {
   const [lightbox, setLightbox] = useState<LightboxState | null>(null);
 
-  const projectIndex = lightbox
-    ? projects.findIndex((p) => p.id === lightbox.project.id)
-    : -1;
+  const projectIndex = lightbox ? projects.findIndex((p) => p.id === lightbox.project.id) : -1;
 
   const openLightbox = useCallback((project: PublicPortfolioProject, imageIndex = 0) => {
     setLightbox({ project, imageIndex });
@@ -31,7 +31,8 @@ export function PublicPortfolioGallery({ projects }: PublicPortfolioGalleryProps
 
   const prevImage = useCallback(() => {
     if (!lightbox) return;
-    const prev = (lightbox.imageIndex - 1 + lightbox.project.images.length) % lightbox.project.images.length;
+    const prev =
+      (lightbox.imageIndex - 1 + lightbox.project.images.length) % lightbox.project.images.length;
     setLightbox({ ...lightbox, imageIndex: prev });
   }, [lightbox]);
 
@@ -56,7 +57,9 @@ export function PublicPortfolioGallery({ projects }: PublicPortfolioGalleryProps
       <div className="flex flex-col items-center justify-center py-20 text-center">
         <Icon path={ICON_PATHS.image} size="xl" className="text-gray-300 mb-4" />
         <p className="text-text-secondary font-medium">No portfolio projects yet</p>
-        <p className="text-sm text-text-secondary mt-1">This freelancer hasn't published any work samples.</p>
+        <p className="text-sm text-text-secondary mt-1">
+          This freelancer hasn't published any work samples.
+        </p>
       </div>
     );
   }
@@ -93,7 +96,8 @@ export function PublicPortfolioGallery({ projects }: PublicPortfolioGalleryProps
 
             <div className="p-4">
               <span className="inline-block mb-2 text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium">
-                {PORTFOLIO_CATEGORY_LABELS[project.category as PortfolioCategory] ?? project.category}
+                {PORTFOLIO_CATEGORY_LABELS[project.category as PortfolioCategory] ??
+                  project.category}
               </span>
               <h3 className="font-semibold text-text-primary text-sm mb-1 line-clamp-1">
                 {project.title}
@@ -106,7 +110,10 @@ export function PublicPortfolioGallery({ projects }: PublicPortfolioGalleryProps
               {project.tags.length > 0 && (
                 <div className="flex flex-wrap gap-1 mb-3">
                   {project.tags.slice(0, 3).map((tag) => (
-                    <span key={tag} className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-text-secondary">
+                    <span
+                      key={tag}
+                      className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-text-secondary"
+                    >
                       {tag}
                     </span>
                   ))}

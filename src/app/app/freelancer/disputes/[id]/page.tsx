@@ -11,16 +11,8 @@ import { ErrorState } from "@/components/ui/ErrorState";
 import { useAuthStore } from "@/stores/auth-store";
 import { getDisputeById } from "@/lib/api/disputes";
 import { EvidenceList } from "@/components/disputes/EvidenceList";
-import {
-  NEUMORPHIC_CARD,
-  NEUMORPHIC_INSET,
-  ICON_BUTTON,
-  PRIMARY_BUTTON,
-} from "@/lib/styles";
-import {
-  DISPUTE_REASON_LABELS,
-  DISPUTE_STATUS_LABELS,
-} from "@/types/dispute.types";
+import { NEUMORPHIC_CARD, NEUMORPHIC_INSET, ICON_BUTTON, PRIMARY_BUTTON } from "@/lib/styles";
+import { DISPUTE_REASON_LABELS, DISPUTE_STATUS_LABELS } from "@/types/dispute.types";
 import type { Dispute, DisputeStatus, DisputeComment } from "@/types/dispute.types";
 import type { EvidenceUploadItem } from "@/components/disputes/EvidenceItem";
 
@@ -175,12 +167,7 @@ export default function FreelancerDisputeDetailPage(): React.JSX.Element {
   }
 
   if (error) {
-    return (
-      <ErrorState
-        message={error}
-        onRetry={() => setRefreshKey((k) => k + 1)}
-      />
-    );
+    return <ErrorState message={error} onRetry={() => setRefreshKey((k) => k + 1)} />;
   }
 
   if (!dispute) {
@@ -196,9 +183,7 @@ export default function FreelancerDisputeDetailPage(): React.JSX.Element {
           >
             <Icon path={ICON_PATHS.flag} size="xl" className="text-text-secondary" />
           </div>
-          <h2 className="text-xl font-bold text-text-primary mb-2">
-            Dispute not found
-          </h2>
+          <h2 className="text-xl font-bold text-text-primary mb-2">Dispute not found</h2>
           <p className="text-text-secondary mb-4">
             The dispute you are looking for does not exist or has been removed.
           </p>
@@ -222,9 +207,7 @@ export default function FreelancerDisputeDetailPage(): React.JSX.Element {
         </Link>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-3 flex-wrap">
-            <h1 className="text-2xl font-bold text-text-primary truncate">
-              {dispute.offerTitle}
-            </h1>
+            <h1 className="text-2xl font-bold text-text-primary truncate">{dispute.offerTitle}</h1>
             <span
               className={cn(
                 "px-3 py-1 rounded-lg text-sm font-medium shrink-0",
@@ -244,9 +227,7 @@ export default function FreelancerDisputeDetailPage(): React.JSX.Element {
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
           <div className="xl:col-span-2 space-y-4">
             <div className={NEUMORPHIC_CARD}>
-              <h2 className="text-lg font-semibold text-text-primary mb-4">
-                Dispute Details
-              </h2>
+              <h2 className="text-lg font-semibold text-text-primary mb-4">Dispute Details</h2>
               <div className="space-y-4">
                 <div className="flex flex-wrap gap-4">
                   <div className="flex-1 min-w-[200px]">
@@ -303,16 +284,11 @@ export default function FreelancerDisputeDetailPage(): React.JSX.Element {
                 {dispute.comments.map((comment) => (
                   <div
                     key={comment.id}
-                    className={cn(
-                      "p-4 rounded-xl border",
-                      COMMENT_ROLE_COLORS[comment.authorRole]
-                    )}
+                    className={cn("p-4 rounded-xl border", COMMENT_ROLE_COLORS[comment.authorRole])}
                   >
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
-                        <span className="font-medium text-text-primary">
-                          {comment.author}
-                        </span>
+                        <span className="font-medium text-text-primary">{comment.author}</span>
                         <span className="text-xs px-2 py-0.5 rounded bg-background text-text-secondary">
                           {COMMENT_ROLE_LABELS[comment.authorRole]}
                         </span>
@@ -360,9 +336,7 @@ export default function FreelancerDisputeDetailPage(): React.JSX.Element {
 
           <div className="space-y-4">
             <div className={NEUMORPHIC_CARD}>
-              <h2 className="text-lg font-semibold text-text-primary mb-4">
-                Timeline
-              </h2>
+              <h2 className="text-lg font-semibold text-text-primary mb-4">Timeline</h2>
               <div className="relative">
                 <div className="absolute left-3 top-0 bottom-0 w-0.5 bg-border" />
                 <div className="space-y-4">
@@ -383,15 +357,11 @@ export default function FreelancerDisputeDetailPage(): React.JSX.Element {
                         />
                       </div>
                       <div className="flex-1 pb-4">
-                        <p className="text-text-primary text-sm font-medium">
-                          {event.description}
-                        </p>
+                        <p className="text-text-primary text-sm font-medium">{event.description}</p>
                         <p className="text-text-secondary text-xs mt-1">
                           {formatDateTime(event.timestamp)}
                         </p>
-                        <p className="text-text-secondary text-xs">
-                          by {event.actor}
-                        </p>
+                        <p className="text-text-secondary text-xs">by {event.actor}</p>
                       </div>
                     </div>
                   ))}
@@ -400,9 +370,7 @@ export default function FreelancerDisputeDetailPage(): React.JSX.Element {
             </div>
 
             <div className={NEUMORPHIC_CARD}>
-              <h2 className="text-lg font-semibold text-text-primary mb-4">
-                Quick Info
-              </h2>
+              <h2 className="text-lg font-semibold text-text-primary mb-4">Quick Info</h2>
               <div className="space-y-3">
                 <InfoRow label="Status">
                   <span
@@ -415,33 +383,23 @@ export default function FreelancerDisputeDetailPage(): React.JSX.Element {
                   </span>
                 </InfoRow>
                 <InfoRow label="Created">
-                  <span className="text-text-primary text-sm">
-                    {formatDate(dispute.createdAt)}
-                  </span>
+                  <span className="text-text-primary text-sm">{formatDate(dispute.createdAt)}</span>
                 </InfoRow>
                 <InfoRow label="Last Updated">
-                  <span className="text-text-primary text-sm">
-                    {formatDate(dispute.updatedAt)}
-                  </span>
+                  <span className="text-text-primary text-sm">{formatDate(dispute.updatedAt)}</span>
                 </InfoRow>
                 <InfoRow label="Evidence Files">
-                  <span className="text-text-primary text-sm">
-                    {dispute.evidence?.length ?? 0}
-                  </span>
+                  <span className="text-text-primary text-sm">{dispute.evidence?.length ?? 0}</span>
                 </InfoRow>
                 <InfoRow label="Comments">
-                  <span className="text-text-primary text-sm">
-                    {dispute.comments.length}
-                  </span>
+                  <span className="text-text-primary text-sm">{dispute.comments.length}</span>
                 </InfoRow>
               </div>
             </div>
 
             {(dispute.status === "open" || dispute.status === "under_review") && (
               <div className={NEUMORPHIC_CARD}>
-                <h2 className="text-lg font-semibold text-text-primary mb-4">
-                  Actions
-                </h2>
+                <h2 className="text-lg font-semibold text-text-primary mb-4">Actions</h2>
                 <div className="space-y-3">
                   <Link
                     href={`/app/chat?dispute=${dispute.id}`}

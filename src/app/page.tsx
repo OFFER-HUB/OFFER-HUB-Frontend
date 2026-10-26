@@ -1,11 +1,6 @@
 import type { Metadata } from "next";
 import dynamic from "next/dynamic";
-import {
-  Footer,
-  HeroSection,
-  Navbar,
-  TrustedBy,
-} from "@/components/landing";
+import { Footer, HeroSection, Navbar, TrustedBy } from "@/components/landing";
 import { generatePageMetadata } from "@/lib/seo";
 
 // Lazy load below-the-fold sections for better initial page load
@@ -19,15 +14,13 @@ const FeaturesSection = dynamic(
   { loading: () => <SectionSkeleton /> }
 );
 
-const HowItWorks = dynamic(
-  () => import("@/components/landing").then((mod) => mod.HowItWorks),
-  { loading: () => <SectionSkeleton /> }
-);
+const HowItWorks = dynamic(() => import("@/components/landing").then((mod) => mod.HowItWorks), {
+  loading: () => <SectionSkeleton />,
+});
 
-const CTASection = dynamic(
-  () => import("@/components/landing").then((mod) => mod.CTASection),
-  { loading: () => <SectionSkeleton /> }
-);
+const CTASection = dynamic(() => import("@/components/landing").then((mod) => mod.CTASection), {
+  loading: () => <SectionSkeleton />,
+});
 
 function SectionSkeleton() {
   return (

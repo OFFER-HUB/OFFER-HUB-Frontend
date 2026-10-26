@@ -95,7 +95,9 @@ export function LeaveReviewModal({
       setIsSuccess(true);
     } catch (submitError) {
       setError(
-        submitError instanceof Error ? submitError.message : "Failed to submit review. Please try again."
+        submitError instanceof Error
+          ? submitError.message
+          : "Failed to submit review. Please try again."
       );
     } finally {
       setIsSubmitting(false);
@@ -168,7 +170,9 @@ export function LeaveReviewModal({
                 <div className={cn("rounded-2xl", NEUMORPHIC_INSET)}>
                   <textarea
                     value={comment}
-                    onChange={(event) => setComment(event.target.value.slice(0, MAX_COMMENT_LENGTH))}
+                    onChange={(event) =>
+                      setComment(event.target.value.slice(0, MAX_COMMENT_LENGTH))
+                    }
                     rows={5}
                     placeholder="What went well? What should future clients know about this experience?"
                     className="w-full resize-none bg-transparent p-4 text-text-primary outline-none placeholder:text-text-secondary/60"
@@ -177,7 +181,9 @@ export function LeaveReviewModal({
                 <div className="mt-2 flex items-center justify-between gap-3 text-sm">
                   <p
                     className={cn(
-                      comment.trim().length >= MIN_COMMENT_LENGTH ? "text-success" : "text-text-secondary"
+                      comment.trim().length >= MIN_COMMENT_LENGTH
+                        ? "text-success"
+                        : "text-text-secondary"
                     )}
                   >
                     Minimum {MIN_COMMENT_LENGTH} characters

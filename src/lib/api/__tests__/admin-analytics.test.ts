@@ -19,91 +19,96 @@ const TOKEN = "test-token";
  * GET /admin/analytics?from=2026-08-12T00:00:00.000Z&to=2026-09-11T23:59:59.999Z&granularity=week
  */
 const REAL_PAYLOAD: PlatformAnalytics = {
-    "period": {
-      "from": "2026-08-12T00:00:00.000Z",
-      "to": "2026-09-11T23:59:59.999Z"
+  period: {
+    from: "2026-08-12T00:00:00.000Z",
+    to: "2026-09-11T23:59:59.999Z",
+  },
+  users: {
+    total: 18,
+    active: 18,
+    newThisPeriod: 14,
+    growthRate: 250,
+  },
+  orders: {
+    total: 6,
+    completed: 3,
+    inProgress: 1,
+    canceled: 1,
+    totalVolume: "155.00",
+    averageValue: "51.67",
+  },
+  disputes: {
+    total: 0,
+    open: 0,
+    resolved: 0,
+    rate: 0,
+  },
+  withdrawals: {
+    total: 0,
+    totalVolume: "0.00",
+  },
+  services: {
+    total: 0,
+    byCategory: {},
+  },
+  comparison: {
+    users: {
+      current: 14,
+      previous: 4,
+      changePercent: 250,
     },
-    "users": {
-      "total": 18,
-      "active": 18,
-      "newThisPeriod": 14,
-      "growthRate": 250
+    orders: {
+      current: 6,
+      previous: 0,
+      changePercent: 100,
     },
-    "orders": {
-      "total": 6,
-      "completed": 3,
-      "inProgress": 1,
-      "canceled": 1,
-      "totalVolume": "155.00",
-      "averageValue": "51.67"
+    volume: {
+      current: "155.00",
+      previous: "0.00",
+      changePercent: 100,
     },
-    "disputes": {
-      "total": 0,
-      "open": 0,
-      "resolved": 0,
-      "rate": 0
+  },
+  timeSeries: [
+    {
+      label: "2026-08-12",
+      orders: 0,
+      newUsers: 2,
+      volume: "0.00",
     },
-    "withdrawals": {
-      "total": 0,
-      "totalVolume": "0.00"
+    {
+      label: "2026-08-19",
+      orders: 0,
+      newUsers: 0,
+      volume: "0.00",
     },
-    "services": {
-      "total": 0,
-      "byCategory": {}
+    {
+      label: "2026-08-26",
+      orders: 0,
+      newUsers: 0,
+      volume: "0.00",
     },
-    "comparison": {
-      "users": {
-        "current": 14,
-        "previous": 4,
-        "changePercent": 250
-      },
-      "orders": {
-        "current": 6,
-        "previous": 0,
-        "changePercent": 100
-      },
-      "volume": {
-        "current": "155.00",
-        "previous": "0.00",
-        "changePercent": 100
-      }
+    {
+      label: "2026-09-02",
+      orders: 0,
+      newUsers: 0,
+      volume: "0.00",
     },
-    "timeSeries": [
-      {
-        "label": "2026-08-12",
-        "orders": 0,
-        "newUsers": 2,
-        "volume": "0.00"
-      },
-      {
-        "label": "2026-08-19",
-        "orders": 0,
-        "newUsers": 0,
-        "volume": "0.00"
-      },
-      {
-        "label": "2026-08-26",
-        "orders": 0,
-        "newUsers": 0,
-        "volume": "0.00"
-      },
-      {
-        "label": "2026-09-02",
-        "orders": 0,
-        "newUsers": 0,
-        "volume": "0.00"
-      },
-      {
-        "label": "2026-09-09",
-        "orders": 6,
-        "newUsers": 12,
-        "volume": "155.00"
-      }
-    ]
-  };
+    {
+      label: "2026-09-09",
+      orders: 6,
+      newUsers: 12,
+      volume: "155.00",
+    },
+  ],
+};
 
 function jsonResponse(body: unknown, ok = true, status = 200) {
-  return { ok, status, json: vi.fn().mockResolvedValue(body), blob: vi.fn().mockResolvedValue(new Blob(["a,b"])) };
+  return {
+    ok,
+    status,
+    json: vi.fn().mockResolvedValue(body),
+    blob: vi.fn().mockResolvedValue(new Blob(["a,b"])),
+  };
 }
 
 function lastCall() {
@@ -165,7 +170,10 @@ describe("toAdminAnalyticsData", () => {
   });
 
   it("does not let a malformed decimal string become NaN", () => {
-    const broken: PlatformAnalytics = { ...REAL_PAYLOAD, orders: { ...REAL_PAYLOAD.orders, totalVolume: "n/a" } };
+    const broken: PlatformAnalytics = {
+      ...REAL_PAYLOAD,
+      orders: { ...REAL_PAYLOAD.orders, totalVolume: "n/a" },
+    };
     expect(toAdminAnalyticsData(broken).stats.transactionVolume).toBe(0);
   });
 });
@@ -195,12 +203,16 @@ describe("buildAnalyticsSearchParams", () => {
 
 describe("getAdminAnalytics", () => {
   it("GETs /admin/analytics with the range and returns the mapped view model", async () => {
-    global.fetch = vi.fn().mockResolvedValue(jsonResponse({ data: REAL_PAYLOAD })) as unknown as typeof fetch;
+    global.fetch = vi
+      .fn()
+      .mockResolvedValue(jsonResponse({ data: REAL_PAYLOAD })) as unknown as typeof fetch;
 
     const result = await getAdminAnalytics(TOKEN, { start: "2026-08-12", end: "2026-09-11" });
 
     const [url, init] = lastCall();
-    expect(url).toBe(`${BASE}/admin/analytics?from=2026-08-12T00%3A00%3A00.000Z&to=2026-09-11T23%3A59%3A59.999Z&granularity=day`);
+    expect(url).toBe(
+      `${BASE}/admin/analytics?from=2026-08-12T00%3A00%3A00.000Z&to=2026-09-11T23%3A59%3A59.999Z&granularity=day`
+    );
     expect((init.headers as Record<string, string>).Authorization).toBe(`Bearer ${TOKEN}`);
     expect(result.stats.totalUsers).toBe(18);
     expect(result.trends).toHaveLength(5);
@@ -209,9 +221,17 @@ describe("getAdminAnalytics", () => {
   it("surfaces the backend error message on a non-2xx", async () => {
     global.fetch = vi
       .fn()
-      .mockResolvedValue(jsonResponse({ error: { code: "INSUFFICIENT_SCOPE", message: "Admin access required" } }, false, 403)) as unknown as typeof fetch;
+      .mockResolvedValue(
+        jsonResponse(
+          { error: { code: "INSUFFICIENT_SCOPE", message: "Admin access required" } },
+          false,
+          403
+        )
+      ) as unknown as typeof fetch;
 
-    await expect(getAdminAnalytics(TOKEN, { start: "2026-08-12", end: "2026-09-11" })).rejects.toThrow("Admin access required");
+    await expect(
+      getAdminAnalytics(TOKEN, { start: "2026-08-12", end: "2026-09-11" })
+    ).rejects.toThrow("Admin access required");
   });
 });
 

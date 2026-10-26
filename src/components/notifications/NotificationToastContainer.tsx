@@ -24,10 +24,7 @@ export function NotificationToastContainer(): React.JSX.Element {
       const latest = state.notifications[0];
       const previous = prevState.notifications[0];
       if (latest && latest !== previous && !latest.isRead) {
-        setToasts((prev) => [
-          { id: latest.id, notification: latest },
-          ...prev.slice(0, 4),
-        ]);
+        setToasts((prev) => [{ id: latest.id, notification: latest }, ...prev.slice(0, 4)]);
       }
     });
   }, []);
@@ -42,10 +39,7 @@ export function NotificationToastContainer(): React.JSX.Element {
     >
       {toasts.map((t) => (
         <div key={t.id} className="pointer-events-auto">
-          <NotificationToast
-            notification={t.notification}
-            onDismiss={() => dismiss(t.id)}
-          />
+          <NotificationToast notification={t.notification} onDismiss={() => dismiss(t.id)} />
         </div>
       ))}
     </div>

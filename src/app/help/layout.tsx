@@ -8,10 +8,6 @@ export const metadata: Metadata = generatePageMetadata({
   path: "/help",
 });
 
-export default function HelpLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function HelpLayout({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }

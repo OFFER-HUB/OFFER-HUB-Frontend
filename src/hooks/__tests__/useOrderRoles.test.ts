@@ -13,7 +13,8 @@ const ORDER: Order = {
 } as Order;
 
 function roles(order: Order) {
-  return renderHook(() => useOrderRoles({ order, review: null, isReviewLoading: false })).result.current;
+  return renderHook(() => useOrderRoles({ order, review: null, isReviewLoading: false })).result
+    .current;
 }
 
 beforeEach(() => {
@@ -42,8 +43,22 @@ describe("useOrderRoles — delivery and refund gating", () => {
     const r = roles({
       ...ORDER,
       milestones: [
-        { id: "m1", orderId: "ord_1", title: "Design", description: "", amount: "50.00", status: "COMPLETED" },
-        { id: "m2", orderId: "ord_1", title: "Build", description: "", amount: "100.00", status: "OPEN" },
+        {
+          id: "m1",
+          orderId: "ord_1",
+          title: "Design",
+          description: "",
+          amount: "50.00",
+          status: "COMPLETED",
+        },
+        {
+          id: "m2",
+          orderId: "ord_1",
+          title: "Build",
+          description: "",
+          amount: "100.00",
+          status: "OPEN",
+        },
       ],
     });
     expect(r.isWorkCompleted).toBe(false);
@@ -53,7 +68,16 @@ describe("useOrderRoles — delivery and refund gating", () => {
   it("open milestones alone do not gate the refund", () => {
     const r = roles({
       ...ORDER,
-      milestones: [{ id: "m1", orderId: "ord_1", title: "Design", description: "", amount: "50.00", status: "OPEN" }],
+      milestones: [
+        {
+          id: "m1",
+          orderId: "ord_1",
+          title: "Design",
+          description: "",
+          amount: "50.00",
+          status: "OPEN",
+        },
+      ],
     });
     expect(r.refundRequiresDispute).toBe(false);
   });

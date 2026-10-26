@@ -35,7 +35,7 @@ export interface UseOrderDataResult {
 }
 
 /** Nothing changes on an order once it reaches this status — stop polling. */
-const TERMINAL_STATUS: OrderStatus = 'CLOSED';
+const TERMINAL_STATUS: OrderStatus = "CLOSED";
 
 /** How often the order is re-read in the background while the tab is visible. */
 const POLL_INTERVAL_MS = 15_000;

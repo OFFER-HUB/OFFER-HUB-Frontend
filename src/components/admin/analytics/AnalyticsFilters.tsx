@@ -88,7 +88,10 @@ export function AnalyticsFilters({
           {/* Custom Date Range — Sunken inputs with zero borders */}
           <div className="flex flex-wrap items-center gap-3">
             <div className="flex items-center gap-2">
-              <label htmlFor="start-date" className="text-xs font-medium text-text-secondary whitespace-nowrap">
+              <label
+                htmlFor="start-date"
+                className="text-xs font-medium text-text-secondary whitespace-nowrap"
+              >
                 From:
               </label>
               <input
@@ -104,7 +107,10 @@ export function AnalyticsFilters({
               />
             </div>
             <div className="flex items-center gap-2">
-              <label htmlFor="end-date" className="text-xs font-medium text-text-secondary whitespace-nowrap">
+              <label
+                htmlFor="end-date"
+                className="text-xs font-medium text-text-secondary whitespace-nowrap"
+              >
                 To:
               </label>
               <input

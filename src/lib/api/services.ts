@@ -5,18 +5,18 @@ import type { ServiceOrder } from "@/types/service.types";
 const API_BASE_URL = API_URL;
 
 // Backend types (match API response structure)
-export type ServiceStatus = 'ACTIVE' | 'PAUSED' | 'ARCHIVED';
+export type ServiceStatus = "ACTIVE" | "PAUSED" | "ARCHIVED";
 
 export type ServiceCategory =
-  | 'WEB_DEVELOPMENT'
-  | 'MOBILE_DEVELOPMENT'
-  | 'DESIGN'
-  | 'WRITING'
-  | 'MARKETING'
-  | 'VIDEO'
-  | 'MUSIC'
-  | 'DATA'
-  | 'OTHER';
+  | "WEB_DEVELOPMENT"
+  | "MOBILE_DEVELOPMENT"
+  | "DESIGN"
+  | "WRITING"
+  | "MARKETING"
+  | "VIDEO"
+  | "MUSIC"
+  | "DATA"
+  | "OTHER";
 
 export interface Service {
   id: string;
@@ -61,17 +61,17 @@ export async function createService(
   payload: CreateServicePayload
 ): Promise<Service> {
   const response = await fetch(`${API_BASE_URL}/services`, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
     },
     body: JSON.stringify(payload),
   });
 
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.error?.message || 'Failed to create service');
+    throw new Error(error.error?.message || "Failed to create service");
   }
 
   const data = await response.json();
@@ -84,14 +84,14 @@ export async function createService(
 export async function getMyServices(token: string): Promise<Service[]> {
   const response = await fetch(`${API_BASE_URL}/services`, {
     headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
     },
   });
 
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.error?.message || 'Failed to fetch services');
+    throw new Error(error.error?.message || "Failed to fetch services");
   }
 
   const responseData = await response.json();
@@ -103,20 +103,17 @@ export async function getMyServices(token: string): Promise<Service[]> {
 /**
  * Get a single service by ID
  */
-export async function getServiceById(
-  token: string,
-  serviceId: string
-): Promise<Service> {
+export async function getServiceById(token: string, serviceId: string): Promise<Service> {
   const response = await fetch(`${API_BASE_URL}/services/${serviceId}`, {
     headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
     },
   });
 
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.error?.message || 'Failed to fetch service');
+    throw new Error(error.error?.message || "Failed to fetch service");
   }
 
   const data = await response.json();
@@ -132,17 +129,17 @@ export async function updateService(
   payload: UpdateServicePayload
 ): Promise<Service> {
   const response = await fetch(`${API_BASE_URL}/services/${serviceId}`, {
-    method: 'PUT',
+    method: "PUT",
     headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
     },
     body: JSON.stringify(payload),
   });
 
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.error?.message || 'Failed to update service');
+    throw new Error(error.error?.message || "Failed to update service");
   }
 
   const data = await response.json();
@@ -158,17 +155,17 @@ export async function updateServiceStatus(
   payload: UpdateServiceStatusPayload
 ): Promise<Service> {
   const response = await fetch(`${API_BASE_URL}/services/${serviceId}/status`, {
-    method: 'PATCH',
+    method: "PATCH",
     headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
     },
     body: JSON.stringify(payload),
   });
 
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.error?.message || 'Failed to update service status');
+    throw new Error(error.error?.message || "Failed to update service status");
   }
 
   const data = await response.json();
@@ -178,41 +175,35 @@ export async function updateServiceStatus(
 /**
  * Delete a service
  */
-export async function deleteService(
-  token: string,
-  serviceId: string
-): Promise<void> {
+export async function deleteService(token: string, serviceId: string): Promise<void> {
   const response = await fetch(`${API_BASE_URL}/services/${serviceId}`, {
-    method: 'DELETE',
+    method: "DELETE",
     headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
     },
   });
 
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.error?.message || 'Failed to delete service');
+    throw new Error(error.error?.message || "Failed to delete service");
   }
 }
 
 /**
  * Get orders for a service
  */
-export async function getServiceOrders(
-  token: string,
-  serviceId: string
-): Promise<ServiceOrder[]> {
+export async function getServiceOrders(token: string, serviceId: string): Promise<ServiceOrder[]> {
   const response = await fetch(`${API_BASE_URL}/services/${serviceId}/orders`, {
     headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
     },
   });
 
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.error?.message || 'Failed to fetch service orders');
+    throw new Error(error.error?.message || "Failed to fetch service orders");
   }
 
   const data = await response.json();
@@ -228,17 +219,17 @@ export async function hireService(
   requirements?: string
 ): Promise<Order> {
   const response = await fetch(`${API_BASE_URL}/services/${serviceId}/hire`, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
     },
     body: JSON.stringify({ requirements }),
   });
 
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.error?.message || 'Failed to hire service');
+    throw new Error(error.error?.message || "Failed to hire service");
   }
 
   const data = await response.json();

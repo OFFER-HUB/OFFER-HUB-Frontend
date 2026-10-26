@@ -20,8 +20,8 @@ export function ApplyModal({
   offerTitle,
   offerBudget,
 }: ApplyModalProps): React.JSX.Element | null {
-  const [coverLetter, setCoverLetter] = useState('');
-  const [proposedRate, setProposedRate] = useState('');
+  const [coverLetter, setCoverLetter] = useState("");
+  const [proposedRate, setProposedRate] = useState("");
   const [errors, setErrors] = useState<{ coverLetter?: string; proposedRate?: string }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -31,13 +31,13 @@ export function ApplyModal({
     const newErrors: typeof errors = {};
 
     if (!coverLetter.trim()) {
-      newErrors.coverLetter = 'Cover letter is required';
+      newErrors.coverLetter = "Cover letter is required";
     } else if (coverLetter.length < 50) {
-      newErrors.coverLetter = 'Cover letter must be at least 50 characters';
+      newErrors.coverLetter = "Cover letter must be at least 50 characters";
     }
 
     if (proposedRate && !/^\d+(\.\d{1,2})?$/.test(proposedRate)) {
-      newErrors.proposedRate = 'Invalid rate format';
+      newErrors.proposedRate = "Invalid rate format";
     }
 
     setErrors(newErrors);
@@ -52,20 +52,20 @@ export function ApplyModal({
     setIsSubmitting(true);
     try {
       await onSubmit(coverLetter, proposedRate || undefined);
-      setCoverLetter('');
-      setProposedRate('');
+      setCoverLetter("");
+      setProposedRate("");
       setErrors({});
       onClose();
     } catch (error) {
-      console.error('Failed to submit application:', error);
+      console.error("Failed to submit application:", error);
     } finally {
       setIsSubmitting(false);
     }
   }
 
   function handleClose() {
-    setCoverLetter('');
-    setProposedRate('');
+    setCoverLetter("");
+    setProposedRate("");
     setErrors({});
     onClose();
   }
@@ -118,9 +118,7 @@ export function ApplyModal({
               )}
               placeholder="I'm interested in this project because..."
             />
-            <p className="text-xs text-text-secondary mt-1">
-              {coverLetter.length}/50 characters
-            </p>
+            <p className="text-xs text-text-secondary mt-1">{coverLetter.length}/50 characters</p>
           </FormField>
 
           <FormField
@@ -130,7 +128,9 @@ export function ApplyModal({
             optional
           >
             <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary">$</span>
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary">
+                $
+              </span>
               <input
                 type="text"
                 value={proposedRate}
@@ -176,7 +176,7 @@ export function ApplyModal({
                   <span>Submitting...</span>
                 </span>
               ) : (
-                'Submit Application'
+                "Submit Application"
               )}
             </button>
           </div>

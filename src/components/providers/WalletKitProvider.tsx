@@ -96,13 +96,13 @@ export function WalletKitProvider({ children }: WalletKitProviderProps) {
   const address = useSyncExternalStore(
     subscribeToKitState,
     getAddressSnapshot,
-    getServerAddressSnapshot,
+    getServerAddressSnapshot
   );
 
   const isReady = useSyncExternalStore(
     subscribeToNothing,
     getIsBrowserSnapshot,
-    getIsServerSnapshot,
+    getIsServerSnapshot
   );
 
   const value = useMemo<WalletKitContextValue>(
@@ -112,7 +112,7 @@ export function WalletKitProvider({ children }: WalletKitProviderProps) {
       network: STELLAR_NETWORK,
       networkPassphrase: activeNetworkPassphrase,
     }),
-    [isReady, address],
+    [isReady, address]
   );
 
   return (

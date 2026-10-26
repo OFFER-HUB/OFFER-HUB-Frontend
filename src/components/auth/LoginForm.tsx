@@ -15,8 +15,15 @@ const AUTH_TABS: ReadonlyArray<{ id: AuthTabId; label: string }> = [
 ];
 
 export function LoginForm() {
-  const { formData, errors, isLoading, showSuccessMessage, handleChange, handleSubmit, handleWalletSignedIn } =
-    useLoginForm();
+  const {
+    formData,
+    errors,
+    isLoading,
+    showSuccessMessage,
+    handleChange,
+    handleSubmit,
+    handleWalletSignedIn,
+  } = useLoginForm();
 
   // Email stays the default: it is what every existing account uses, and the
   // wallet path is additive rather than a replacement.
@@ -148,11 +155,7 @@ export function LoginForm() {
             <WalletSignInButton disabled={isLoading} onSignedIn={handleWalletSignedIn} />
           </div>
         ) : (
-          <div
-            role="tabpanel"
-            id="auth-panel-email"
-            aria-labelledby="auth-tab-email"
-          >
+          <div role="tabpanel" id="auth-panel-email" aria-labelledby="auth-tab-email">
             {/* Social Auth */}
             <SocialAuthButtons />
 
@@ -173,9 +176,7 @@ export function LoginForm() {
               />
 
               <div>
-                <label className="block text-sm font-medium text-text-primary mb-2">
-                  Password
-                </label>
+                <label className="block text-sm font-medium text-text-primary mb-2">Password</label>
                 <AuthInput
                   label=""
                   type="password"

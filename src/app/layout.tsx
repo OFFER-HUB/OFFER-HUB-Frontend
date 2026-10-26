@@ -16,10 +16,7 @@ export const metadata: Metadata = {
   description: SITE_CONFIG.description,
   metadataBase: new URL(SITE_CONFIG.url),
   icons: {
-    icon: [
-      { url: "/icon.svg", type: "image/svg+xml" },
-      { url: "/favicon.ico" },
-    ],
+    icon: [{ url: "/icon.svg", type: "image/svg+xml" }, { url: "/favicon.ico" }],
     shortcut: "/icon.svg",
     apple: "/apple-icon.png",
   },

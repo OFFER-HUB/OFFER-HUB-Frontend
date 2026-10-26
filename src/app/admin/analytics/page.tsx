@@ -17,7 +17,9 @@ function PageHeader({ children }: { children?: React.ReactNode }): React.JSX.Ele
     <div className="flex items-center justify-between">
       <div>
         <h1 className="text-2xl font-bold text-text-primary">Analytics Dashboard</h1>
-        <p className="text-text-secondary mt-1">Platform-wide metrics and insights for business monitoring</p>
+        <p className="text-text-secondary mt-1">
+          Platform-wide metrics and insights for business monitoring
+        </p>
       </div>
       {children}
     </div>
@@ -47,7 +49,11 @@ export default function AdminAnalyticsPage(): React.JSX.Element {
       {analytics.isLoading ? (
         <LoadingState message="Loading analytics data..." />
       ) : analytics.error ? (
-        <ErrorState title="Failed to Load Analytics" message={analytics.error} onRetry={analytics.refetch} />
+        <ErrorState
+          title="Failed to Load Analytics"
+          message={analytics.error}
+          onRetry={analytics.refetch}
+        />
       ) : !analytics.data ? (
         <ErrorState title="No Data Available" message="Unable to load analytics data." />
       ) : (

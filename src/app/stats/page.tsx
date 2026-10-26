@@ -80,15 +80,21 @@ export default function PlatformStatsPage(): React.JSX.Element {
             <h1 className="text-3xl sm:text-4xl font-bold text-text-primary mb-4 animate-fade-in-up">
               Platform Stats
             </h1>
-            <p className="text-text-secondary max-w-2xl mx-auto text-base animate-fade-in-up" style={{ animationDelay: "0.1s" }}>
-              Real-time insights and transparent key metrics showcasing user registration, secure wallet generation, and transaction volume.
+            <p
+              className="text-text-secondary max-w-2xl mx-auto text-base animate-fade-in-up"
+              style={{ animationDelay: "0.1s" }}
+            >
+              Real-time insights and transparent key metrics showcasing user registration, secure
+              wallet generation, and transaction volume.
             </p>
           </div>
 
           {isLoading ? (
             <div className="flex flex-col items-center justify-center py-24 gap-4">
               <LoadingSpinner size="lg" className="text-primary" />
-              <p className="text-sm text-text-secondary animate-pulse">Syncing platform metrics...</p>
+              <p className="text-sm text-text-secondary animate-pulse">
+                Syncing platform metrics...
+              </p>
             </div>
           ) : error ? (
             <div className="p-8 rounded-3xl bg-white text-center shadow-[var(--shadow-neumorphic-light)] max-w-md mx-auto">
@@ -169,13 +175,16 @@ export default function PlatformStatsPage(): React.JSX.Element {
                     Recent Generated Stellar Wallets
                   </h2>
                   <p className="text-sm text-text-secondary mt-1">
-                    Decentralized accounts dynamically compiled on-chain to handle secure payments, milestones, and dispute resolution.
+                    Decentralized accounts dynamically compiled on-chain to handle secure payments,
+                    milestones, and dispute resolution.
                   </p>
                 </div>
 
                 {data.recentWallets.length === 0 ? (
                   <div className="py-12 text-center border-2 border-dashed border-border-light rounded-2xl bg-background">
-                    <p className="text-sm text-text-secondary">No Stellar wallets have been initialized yet.</p>
+                    <p className="text-sm text-text-secondary">
+                      No Stellar wallets have been initialized yet.
+                    </p>
                   </div>
                 ) : (
                   <div className="space-y-4">
@@ -193,7 +202,10 @@ export default function PlatformStatsPage(): React.JSX.Element {
                             const truncatedKey = `${wallet.publicKey.slice(0, 10)}…${wallet.publicKey.slice(-10)}`;
                             const isCopied = copiedId === wallet.id;
                             return (
-                              <tr key={wallet.id} className="border-b border-border-light hover:bg-background/20 transition-colors last:border-0">
+                              <tr
+                                key={wallet.id}
+                                className="border-b border-border-light hover:bg-background/20 transition-colors last:border-0"
+                              >
                                 <td className="py-4 px-6 font-mono text-sm text-text-primary select-all">
                                   <div className="flex items-center gap-2">
                                     <span>{truncatedKey}</span>
@@ -202,7 +214,11 @@ export default function PlatformStatsPage(): React.JSX.Element {
                                       className="p-1.5 rounded-lg text-text-secondary hover:text-primary hover:bg-background transition-colors active:scale-95"
                                       title="Copy full address"
                                     >
-                                      <Icon path={isCopied ? ICON_PATHS.check : ICON_PATHS.copy} size="sm" className={isCopied ? "text-success" : ""} />
+                                      <Icon
+                                        path={isCopied ? ICON_PATHS.check : ICON_PATHS.copy}
+                                        size="sm"
+                                        className={isCopied ? "text-success" : ""}
+                                      />
                                     </button>
                                     {isCopied && (
                                       <span className="text-xs text-success font-semibold px-2 py-0.5 rounded bg-success/10 border border-success/20 animate-fade-in">
@@ -255,13 +271,16 @@ export default function PlatformStatsPage(): React.JSX.Element {
                     Recent Generated Escrows
                   </h2>
                   <p className="text-sm text-text-secondary mt-1">
-                    Smart contract-backed escrow accounts holding project funds securely on the Stellar blockchain.
+                    Smart contract-backed escrow accounts holding project funds securely on the
+                    Stellar blockchain.
                   </p>
                 </div>
 
                 {!data.recentEscrows || data.recentEscrows.length === 0 ? (
                   <div className="py-12 text-center border-2 border-dashed border-border-light rounded-2xl bg-background">
-                    <p className="text-sm text-text-secondary">No escrow accounts have been initialized yet.</p>
+                    <p className="text-sm text-text-secondary">
+                      No escrow accounts have been initialized yet.
+                    </p>
                   </div>
                 ) : (
                   <div className="space-y-4">
@@ -285,25 +304,36 @@ export default function PlatformStatsPage(): React.JSX.Element {
                               : `Creating...`;
                             const displayId = escrow.id;
                             const truncatedEscrowId = `${displayId.slice(0, 10)}…${displayId.slice(-10)}`;
-                            
+
                             return (
-                              <tr key={escrow.id} className="border-b border-border-light hover:bg-background/20 transition-colors last:border-0">
+                              <tr
+                                key={escrow.id}
+                                className="border-b border-border-light hover:bg-background/20 transition-colors last:border-0"
+                              >
                                 <td className="py-4 px-6 font-mono text-sm text-text-primary select-all">
                                   <div className="flex flex-col gap-1 justify-start items-start">
                                     <div className="flex items-center gap-2">
-                                      <span className="text-xs font-semibold text-text-secondary">Escrow:</span>
+                                      <span className="text-xs font-semibold text-text-secondary">
+                                        Escrow:
+                                      </span>
                                       <span>{truncatedEscrowId}</span>
                                     </div>
                                     {contractId && (
                                       <div className="flex items-center gap-2">
-                                        <span className="text-xs font-semibold text-text-secondary">Contract:</span>
+                                        <span className="text-xs font-semibold text-text-secondary">
+                                          Contract:
+                                        </span>
                                         <span className="text-xs">{truncatedContract}</span>
                                         <button
                                           onClick={() => handleCopy(contractId, escrow.id)}
                                           className="p-1.5 rounded-lg text-text-secondary hover:text-primary hover:bg-background transition-colors active:scale-95"
                                           title="Copy contract ID"
                                         >
-                                          <Icon path={isCopied ? ICON_PATHS.check : ICON_PATHS.copy} size="sm" className={isCopied ? "text-success" : ""} />
+                                          <Icon
+                                            path={isCopied ? ICON_PATHS.check : ICON_PATHS.copy}
+                                            size="sm"
+                                            className={isCopied ? "text-success" : ""}
+                                          />
                                         </button>
                                         {isCopied && (
                                           <span className="text-xs text-success font-semibold px-2 py-0.5 rounded bg-success/10 border border-success/20 animate-fade-in">
@@ -318,7 +348,12 @@ export default function PlatformStatsPage(): React.JSX.Element {
                                   ${parseFloat(escrow.amount).toFixed(2)} USDC
                                 </td>
                                 <td className="py-4 px-6 text-sm">
-                                  <span className={cn("px-2.5 py-1 text-xs font-bold rounded-lg border", getEscrowStatusBadge(escrow.status))}>
+                                  <span
+                                    className={cn(
+                                      "px-2.5 py-1 text-xs font-bold rounded-lg border",
+                                      getEscrowStatusBadge(escrow.status)
+                                    )}
+                                  >
                                     {escrow.status}
                                   </span>
                                 </td>
@@ -337,7 +372,9 @@ export default function PlatformStatsPage(): React.JSX.Element {
                                       <Icon path={ICON_PATHS.externalLink} size="sm" />
                                     </a>
                                   ) : (
-                                    <span className="text-xs text-text-secondary italic">Pending Contract</span>
+                                    <span className="text-xs text-text-secondary italic">
+                                      Pending Contract
+                                    </span>
                                   )}
                                 </td>
                               </tr>

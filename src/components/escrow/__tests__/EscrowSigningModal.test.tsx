@@ -9,14 +9,16 @@ const onClose = vi.fn();
 
 const TX_HASH = "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4";
 
-function setup(overrides: {
-  state?: EscrowSigningState;
-  error?: EscrowSigningError | null;
-  transactionHash?: string | null;
-  walletName?: string | null;
-  operation?: import("@/lib/api/escrow").EscrowOperation;
-  step?: import("@/lib/api/escrow").EscrowStepName | null;
-} = {}) {
+function setup(
+  overrides: {
+    state?: EscrowSigningState;
+    error?: EscrowSigningError | null;
+    transactionHash?: string | null;
+    walletName?: string | null;
+    operation?: import("@/lib/api/escrow").EscrowOperation;
+    step?: import("@/lib/api/escrow").EscrowStepName | null;
+  } = {}
+) {
   return render(
     <EscrowSigningModal
       isOpen
@@ -96,7 +98,9 @@ describe("EscrowSigningModal — awaiting_signature", () => {
       step: "approve_milestone",
     });
     expect(screen.getByText(/Approve Delivery \(Milestone Review\)/i)).toBeInTheDocument();
-    expect(screen.getByText(/Non-custodial escrow: only this specific on-chain action is authorized/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Non-custodial escrow: only this specific on-chain action is authorized/i)
+    ).toBeInTheDocument();
   });
 
   it("hides the header close button and cannot be dismissed via backdrop or Escape", async () => {
@@ -176,7 +180,9 @@ describe("EscrowSigningModal — error states", () => {
     setup({ state: "error", error: { code: "USER_REJECTED", message: "declined" } });
 
     expect(screen.getByText(/you cancelled the signing\. try again\?/i)).toBeInTheDocument();
-    expect(screen.getByText(/No funds were moved and no smart contract state was altered/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/No funds were moved and no smart contract state was altered/i)
+    ).toBeInTheDocument();
 
     await userEvent.click(screen.getByRole("button", { name: /retry/i }));
     expect(onRetry).toHaveBeenCalledOnce();
@@ -199,7 +205,8 @@ describe("EscrowSigningModal — error states", () => {
       state: "error",
       error: {
         code: "STALE_TRANSACTION",
-        message: "Stellar rejected this transaction. It may be stale because a newer request was already prepared for the same step — please retry to sign a fresh transaction.",
+        message:
+          "Stellar rejected this transaction. It may be stale because a newer request was already prepared for the same step — please retry to sign a fresh transaction.",
       },
     });
 
@@ -212,7 +219,10 @@ describe("EscrowSigningModal — error states", () => {
   it("a generic API error shows its own message with Retry and Cancel", () => {
     setup({
       state: "error",
-      error: { code: "API_ERROR", message: "Cannot prepare create escrow order in state ORDER_CREATED" },
+      error: {
+        code: "API_ERROR",
+        message: "Cannot prepare create escrow order in state ORDER_CREATED",
+      },
     });
 
     expect(

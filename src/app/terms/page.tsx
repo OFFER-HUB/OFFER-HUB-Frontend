@@ -6,7 +6,8 @@ import { generatePageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = generatePageMetadata({
   title: "Terms of Service",
-  description: "Read the Terms of Service for OFFER HUB. Understand your rights and responsibilities when using our freelancing marketplace platform.",
+  description:
+    "Read the Terms of Service for OFFER HUB. Understand your rights and responsibilities when using our freelancing marketplace platform.",
   path: "/terms",
 });
 
@@ -23,9 +24,7 @@ export default function TermsPage(): React.JSX.Element {
               <h1 className="text-3xl lg:text-4xl font-bold text-text-primary mb-4">
                 Terms of Service
               </h1>
-              <p className="text-text-secondary">
-                Last updated: {LAST_UPDATED}
-              </p>
+              <p className="text-text-secondary">Last updated: {LAST_UPDATED}</p>
             </header>
 
             <div className="prose prose-lg max-w-none">
@@ -34,9 +33,9 @@ export default function TermsPage(): React.JSX.Element {
                   1. Acceptance of Terms
                 </h2>
                 <p className="text-text-secondary mb-4">
-                  By accessing or using OFFER HUB (&quot;the Platform&quot;), you agree to be bound by these
-                  Terms of Service (&quot;Terms&quot;). If you do not agree to these Terms, please do not
-                  use our services.
+                  By accessing or using OFFER HUB (&quot;the Platform&quot;), you agree to be bound
+                  by these Terms of Service (&quot;Terms&quot;). If you do not agree to these Terms,
+                  please do not use our services.
                 </p>
                 <p className="text-text-secondary">
                   These Terms apply to all users of the Platform, including freelancers, clients,
@@ -54,17 +53,17 @@ export default function TermsPage(): React.JSX.Element {
                   connections but are not a party to the agreements between freelancers and clients.
                 </p>
                 <p className="text-text-secondary">
-                  Our services include but are not limited to: user account management, project posting,
-                  proposal submission, messaging, payment processing, and dispute resolution assistance.
+                  Our services include but are not limited to: user account management, project
+                  posting, proposal submission, messaging, payment processing, and dispute
+                  resolution assistance.
                 </p>
               </section>
 
               <section className="mb-10">
-                <h2 className="text-2xl font-bold text-text-primary mb-4">
-                  3. User Accounts
-                </h2>
+                <h2 className="text-2xl font-bold text-text-primary mb-4">3. User Accounts</h2>
                 <p className="text-text-secondary mb-4">
-                  To use certain features of the Platform, you must register for an account. You agree to:
+                  To use certain features of the Platform, you must register for an account. You
+                  agree to:
                 </p>
                 <ul className="list-disc pl-6 text-text-secondary space-y-2 mb-4">
                   <li>Provide accurate, current, and complete information during registration</li>
@@ -76,12 +75,8 @@ export default function TermsPage(): React.JSX.Element {
               </section>
 
               <section className="mb-10">
-                <h2 className="text-2xl font-bold text-text-primary mb-4">
-                  4. User Conduct
-                </h2>
-                <p className="text-text-secondary mb-4">
-                  You agree not to use the Platform to:
-                </p>
+                <h2 className="text-2xl font-bold text-text-primary mb-4">4. User Conduct</h2>
+                <p className="text-text-secondary mb-4">You agree not to use the Platform to:</p>
                 <ul className="list-disc pl-6 text-text-secondary space-y-2 mb-4">
                   <li>Violate any applicable laws or regulations</li>
                   <li>Infringe on intellectual property rights of others</li>
@@ -93,13 +88,11 @@ export default function TermsPage(): React.JSX.Element {
               </section>
 
               <section className="mb-10">
-                <h2 className="text-2xl font-bold text-text-primary mb-4">
-                  5. Payments and Fees
-                </h2>
+                <h2 className="text-2xl font-bold text-text-primary mb-4">5. Payments and Fees</h2>
                 <p className="text-text-secondary mb-4">
                   OFFER HUB charges service fees for transactions conducted through the Platform.
-                  Current fee structures are displayed in your account settings. We reserve the right
-                  to modify fees with reasonable notice.
+                  Current fee structures are displayed in your account settings. We reserve the
+                  right to modify fees with reasonable notice.
                 </p>
                 <p className="text-text-secondary">
                   All payments are processed through secure third-party payment providers. Users are
@@ -112,13 +105,13 @@ export default function TermsPage(): React.JSX.Element {
                   6. Intellectual Property
                 </h2>
                 <p className="text-text-secondary mb-4">
-                  Work product ownership is determined by the agreement between freelancers and clients.
-                  OFFER HUB does not claim ownership of user-generated content but requires a license
-                  to display and operate the Platform.
+                  Work product ownership is determined by the agreement between freelancers and
+                  clients. OFFER HUB does not claim ownership of user-generated content but requires
+                  a license to display and operate the Platform.
                 </p>
                 <p className="text-text-secondary">
-                  The OFFER HUB name, logo, and platform design are our intellectual property and may
-                  not be used without permission.
+                  The OFFER HUB name, logo, and platform design are our intellectual property and
+                  may not be used without permission.
                 </p>
               </section>
 
@@ -127,35 +120,32 @@ export default function TermsPage(): React.JSX.Element {
                   7. Limitation of Liability
                 </h2>
                 <p className="text-text-secondary mb-4">
-                  OFFER HUB provides the Platform &quot;as is&quot; without warranties of any kind. We are not
-                  liable for any indirect, incidental, special, or consequential damages arising from
-                  your use of the Platform.
+                  OFFER HUB provides the Platform &quot;as is&quot; without warranties of any kind.
+                  We are not liable for any indirect, incidental, special, or consequential damages
+                  arising from your use of the Platform.
                 </p>
                 <p className="text-text-secondary">
-                  Our total liability for any claims shall not exceed the fees paid by you to OFFER HUB
-                  in the twelve months preceding the claim.
-                </p>
-              </section>
-
-              <section className="mb-10">
-                <h2 className="text-2xl font-bold text-text-primary mb-4">
-                  8. Termination
-                </h2>
-                <p className="text-text-secondary">
-                  We may suspend or terminate your account at our discretion for violation of these Terms
-                  or for any other reason. You may close your account at any time by contacting support.
-                  Upon termination, your right to use the Platform ceases immediately.
+                  Our total liability for any claims shall not exceed the fees paid by you to OFFER
+                  HUB in the twelve months preceding the claim.
                 </p>
               </section>
 
               <section className="mb-10">
-                <h2 className="text-2xl font-bold text-text-primary mb-4">
-                  9. Changes to Terms
-                </h2>
+                <h2 className="text-2xl font-bold text-text-primary mb-4">8. Termination</h2>
                 <p className="text-text-secondary">
-                  We may modify these Terms at any time. Material changes will be communicated via email
-                  or Platform notification. Continued use of the Platform after changes constitutes
-                  acceptance of the modified Terms.
+                  We may suspend or terminate your account at our discretion for violation of these
+                  Terms or for any other reason. You may close your account at any time by
+                  contacting support. Upon termination, your right to use the Platform ceases
+                  immediately.
+                </p>
+              </section>
+
+              <section className="mb-10">
+                <h2 className="text-2xl font-bold text-text-primary mb-4">9. Changes to Terms</h2>
+                <p className="text-text-secondary">
+                  We may modify these Terms at any time. Material changes will be communicated via
+                  email or Platform notification. Continued use of the Platform after changes
+                  constitutes acceptance of the modified Terms.
                 </p>
               </section>
 

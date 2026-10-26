@@ -36,16 +36,13 @@ export function ContactForm() {
     }, 3000);
   };
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const selectedSubjectLabel =
-    subjectOptions.find((opt) => opt.value === formData.subject)?.label ||
-    "Select a subject";
+    subjectOptions.find((opt) => opt.value === formData.subject)?.label || "Select a subject";
 
   return (
     <div
@@ -89,9 +86,7 @@ export function ContactForm() {
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Name */}
           <div>
-            <label className="text-sm font-medium text-text-primary mb-2 block">
-              Name
-            </label>
+            <label className="text-sm font-medium text-text-primary mb-2 block">Name</label>
             <input
               type="text"
               name="name"
@@ -111,9 +106,7 @@ export function ContactForm() {
 
           {/* Email */}
           <div>
-            <label className="text-sm font-medium text-text-primary mb-2 block">
-              Email
-            </label>
+            <label className="text-sm font-medium text-text-primary mb-2 block">Email</label>
             <input
               type="email"
               name="email"
@@ -133,9 +126,7 @@ export function ContactForm() {
 
           {/* Subject - Custom Dropdown */}
           <div>
-            <label className="text-sm font-medium text-text-primary mb-2 block">
-              Subject
-            </label>
+            <label className="text-sm font-medium text-text-primary mb-2 block">Subject</label>
             <div className="relative" ref={dropdownRef}>
               <button
                 type="button"
@@ -159,7 +150,12 @@ export function ContactForm() {
                   viewBox="0 0 24 24"
                   stroke="currentColor"
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
                 </svg>
               </button>
 
@@ -199,9 +195,7 @@ export function ContactForm() {
 
           {/* Message */}
           <div>
-            <label className="text-sm font-medium text-text-primary mb-2 block">
-              Message
-            </label>
+            <label className="text-sm font-medium text-text-primary mb-2 block">Message</label>
             <textarea
               name="message"
               value={formData.message}

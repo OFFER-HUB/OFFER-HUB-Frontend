@@ -7,7 +7,11 @@ import { cn } from "@/lib/cn";
 import { NEUMORPHIC_CARD, DANGER_BUTTON } from "@/lib/styles";
 import { Icon, ICON_PATHS } from "@/components/ui/Icon";
 import { useAuthStore } from "@/stores/auth-store";
-import { deleteAccount, describeDeleteAccountError, type DeleteAccountError } from "@/lib/api/account";
+import {
+  deleteAccount,
+  describeDeleteAccountError,
+  type DeleteAccountError,
+} from "@/lib/api/account";
 import { DeleteAccountModal } from "@/components/settings/DeleteAccountModal";
 
 const ACCOUNT_ITEMS = [
@@ -116,12 +120,7 @@ export default function AccountSettingsPage(): React.JSX.Element {
         </div>
 
         {/* Danger Zone */}
-        <div
-          className={cn(
-            NEUMORPHIC_CARD,
-            "border border-error/20"
-          )}
-        >
+        <div className={cn(NEUMORPHIC_CARD, "border border-error/20")}>
           <h2 className="text-lg font-semibold text-error mb-1 flex items-center gap-2">
             <Icon path={ICON_PATHS.alertCircle} size="md" className="text-error" />
             Danger Zone
@@ -130,10 +129,12 @@ export default function AccountSettingsPage(): React.JSX.Element {
             Irreversible and destructive actions. Proceed with extreme caution.
           </p>
 
-          <div className={cn(
-            "flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4",
-            "p-4 rounded-xl bg-error/5 border border-error/10"
-          )}>
+          <div
+            className={cn(
+              "flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4",
+              "p-4 rounded-xl bg-error/5 border border-error/10"
+            )}
+          >
             <div>
               <p className="text-sm font-semibold text-text-primary">Delete my account</p>
               <p className="text-xs text-text-secondary mt-0.5">

@@ -35,7 +35,13 @@ export function ReadReceipt({ message }: ReadReceiptProps): React.JSX.Element {
       title={getHoverLabel(message, status)}
       aria-label={getHoverLabel(message, status)}
     >
-      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+      <svg
+        className="w-3.5 h-3.5"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        strokeWidth={2.5}
+      >
         {isDoubleCheck ? (
           <>
             <path strokeLinecap="round" strokeLinejoin="round" d="M1.5 13l4 4L11 11" />

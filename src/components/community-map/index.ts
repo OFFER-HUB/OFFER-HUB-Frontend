@@ -9,12 +9,7 @@ export { MapTooltip } from "./MapTooltip";
 export { JoinCommunityCTA } from "./JoinCommunityCTA";
 
 // Types
-export type {
-  MapUser,
-  MapUserType,
-  MapLocationsResponse,
-  MapStats as MapStatsType,
-} from "./types";
+export type { MapUser, MapUserType, MapLocationsResponse, MapStats as MapStatsType } from "./types";
 
 // Mock data (for development/testing)
 export { MOCK_MAP_USERS } from "./mock-data";

@@ -24,7 +24,11 @@ interface ChartDataPoint extends TrendsDataPoint {
 // The backend period is UTC-bounded; render it in UTC too or the "from" day
 // shows as the previous evening anywhere west of Greenwich.
 function formatDay(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
+  return new Date(iso).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    timeZone: "UTC",
+  });
 }
 
 interface TooltipEntry {
@@ -46,7 +50,11 @@ const CustomTooltip = ({ active, payload, label }: TooltipProps) => {
       <div className="bg-white/95 backdrop-blur-md rounded-2xl p-3.5 shadow-[var(--shadow-neumorphic-light)] space-y-1">
         <p className="text-xs font-semibold text-text-primary">{label}</p>
         {payload.map((entry, index) => (
-          <p key={index} className="text-xs font-medium flex items-center justify-between gap-4" style={{ color: entry.color }}>
+          <p
+            key={index}
+            className="text-xs font-medium flex items-center justify-between gap-4"
+            style={{ color: entry.color }}
+          >
             <span>{entry.name}:</span>
             <span className="font-bold">
               {entry.dataKey === "volume"
@@ -89,11 +97,7 @@ export function TrendsChart({ data, period }: TrendsChartProps): React.JSX.Eleme
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-            <XAxis
-              dataKey="formattedDate"
-              className="text-text-secondary"
-              fontSize={12}
-            />
+            <XAxis dataKey="formattedDate" className="text-text-secondary" fontSize={12} />
             <YAxis
               className="text-text-secondary"
               fontSize={12}
@@ -115,7 +119,7 @@ export function TrendsChart({ data, period }: TrendsChartProps): React.JSX.Eleme
               stroke="#3b82f6"
               strokeWidth={2}
               name="New users"
-              dot={{ fill: '#3b82f6', strokeWidth: 2, r: 4 }}
+              dot={{ fill: "#3b82f6", strokeWidth: 2, r: 4 }}
               activeDot={{ r: 6 }}
             />
             <Line
@@ -124,7 +128,7 @@ export function TrendsChart({ data, period }: TrendsChartProps): React.JSX.Eleme
               stroke="#10b981"
               strokeWidth={2}
               name="Orders"
-              dot={{ fill: '#10b981', strokeWidth: 2, r: 4 }}
+              dot={{ fill: "#10b981", strokeWidth: 2, r: 4 }}
               activeDot={{ r: 6 }}
             />
             <Line
@@ -133,7 +137,7 @@ export function TrendsChart({ data, period }: TrendsChartProps): React.JSX.Eleme
               stroke="#f59e0b"
               strokeWidth={2}
               name="Volume"
-              dot={{ fill: '#f59e0b', strokeWidth: 2, r: 4 }}
+              dot={{ fill: "#f59e0b", strokeWidth: 2, r: 4 }}
               activeDot={{ r: 6 }}
             />
           </LineChart>

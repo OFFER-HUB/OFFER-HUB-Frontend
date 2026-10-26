@@ -116,9 +116,7 @@ export function NotificationItem({
             {formatRelativeTime(notification.createdAt)}
           </span>
         </div>
-        <p className="text-xs text-text-secondary mt-0.5 line-clamp-2">
-          {notification.message}
-        </p>
+        <p className="text-xs text-text-secondary mt-0.5 line-clamp-2">{notification.message}</p>
       </div>
 
       {/* Unread dot */}

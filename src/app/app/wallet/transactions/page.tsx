@@ -149,7 +149,9 @@ export default function WalletTransactionsPage(): React.JSX.Element {
       return (
         <div className="max-w-lg mx-auto text-center py-16 px-4">
           <Icon path={ICON_PATHS.document} size="xl" className="mx-auto text-text-secondary mb-4" />
-          <h1 className="text-xl font-bold text-text-primary mb-2">Transaction history unavailable</h1>
+          <h1 className="text-xl font-bold text-text-primary mb-2">
+            Transaction history unavailable
+          </h1>
           <p className="text-text-secondary mb-6">{error}</p>
           <button
             type="button"
@@ -162,7 +164,11 @@ export default function WalletTransactionsPage(): React.JSX.Element {
               "disabled:opacity-60 transition-all"
             )}
           >
-            <Icon path={ICON_PATHS.refresh} size="sm" className={cn(isRefreshing && "animate-spin")} />
+            <Icon
+              path={ICON_PATHS.refresh}
+              size="sm"
+              className={cn(isRefreshing && "animate-spin")}
+            />
             Retry
           </button>
         </div>
@@ -239,9 +245,15 @@ export default function WalletTransactionsPage(): React.JSX.Element {
     );
   }
 
-  const creditsCount = walletData.transactions.filter((transaction) => transaction.type === "credit").length;
-  const debitsCount = walletData.transactions.filter((transaction) => transaction.type === "debit").length;
-  const reservesCount = walletData.transactions.filter((transaction) => transaction.type === "reserve").length;
+  const creditsCount = walletData.transactions.filter(
+    (transaction) => transaction.type === "credit"
+  ).length;
+  const debitsCount = walletData.transactions.filter(
+    (transaction) => transaction.type === "debit"
+  ).length;
+  const reservesCount = walletData.transactions.filter(
+    (transaction) => transaction.type === "reserve"
+  ).length;
 
   return (
     <div className="w-full max-w-7xl mx-auto pb-12 space-y-6 transition-all duration-300 ease-in-out">
@@ -254,7 +266,9 @@ export default function WalletTransactionsPage(): React.JSX.Element {
             <span>/</span>
             <span className="text-text-primary">Transactions</span>
           </div>
-          <h1 className="text-2xl lg:text-3xl font-bold tracking-tight text-text-primary">Transaction history</h1>
+          <h1 className="text-2xl lg:text-3xl font-bold tracking-tight text-text-primary">
+            Transaction history
+          </h1>
           <p className="text-sm text-text-secondary mt-1">
             Review credits, debits, and reserved funds across your wallet
           </p>
@@ -273,7 +287,11 @@ export default function WalletTransactionsPage(): React.JSX.Element {
               "disabled:opacity-60"
             )}
           >
-            <Icon path={ICON_PATHS.refresh} size="sm" className={cn(isRefreshing && "animate-spin")} />
+            <Icon
+              path={ICON_PATHS.refresh}
+              size="sm"
+              className={cn(isRefreshing && "animate-spin")}
+            />
             Refresh
           </button>
           <button
@@ -296,19 +314,31 @@ export default function WalletTransactionsPage(): React.JSX.Element {
 
       <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         <div className="p-5 rounded-3xl bg-white shadow-[var(--shadow-neumorphic-light)] dark:shadow-[var(--shadow-neumorphic-dark)] transition-all duration-200">
-          <p className="text-xs font-semibold uppercase tracking-wider text-text-secondary">Total transactions</p>
-          <p className="text-2xl lg:text-3xl font-extrabold text-text-primary mt-2">{walletData.transactions.length}</p>
+          <p className="text-xs font-semibold uppercase tracking-wider text-text-secondary">
+            Total transactions
+          </p>
+          <p className="text-2xl lg:text-3xl font-extrabold text-text-primary mt-2">
+            {walletData.transactions.length}
+          </p>
         </div>
         <div className="p-5 rounded-3xl bg-white shadow-[var(--shadow-neumorphic-light)] dark:shadow-[var(--shadow-neumorphic-dark)] transition-all duration-200">
-          <p className="text-xs font-semibold uppercase tracking-wider text-text-secondary">Credits</p>
+          <p className="text-xs font-semibold uppercase tracking-wider text-text-secondary">
+            Credits
+          </p>
           <p className="text-2xl lg:text-3xl font-extrabold text-success mt-2">{creditsCount}</p>
         </div>
         <div className="p-5 rounded-3xl bg-white shadow-[var(--shadow-neumorphic-light)] dark:shadow-[var(--shadow-neumorphic-dark)] transition-all duration-200">
-          <p className="text-xs font-semibold uppercase tracking-wider text-text-secondary">Debits</p>
-          <p className="text-2xl lg:text-3xl font-extrabold text-text-primary mt-2">{debitsCount}</p>
+          <p className="text-xs font-semibold uppercase tracking-wider text-text-secondary">
+            Debits
+          </p>
+          <p className="text-2xl lg:text-3xl font-extrabold text-text-primary mt-2">
+            {debitsCount}
+          </p>
         </div>
         <div className="p-5 rounded-3xl bg-white shadow-[var(--shadow-neumorphic-light)] dark:shadow-[var(--shadow-neumorphic-dark)] transition-all duration-200">
-          <p className="text-xs font-semibold uppercase tracking-wider text-text-secondary">Reserved</p>
+          <p className="text-xs font-semibold uppercase tracking-wider text-text-secondary">
+            Reserved
+          </p>
           <p className="text-2xl lg:text-3xl font-extrabold text-warning mt-2">{reservesCount}</p>
         </div>
       </section>

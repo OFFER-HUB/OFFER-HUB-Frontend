@@ -27,10 +27,8 @@ export const MOCK_LATENCY_MS = 400;
 export const SUBROSA_LINKS = {
   repo: "https://github.com/karagozemin/Sub-Rosa",
   docs: "https://sub-rosa-web.vercel.app/#/docs",
-  pilot:
-    "https://github.com/karagozemin/Sub-Rosa/blob/main/docs/pilots/OFFER_HUB_PILOT.md",
-  limitations:
-    "https://github.com/karagozemin/Sub-Rosa/blob/main/docs/LIMITATIONS.md",
+  pilot: "https://github.com/karagozemin/Sub-Rosa/blob/main/docs/pilots/OFFER_HUB_PILOT.md",
+  limitations: "https://github.com/karagozemin/Sub-Rosa/blob/main/docs/LIMITATIONS.md",
 } as const;
 
 /**

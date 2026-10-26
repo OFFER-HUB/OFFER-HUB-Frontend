@@ -3,10 +3,7 @@
 import { cn } from "@/lib/cn";
 import { SEARCH_SKILL_OPTIONS, type SearchTab } from "@/lib/api/search";
 
-const CATEGORIES = [
-  { value: "", label: "All categories" },
-  ...SEARCH_SKILL_OPTIONS,
-];
+const CATEGORIES = [{ value: "", label: "All categories" }, ...SEARCH_SKILL_OPTIONS];
 
 export interface SearchFiltersState {
   category: string;
@@ -125,12 +122,17 @@ export function SearchFilters({
             aria-label="Maximum price"
           />
         </div>
-        <p className="mt-2 text-xs text-text-secondary">Leave max empty for no upper limit (up to {PRICE_MAX}).</p>
+        <p className="mt-2 text-xs text-text-secondary">
+          Leave max empty for no upper limit (up to {PRICE_MAX}).
+        </p>
       </div>
 
       {showRating ? (
         <div className="mb-6">
-          <label htmlFor="search-min-rating" className="text-sm font-medium text-text-primary mb-3 block">
+          <label
+            htmlFor="search-min-rating"
+            className="text-sm font-medium text-text-primary mb-3 block"
+          >
             Minimum rating
           </label>
           <input
@@ -156,7 +158,9 @@ export function SearchFilters({
       )}
 
       <div className="mb-2">
-        <label className="text-sm font-medium text-text-primary mb-3 block">Skills (categories)</label>
+        <label className="text-sm font-medium text-text-primary mb-3 block">
+          Skills (categories)
+        </label>
         <p className="text-xs text-text-secondary mb-3">
           Match items tagged with any selected category. Leave empty to include all.
         </p>

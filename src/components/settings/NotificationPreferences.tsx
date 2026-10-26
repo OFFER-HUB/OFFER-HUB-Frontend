@@ -30,9 +30,7 @@ const SAVE_STATUS_MESSAGE: Record<Exclude<SaveStatus, "idle">, string> = {
   error: "Could not sync preferences. Local changes are still kept.",
 };
 
-function cloneNotificationPreferences(
-  value: NotificationPreferences
-): NotificationPreferences {
+function cloneNotificationPreferences(value: NotificationPreferences): NotificationPreferences {
   return {
     muteAll: value.muteAll,
     preferences: {
@@ -170,7 +168,10 @@ export function NotificationPreferences(): React.JSX.Element {
     });
   }
 
-  function handleToggleChannel(type: NotificationPreferenceType, channel: NotificationChannel): void {
+  function handleToggleChannel(
+    type: NotificationPreferenceType,
+    channel: NotificationChannel
+  ): void {
     updatePreference((current) => ({
       ...current,
       preferences: {

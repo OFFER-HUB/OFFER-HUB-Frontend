@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { API_URL } from "@/config/api";
 
-export async function POST (request: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
     const { email, password } = await request.json();
 

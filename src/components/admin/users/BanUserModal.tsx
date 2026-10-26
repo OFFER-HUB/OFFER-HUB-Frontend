@@ -129,10 +129,7 @@ export function BanUserModal({ isOpen, user, onClose, onConfirm }: BanUserModalP
 
         {/* Reason textarea */}
         <div className="mb-2">
-          <label
-            htmlFor="ban-reason"
-            className="block text-sm font-medium text-text-primary mb-2"
-          >
+          <label htmlFor="ban-reason" className="block text-sm font-medium text-text-primary mb-2">
             Ban reason <span className="text-error">*</span>
           </label>
           <textarea

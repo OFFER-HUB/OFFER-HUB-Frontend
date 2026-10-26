@@ -133,7 +133,9 @@ export default function WalletPage(): React.JSX.Element {
           <Icon path={ICON_PATHS.lock} size="xl" />
         </div>
         <h1 className="text-2xl font-bold text-text-primary mb-2">Wallet Access</h1>
-        <p className="text-text-secondary mb-6">Sign in to your account to view your balance, ledger, and transactions.</p>
+        <p className="text-text-secondary mb-6">
+          Sign in to your account to view your balance, ledger, and transactions.
+        </p>
         <Link
           href="/login?redirect=/app/wallet"
           className={cn(
@@ -166,7 +168,11 @@ export default function WalletPage(): React.JSX.Element {
               "hover:text-primary active:shadow-[var(--shadow-neumorphic-inset-light)] transition-all cursor-pointer disabled:opacity-60"
             )}
           >
-            <Icon path={ICON_PATHS.refresh} size="sm" className={cn(isRefreshing && "animate-spin")} />
+            <Icon
+              path={ICON_PATHS.refresh}
+              size="sm"
+              className={cn(isRefreshing && "animate-spin")}
+            />
             Retry Connection
           </button>
         </div>
@@ -175,8 +181,14 @@ export default function WalletPage(): React.JSX.Element {
     return <WalletPageSkeleton />;
   }
 
-  const earnPct = pctVsPrevious(data.monthly.currentMonthEarnings, data.monthly.previousMonthEarnings);
-  const spendPct = pctVsPrevious(data.monthly.currentMonthSpending, data.monthly.previousMonthSpending);
+  const earnPct = pctVsPrevious(
+    data.monthly.currentMonthEarnings,
+    data.monthly.previousMonthEarnings
+  );
+  const spendPct = pctVsPrevious(
+    data.monthly.currentMonthSpending,
+    data.monthly.previousMonthSpending
+  );
 
   return (
     <div className="w-full max-w-7xl mx-auto pb-12 transition-all duration-300 ease-in-out">
@@ -244,12 +256,18 @@ export default function WalletPage(): React.JSX.Element {
       </p>
 
       {error ? (
-        <div className="mb-4 p-4 rounded-2xl bg-error/10 border border-error/20 text-error text-sm font-medium" role="alert">
+        <div
+          className="mb-4 p-4 rounded-2xl bg-error/10 border border-error/20 text-error text-sm font-medium"
+          role="alert"
+        >
           {error}
         </div>
       ) : null}
       {withdrawSuccess ? (
-        <div className="mb-4 p-4 rounded-2xl bg-success/10 border border-success/20 text-success text-sm font-medium" role="status">
+        <div
+          className="mb-4 p-4 rounded-2xl bg-success/10 border border-success/20 text-success text-sm font-medium"
+          role="status"
+        >
           {withdrawSuccess}
         </div>
       ) : null}
@@ -354,7 +372,8 @@ export default function WalletPage(): React.JSX.Element {
         >
           <p className="text-sm font-medium text-text-secondary">Pending withdrawals</p>
           <p className="text-xs text-text-secondary mb-2">
-            {data.withdrawals.pendingCount} open {data.withdrawals.pendingCount === 1 ? "request" : "requests"}
+            {data.withdrawals.pendingCount} open{" "}
+            {data.withdrawals.pendingCount === 1 ? "request" : "requests"}
           </p>
           <p className="text-2xl sm:text-3xl font-bold text-text-primary">
             {new Intl.NumberFormat("en-US", {

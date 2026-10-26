@@ -56,29 +56,21 @@ export function ContextualTooltip({
 
   const arrowClasses = {
     top: "top-full left-1/2 -translate-x-1/2 border-t-white border-x-transparent border-b-transparent",
-    bottom: "bottom-full left-1/2 -translate-x-1/2 border-b-white border-x-transparent border-t-transparent",
+    bottom:
+      "bottom-full left-1/2 -translate-x-1/2 border-b-white border-x-transparent border-t-transparent",
     left: "left-full top-1/2 -translate-y-1/2 border-l-white border-y-transparent border-r-transparent",
-    right: "right-full top-1/2 -translate-y-1/2 border-r-white border-y-transparent border-l-transparent",
+    right:
+      "right-full top-1/2 -translate-y-1/2 border-r-white border-y-transparent border-l-transparent",
   };
 
   return (
     <div className={cn("relative inline-block", className)}>
       {children}
       {isVisible && (
-        <div
-          className={cn(
-            "absolute z-50 w-64 animate-fade-in",
-            positionClasses[position]
-          )}
-        >
+        <div className={cn("absolute z-50 w-64 animate-fade-in", positionClasses[position])}>
           <div className="relative bg-white rounded-xl shadow-lg p-4 border border-gray-100">
             {/* Arrow */}
-            <div
-              className={cn(
-                "absolute w-0 h-0 border-8",
-                arrowClasses[position]
-              )}
-            />
+            <div className={cn("absolute w-0 h-0 border-8", arrowClasses[position])} />
 
             {/* Content */}
             <div className="text-sm text-gray-700">{content}</div>

@@ -11,7 +11,11 @@ export interface AttachmentPreviewProps {
   displaySize?: number;
 }
 
-export function AttachmentPreview({ attachment, onRemove, displaySize }: AttachmentPreviewProps): React.JSX.Element {
+export function AttachmentPreview({
+  attachment,
+  onRemove,
+  displaySize,
+}: AttachmentPreviewProps): React.JSX.Element {
   const iconPath = attachment.type === "image" ? ICON_PATHS.image : ICON_PATHS.document;
 
   return (
@@ -41,7 +45,9 @@ export function AttachmentPreview({ attachment, onRemove, displaySize }: Attachm
 
       <div className="absolute inset-x-0 bottom-0 bg-black/60 p-2">
         <p className="text-xs text-white truncate">{attachment.file.name}</p>
-        <p className="text-xs text-white/70">{formatFileSize(displaySize ?? attachment.file.size)}</p>
+        <p className="text-xs text-white/70">
+          {formatFileSize(displaySize ?? attachment.file.size)}
+        </p>
       </div>
 
       <button

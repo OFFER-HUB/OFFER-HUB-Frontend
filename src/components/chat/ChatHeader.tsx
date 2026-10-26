@@ -51,9 +51,7 @@ export function ChatHeader({
               "shadow-[3px_3px_6px_#d1d5db,-3px_-3px_6px_#ffffff]"
             )}
           >
-            <span className="text-sm font-semibold text-text-primary">
-              {participant.avatar}
-            </span>
+            <span className="text-sm font-semibold text-text-primary">{participant.avatar}</span>
           </div>
           {participant.isOnline && (
             <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full" />
@@ -62,7 +60,9 @@ export function ChatHeader({
 
         {/* Info */}
         <div>
-          <h2 className="font-semibold text-text-primary text-sm sm:text-base">{participant.name}</h2>
+          <h2 className="font-semibold text-text-primary text-sm sm:text-base">
+            {participant.name}
+          </h2>
           <p className="text-xs text-text-secondary">
             {participant.isOnline ? (
               <span className="text-green-600 flex items-center gap-1">

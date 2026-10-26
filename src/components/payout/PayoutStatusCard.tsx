@@ -34,7 +34,9 @@ function formatCountdown(expiresAt: number): string {
 
 function corridorLabel(corridor: string): string {
   const [country, rail] = corridor.split("/");
-  return SUPPORTED_CORRIDORS.find((c) => c.country === country && c.rail === rail)?.label ?? corridor;
+  return (
+    SUPPORTED_CORRIDORS.find((c) => c.country === country && c.rail === rail)?.label ?? corridor
+  );
 }
 
 function formatFiat(amount: string, currency: string): string {
@@ -189,7 +191,11 @@ export function PayoutStatusCard({ orderId, className }: PayoutStatusCardProps):
       const result = await getPayoutStatus(token, orderId);
       if (cancelledRef.current) return;
       setState({ kind: "ready", payout: result });
-      if (result.status === "COMPLETED" || result.status === "FAILED" || result.status === "REFUNDED") {
+      if (
+        result.status === "COMPLETED" ||
+        result.status === "FAILED" ||
+        result.status === "REFUNDED"
+      ) {
         stopPolling();
       }
     } catch (err) {
@@ -270,7 +276,10 @@ export function PayoutStatusCard({ orderId, className }: PayoutStatusCardProps):
   if (state.kind === "loading" || state.kind === "waiting") {
     return (
       <div className={cn(NEUMORPHIC_CARD, className)}>
-        <div role="status" className="flex items-center justify-center gap-2.5 py-6 text-sm text-text-secondary">
+        <div
+          role="status"
+          className="flex items-center justify-center gap-2.5 py-6 text-sm text-text-secondary"
+        >
           <LoadingSpinner size="sm" />
           {state.kind === "loading" ? "Loading payout status..." : "Preparing your payout..."}
         </div>
@@ -318,8 +327,8 @@ export function PayoutStatusCard({ orderId, className }: PayoutStatusCardProps):
               {payout.failureReason ?? "This payout could not be completed."}
             </p>
             <p className="text-xs text-text-secondary">
-              This usually resolves itself on retry — for example, if it failed because of an
-              issue with your bank account, add a new one, set it as your default, then retry.
+              This usually resolves itself on retry — for example, if it failed because of an issue
+              with your bank account, add a new one, set it as your default, then retry.
             </p>
             {retryError && (
               <div role="alert" className="rounded-xl bg-error/10 p-3 text-xs text-error">
@@ -373,8 +382,8 @@ export function PayoutStatusCard({ orderId, className }: PayoutStatusCardProps):
         ) : payout.status === "AWAITING_SIGNATURE" ? (
           <div className="space-y-3">
             <p className="text-sm text-text-primary">
-              Your signature is needed to send the funds — your connected wallet is non-custodial, so
-              OfferHub can't sign this transfer on your behalf.
+              Your signature is needed to send the funds — your connected wallet is non-custodial,
+              so OfferHub can't sign this transfer on your behalf.
             </p>
             {signing.prepared?.fiatAmount && (
               <p className="text-xs text-text-secondary">
@@ -384,7 +393,11 @@ export function PayoutStatusCard({ orderId, className }: PayoutStatusCardProps):
                 )}
               </p>
             )}
-            <button type="button" onClick={handleSignClick} className={cn(PRIMARY_BUTTON, "justify-center")}>
+            <button
+              type="button"
+              onClick={handleSignClick}
+              className={cn(PRIMARY_BUTTON, "justify-center")}
+            >
               <Icon path={ICON_PATHS.creditCard} size="sm" />
               <span>Sign & Send</span>
             </button>

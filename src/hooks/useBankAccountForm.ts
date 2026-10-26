@@ -18,8 +18,7 @@ export function maskCpfOrCnpj(value: string): string {
   if (digits.length <= 11) {
     if (digits.length <= 3) return digits;
     if (digits.length <= 6) return `${digits.slice(0, 3)}.${digits.slice(3)}`;
-    if (digits.length <= 9)
-      return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6)}`;
+    if (digits.length <= 9) return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6)}`;
     return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`;
   }
   return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5, 8)}/${digits.slice(8, 12)}-${digits.slice(12)}`;
@@ -177,15 +176,9 @@ export function useBankAccountForm({
           : rail === "TRANSFERS_BITSO"
             ? "Enter the 22-digit CBU/CVU"
             : "Enter the account number";
-    } else if (
-      rail === "SPEI_BITSO" &&
-      accountNumber.replace(/\D/g, "").length !== 18
-    ) {
+    } else if (rail === "SPEI_BITSO" && accountNumber.replace(/\D/g, "").length !== 18) {
       nextErrors.accountNumber = "CLABE must be exactly 18 digits";
-    } else if (
-      rail === "TRANSFERS_BITSO" &&
-      accountNumber.replace(/\D/g, "").length !== 22
-    ) {
+    } else if (rail === "TRANSFERS_BITSO" && accountNumber.replace(/\D/g, "").length !== 22) {
       nextErrors.accountNumber = "CBU / CVU must be exactly 22 digits";
     }
 
@@ -196,8 +189,7 @@ export function useBankAccountForm({
     for (const key of requiredDetailKeys) {
       if (key === "pix_key") continue;
       const val =
-        details[key] ??
-        (key === "spei_protocol" ? "clabe" : key === "transfers_type" ? "CBU" : "");
+        details[key] ?? (key === "spei_protocol" ? "clabe" : key === "transfers_type" ? "CBU" : "");
       if (!val.trim()) {
         detailErrors[key] = `Enter ${humanizeDetailKey(key).toLowerCase()}`;
       }
@@ -247,11 +239,7 @@ export function useBankAccountForm({
           requiredDetailKeys.map((key) => [
             key,
             details[key]?.trim() ||
-              (key === "spei_protocol"
-                ? "clabe"
-                : key === "transfers_type"
-                  ? "CBU"
-                  : ""),
+              (key === "spei_protocol" ? "clabe" : key === "transfers_type" ? "CBU" : ""),
           ])
         ),
       };
@@ -273,9 +261,7 @@ export function useBankAccountForm({
       const account = await addBankAccount(token, payload);
       onSuccess?.(account);
     } catch (error) {
-      setSubmitError(
-        error instanceof Error ? error.message : "Could not add this bank account."
-      );
+      setSubmitError(error instanceof Error ? error.message : "Could not add this bank account.");
     } finally {
       setIsSubmitting(false);
     }
@@ -297,8 +283,7 @@ export function useBankAccountForm({
     requiredDetailKeys,
     isSingleRail,
     isPix,
-    setAccountNumber: (v) =>
-      setAccountNumber(maskAccountNumberByRail(v, rail)),
+    setAccountNumber: (v) => setAccountNumber(maskAccountNumberByRail(v, rail)),
     setBankName,
     setHolderName: (v) => setHolderName(v),
     setIsDefault,

@@ -21,7 +21,10 @@ interface ReviewHighlightsProps {
   className?: string;
 }
 
-export function ReviewHighlights({ reviews, className }: ReviewHighlightsProps): React.JSX.Element | null {
+export function ReviewHighlights({
+  reviews,
+  className,
+}: ReviewHighlightsProps): React.JSX.Element | null {
   const highlights = pickHighlights(reviews);
   if (highlights.length === 0) return null;
 
@@ -32,9 +35,14 @@ export function ReviewHighlights({ reviews, className }: ReviewHighlightsProps):
         {highlights.map((r) => (
           <blockquote
             key={r.id}
-            className={cn(NEUMORPHIC_INSET, "rounded-2xl p-4 text-sm text-text-secondary leading-relaxed")}
+            className={cn(
+              NEUMORPHIC_INSET,
+              "rounded-2xl p-4 text-sm text-text-secondary leading-relaxed"
+            )}
           >
-            <p className="text-text-primary font-medium line-clamp-4">&ldquo;{excerpt(r.comment)}&rdquo;</p>
+            <p className="text-text-primary font-medium line-clamp-4">
+              &ldquo;{excerpt(r.comment)}&rdquo;
+            </p>
             <footer className="mt-3 text-xs text-text-secondary">— {r.reviewerName}</footer>
           </blockquote>
         ))}

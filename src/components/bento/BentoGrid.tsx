@@ -12,17 +12,9 @@ const columnStyles = {
   4: "grid-cols-1 md:grid-cols-2 lg:grid-cols-4",
 };
 
-export function BentoGrid({
-  children,
-  columns = 4,
-  className,
-  ...props
-}: BentoGridProps) {
+export function BentoGrid({ children, columns = 4, className, ...props }: BentoGridProps) {
   return (
-    <div
-      className={cn("grid gap-6", columnStyles[columns], className)}
-      {...props}
-    >
+    <div className={cn("grid gap-6", columnStyles[columns], className)} {...props}>
       {children}
     </div>
   );

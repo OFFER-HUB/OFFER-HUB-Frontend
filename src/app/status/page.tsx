@@ -20,7 +20,9 @@ export default function StatusPage() {
   };
 
   return (
-    <div style={{ padding: "20px", backgroundColor: "#1a1a1a", minHeight: "100vh", color: "white" }}>
+    <div
+      style={{ padding: "20px", backgroundColor: "#1a1a1a", minHeight: "100vh", color: "white" }}
+    >
       <h1>API Status</h1>
       <button
         onClick={checkHealth}

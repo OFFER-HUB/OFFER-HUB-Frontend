@@ -13,7 +13,7 @@ describe("ReleaseFundsModal — early release warning", () => {
         isEarlyRelease={false}
         onCancel={vi.fn()}
         onConfirm={vi.fn()}
-      />,
+      />
     );
     expect(screen.queryByText(/hasn't marked this order as delivered/i)).not.toBeInTheDocument();
   });
@@ -27,7 +27,7 @@ describe("ReleaseFundsModal — early release warning", () => {
         isEarlyRelease
         onCancel={vi.fn()}
         onConfirm={vi.fn()}
-      />,
+      />
     );
     expect(screen.getByText(/hasn't marked this order as delivered/i)).toBeInTheDocument();
     expect(screen.getByText(/something you both agreed on/i)).toBeInTheDocument();
@@ -43,7 +43,7 @@ describe("ReleaseFundsModal — early release warning", () => {
         isEarlyRelease
         onCancel={vi.fn()}
         onConfirm={onConfirm}
-      />,
+      />
     );
 
     await userEvent.click(screen.getByRole("button", { name: /confirm/i }));
@@ -58,7 +58,7 @@ describe("ReleaseFundsModal — early release warning", () => {
         isProcessing={false}
         onCancel={vi.fn()}
         onConfirm={vi.fn()}
-      />,
+      />
     );
     expect(screen.queryByText(/hasn't marked this order as delivered/i)).not.toBeInTheDocument();
   });

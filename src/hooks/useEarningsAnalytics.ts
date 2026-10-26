@@ -4,10 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAuthStore } from "@/stores/auth-store";
 import { getFreelancerEarningsAnalytics } from "@/lib/api/earnings";
 import { downloadEarningsCsv } from "@/components/analytics/earningsCsv";
-import {
-  type PresetId,
-  type FreelancerEarningsAnalytics,
-} from "@/types/earnings.types";
+import { type PresetId, type FreelancerEarningsAnalytics } from "@/types/earnings.types";
 import { getRangeForPreset } from "@/lib/earnings-utils";
 
 export interface UseEarningsAnalyticsResult {

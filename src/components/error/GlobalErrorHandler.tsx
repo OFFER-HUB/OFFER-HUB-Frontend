@@ -45,13 +45,9 @@ export function GlobalErrorHandler(): null {
     }
 
     function handleRejection(event: PromiseRejectionEvent): void {
-      const message = event.reason instanceof Error
-        ? event.reason.message
-        : String(event.reason);
+      const message = event.reason instanceof Error ? event.reason.message : String(event.reason);
 
-      const stack = event.reason instanceof Error
-        ? event.reason.stack
-        : undefined;
+      const stack = event.reason instanceof Error ? event.reason.stack : undefined;
 
       reportError({
         type: "unhandled-rejection",

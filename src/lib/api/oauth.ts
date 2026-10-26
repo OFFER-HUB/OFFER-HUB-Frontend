@@ -43,7 +43,10 @@ export interface OAuthCallbackResult {
 
 /** Error carrying the backend's machine-readable code so callers can branch on it. */
 export class OAuthCallbackError extends Error {
-  constructor(message: string, readonly code?: string) {
+  constructor(
+    message: string,
+    readonly code?: string
+  ) {
     super(message);
     this.name = "OAuthCallbackError";
   }
@@ -130,8 +133,12 @@ export async function getLinkedAccounts(token: string): Promise<LinkedAccount[]>
 /**
  * Check if email exists in the system
  */
-export async function checkEmailExists(email: string): Promise<{ exists: boolean; hasPassword: boolean }> {
-  const response = await fetch(`${API_URL}/auth/oauth/check-email?email=${encodeURIComponent(email)}`);
+export async function checkEmailExists(
+  email: string
+): Promise<{ exists: boolean; hasPassword: boolean }> {
+  const response = await fetch(
+    `${API_URL}/auth/oauth/check-email?email=${encodeURIComponent(email)}`
+  );
 
   if (!response.ok) {
     throw new Error("Failed to check email");

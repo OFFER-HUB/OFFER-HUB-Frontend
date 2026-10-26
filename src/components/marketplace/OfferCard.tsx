@@ -63,9 +63,7 @@ export function OfferCard({ offer, className }: OfferCardProps): React.JSX.Eleme
           <div className="relative flex-shrink-0">
             <div className="p-1 rounded-2xl shadow-[3px_3px_6px_#d1d5db,-3px_-3px_6px_#ffffff] bg-white">
               <div className="w-14 h-14 rounded-xl bg-background shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff] flex items-center justify-center">
-                <span className="text-primary font-bold text-lg tracking-wider">
-                  {initials}
-                </span>
+                <span className="text-primary font-bold text-lg tracking-wider">{initials}</span>
               </div>
             </div>
             {offer.status === "ACTIVE" && (
@@ -85,7 +83,12 @@ export function OfferCard({ offer, className }: OfferCardProps): React.JSX.Eleme
                 className="w-4 h-4 rounded-full bg-primary/15 text-primary flex items-center justify-center flex-shrink-0"
                 title="Verified Client"
               >
-                <Icon path={ICON_PATHS.check} size="sm" className="w-2.5 h-2.5 text-primary" strokeWidth={3} />
+                <Icon
+                  path={ICON_PATHS.check}
+                  size="sm"
+                  className="w-2.5 h-2.5 text-primary"
+                  strokeWidth={3}
+                />
               </div>
             </div>
             <p className="text-xs text-text-secondary/70 truncate font-mono">
@@ -100,18 +103,24 @@ export function OfferCard({ offer, className }: OfferCardProps): React.JSX.Eleme
         {/* Professional Metrics Line */}
         <div className="flex items-center gap-3 mb-4 text-xs">
           <div className="flex items-center gap-1 font-bold text-text-primary bg-amber-500/10 text-amber-700 px-2 py-0.5 rounded-lg">
-            <Icon path={ICON_PATHS.star} size="sm" className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
+            <Icon
+              path={ICON_PATHS.star}
+              size="sm"
+              className="w-3.5 h-3.5 text-amber-500 fill-amber-500"
+            />
             <span>5.0</span>
           </div>
           <span className="text-text-secondary/30">•</span>
           <div className="flex items-center gap-1 text-text-secondary font-medium truncate">
-            <Icon path={ICON_PATHS.clock} size="sm" className="w-3.5 h-3.5 text-text-secondary/60 flex-shrink-0" />
+            <Icon
+              path={ICON_PATHS.clock}
+              size="sm"
+              className="w-3.5 h-3.5 text-text-secondary/60 flex-shrink-0"
+            />
             <span>Deadline: {deadline}</span>
           </div>
           <span className="text-text-secondary/30">•</span>
-          <span className="text-emerald-700 font-semibold text-xs">
-            Open Offer
-          </span>
+          <span className="text-emerald-700 font-semibold text-xs">Open Offer</span>
         </div>
 
         {/* Category & Applicants Highlights */}
@@ -158,7 +167,11 @@ export function OfferCard({ offer, className }: OfferCardProps): React.JSX.Eleme
             )}
           >
             <span>View Offer</span>
-            <Icon path={ICON_PATHS.arrowRight} size="sm" className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+            <Icon
+              path={ICON_PATHS.arrowRight}
+              size="sm"
+              className="w-4 h-4 transition-transform group-hover:translate-x-1"
+            />
           </div>
         </div>
       </Link>

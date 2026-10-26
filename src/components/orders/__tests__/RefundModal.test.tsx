@@ -66,8 +66,22 @@ describe("RefundModal — validation", () => {
 
 describe("RefundModal — milestone breakdown (#446)", () => {
   const MILESTONES = [
-    { id: "m1", orderId: "ord_1", title: "Design", description: "", amount: "50.00", status: "COMPLETED" as const },
-    { id: "m2", orderId: "ord_1", title: "Build", description: "", amount: "100.00", status: "OPEN" as const },
+    {
+      id: "m1",
+      orderId: "ord_1",
+      title: "Design",
+      description: "",
+      amount: "50.00",
+      status: "COMPLETED" as const,
+    },
+    {
+      id: "m2",
+      orderId: "ord_1",
+      title: "Build",
+      description: "",
+      amount: "100.00",
+      status: "OPEN" as const,
+    },
   ];
 
   it("shows the breakdown step first for a milestone order, before any reason field", () => {
@@ -128,8 +142,22 @@ describe("RefundModal — milestone breakdown (#446)", () => {
 
   it("calculates 100% refundable when milestones exist but none are completed", () => {
     const ALL_OPEN = [
-      { id: "m1", orderId: "ord_1", title: "Design", description: "", amount: "60.00", status: "OPEN" as const },
-      { id: "m2", orderId: "ord_1", title: "Build", description: "", amount: "140.00", status: "OPEN" as const },
+      {
+        id: "m1",
+        orderId: "ord_1",
+        title: "Design",
+        description: "",
+        amount: "60.00",
+        status: "OPEN" as const,
+      },
+      {
+        id: "m2",
+        orderId: "ord_1",
+        title: "Build",
+        description: "",
+        amount: "140.00",
+        status: "OPEN" as const,
+      },
     ];
     setup({ amount: "200.00", milestones: ALL_OPEN });
 
@@ -143,7 +171,9 @@ describe("RefundModal — milestone breakdown (#446)", () => {
 describe("RefundModal — error and processing", () => {
   it("shows a caller-supplied error", () => {
     setup({ error: "Cannot prepare refund: order is not IN_PROGRESS" });
-    expect(screen.getByRole("alert")).toHaveTextContent("Cannot prepare refund: order is not IN_PROGRESS");
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "Cannot prepare refund: order is not IN_PROGRESS"
+    );
   });
 
   it("disables the form and both buttons while processing", () => {

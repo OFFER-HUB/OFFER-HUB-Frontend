@@ -12,7 +12,9 @@ interface ProfileCompletenessProps {
   refreshKey?: number;
 }
 
-export function ProfileCompleteness({ refreshKey }: ProfileCompletenessProps): React.JSX.Element | null {
+export function ProfileCompleteness({
+  refreshKey,
+}: ProfileCompletenessProps): React.JSX.Element | null {
   const { token, user } = useAuthStore();
   const [data, setData] = useState<ProfileCompletenessData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -76,7 +78,6 @@ export function ProfileCompleteness({ refreshKey }: ProfileCompletenessProps): R
   if (data.isComplete || data.percentage >= 100) {
     return null;
   }
-
 
   return (
     <div className={NEUMORPHIC_CARD}>

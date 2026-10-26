@@ -58,8 +58,7 @@ export async function uploadPortfolioImage(
       }
     };
 
-    xhr.onerror = () =>
-      reject(new Error("Network error — check your connection and try again"));
+    xhr.onerror = () => reject(new Error("Network error — check your connection and try again"));
 
     const body = new FormData();
     body.append("file", file);
@@ -70,10 +69,7 @@ export async function uploadPortfolioImage(
 /**
  * Optional: delete an image on the server by URL (e.g. after replacing assets).
  */
-export async function deletePortfolioImage(
-  token: string | null,
-  imageUrl: string
-): Promise<void> {
+export async function deletePortfolioImage(token: string | null, imageUrl: string): Promise<void> {
   const response = await fetch(`${API_BASE_URL}/portfolio/images`, {
     method: "DELETE",
     headers: {
@@ -85,8 +81,6 @@ export async function deletePortfolioImage(
 
   if (!response.ok) {
     const err = await response.json().catch(() => ({}));
-    throw new Error(
-      (err as { message?: string }).message ?? "Failed to remove image"
-    );
+    throw new Error((err as { message?: string }).message ?? "Failed to remove image");
   }
 }

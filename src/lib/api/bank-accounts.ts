@@ -86,7 +86,11 @@ export const SUPPORTED_CORRIDORS_REQUIRED_DETAILS: Record<string, readonly strin
 
 export type BankAccountApiError = Error & { code?: string; status?: number };
 
-function createBankAccountError(message: string, code?: string, status?: number): BankAccountApiError {
+function createBankAccountError(
+  message: string,
+  code?: string,
+  status?: number
+): BankAccountApiError {
   const error = new Error(message) as BankAccountApiError;
   error.code = code;
   error.status = status;
@@ -104,9 +108,16 @@ interface ErrorEnvelope {
   error?: { code?: string; message?: string };
 }
 
-async function parseBankAccountError(response: Response, fallback: string): Promise<BankAccountApiError> {
+async function parseBankAccountError(
+  response: Response,
+  fallback: string
+): Promise<BankAccountApiError> {
   const json = (await response.json().catch(() => null)) as ErrorEnvelope | null;
-  return createBankAccountError(json?.error?.message ?? fallback, json?.error?.code, response.status);
+  return createBankAccountError(
+    json?.error?.message ?? fallback,
+    json?.error?.code,
+    response.status
+  );
 }
 
 /**
@@ -131,7 +142,10 @@ export async function listBankAccounts(token: string): Promise<BankAccount[]> {
  * regardless of `isDefault` — enforced server-side, not here.
  * POST /users/me/bank-accounts
  */
-export async function addBankAccount(token: string, data: AddBankAccountData): Promise<BankAccount> {
+export async function addBankAccount(
+  token: string,
+  data: AddBankAccountData
+): Promise<BankAccount> {
   const response = await fetch(`${API_URL}/users/me/bank-accounts`, {
     method: "POST",
     headers: authHeaders(token),

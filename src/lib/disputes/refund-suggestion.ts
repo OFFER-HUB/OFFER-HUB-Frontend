@@ -33,7 +33,12 @@ export function suggestRefundSplit(order: {
   const milestones = order.milestones ?? [];
 
   if (milestones.length === 0) {
-    return { refundAmount: fromCents(totalCents), releaseAmount: "0.00", completedMilestones: 0, totalMilestones: 0 };
+    return {
+      refundAmount: fromCents(totalCents),
+      releaseAmount: "0.00",
+      completedMilestones: 0,
+      totalMilestones: 0,
+    };
   }
 
   const refundCents = milestones

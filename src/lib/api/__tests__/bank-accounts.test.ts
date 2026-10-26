@@ -75,7 +75,9 @@ describe("listBankAccounts", () => {
 
   it("throws a typed BankAccountApiError carrying the backend code and status", async () => {
     const body = { error: { code: "UNAUTHORIZED", message: "No token provided" } };
-    global.fetch = vi.fn().mockResolvedValue(jsonResponse(body, false, 401)) as unknown as typeof fetch;
+    global.fetch = vi
+      .fn()
+      .mockResolvedValue(jsonResponse(body, false, 401)) as unknown as typeof fetch;
 
     await expect(listBankAccounts(TOKEN)).rejects.toMatchObject({
       message: "No token provided",
@@ -114,7 +116,9 @@ describe("addBankAccount", () => {
         message: 'Rail "PIX" is not available in MX. Allowed rails: SPEI_BITSO',
       },
     };
-    global.fetch = vi.fn().mockResolvedValue(jsonResponse(body, false, 422)) as unknown as typeof fetch;
+    global.fetch = vi
+      .fn()
+      .mockResolvedValue(jsonResponse(body, false, 422)) as unknown as typeof fetch;
 
     await expect(
       addBankAccount(TOKEN, {
@@ -143,7 +147,9 @@ describe("setDefaultBankAccount", () => {
 
 describe("deleteBankAccount", () => {
   it("DELETEs /users/me/bank-accounts/:id and resolves without parsing a body", async () => {
-    global.fetch = vi.fn().mockResolvedValue({ ok: true, status: 204, json: vi.fn() }) as unknown as typeof fetch;
+    global.fetch = vi
+      .fn()
+      .mockResolvedValue({ ok: true, status: 204, json: vi.fn() }) as unknown as typeof fetch;
 
     await expect(deleteBankAccount(TOKEN, ACCOUNT_ID)).resolves.toBeUndefined();
 
@@ -153,9 +159,14 @@ describe("deleteBankAccount", () => {
 
   it("throws when a payout still references the account", async () => {
     const body = {
-      error: { code: "BANK_ACCOUNT_HAS_PAYOUTS", message: `Bank account ${ACCOUNT_ID} cannot be deleted: 1 payout(s) reference it` },
+      error: {
+        code: "BANK_ACCOUNT_HAS_PAYOUTS",
+        message: `Bank account ${ACCOUNT_ID} cannot be deleted: 1 payout(s) reference it`,
+      },
     };
-    global.fetch = vi.fn().mockResolvedValue(jsonResponse(body, false, 409)) as unknown as typeof fetch;
+    global.fetch = vi
+      .fn()
+      .mockResolvedValue(jsonResponse(body, false, 409)) as unknown as typeof fetch;
 
     await expect(deleteBankAccount(TOKEN, ACCOUNT_ID)).rejects.toMatchObject({
       code: "BANK_ACCOUNT_HAS_PAYOUTS",

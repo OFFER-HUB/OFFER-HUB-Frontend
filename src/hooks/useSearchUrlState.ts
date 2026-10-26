@@ -56,10 +56,7 @@ export function useSearchUrlState(): SearchUrlState {
       ? PRICE_CAP
       : Math.min(PRICE_CAP, Math.max(0, Number(maxPriceRaw) || PRICE_CAP));
   const minRating = Math.min(5, Math.max(0, Number(sp.get("minRating")) || 0));
-  const skills = useMemo(
-    () => new Set((sp.get("skills") ?? "").split(",").filter(Boolean)),
-    [sp]
-  );
+  const skills = useMemo(() => new Set((sp.get("skills") ?? "").split(",").filter(Boolean)), [sp]);
 
   const [draftQ, setDraftQ] = useState(q);
   useEffect(() => {

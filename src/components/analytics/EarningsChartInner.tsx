@@ -49,7 +49,11 @@ export function EarningsChartInner({
               <stop offset="100%" stopColor="var(--color-primary-alt)" stopOpacity={0.8} />
             </linearGradient>
           </defs>
-          <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border-light, #e5e7eb)" vertical={false} />
+          <CartesianGrid
+            strokeDasharray="3 3"
+            stroke="var(--color-border-light, #e5e7eb)"
+            vertical={false}
+          />
           <XAxis
             dataKey="label"
             tick={{ fontSize: 11, fill: "var(--color-text-secondary)" }}

@@ -141,7 +141,10 @@ export async function connectWallet(
  *
  * @throws {ConnectWalletError} for every refusal, with the API's code attached.
  */
-export async function disconnectWallet(token: string, walletId: string): Promise<ConnectedWallet[]> {
+export async function disconnectWallet(
+  token: string,
+  walletId: string
+): Promise<ConnectedWallet[]> {
   let response: Response;
 
   try {
@@ -225,7 +228,10 @@ export async function listWallets(token: string): Promise<ConnectedWallet[]> {
  *
  * @throws {ConnectWalletError} for every refusal, with the API's code attached.
  */
-export async function reconnectWalletApi(token: string, walletId: string): Promise<ConnectedWallet[]> {
+export async function reconnectWalletApi(
+  token: string,
+  walletId: string
+): Promise<ConnectedWallet[]> {
   let response: Response;
 
   try {
@@ -268,7 +274,10 @@ export async function reconnectWalletApi(token: string, walletId: string): Promi
  *
  * @throws {ConnectWalletError} for every refusal, with the API's code attached.
  */
-export async function setPrimaryWalletApi(token: string, walletId: string): Promise<ConnectedWallet[]> {
+export async function setPrimaryWalletApi(
+  token: string,
+  walletId: string
+): Promise<ConnectedWallet[]> {
   let response: Response;
 
   try {

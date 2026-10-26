@@ -47,10 +47,7 @@ export default function PortfolioEditPage(): React.JSX.Element {
   }
 
   if (isLoading) return <LoadingState message="Loading project..." />;
-  if (error)
-    return (
-      <ErrorState message={error} onRetry={() => setRefreshKey((k) => k + 1)} />
-    );
+  if (error) return <ErrorState message={error} onRetry={() => setRefreshKey((k) => k + 1)} />;
 
   const initialData: PortfolioFormData = item
     ? {
@@ -71,17 +68,12 @@ export default function PortfolioEditPage(): React.JSX.Element {
     <div className="space-y-4 pb-8">
       {/* Header */}
       <div className="flex items-center gap-4">
-        <Link
-          href="/app/freelancer/portfolio"
-          className={cn(ICON_BUTTON, "shrink-0")}
-        >
+        <Link href="/app/freelancer/portfolio" className={cn(ICON_BUTTON, "shrink-0")}>
           <Icon path={ICON_PATHS.chevronLeft} size="md" className="text-text-primary" />
         </Link>
         <div>
           <h1 className="text-2xl font-bold text-text-primary">Edit Project</h1>
-          <p className="text-sm text-text-secondary truncate max-w-xs">
-            {item?.title ?? ""}
-          </p>
+          <p className="text-sm text-text-secondary truncate max-w-xs">{item?.title ?? ""}</p>
         </div>
       </div>
 

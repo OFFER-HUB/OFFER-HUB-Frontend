@@ -69,9 +69,7 @@ function OrderCard({
           <span
             className={cn(
               "px-2.5 py-0.5 rounded-md font-semibold text-[11px]",
-              isBuyer
-                ? "bg-primary/10 text-primary"
-                : "bg-secondary/10 text-secondary"
+              isBuyer ? "bg-primary/10 text-primary" : "bg-secondary/10 text-secondary"
             )}
           >
             {isBuyer ? "Purchase (Client)" : "Sale (Freelancer)"}
@@ -366,7 +364,8 @@ export default function OrdersPage(): React.JSX.Element {
               <span className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse shrink-0" />
               <div>
                 <p className="text-sm font-semibold text-text-primary">
-                  You have {activeOrdersCount} active {activeOrdersCount === 1 ? "order" : "orders"} in progress
+                  You have {activeOrdersCount} active {activeOrdersCount === 1 ? "order" : "orders"}{" "}
+                  in progress
                 </p>
                 <p className="text-xs text-text-secondary">
                   Review deliverables, confirm escrow, or track milestone releases

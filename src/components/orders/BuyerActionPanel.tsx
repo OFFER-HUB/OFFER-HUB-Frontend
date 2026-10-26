@@ -158,7 +158,11 @@ export function BuyerActionPanel({
               disabled={isProcessing}
               className={NEUMORPHIC_SECONDARY_BUTTON}
             >
-              <Icon path={ICON_PATHS.close} size="sm" className="w-3.5 h-3.5 text-text-secondary/70" />
+              <Icon
+                path={ICON_PATHS.close}
+                size="sm"
+                className="w-3.5 h-3.5 text-text-secondary/70"
+              />
               <span>Cancel Order</span>
             </button>
           </div>
@@ -169,7 +173,8 @@ export function BuyerActionPanel({
         <div className="space-y-4">
           <div className="p-4 rounded-xl bg-background border border-black/5 space-y-2">
             <p className="text-xs text-text-secondary leading-relaxed">
-              Funds are reserved in your account. Initialize the smart contract to securely lock payment until project delivery.
+              Funds are reserved in your account. Initialize the smart contract to securely lock
+              payment until project delivery.
             </p>
             {formattedAmount && (
               <div className="pt-2 border-t border-black/5 flex items-center justify-between text-xs">
@@ -205,7 +210,11 @@ export function BuyerActionPanel({
               disabled={isProcessing}
               className={NEUMORPHIC_SECONDARY_BUTTON}
             >
-              <Icon path={ICON_PATHS.close} size="sm" className="w-3.5 h-3.5 text-text-secondary/70" />
+              <Icon
+                path={ICON_PATHS.close}
+                size="sm"
+                className="w-3.5 h-3.5 text-text-secondary/70"
+              />
               <span>Cancel Order</span>
             </button>
           </div>
@@ -219,17 +228,20 @@ export function BuyerActionPanel({
           </div>
           <div>
             <p className="font-bold text-sm text-[#111827]">Creating Escrow Contract...</p>
-            <p className="text-xs text-text-secondary mt-0.5">Please wait while the blockchain contract is prepared.</p>
+            <p className="text-xs text-text-secondary mt-0.5">
+              Please wait while the blockchain contract is prepared.
+            </p>
           </div>
         </div>
       )}
 
-      {status === "ESCROW_FUNDING" && (
-        isExternalWallet ? (
+      {status === "ESCROW_FUNDING" &&
+        (isExternalWallet ? (
           <div className="space-y-4">
             <div className="p-4 rounded-xl bg-background border border-black/5 space-y-2">
               <p className="text-xs text-text-secondary leading-relaxed">
-                The escrow contract is ready. Sign the transaction with your wallet to lock funds and begin work.
+                The escrow contract is ready. Sign the transaction with your wallet to lock funds
+                and begin work.
               </p>
             </div>
             <button
@@ -258,11 +270,12 @@ export function BuyerActionPanel({
             </div>
             <div>
               <p className="font-bold text-sm text-[#111827]">Funding Escrow...</p>
-              <p className="text-xs text-text-secondary mt-0.5">Transferring reserved funds into the escrow contract.</p>
+              <p className="text-xs text-text-secondary mt-0.5">
+                Transferring reserved funds into the escrow contract.
+              </p>
             </div>
           </div>
-        )
-      )}
+        ))}
 
       {(status === "IN_PROGRESS" || status === "DELIVERED") && (
         <div className="space-y-4">
@@ -310,7 +323,12 @@ export function BuyerActionPanel({
               <h3 className="text-xs font-bold uppercase tracking-wider text-text-secondary">
                 Order Actions
               </h3>
-              <div className={cn("grid gap-2", refundGoesThroughDispute ? "grid-cols-2" : "grid-cols-3")}>
+              <div
+                className={cn(
+                  "grid gap-2",
+                  refundGoesThroughDispute ? "grid-cols-2" : "grid-cols-3"
+                )}
+              >
                 <button
                   type="button"
                   onClick={onRequestRelease}

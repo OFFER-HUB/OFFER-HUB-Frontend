@@ -11,7 +11,7 @@ export interface ClientStats {
 
 export interface ClientActivity {
   id: string;
-  type: 'order_created' | 'order_completed' | 'topup_completed';
+  type: "order_created" | "order_completed" | "topup_completed";
   title: string;
   description: string;
   createdAt: string;
@@ -21,13 +21,13 @@ export interface ClientActivity {
 export async function getClientStats(token: string): Promise<ClientStats> {
   const response = await fetch(`${API_BASE_URL}/client/stats`, {
     headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
     },
   });
 
   if (!response.ok) {
-    throw new Error('Failed to fetch client stats');
+    throw new Error("Failed to fetch client stats");
   }
 
   const data = await response.json();
@@ -37,13 +37,13 @@ export async function getClientStats(token: string): Promise<ClientStats> {
 export async function getClientActivities(token: string): Promise<ClientActivity[]> {
   const response = await fetch(`${API_BASE_URL}/client/activities`, {
     headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
     },
   });
 
   if (!response.ok) {
-    throw new Error('Failed to fetch client activities');
+    throw new Error("Failed to fetch client activities");
   }
 
   const data = await response.json();

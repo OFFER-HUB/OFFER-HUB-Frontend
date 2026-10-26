@@ -166,11 +166,13 @@ export function ConnectedAccounts() {
 
   if (isLoading) {
     return (
-      <div className={cn(
-        "p-6 rounded-2xl",
-        "bg-white",
-        "shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff]"
-      )}>
+      <div
+        className={cn(
+          "p-6 rounded-2xl",
+          "bg-white",
+          "shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff]"
+        )}
+      >
         <div className="flex items-center justify-center py-8">
           <LoadingSpinner className="text-primary" />
         </div>
@@ -179,39 +181,40 @@ export function ConnectedAccounts() {
   }
 
   return (
-    <div className={cn(
-      "p-6 rounded-2xl",
-      "bg-white",
-      "shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff]"
-    )}>
+    <div
+      className={cn(
+        "p-6 rounded-2xl",
+        "bg-white",
+        "shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff]"
+      )}
+    >
       <div className="flex items-center gap-3 mb-6">
         <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
           <Icon path={ICON_PATHS.shield} size="md" className="text-primary" />
         </div>
         <div>
           <h2 className="text-lg font-bold text-text-primary">Connected Accounts</h2>
-          <p className="text-sm text-text-secondary">
-            Link your social accounts for easier login
-          </p>
+          <p className="text-sm text-text-secondary">Link your social accounts for easier login</p>
         </div>
       </div>
 
       {/* Success/Error Messages */}
       {successMessage && (
-        <div className={cn(
-          "mb-4 p-3 rounded-xl flex items-center gap-2",
-          "bg-success/10 text-success"
-        )}>
+        <div
+          className={cn(
+            "mb-4 p-3 rounded-xl flex items-center gap-2",
+            "bg-success/10 text-success"
+          )}
+        >
           <Icon path={ICON_PATHS.check} size="sm" />
           <span className="text-sm">{successMessage}</span>
         </div>
       )}
 
       {error && (
-        <div className={cn(
-          "mb-4 p-3 rounded-xl flex items-center gap-2",
-          "bg-error/10 text-error"
-        )}>
+        <div
+          className={cn("mb-4 p-3 rounded-xl flex items-center gap-2", "bg-error/10 text-error")}
+        >
           <Icon path={ICON_PATHS.alertCircle} size="sm" />
           <span className="text-sm">{error}</span>
         </div>
@@ -236,7 +239,9 @@ export function ConnectedAccounts() {
                 <div
                   className={cn(
                     "w-10 h-10 rounded-lg flex items-center justify-center",
-                    provider.id === "GITHUB" ? "bg-[#24292e] text-white" : "bg-white border border-border-light"
+                    provider.id === "GITHUB"
+                      ? "bg-[#24292e] text-white"
+                      : "bg-white border border-border-light"
                   )}
                 >
                   {provider.icon}
@@ -262,16 +267,8 @@ export function ConnectedAccounts() {
                   "px-4 py-2 rounded-xl text-sm font-medium",
                   "transition-all duration-200",
                   connected
-                    ? [
-                        "text-error",
-                        "bg-error/10",
-                        "hover:bg-error/20",
-                      ]
-                    : [
-                        "text-primary",
-                        "bg-primary/10",
-                        "hover:bg-primary/20",
-                      ],
+                    ? ["text-error", "bg-error/10", "hover:bg-error/20"]
+                    : ["text-primary", "bg-primary/10", "hover:bg-primary/20"],
                   "disabled:opacity-50 disabled:cursor-not-allowed"
                 )}
               >

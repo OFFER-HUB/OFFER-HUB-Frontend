@@ -21,7 +21,9 @@ export interface UsdbTestnetFundingCardProps {
  * Only rendered on testnet for an external wallet — see the caller in
  * `app/wallet/page.tsx`.
  */
-export function UsdbTestnetFundingCard({ className }: UsdbTestnetFundingCardProps): React.JSX.Element {
+export function UsdbTestnetFundingCard({
+  className,
+}: UsdbTestnetFundingCardProps): React.JSX.Element {
   const funding = useUsdbFunding();
 
   const isModalOpen =

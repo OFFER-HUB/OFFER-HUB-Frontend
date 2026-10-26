@@ -34,16 +34,16 @@ export function Input({
   return (
     <div className="flex flex-col gap-1.5">
       {label && (
-        <label
-          htmlFor={inputId}
-          className="text-sm font-medium text-text-primary"
-        >
+        <label htmlFor={inputId} className="text-sm font-medium text-text-primary">
           {label}
         </label>
       )}
       <div className="relative">
         {icon && iconPosition === "left" && (
-          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary" aria-hidden="true">
+          <span
+            className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary"
+            aria-hidden="true"
+          >
             {icon}
           </span>
         )}
@@ -65,7 +65,10 @@ export function Input({
           {...props}
         />
         {icon && iconPosition === "right" && (
-          <span className="absolute right-4 top-1/2 -translate-y-1/2 text-text-secondary" aria-hidden="true">
+          <span
+            className="absolute right-4 top-1/2 -translate-y-1/2 text-text-secondary"
+            aria-hidden="true"
+          >
             {icon}
           </span>
         )}
