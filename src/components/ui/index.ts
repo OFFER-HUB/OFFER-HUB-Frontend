@@ -2,6 +2,7 @@ export { AnimatedSection } from "./AnimatedSection";
 export { Button } from "./Button";
 export { Card } from "./Card";
 export { Container } from "./Container";
+export { FormInput, type FormInputProps } from "./FormInput";
 export { Input } from "./Input";
 export { LazySection } from "./LazySection";
 export { Logo } from "./Logo";
