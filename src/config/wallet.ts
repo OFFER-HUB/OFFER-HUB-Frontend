@@ -2,8 +2,8 @@
  * Wallet Configuration
  *
  * Centralized configuration for the Stellar Wallets Kit (SWK) integration.
- * SCF T1 runs entirely on Stellar testnet, so testnet is the default and
- * mainnet has to be opted into explicitly through the environment.
+ * Testnet is the default for local development. Production deployments set
+ * NEXT_PUBLIC_STELLAR_NETWORK=public to target mainnet.
  */
 
 export type StellarNetworkName = "testnet" | "public";

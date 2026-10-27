@@ -1,6 +1,7 @@
 import { Icon, ICON_PATHS } from "@/components/ui/Icon";
 import { WalletAddress } from "@/components/ui/WalletAddress";
 import type { ClaimWalletResult } from "@/lib/api/wallet-claim";
+import { STELLAR_EXPLORER_URL } from "@/config/wallet";
 
 export interface SuccessStateProps {
   result: ClaimWalletResult;
@@ -26,7 +27,7 @@ export function SuccessState({ result }: SuccessStateProps): React.JSX.Element {
 
           {result.transactionHash !== null && (
             <a
-              href={`https://stellar.expert/explorer/testnet/tx/${result.transactionHash}`}
+              href={`${STELLAR_EXPLORER_URL}/tx/${result.transactionHash}`}
               target="_blank"
               rel="noopener noreferrer"
               className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:text-primary-hover"
