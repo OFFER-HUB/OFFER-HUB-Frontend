@@ -11,6 +11,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { Pagination } from "@/components/ui/Pagination";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 import { PortfolioCard } from "@/components/portfolio/PortfolioCard";
+import { usePortfolioReorder } from "@/hooks/usePortfolioReorder";
 import { NEUMORPHIC_CARD } from "@/lib/styles";
 import {
   getPortfolioItems,
@@ -36,9 +37,7 @@ export default function PortfolioPage(): React.JSX.Element {
   // Delete modal
   const [deleteTarget, setDeleteTarget] = useState<PortfolioItem | null>(null);
 
-  // Drag state
-  const [dragId, setDragId] = useState<string | null>(null);
-  const [dragOverId, setDragOverId] = useState<string | null>(null);
+  
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -80,26 +79,23 @@ export default function PortfolioPage(): React.JSX.Element {
     setCurrentPage(1);
   }, [itemsPerPage]);
 
-  // ── Move up/down ──────────────────────────────────────────────────────────
-  function handleMoveUp(index: number) {
-    if (index === 0) return;
-    setItems((prev) => {
-      const next = [...prev];
-      [next[index - 1], next[index]] = [next[index], next[index - 1]];
-      return next.map((item, i) => ({ ...item, order: i }));
-    });
-  }
+    const {
+    dragId,
+    dragOverId,
+    handleMoveUp,
+    handleMoveDown,
+    handleDragStart,
+    handleDragOver,
+    handleDrop,
+    handleDragEnd,
+  } = usePortfolioReorder({
+    items,
+    setItems,
+    token,
+    onSuccess: showToast,
+  });
 
-  function handleMoveDown(index: number) {
-    if (index === items.length - 1) return;
-    setItems((prev) => {
-      const next = [...prev];
-      [next[index], next[index + 1]] = [next[index + 1], next[index]];
-      return next.map((item, i) => ({ ...item, order: i }));
-    });
-  }
-
-  // ── Toggle public ─────────────────────────────────────────────────────────
+  // Toggle public & Delete
   function handleTogglePublic(item: PortfolioItem) {
     setItems((prev) =>
       prev.map((p) => (p.id === item.id ? { ...p, isPublic: !p.isPublic } : p))
@@ -116,54 +112,6 @@ export default function PortfolioPage(): React.JSX.Element {
   }, [token, deleteTarget]);
 
   // ── Drag-and-drop ─────────────────────────────────────────────────────────
-  function handleDragStart(id: string) {
-    setDragId(id);
-  }
-
-  function handleDragOver(e: React.DragEvent, id: string) {
-    e.preventDefault();
-    if (id !== dragId) setDragOverId(id);
-  }
-
-  function handleDrop(e: React.DragEvent, targetId: string) {
-    e.preventDefault();
-    if (!dragId || dragId === targetId) {
-      setDragId(null);
-      setDragOverId(null);
-      return;
-    }
-
-    setItems((prev) => {
-      const next = [...prev];
-      const fromIdx = next.findIndex((p) => p.id === dragId);
-      const toIdx = next.findIndex((p) => p.id === targetId);
-      const [moved] = next.splice(fromIdx, 1);
-      next.splice(toIdx, 0, moved);
-      return next.map((item, i) => ({ ...item, order: i }));
-    });
-
-    // Persist reorder (fire and forget in mock mode)
-    const orderedIds = items
-      .filter((p) => p.id !== dragId)
-      .reduce<string[]>((acc, p) => {
-        if (p.id === targetId) {
-          acc.push(dragId, p.id);
-        } else {
-          acc.push(p.id);
-        }
-        return acc;
-      }, []);
-    reorderPortfolioItems(token, orderedIds).catch(console.error);
-
-    setDragId(null);
-    setDragOverId(null);
-    showToast("Order saved.");
-  }
-
-  function handleDragEnd() {
-    setDragId(null);
-    setDragOverId(null);
-  }
 
   // ─────────────────────────────────────────────────────────────────────────
 
