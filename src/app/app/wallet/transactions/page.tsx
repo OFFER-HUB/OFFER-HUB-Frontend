@@ -1,120 +1,39 @@
 "use client";
 
-import { useCallback, useDeferredValue, useEffect, useState } from "react";
 import Link from "next/link";
 import { useAuthStore } from "@/stores/auth-store";
 import { cn } from "@/lib/cn";
 import { Icon, ICON_PATHS } from "@/components/ui/Icon";
-import { getWalletTransactions, type WalletTransactionsData } from "@/lib/api/wallet";
 import {
   TransactionFilters,
   TransactionHistorySkeleton,
   TransactionList,
 } from "@/components/wallet";
-import type { TransactionFiltersValue } from "@/components/wallet/TransactionFilters";
-import { downloadWalletTransactionsCsv } from "@/components/wallet/transactionsCsv";
-
-const PAGE_SIZE = 8;
-
-const DEFAULT_FILTERS: TransactionFiltersValue = {
-  search: "",
-  types: [],
-  startDate: "",
-  endDate: "",
-  minAmount: "",
-  maxAmount: "",
-  sortBy: "date-desc",
-};
-
-function parseAmount(value: string): number {
-  const amount = Number.parseFloat(value);
-  return Number.isNaN(amount) ? 0 : amount;
-}
-
-function toDateValue(value: string): number {
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? 0 : date.getTime();
-}
-
-function buildExportFilename(): string {
-  const now = new Date();
-  return `offer-hub-wallet-transactions-${now.toISOString().slice(0, 10)}.csv`;
-}
+import { useWalletTransactions } from "@/hooks/useWalletTransactions";
 
 export default function WalletTransactionsPage(): React.JSX.Element {
   const token = useAuthStore((state) => state.token);
   const hasHydrated = useAuthStore((state) => state.hasHydrated);
-  const [data, setData] = useState<WalletTransactionsData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [filters, setFilters] = useState<TransactionFiltersValue>(DEFAULT_FILTERS);
-  const [currentPage, setCurrentPage] = useState(1);
-  const deferredSearch = useDeferredValue(filters.search);
-
-  const loadTransactions = useCallback(async (): Promise<void> => {
-    if (!token) {
-      setData(null);
-      setIsLoading(false);
-      setIsRefreshing(false);
-      return;
-    }
-
-    setError(null);
-    try {
-      const response = await getWalletTransactions(token, {
-        search: deferredSearch,
-        types: filters.types,
-        startDate: filters.startDate,
-        endDate: filters.endDate,
-        minAmount: filters.minAmount,
-        maxAmount: filters.maxAmount,
-        sortBy: filters.sortBy,
-      });
-      setData(response);
-    } catch (loadError) {
-      const message =
-        loadError instanceof Error ? loadError.message : "Failed to load wallet transactions.";
-      setData(null);
-      setError(message);
-    } finally {
-      setIsLoading(false);
-      setIsRefreshing(false);
-    }
-  }, [
-    deferredSearch,
-    filters.endDate,
-    filters.maxAmount,
-    filters.minAmount,
-    filters.sortBy,
-    filters.startDate,
-    filters.types,
-    token,
-  ]);
-
-  useEffect(() => {
-    setIsLoading(true);
-    void loadTransactions();
-  }, [loadTransactions]);
-
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [
-    deferredSearch,
-    filters.endDate,
-    filters.maxAmount,
-    filters.minAmount,
-    filters.sortBy,
-    filters.startDate,
-    filters.types,
-  ]);
-
-  function refresh(): void {
-    if (!token) return;
-    setIsRefreshing(true);
-    setIsLoading(true);
-    void loadTransactions();
-  }
+  const {
+    data,
+    error,
+    filters,
+    setFilters,
+    clearFilters,
+    isLoading,
+    isRefreshing,
+    refresh,
+    filteredTransactions,
+    paginatedTransactions,
+    currentPage,
+    totalPages,
+    pageSize,
+    setCurrentPage,
+    creditsCount,
+    debitsCount,
+    reservesCount,
+    exportCsv,
+  } = useWalletTransactions(token);
 
   // Before hydration the store is empty even for a signed-in user, so an early
   // `!token` would flash the sign-in wall on every reload.
@@ -172,76 +91,6 @@ export default function WalletTransactionsPage(): React.JSX.Element {
   }
 
   const walletData = data;
-
-  const searchTerm = deferredSearch.trim().toLowerCase();
-  const minAmount = filters.minAmount === "" ? null : Number.parseFloat(filters.minAmount);
-  const maxAmount = filters.maxAmount === "" ? null : Number.parseFloat(filters.maxAmount);
-
-  const filteredTransactions = walletData.transactions
-    .filter((transaction) => {
-      if (filters.types.length > 0 && !filters.types.includes(transaction.type)) {
-        return false;
-      }
-
-      if (searchTerm && !transaction.description.toLowerCase().includes(searchTerm)) {
-        return false;
-      }
-
-      if (filters.startDate && transaction.createdAt.slice(0, 10) < filters.startDate) {
-        return false;
-      }
-
-      if (filters.endDate && transaction.createdAt.slice(0, 10) > filters.endDate) {
-        return false;
-      }
-
-      const amount = parseAmount(transaction.amount);
-      if (minAmount !== null && !Number.isNaN(minAmount) && amount < minAmount) {
-        return false;
-      }
-
-      if (maxAmount !== null && !Number.isNaN(maxAmount) && amount > maxAmount) {
-        return false;
-      }
-
-      return true;
-    })
-    .sort((left, right) => {
-      if (filters.sortBy === "date-asc") {
-        return toDateValue(left.createdAt) - toDateValue(right.createdAt);
-      }
-
-      if (filters.sortBy === "date-desc") {
-        return toDateValue(right.createdAt) - toDateValue(left.createdAt);
-      }
-
-      if (filters.sortBy === "amount-asc") {
-        return parseAmount(left.amount) - parseAmount(right.amount);
-      }
-
-      return parseAmount(right.amount) - parseAmount(left.amount);
-    });
-
-  const totalPages = Math.max(1, Math.ceil(filteredTransactions.length / PAGE_SIZE));
-  const page = Math.min(currentPage, totalPages);
-  const paginatedTransactions = filteredTransactions.slice(
-    (page - 1) * PAGE_SIZE,
-    page * PAGE_SIZE
-  );
-
-  function exportCsv(): void {
-    if (filteredTransactions.length === 0) return;
-    downloadWalletTransactionsCsv(
-      filteredTransactions,
-      walletData.currency,
-      buildExportFilename(),
-      walletData.runningBalanceAvailable
-    );
-  }
-
-  const creditsCount = walletData.transactions.filter((transaction) => transaction.type === "credit").length;
-  const debitsCount = walletData.transactions.filter((transaction) => transaction.type === "debit").length;
-  const reservesCount = walletData.transactions.filter((transaction) => transaction.type === "reserve").length;
 
   return (
     <div className="w-full max-w-7xl mx-auto pb-12 space-y-6 transition-all duration-300 ease-in-out">
@@ -316,7 +165,7 @@ export default function WalletTransactionsPage(): React.JSX.Element {
       <TransactionFilters
         filters={filters}
         onChange={setFilters}
-        onClear={() => setFilters(DEFAULT_FILTERS)}
+        onClear={clearFilters}
         resultCount={filteredTransactions.length}
         totalCount={walletData.transactions.length}
       />
@@ -325,10 +174,10 @@ export default function WalletTransactionsPage(): React.JSX.Element {
         transactions={paginatedTransactions}
         currency={walletData.currency}
         showRunningBalance={walletData.runningBalanceAvailable}
-        currentPage={page}
+        currentPage={currentPage}
         totalPages={totalPages}
         totalItems={filteredTransactions.length}
-        pageSize={PAGE_SIZE}
+        pageSize={pageSize}
         onPageChange={setCurrentPage}
       />
     </div>

@@ -2,47 +2,65 @@ import { useEffect, useRef, useState } from "react";
 
 const DEFAULT_THRESHOLD = 80;
 
+interface UsePullToRefreshOptions {
+  containerId?: string;
+  threshold?: number;
+  isRefreshing?: boolean;
+}
+
 export function usePullToRefresh(
   onRefresh: () => void,
-  threshold = DEFAULT_THRESHOLD
+  { containerId, threshold = DEFAULT_THRESHOLD, isRefreshing = false }: UsePullToRefreshOptions = {}
 ): { isPulling: boolean; pullDistance: number } {
   const [isPulling, setIsPulling] = useState(false);
   const [pullDistance, setPullDistance] = useState(0);
   const startYRef = useRef(0);
+  const isPullingRef = useRef(false);
 
   useEffect(() => {
-    function onTouchStart(e: TouchEvent): void {
-      if (window.scrollY === 0) {
-        startYRef.current = e.touches[0].clientY;
+    const container = containerId ? document.getElementById(containerId) : null;
+    const target = container ?? document;
+
+    function onTouchStart(event: Event): void {
+      const touchEvent = event as TouchEvent;
+      const isAtTop = container ? container.scrollTop <= 0 : window.scrollY === 0;
+      if (isAtTop && !isRefreshing) {
+        startYRef.current = touchEvent.touches[0].clientY;
       }
     }
 
-    function onTouchMove(e: TouchEvent): void {
+    function onTouchMove(event: Event): void {
+      const touchEvent = event as TouchEvent;
       if (startYRef.current === 0) return;
-      const delta = e.touches[0].clientY - startYRef.current;
+      const delta = touchEvent.touches[0].clientY - startYRef.current;
       if (delta > 0) {
         setPullDistance(Math.min(delta, threshold * 1.5));
-        setIsPulling(delta >= threshold);
+        const pulling = delta >= threshold;
+        isPullingRef.current = pulling;
+        setIsPulling(pulling);
       }
     }
 
     function onTouchEnd(): void {
-      if (isPulling) onRefresh();
+      if (isPullingRef.current && !isRefreshing) onRefresh();
+      isPullingRef.current = false;
       setIsPulling(false);
       setPullDistance(0);
       startYRef.current = 0;
     }
 
-    document.addEventListener("touchstart", onTouchStart, { passive: true });
-    document.addEventListener("touchmove", onTouchMove, { passive: true });
-    document.addEventListener("touchend", onTouchEnd);
+    target.addEventListener("touchstart", onTouchStart, { passive: true });
+    target.addEventListener("touchmove", onTouchMove, { passive: true });
+    target.addEventListener("touchend", onTouchEnd);
+    target.addEventListener("touchcancel", onTouchEnd);
 
     return () => {
-      document.removeEventListener("touchstart", onTouchStart);
-      document.removeEventListener("touchmove", onTouchMove);
-      document.removeEventListener("touchend", onTouchEnd);
+      target.removeEventListener("touchstart", onTouchStart);
+      target.removeEventListener("touchmove", onTouchMove);
+      target.removeEventListener("touchend", onTouchEnd);
+      target.removeEventListener("touchcancel", onTouchEnd);
     };
-  }, [isPulling, onRefresh, threshold]);
+  }, [containerId, isRefreshing, onRefresh, threshold]);
 
   return { isPulling, pullDistance };
 }
