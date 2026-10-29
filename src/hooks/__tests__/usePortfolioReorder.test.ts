@@ -21,12 +21,14 @@ const mockItems: PortfolioItem[] = [
     endDate: "2023-02-01",
     isPublic: true,
     order: 0,
+    createdAt: "2023-01-01T00:00:00.000Z",
+    updatedAt: "2023-01-01T00:00:00.000Z",
   },
   {
     id: "item-2",
     title: "Project 2",
     description: "Description 2",
-    category: "design",
+    category: "ui_ux_design",
     tags: ["Figma"],
     images: [],
     projectUrl: "https://example.com/2",
@@ -34,6 +36,8 @@ const mockItems: PortfolioItem[] = [
     endDate: "2023-04-01",
     isPublic: true,
     order: 1,
+    createdAt: "2023-03-01T00:00:00.000Z",
+    updatedAt: "2023-03-01T00:00:00.000Z",
   },
   {
     id: "item-3",
@@ -47,6 +51,8 @@ const mockItems: PortfolioItem[] = [
     endDate: "2023-06-01",
     isPublic: true,
     order: 2,
+    createdAt: "2023-05-01T00:00:00.000Z",
+    updatedAt: "2023-05-01T00:00:00.000Z",
   },
 ];
 
