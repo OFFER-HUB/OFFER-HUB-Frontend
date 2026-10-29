@@ -1,44 +1,25 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Navbar } from "@/components/landing";
 import { EscrowsTable } from "@/components/stats/EscrowsTable";
 import { ValidationRuns } from "@/components/stats/ValidationRuns";
 import { WalletsTable } from "@/components/stats/WalletsTable";
 import { Icon, ICON_PATHS, LoadingSpinner } from "@/components/ui/Icon";
+import { usePlatformStats } from "@/hooks/use-platform-stats";
 import { usePublicValidationResults } from "@/hooks/use-public-validation-results";
-import { getPlatformStats, type PlatformStatsResponse } from "@/lib/api/stats";
 
 export default function PlatformStatsPage(): React.JSX.Element {
-  const [data, setData] = useState<PlatformStatsResponse | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [walletsLimit, setWalletsLimit] = useState(5);
   const [escrowsLimit, setEscrowsLimit] = useState(5);
+  const stats = usePlatformStats(walletsLimit, escrowsLimit);
   const validationResults = usePublicValidationResults();
-
-  useEffect(() => {
-    async function loadStats() {
-      if (data) {
-        setIsLoadingMore(true);
-      } else {
-        setIsLoading(true);
-      }
-      setError(null);
-      try {
-        const stats = await getPlatformStats(walletsLimit, escrowsLimit);
-        setData(stats);
-      } catch (err) {
-        console.error("Failed to load platform stats:", err);
-        setError(err instanceof Error ? err.message : "Failed to load platform stats.");
-      } finally {
-        setIsLoading(false);
-        setIsLoadingMore(false);
-      }
-    }
-    loadStats();
-  }, [walletsLimit, escrowsLimit]);
+  const formattedFetchedAt = stats.fetchedAt
+    ? new Date(stats.fetchedAt).toLocaleString(undefined, {
+        dateStyle: "medium",
+        timeStyle: "short",
+      })
+    : null;
 
   return (
     <div className="min-h-screen bg-background">
@@ -66,27 +47,39 @@ export default function PlatformStatsPage(): React.JSX.Element {
             />
           </div>
 
-          {isLoading ? (
+          {stats.isLoading ? (
             <div className="flex flex-col items-center justify-center py-24 gap-4">
               <LoadingSpinner size="lg" className="text-primary" />
               <p className="text-sm text-text-secondary animate-pulse">Syncing platform metrics...</p>
             </div>
-          ) : error ? (
+          ) : stats.error && !stats.data ? (
             <div className="p-8 rounded-3xl bg-white text-center shadow-[var(--shadow-neumorphic-light)] max-w-md mx-auto">
               <div className="w-12 h-12 rounded-xl bg-error/10 text-error flex items-center justify-center mx-auto mb-4">
                 <Icon path={ICON_PATHS.alertCircle} size="md" />
               </div>
               <h3 className="text-lg font-bold text-text-primary mb-2">Error Syncing Metrics</h3>
-              <p className="text-sm text-text-secondary mb-6">{error}</p>
+              <p className="text-sm text-text-secondary mb-6">{stats.error}</p>
               <button
-                onClick={() => window.location.reload()}
+                onClick={() => void stats.refresh()}
                 className="px-6 py-2.5 rounded-xl font-medium bg-primary text-white shadow-[var(--shadow-neumorphic-light)] hover:bg-primary-hover active:shadow-[var(--shadow-neumorphic-inset-light)] transition-all duration-200 cursor-pointer"
               >
                 Retry Connection
               </button>
             </div>
-          ) : data ? (
+          ) : stats.data ? (
             <div className="space-y-10">
+              <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-text-secondary">
+                <p aria-live="polite">
+                  {formattedFetchedAt ? `Last updated ${formattedFetchedAt}` : ""}
+                  {stats.isRefreshing && " · Refreshing metrics..."}
+                </p>
+                {stats.error && (
+                  <p role="status" className="text-warning">
+                    Refresh failed: {stats.error}. Showing the last loaded metrics.
+                  </p>
+                )}
+              </div>
+
               {/* Metrics Grid using standard project design */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 {/* Users card */}
@@ -95,7 +88,7 @@ export default function PlatformStatsPage(): React.JSX.Element {
                     <Icon path={ICON_PATHS.users} size="lg" />
                   </div>
                   <span className="text-3xl font-bold text-text-primary tracking-tight">
-                    {data.summary.users.toLocaleString()}
+                    {stats.data.summary.users.toLocaleString()}
                   </span>
                   <span className="text-sm font-semibold text-text-secondary mt-1">
                     Registered Users
@@ -108,7 +101,7 @@ export default function PlatformStatsPage(): React.JSX.Element {
                     <Icon path={ICON_PATHS.creditCard} size="lg" />
                   </div>
                   <span className="text-3xl font-bold text-text-primary tracking-tight">
-                    {data.summary.wallets.toLocaleString()}
+                    {stats.data.summary.wallets.toLocaleString()}
                   </span>
                   <span className="text-sm font-semibold text-text-secondary mt-1">
                     Stellar Wallets
@@ -121,7 +114,7 @@ export default function PlatformStatsPage(): React.JSX.Element {
                     <Icon path={ICON_PATHS.lock} size="lg" />
                   </div>
                   <span className="text-3xl font-bold text-text-primary tracking-tight">
-                    {data.summary.escrows.toLocaleString()}
+                    {stats.data.summary.escrows.toLocaleString()}
                   </span>
                   <span className="text-sm font-semibold text-text-secondary mt-1">
                     Escrows Created
@@ -134,7 +127,7 @@ export default function PlatformStatsPage(): React.JSX.Element {
                     <Icon path={ICON_PATHS.refresh} size="lg" />
                   </div>
                   <span className="text-3xl font-bold text-text-primary tracking-tight">
-                    {data.summary.transactions.toLocaleString()}
+                    {stats.data.summary.transactions.toLocaleString()}
                   </span>
                   <span className="text-sm font-semibold text-text-secondary mt-1">
                     On-chain Transactions
@@ -143,16 +136,16 @@ export default function PlatformStatsPage(): React.JSX.Element {
               </div>
 
               <WalletsTable
-                wallets={data.recentWallets}
-                totalWallets={data.summary.wallets}
-                isLoadingMore={isLoadingMore}
+                wallets={stats.data.recentWallets}
+                totalWallets={stats.data.summary.wallets}
+                isLoadingMore={stats.isLoadingMore}
                 onShowMore={() => setWalletsLimit((previous) => previous + 10)}
               />
 
               <EscrowsTable
-                escrows={data.recentEscrows}
-                totalEscrows={data.summary.escrows}
-                isLoadingMore={isLoadingMore}
+                escrows={stats.data.recentEscrows}
+                totalEscrows={stats.data.summary.escrows}
+                isLoadingMore={stats.isLoadingMore}
                 onShowMore={() => setEscrowsLimit((previous) => previous + 10)}
               />
             </div>

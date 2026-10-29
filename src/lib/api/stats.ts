@@ -1,34 +1,13 @@
 import { API_URL } from "@/config/api";
 import type { ApiResponse } from "@/types/api-response.types";
-import type { PublicValidationResults } from "@/types/stats.types";
+import type { PlatformStatsResponse, PublicValidationResults } from "@/types/stats.types";
 
-export interface PlatformStatsSummary {
-  users: number;
-  wallets: number;
-  escrows: number;
-  transactions: number;
-}
-
-export interface RecentWallet {
-  id: string;
-  publicKey: string;
-  createdAt: string;
-}
-
-export interface RecentEscrow {
-  id: string;
-  orderId: string;
-  trustlessContractId: string | null;
-  status: string;
-  amount: string;
-  createdAt: string;
-}
-
-export interface PlatformStatsResponse {
-  summary: PlatformStatsSummary;
-  recentWallets: RecentWallet[];
-  recentEscrows: RecentEscrow[];
-}
+export type {
+  PlatformStatsResponse,
+  PlatformStatsSummary,
+  RecentEscrow,
+  RecentWallet,
+} from "@/types/stats.types";
 
 export async function getPlatformStats(
   walletsLimit: number = 5,
@@ -43,6 +22,7 @@ export async function getPlatformStats(
     headers: {
       "Content-Type": "application/json",
     },
+    cache: "no-store",
   });
 
   if (!response.ok) {
