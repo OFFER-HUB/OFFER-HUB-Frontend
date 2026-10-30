@@ -68,7 +68,7 @@ function buildExportFilename(): string {
   return `offer-hub-wallet-transactions-${new Date().toISOString().slice(0, 10)}.csv`;
 }
 
-interface UseWalletTransactionsReturn {
+export interface UseWalletTransactionsReturn {
   data: WalletTransactionsData | null;
   error: string | null;
   filters: TransactionFiltersValue;

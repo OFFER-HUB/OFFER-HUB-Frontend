@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Icon, ICON_PATHS } from "@/components/ui/Icon";
-import type { RecentWallet } from "@/lib/api/stats";
+import type { RecentWallet } from "@/types/stats.types";
 
 interface WalletsTableProps {
   wallets: RecentWallet[];

@@ -1,34 +1,5 @@
 import { API_URL } from "@/config/api";
-import type { ApiResponse } from "@/types/api-response.types";
-import type { PublicValidationResults } from "@/types/stats.types";
-
-export interface PlatformStatsSummary {
-  users: number;
-  wallets: number;
-  escrows: number;
-  transactions: number;
-}
-
-export interface RecentWallet {
-  id: string;
-  publicKey: string;
-  createdAt: string;
-}
-
-export interface RecentEscrow {
-  id: string;
-  orderId: string;
-  trustlessContractId: string | null;
-  status: string;
-  amount: string;
-  createdAt: string;
-}
-
-export interface PlatformStatsResponse {
-  summary: PlatformStatsSummary;
-  recentWallets: RecentWallet[];
-  recentEscrows: RecentEscrow[];
-}
+import type { PlatformStatsResponse } from "@/types/stats.types";
 
 export async function getPlatformStats(
   walletsLimit: number = 5,
@@ -51,26 +22,5 @@ export async function getPlatformStats(
   }
 
   const result = await response.json();
-  return result.data;
-}
-
-export async function getPublicValidationResults(): Promise<PublicValidationResults> {
-  const response = await fetch(`${API_URL}/config/validation-results`, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    cache: "no-store",
-  });
-
-  if (!response.ok) {
-    throw new Error("Failed to fetch public validation results");
-  }
-
-  const result: ApiResponse<PublicValidationResults> = await response.json();
-  if (!result.data) {
-    throw new Error("Public validation results are unavailable");
-  }
-
   return result.data;
 }

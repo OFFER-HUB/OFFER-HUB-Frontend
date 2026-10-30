@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { cn } from "@/lib/cn";
 import { Icon, ICON_PATHS } from "@/components/ui/Icon";
-import type { RecentEscrow } from "@/lib/api/stats";
+import type { RecentEscrow } from "@/types/stats.types";
 
 interface EscrowsTableProps {
   escrows: RecentEscrow[];

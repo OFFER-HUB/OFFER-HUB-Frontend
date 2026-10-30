@@ -1,159 +1,80 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { Navbar } from "@/components/landing";
 import { EscrowsTable } from "@/components/stats/EscrowsTable";
-import { ValidationRuns } from "@/components/stats/ValidationRuns";
+import { PlatformStatsMetrics } from "@/components/stats/PlatformStatsMetrics";
 import { WalletsTable } from "@/components/stats/WalletsTable";
 import { Icon, ICON_PATHS, LoadingSpinner } from "@/components/ui/Icon";
-import { usePublicValidationResults } from "@/hooks/use-public-validation-results";
-import { getPlatformStats, type PlatformStatsResponse } from "@/lib/api/stats";
+import { usePlatformStats } from "@/hooks/usePlatformStats";
 
 export default function PlatformStatsPage(): React.JSX.Element {
-  const [data, setData] = useState<PlatformStatsResponse | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [walletsLimit, setWalletsLimit] = useState(5);
-  const [escrowsLimit, setEscrowsLimit] = useState(5);
-  const validationResults = usePublicValidationResults();
-
-  useEffect(() => {
-    async function loadStats() {
-      if (data) {
-        setIsLoadingMore(true);
-      } else {
-        setIsLoading(true);
-      }
-      setError(null);
-      try {
-        const stats = await getPlatformStats(walletsLimit, escrowsLimit);
-        setData(stats);
-      } catch (err) {
-        console.error("Failed to load platform stats:", err);
-        setError(err instanceof Error ? err.message : "Failed to load platform stats.");
-      } finally {
-        setIsLoading(false);
-        setIsLoadingMore(false);
-      }
-    }
-    loadStats();
-  }, [walletsLimit, escrowsLimit]);
+  const {
+    data,
+    error,
+    isLoading,
+    isLoadingMore,
+    refresh,
+    showMoreEscrows,
+    showMoreWallets,
+  } = usePlatformStats();
 
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
 
       <main className="py-12 lg:py-16">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Header (FAQ Page Style) */}
-          <div className="text-center mb-12">
-            <h1 className="text-3xl sm:text-4xl font-bold text-text-primary mb-4 animate-fade-in-up">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+          <div className="mb-12 text-center">
+            <h1 className="mb-4 animate-fade-in-up text-3xl font-bold text-text-primary sm:text-4xl">
               Platform Stats
             </h1>
-            <p className="text-text-secondary max-w-2xl mx-auto text-base animate-fade-in-up" style={{ animationDelay: "0.1s" }}>
-              Real-time insights and transparent key metrics showcasing user registration, secure wallet generation, and transaction volume.
+            <p className="mx-auto max-w-2xl animate-fade-in-up text-base text-text-secondary">
+              Real-time insights and transparent key metrics showcasing user registration, secure
+              wallet generation, and transaction volume.
             </p>
           </div>
 
-          <div className="mb-10">
-            <ValidationRuns
-              data={validationResults.data}
-              error={validationResults.error}
-              fetchedAt={validationResults.fetchedAt}
-              isLoading={validationResults.isLoading}
-              onRetry={validationResults.refresh}
-            />
-          </div>
-
           {isLoading ? (
-            <div className="flex flex-col items-center justify-center py-24 gap-4">
+            <div className="flex flex-col items-center justify-center gap-4 py-24">
               <LoadingSpinner size="lg" className="text-primary" />
-              <p className="text-sm text-text-secondary animate-pulse">Syncing platform metrics...</p>
+              <p className="animate-pulse text-sm text-text-secondary">
+                Syncing platform metrics...
+              </p>
             </div>
-          ) : error ? (
-            <div className="p-8 rounded-3xl bg-white text-center shadow-[var(--shadow-neumorphic-light)] max-w-md mx-auto">
-              <div className="w-12 h-12 rounded-xl bg-error/10 text-error flex items-center justify-center mx-auto mb-4">
+          ) : error && !data ? (
+            <div className="mx-auto max-w-md rounded-3xl bg-white p-8 text-center shadow-[var(--shadow-neumorphic-light)]">
+              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-error/10 text-error">
                 <Icon path={ICON_PATHS.alertCircle} size="md" />
               </div>
-              <h3 className="text-lg font-bold text-text-primary mb-2">Error Syncing Metrics</h3>
-              <p className="text-sm text-text-secondary mb-6">{error}</p>
+              <h2 className="mb-2 text-lg font-bold text-text-primary">Error Syncing Metrics</h2>
+              <p className="mb-6 text-sm text-text-secondary">{error}</p>
               <button
-                onClick={() => window.location.reload()}
-                className="px-6 py-2.5 rounded-xl font-medium bg-primary text-white shadow-[var(--shadow-neumorphic-light)] hover:bg-primary-hover active:shadow-[var(--shadow-neumorphic-inset-light)] transition-all duration-200 cursor-pointer"
+                type="button"
+                onClick={refresh}
+                className="cursor-pointer rounded-xl bg-primary px-6 py-2.5 font-medium text-white shadow-[var(--shadow-neumorphic-light)] transition-all duration-200 hover:bg-primary-hover active:shadow-[var(--shadow-neumorphic-inset-light)]"
               >
                 Retry Connection
               </button>
             </div>
           ) : data ? (
             <div className="space-y-10">
-              {/* Metrics Grid using standard project design */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                {/* Users card */}
-                <div className="bg-white p-6 rounded-3xl shadow-[var(--shadow-neumorphic-light)] flex flex-col items-center text-center transition-transform duration-300 hover:-translate-y-1">
-                  <div className="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mb-4">
-                    <Icon path={ICON_PATHS.users} size="lg" />
-                  </div>
-                  <span className="text-3xl font-bold text-text-primary tracking-tight">
-                    {data.summary.users.toLocaleString()}
-                  </span>
-                  <span className="text-sm font-semibold text-text-secondary mt-1">
-                    Registered Users
-                  </span>
-                </div>
-
-                {/* Wallets card */}
-                <div className="bg-white p-6 rounded-3xl shadow-[var(--shadow-neumorphic-light)] flex flex-col items-center text-center transition-transform duration-300 hover:-translate-y-1">
-                  <div className="w-12 h-12 rounded-2xl bg-success/10 text-success flex items-center justify-center mb-4">
-                    <Icon path={ICON_PATHS.creditCard} size="lg" />
-                  </div>
-                  <span className="text-3xl font-bold text-text-primary tracking-tight">
-                    {data.summary.wallets.toLocaleString()}
-                  </span>
-                  <span className="text-sm font-semibold text-text-secondary mt-1">
-                    Stellar Wallets
-                  </span>
-                </div>
-
-                {/* Escrows card */}
-                <div className="bg-white p-6 rounded-3xl shadow-[var(--shadow-neumorphic-light)] flex flex-col items-center text-center transition-transform duration-300 hover:-translate-y-1">
-                  <div className="w-12 h-12 rounded-2xl bg-warning/10 text-warning flex items-center justify-center mb-4">
-                    <Icon path={ICON_PATHS.lock} size="lg" />
-                  </div>
-                  <span className="text-3xl font-bold text-text-primary tracking-tight">
-                    {data.summary.escrows.toLocaleString()}
-                  </span>
-                  <span className="text-sm font-semibold text-text-secondary mt-1">
-                    Escrows Created
-                  </span>
-                </div>
-
-                {/* Transactions card */}
-                <div className="bg-white p-6 rounded-3xl shadow-[var(--shadow-neumorphic-light)] flex flex-col items-center text-center transition-transform duration-300 hover:-translate-y-1">
-                  <div className="w-12 h-12 rounded-2xl bg-accent/10 text-accent flex items-center justify-center mb-4">
-                    <Icon path={ICON_PATHS.refresh} size="lg" />
-                  </div>
-                  <span className="text-3xl font-bold text-text-primary tracking-tight">
-                    {data.summary.transactions.toLocaleString()}
-                  </span>
-                  <span className="text-sm font-semibold text-text-secondary mt-1">
-                    On-chain Transactions
-                  </span>
-                </div>
-              </div>
-
+              {error && (
+                <p role="status" className="text-center text-sm text-warning">
+                  Refresh failed: {error}. Showing the last loaded metrics.
+                </p>
+              )}
+              <PlatformStatsMetrics summary={data.summary} />
               <WalletsTable
                 wallets={data.recentWallets}
                 totalWallets={data.summary.wallets}
                 isLoadingMore={isLoadingMore}
-                onShowMore={() => setWalletsLimit((previous) => previous + 10)}
+                onShowMore={showMoreWallets}
               />
-
               <EscrowsTable
                 escrows={data.recentEscrows}
                 totalEscrows={data.summary.escrows}
                 isLoadingMore={isLoadingMore}
-                onShowMore={() => setEscrowsLimit((previous) => previous + 10)}
+                onShowMore={showMoreEscrows}
               />
             </div>
           ) : null}
