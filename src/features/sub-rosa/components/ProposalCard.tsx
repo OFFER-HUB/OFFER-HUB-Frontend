@@ -1,16 +1,18 @@
 "use client";
 
 import { cn } from "@/lib/cn";
-import { Card } from "@/components/ui/Card";
-import { Button } from "@/components/ui/Button";
 import { Icon, ICON_PATHS } from "@/components/ui/Icon";
 import type { SealedProposal } from "../sub-rosa.types";
+import { ActionButton, Badge } from "./ui";
 
 interface ProposalCardProps {
   proposal: SealedProposal;
   isSelected: boolean;
+  /** Another proposal already won the round. */
+  isPassedOver: boolean;
   canSelect: boolean;
   isBusy: boolean;
+  isSelecting: boolean;
   onSelect: (proposalId: string) => void;
 }
 
@@ -24,44 +26,37 @@ const PRIVATE_FIELDS = [
   "Milestones",
 ] as const;
 
-interface DetailProps {
+function Detail({
+  label,
+  children,
+}: {
   label: string;
   children: React.ReactNode;
-}
-
-function Detail({ label, children }: DetailProps): React.JSX.Element {
+}): React.JSX.Element {
   return (
-    <div>
-      <dt className="text-xs font-medium text-text-secondary uppercase tracking-wide">{label}</dt>
-      <dd className="text-sm text-text-primary mt-1 leading-relaxed">{children}</dd>
+    <div className="min-w-0">
+      <dt className="text-xs font-semibold text-text-secondary uppercase tracking-wide">
+        {label}
+      </dt>
+      <dd className="text-sm text-text-primary mt-1 leading-relaxed break-words">{children}</dd>
     </div>
   );
 }
 
 function SealedBody(): React.JSX.Element {
   return (
-    <div
-      className={cn(
-        "mt-4 p-4 rounded-xl",
-        "bg-background shadow-[var(--shadow-neumorphic-inset-light)]"
-      )}
-    >
-      <p className="text-xs font-medium text-text-secondary mb-3">
+    <div className="flex-1 rounded-xl bg-background p-4 shadow-[var(--shadow-neumorphic-inset-light)]">
+      <p className="text-xs font-semibold text-text-secondary uppercase tracking-wide">
         Hidden until the shared deadline
       </p>
-      <ul className="flex flex-wrap gap-2">
+      <ul className="grid grid-cols-2 gap-2 mt-3">
         {PRIVATE_FIELDS.map((field) => (
           <li
             key={field}
-            className={cn(
-              "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs text-text-secondary",
-              // Raised chips inside the sunken well — the locked fields read as
-              // objects sitting in the recess rather than painted onto it.
-              "bg-white shadow-[2px_2px_4px_#d1d5db,-2px_-2px_4px_#ffffff]"
-            )}
+            className="flex items-center gap-2 min-w-0 rounded-lg bg-white px-2.5 py-2 text-xs font-medium text-text-secondary"
           >
-            <Icon path={ICON_PATHS.lock} size="sm" className="w-3 h-3" />
-            {field}
+            <Icon path={ICON_PATHS.lock} size="sm" className="w-3.5 h-3.5 shrink-0 text-primary/70" />
+            <span className="truncate">{field}</span>
           </li>
         ))}
       </ul>
@@ -69,82 +64,120 @@ function SealedBody(): React.JSX.Element {
   );
 }
 
+function StatusBadge({
+  isRevealed,
+  isSelected,
+}: {
+  isRevealed: boolean;
+  isSelected: boolean;
+}): React.JSX.Element {
+  if (isSelected) {
+    return (
+      <Badge tone="success" iconPath={ICON_PATHS.checkCircle}>
+        Selected
+      </Badge>
+    );
+  }
+  return isRevealed ? (
+    <Badge tone="primary" iconPath={ICON_PATHS.eye}>
+      Revealed
+    </Badge>
+  ) : (
+    <Badge tone="neutral" iconPath={ICON_PATHS.lock}>
+      Sealed
+    </Badge>
+  );
+}
+
 export function ProposalCard({
   proposal,
   isSelected,
+  isPassedOver,
   canSelect,
   isBusy,
+  isSelecting,
   onSelect,
 }: ProposalCardProps): React.JSX.Element {
   const { content } = proposal;
+  const title = content ? content.providerName : proposal.label;
 
   return (
-    <Card
-      padding="md"
+    <article
+      aria-label={title}
       className={cn(
-        "transition-shadow duration-200",
-        isSelected && "ring-2 ring-primary"
+        "flex flex-col h-full min-w-0 rounded-2xl bg-white p-5 sm:p-6",
+        "shadow-[var(--shadow-neumorphic-light)] transition-[box-shadow,opacity] duration-300",
+        isSelected && "ring-2 ring-success",
+        isPassedOver && "opacity-70"
       )}
     >
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <h3 className="text-base font-bold text-text-primary">
-            {content ? content.providerName : proposal.label}
-          </h3>
-          {content ? (
-            <p className="text-xs text-text-secondary mt-0.5">{proposal.label}</p>
-          ) : null}
+      <header className="flex items-start justify-between gap-3 mb-4">
+        <div className="min-w-0">
+          <h3 className="text-base font-bold text-text-primary truncate">{title}</h3>
+          <p className="text-xs text-text-secondary mt-0.5">
+            {content ? proposal.label : "Contents encrypted"}
+          </p>
         </div>
-        <span
-          className={cn(
-            "inline-flex items-center gap-1.5 shrink-0 px-2.5 py-1 rounded-full text-xs font-medium",
-            "bg-background shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]",
-            proposal.isRevealed ? "text-primary" : "text-secondary"
-          )}
-        >
-          <Icon
-            path={proposal.isRevealed ? ICON_PATHS.eye : ICON_PATHS.lock}
-            size="sm"
-            className="w-3 h-3"
-          />
-          {proposal.isRevealed ? "Revealed" : "Sealed"}
-        </span>
-      </div>
+        <StatusBadge isRevealed={proposal.isRevealed} isSelected={isSelected} />
+      </header>
 
       {content ? (
-        <>
-          <dl className="grid grid-cols-2 gap-4 mt-4">
-            <Detail label="Price">{content.price}</Detail>
-            <Detail label="Delivery">{content.timelineDays} days</Detail>
-          </dl>
-          <dl className="grid grid-cols-1 gap-4 mt-4">
+        <div className="flex-1">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="rounded-xl bg-background px-4 py-3 shadow-[var(--shadow-neumorphic-inset-light)]">
+              <p className="text-xs font-semibold text-text-secondary uppercase tracking-wide">
+                Price
+              </p>
+              <p className="text-lg font-bold text-text-primary mt-0.5 tabular-nums">
+                {content.price}
+              </p>
+            </div>
+            <div className="rounded-xl bg-background px-4 py-3 shadow-[var(--shadow-neumorphic-inset-light)]">
+              <p className="text-xs font-semibold text-text-secondary uppercase tracking-wide">
+                Delivery
+              </p>
+              <p className="text-lg font-bold text-text-primary mt-0.5 tabular-nums">
+                {content.timelineDays} days
+              </p>
+            </div>
+          </div>
+          <dl className="grid grid-cols-1 gap-4 mt-5">
             <Detail label="Approach">{content.approach}</Detail>
             <Detail label="Experience">{content.experience}</Detail>
             <Detail label="Milestones">{content.milestones}</Detail>
           </dl>
-        </>
+        </div>
       ) : (
         <SealedBody />
       )}
 
-      <div className="mt-5">
+      <footer className="mt-5 pt-4 border-t border-border-light">
         {isSelected ? (
-          <span className="inline-flex items-center gap-2 text-sm font-semibold text-primary">
-            <Icon path={ICON_PATHS.check} size="sm" />
-            Selected provider
-          </span>
-        ) : (
-          <Button
-            size="sm"
-            variant="outline"
-            className="w-full sm:w-auto"
-            disabled={!canSelect || isBusy}
+          <p className="flex items-center justify-center gap-2 h-11 text-sm font-semibold text-success">
+            <Icon path={ICON_PATHS.checkCircle} size="sm" />
+            Selected for this job
+          </p>
+        ) : canSelect ? (
+          <ActionButton
+            fullWidth
+            iconPath={ICON_PATHS.check}
+            isLoading={isSelecting}
+            disabled={isBusy}
             onClick={() => onSelect(proposal.id)}
           >
-            {proposal.isRevealed ? "Select provider" : "Select provider (after reveal)"}
-          </Button>
+            Select provider
+          </ActionButton>
+        ) : (
+          <p className="flex items-center justify-center gap-2 h-11 text-sm font-medium text-text-secondary">
+            <Icon
+              path={isPassedOver ? ICON_PATHS.x : ICON_PATHS.lock}
+              size="sm"
+              className="w-3.5 h-3.5"
+            />
+            {isPassedOver ? "Not selected" : "Selectable after reveal"}
+          </p>
         )}
-      </div>
-    </Card>
+      </footer>
+    </article>
   );
 }

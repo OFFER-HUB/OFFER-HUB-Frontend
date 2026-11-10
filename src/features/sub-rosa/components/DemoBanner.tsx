@@ -1,51 +1,32 @@
 import { cn } from "@/lib/cn";
 import { Icon, ICON_PATHS } from "@/components/ui/Icon";
 import { SUBROSA_LINKS } from "../sub-rosa.constants";
+import { Badge, IconWell } from "./ui";
 
 /**
  * Permanent, unmissable notice that nothing on this page is real. It stays
  * pinned above the fold rather than tucked into a footer — the demo exists to
  * be screenshotted, and a screenshot must carry its own disclaimer.
- *
- * Built as a raised neumorphic surface rather than a solid colour block: the
- * raised/sunken shadow pair only reads against the light background, so a
- * filled panel would flatten the page.
  */
 export function DemoBanner(): React.JSX.Element {
   return (
     <div
       role="note"
       className={cn(
-        "flex flex-col gap-4 p-5 mb-6 rounded-2xl sm:flex-row sm:items-center sm:justify-between",
+        "flex flex-col gap-4 p-5 rounded-2xl sm:flex-row sm:items-center sm:justify-between sm:gap-6",
         "bg-white shadow-[var(--shadow-neumorphic-light)]"
       )}
     >
-      <div className="flex items-start gap-4">
-        <span
-          className={cn(
-            "inline-flex items-center justify-center shrink-0 w-10 h-10 rounded-xl",
-            "bg-background text-primary",
-            "shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]"
-          )}
-        >
-          <Icon path={ICON_PATHS.infoCircle} size="md" />
-        </span>
-        <div>
-          <p className="flex flex-wrap items-center gap-2 text-sm font-semibold text-text-primary">
-            <span
-              className={cn(
-                "px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wide",
-                "bg-secondary text-white shadow-[2px_2px_4px_#d1d5db,-2px_-2px_4px_#ffffff]"
-              )}
-            >
-              DEMO
-            </span>
+      <div className="flex items-start gap-4 min-w-0">
+        <IconWell iconPath={ICON_PATHS.infoCircle} />
+        <div className="min-w-0">
+          <p className="flex flex-wrap items-center gap-2 text-sm font-bold text-text-primary">
+            <Badge tone="dark">Demo</Badge>
             Sample data, no blockchain activity
           </p>
           <p className="text-sm text-text-secondary mt-1.5 leading-relaxed">
-            An exploration of Sub Rosa as an optional sealed-proposal layer. It is not wired to
-            OFFER HUB accounts, offers, payments or escrows, and no contract ID, transaction hash
-            or receipt is claimed anywhere on this page.
+            Not wired to OFFER HUB accounts, offers, payments or escrows. No contract ID,
+            transaction hash or receipt is claimed anywhere on this page.
           </p>
         </div>
       </div>
@@ -54,15 +35,17 @@ export function DemoBanner(): React.JSX.Element {
         target="_blank"
         rel="noopener noreferrer"
         className={cn(
-          "inline-flex items-center justify-center gap-1.5 shrink-0 px-4 py-2.5 rounded-xl",
-          "text-sm font-medium text-white bg-primary",
-          "shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]",
-          "transition-shadow duration-200",
-          "active:shadow-[var(--shadow-neumorphic-inset-light)]"
+          "inline-flex items-center justify-center gap-2 shrink-0 h-11 px-5 rounded-xl",
+          "text-sm font-semibold text-primary bg-white",
+          "shadow-[var(--shadow-neumorphic-light)] transition-[transform,box-shadow] duration-200",
+          "hover:-translate-y-px hover:text-primary-hover",
+          "active:translate-y-0 active:shadow-[var(--shadow-neumorphic-inset-light)]",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         )}
       >
-        Pilot doc
+        Read the pilot doc
         <Icon path={ICON_PATHS.externalLink} size="sm" />
+        <span className="sr-only">(opens in a new tab)</span>
       </a>
     </div>
   );
