@@ -4,7 +4,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { ICON_PATHS } from "@/components/ui/Icon";
 import { LoadingState } from "@/components/ui/LoadingState";
-import type { PublicValidationResults } from "@/types/stats.types";
+import type { PublicValidationResults, PublicValidationRun, ValidationReceipt } from "@/types/stats.types";
 
 interface ValidationRunsProps {
   data: PublicValidationResults | null;
@@ -19,6 +19,49 @@ function formatTimestamp(value: string): string {
   return Number.isNaN(date.getTime())
     ? "Unavailable"
     : date.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
+}
+
+const EXPLORER: Record<PublicValidationRun["network"], string> = {
+  testnet: "https://stellar.expert/explorer/testnet",
+  mainnet: "https://stellar.expert/explorer/public",
+};
+
+const linkClass =
+  "rounded-xl px-2 py-1 text-sm font-semibold text-primary underline underline-offset-4 transition-colors hover:text-primary-hover";
+
+function humanizeStep(name: string): string {
+  return name.replace(/_/g, " ");
+}
+
+function formatDuration(ms: number): string {
+  const seconds = Math.round(ms / 1000);
+  return seconds < 60 ? `${seconds}s` : `${Math.floor(seconds / 60)}m ${seconds % 60}s`;
+}
+
+/** BlindPay amounts are minor units (2 decimals for every LATAM corridor currency). */
+function formatFiat(receipt: ValidationReceipt): string {
+  const amount = receipt.receiverAmountMinor / 100;
+  try {
+    return new Intl.NumberFormat(undefined, { style: "currency", currency: receipt.currency }).format(amount);
+  } catch {
+    return `${amount.toFixed(2)} ${receipt.currency}`;
+  }
+}
+
+/** One link per transaction, labelled by the step that submitted it (same order as stellarExpertUrls). */
+function transactionLinks(run: PublicValidationRun): Array<{ label: string; url: string }> {
+  const labels = run.steps.flatMap((step) =>
+    step.txHashes.map((_, i) => (step.txHashes.length > 1 ? `${humanizeStep(step.name)} ${i + 1}` : humanizeStep(step.name)))
+  );
+  return run.stellarExpertUrls.flatMap((value, i) => {
+    const url = getSafeExternalUrl(value, "stellar.expert");
+    return url ? [{ label: labels[i] ?? `transaction ${i + 1}`, url }] : [];
+  });
+}
+
+/** Corridors with a passed run whose disbursement BlindPay itself confirmed. */
+function verifiedCorridors(runs: PublicValidationRun[]): string[] {
+  return [...new Set(runs.filter((r) => r.status === "passed" && r.receipt).map((r) => r.corridor))].sort();
 }
 
 function getSafeExternalUrl(value: string | null, hostname: string): string | null {
@@ -50,8 +93,14 @@ export function ValidationRuns({
         </p>
         {data && (
           <p className="mt-3 text-xs text-text-secondary">
-            Published {formatTimestamp(data.publishedAt)}
+            {data.runs[0] ? <>Last published {formatTimestamp(data.runs[0].publishedAt)}</> : <>No runs published yet</>}
             {fetchedAt && <> · Last refreshed {formatTimestamp(fetchedAt)}</>}
+            {data.total > data.runs.length && <> · Showing {data.runs.length} of {data.total}</>}
+          </p>
+        )}
+        {data && verifiedCorridors(data.runs).length > 0 && (
+          <p className="mt-2 text-sm font-semibold text-text-primary">
+            Verified fiat corridors: {verifiedCorridors(data.runs).join(", ")}
           </p>
         )}
       </div>
@@ -80,45 +129,75 @@ export function ValidationRuns({
           )}
           <div className="divide-y divide-border-light">
             {data.runs.map((run) => {
-              const stellarUrl = getSafeExternalUrl(run.stellarExpertUrl, "stellar.expert");
-              const blindPayUrl = getSafeExternalUrl(run.blindPayReceiptUrl, "app.blindpay.com");
+              const txLinks = transactionLinks(run);
+              const contractUrl = getSafeExternalUrl(run.stellarExpertContractUrl, "stellar.expert");
+              const failedStep = run.steps.find((step) => step.status === "failed");
+              const receipt = run.receipt;
+              const receiptTxUrl =
+                receipt?.stellarTxHash && /^[0-9a-f]{64}$/.test(receipt.stellarTxHash)
+                  ? `${EXPLORER[run.network]}/tx/${receipt.stellarTxHash}`
+                  : null;
 
               return (
-                <article
-                  key={run.id}
-                  className="flex flex-col gap-4 py-5 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between"
-                >
-                  <div className="min-w-0">
-                    <h3 className="font-semibold text-text-primary">{run.name}</h3>
-                    <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-text-secondary">
-                      <span className="rounded-full bg-background px-3 py-1 text-xs font-semibold shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]">
-                        {run.status}
-                      </span>
-                      <time dateTime={run.completedAt}>{formatTimestamp(run.completedAt)}</time>
+                <article key={run.id} className="flex flex-col gap-3 py-5 first:pt-0 last:pb-0">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <h3 className="font-semibold text-text-primary">
+                      {run.corridor} corridor · {run.network}
+                    </h3>
+                    <span
+                      className={
+                        "rounded-full bg-background px-3 py-1 text-xs font-semibold shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff] " +
+                        (run.status === "passed" ? "text-success" : "text-error")
+                      }
+                    >
+                      {run.status}
+                    </span>
+                    <span className="text-sm text-text-secondary">
+                      <time dateTime={run.finishedAt}>{formatTimestamp(run.finishedAt)}</time> · {formatDuration(run.durationMs)}
+                    </span>
+                  </div>
+
+                  {failedStep && (
+                    <p className="text-sm text-error">
+                      Failed at {humanizeStep(failedStep.name)}
+                      {failedStep.error ? `: ${failedStep.error}` : ""}
+                    </p>
+                  )}
+
+                  {receipt ? (
+                    <p className="text-sm text-text-secondary">
+                      BlindPay payout <span className="font-mono">{receipt.blindpayPayoutId}</span> completed:{" "}
+                      <span className="font-semibold text-text-primary">{formatFiat(receipt)}</span>
+                      {receipt.paymentProvider && <> via {receipt.paymentProvider}</>} on{" "}
+                      <time dateTime={receipt.completedAt}>{formatTimestamp(receipt.completedAt)}</time>
+                    </p>
+                  ) : (
+                    run.blindpayPayoutId && (
+                      <p className="text-sm text-text-secondary">
+                        BlindPay payout <span className="font-mono">{run.blindpayPayoutId}</span>: not verified
+                      </p>
+                    )
+                  )}
+
+                  {(txLinks.length > 0 || contractUrl || receiptTxUrl) && (
+                    <div className="flex flex-wrap gap-2">
+                      {contractUrl && (
+                        <a href={contractUrl} target="_blank" rel="noopener noreferrer" className={linkClass}>
+                          Escrow contract
+                        </a>
+                      )}
+                      {txLinks.map((tx) => (
+                        <a key={tx.url} href={tx.url} target="_blank" rel="noopener noreferrer" className={linkClass}>
+                          {tx.label}
+                        </a>
+                      ))}
+                      {receiptTxUrl && (
+                        <a href={receiptTxUrl} target="_blank" rel="noopener noreferrer" className={linkClass}>
+                          BlindPay deposit tx
+                        </a>
+                      )}
                     </div>
-                  </div>
-                  <div className="flex flex-wrap gap-3">
-                    {stellarUrl && (
-                      <a
-                        href={stellarUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="rounded-xl px-2 py-2 text-sm font-semibold text-primary underline underline-offset-4 transition-colors hover:text-primary-hover"
-                      >
-                        Stellar Expert
-                      </a>
-                    )}
-                    {blindPayUrl && (
-                      <a
-                        href={blindPayUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="rounded-xl px-2 py-2 text-sm font-semibold text-primary underline underline-offset-4 transition-colors hover:text-primary-hover"
-                      >
-                        BlindPay receipt
-                      </a>
-                    )}
-                  </div>
+                  )}
                 </article>
               );
             })}

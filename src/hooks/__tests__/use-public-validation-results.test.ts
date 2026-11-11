@@ -10,15 +10,26 @@ vi.mock("@/lib/api/stats", () => ({
 
 const mockGetResults = vi.mocked(getPublicValidationResults);
 const results: PublicValidationResults = {
-  publishedAt: "2026-10-25T10:00:00.000Z",
+  total: 1,
   runs: [
     {
-      id: "run-1",
-      name: "Escrow release validation",
+      id: "vr_0123456789abcdef",
+      startedAt: "2026-11-16T14:00:00.000Z",
+      finishedAt: "2026-11-16T14:06:00.000Z",
+      network: "mainnet",
       status: "passed",
-      completedAt: "2026-10-24T10:00:00.000Z",
-      stellarExpertUrl: "https://stellar.expert/explorer/testnet/tx/abc",
-      blindPayReceiptUrl: "https://app.blindpay.com/receipt/abc",
+      corridor: "MX",
+      steps: [],
+      stellarExpertUrls: [],
+      blindpayPayoutId: "po_1",
+      blindpayStatus: "completed",
+      trigger: "schedule",
+      durationMs: 360000,
+      orderId: null,
+      contractId: null,
+      stellarExpertContractUrl: null,
+      receipt: null,
+      publishedAt: "2026-11-16T14:06:01.000Z",
     },
   ],
 };
