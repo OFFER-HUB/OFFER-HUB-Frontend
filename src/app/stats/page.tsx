@@ -7,6 +7,7 @@ import { Icon, ICON_PATHS, LoadingSpinner } from "@/components/ui/Icon";
 import { getPlatformStats, type PlatformStatsResponse } from "@/lib/api/stats";
 import { usePublicValidationResults } from "@/hooks/use-public-validation-results";
 import { cn } from "@/lib/cn";
+import { explorerUrl } from "@/lib/explorer";
 
 export default function PlatformStatsPage(): React.JSX.Element {
   const [data, setData] = useState<PlatformStatsResponse | null>(null);
@@ -229,7 +230,7 @@ export default function PlatformStatsPage(): React.JSX.Element {
                                 </td>
                                 <td className="py-4 px-6 text-right">
                                   <a
-                                    href={`https://stellar.expert/explorer/testnet/account/${wallet.publicKey}`}
+                                    href={explorerUrl("account", wallet.publicKey)}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold bg-background text-primary border border-border-light shadow-[var(--shadow-neumorphic-light)] hover:shadow-[var(--shadow-neumorphic-inset-light)] active:scale-95 transition-all duration-200"
@@ -341,7 +342,7 @@ export default function PlatformStatsPage(): React.JSX.Element {
                                 <td className="py-4 px-6 text-right">
                                   {contractId ? (
                                     <a
-                                      href={`https://stellar.expert/explorer/testnet/contract/${contractId}`}
+                                      href={explorerUrl("contract", contractId)}
                                       target="_blank"
                                       rel="noopener noreferrer"
                                       className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold bg-background text-primary border border-border-light shadow-[var(--shadow-neumorphic-light)] hover:shadow-[var(--shadow-neumorphic-inset-light)] active:scale-95 transition-all duration-200"

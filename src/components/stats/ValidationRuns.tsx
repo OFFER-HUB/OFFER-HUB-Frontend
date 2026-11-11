@@ -4,6 +4,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { ICON_PATHS } from "@/components/ui/Icon";
 import { LoadingState } from "@/components/ui/LoadingState";
+import { explorerUrl } from "@/lib/explorer";
 import type { PublicValidationResults, PublicValidationRun, ValidationReceipt } from "@/types/stats.types";
 
 interface ValidationRunsProps {
@@ -20,11 +21,6 @@ function formatTimestamp(value: string): string {
     ? "Unavailable"
     : date.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
 }
-
-const EXPLORER: Record<PublicValidationRun["network"], string> = {
-  testnet: "https://stellar.expert/explorer/testnet",
-  mainnet: "https://stellar.expert/explorer/public",
-};
 
 const linkClass =
   "rounded-xl px-2 py-1 text-sm font-semibold text-primary underline underline-offset-4 transition-colors hover:text-primary-hover";
@@ -135,7 +131,7 @@ export function ValidationRuns({
               const receipt = run.receipt;
               const receiptTxUrl =
                 receipt?.stellarTxHash && /^[0-9a-f]{64}$/.test(receipt.stellarTxHash)
-                  ? `${EXPLORER[run.network]}/tx/${receipt.stellarTxHash}`
+                  ? explorerUrl("tx", receipt.stellarTxHash, run.network === "mainnet" ? "public" : "testnet")
                   : null;
 
               return (

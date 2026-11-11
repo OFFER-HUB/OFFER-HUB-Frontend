@@ -24,7 +24,7 @@ const HORIZON_URL_BY_NETWORK: Record<StellarNetworkName, string> = {
   public: "https://horizon.stellar.org",
 };
 
-const EXPLORER_URL_BY_NETWORK: Record<StellarNetworkName, string> = {
+export const EXPLORER_URL_BY_NETWORK: Record<StellarNetworkName, string> = {
   testnet: "https://stellar.expert/explorer/testnet",
   public: "https://stellar.expert/explorer/public",
 };
