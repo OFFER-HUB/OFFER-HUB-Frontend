@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { cn } from "@/lib/cn";
 import { Icon, ICON_PATHS, LoadingSpinner } from "@/components/ui/Icon";
+import { FormField } from "@/components/services/FormField";
 import {
   NEUMORPHIC_CARD,
   NEUMORPHIC_INPUT,
@@ -20,10 +21,11 @@ import {
   MIN_PRICE,
   MIN_DELIVERY_DAYS,
   MAX_DELIVERY_DAYS,
+  validateServiceForm,
 } from "@/data/service.data";
 import { getServiceById, updateService } from "@/lib/api/services";
 import { useAuthStore } from "@/stores/auth-store";
-import type { Service, ServiceFormData, ServiceFormErrors } from "@/types/service.types";
+import type { Service, ServiceCategory, ServiceFormData, ServiceFormErrors } from "@/types/service.types";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -38,39 +40,7 @@ const DELIVERY_PRESETS = [
   { days: 30, label: "30 days" },
 ];
 
-function validateForm(data: ServiceFormData): ServiceFormErrors {
-  const errors: ServiceFormErrors = {};
-
-  if (!data.title.trim()) {
-    errors.title = "Title is required";
-  } else if (data.title.trim().length < MIN_TITLE_LENGTH) {
-    errors.title = `Title must be at least ${MIN_TITLE_LENGTH} characters`;
-  }
-
-  if (!data.description.trim()) {
-    errors.description = "Description is required";
-  } else if (data.description.trim().length < MIN_DESCRIPTION_LENGTH) {
-    errors.description = `Description must be at least ${MIN_DESCRIPTION_LENGTH} characters`;
-  } else if (data.description.trim().length > MAX_DESCRIPTION_LENGTH) {
-    errors.description = `Description must be less than ${MAX_DESCRIPTION_LENGTH} characters`;
-  }
-
-  if (!data.category) {
-    errors.category = "Please select a category";
-  }
-
-  if (!data.price || data.price < MIN_PRICE) {
-    errors.price = `Price must be at least $${MIN_PRICE}`;
-  }
-
-  if (!data.deliveryDays || data.deliveryDays < MIN_DELIVERY_DAYS) {
-    errors.deliveryDays = `Delivery time must be at least ${MIN_DELIVERY_DAYS} day`;
-  } else if (data.deliveryDays > MAX_DELIVERY_DAYS) {
-    errors.deliveryDays = `Delivery time cannot exceed ${MAX_DELIVERY_DAYS} days`;
-  }
-
-  return errors;
-}
+const validateForm = validateServiceForm;
 
 export default function EditServicePage({ params }: PageProps): React.JSX.Element {
   const { id } = use(params);
@@ -177,7 +147,7 @@ export default function EditServicePage({ params }: PageProps): React.JSX.Elemen
       const payload = {
         title: formData.title.trim(),
         description: formData.description.trim(),
-        category: formData.category as any,
+        category: formData.category as ServiceCategory,
         price: formData.price.toFixed(2),
         deliveryDays: formData.deliveryDays,
       };
@@ -311,10 +281,12 @@ export default function EditServicePage({ params }: PageProps): React.JSX.Elemen
               </div>
 
               {/* Category Field */}
-              <div>
-                <label htmlFor="service-category" className="block text-sm font-semibold text-text-primary mb-1.5">
-                  Category <span className="text-error">*</span>
-                </label>
+              <FormField
+                id="service-category"
+                label="Category"
+                required
+                error={errors.category}
+              >
                 <div className="relative">
                   <select
                     id="service-category"
@@ -339,8 +311,7 @@ export default function EditServicePage({ params }: PageProps): React.JSX.Elemen
                     <Icon path={ICON_PATHS.chevronDown} size="sm" />
                   </div>
                 </div>
-                {errors.category && <p className="mt-1.5 text-xs text-error font-medium">{errors.category}</p>}
-              </div>
+              </FormField>
             </div>
 
             {/* Scope & Description Card */}
@@ -417,26 +388,29 @@ export default function EditServicePage({ params }: PageProps): React.JSX.Elemen
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 {/* Price input & quick presets */}
                 <div className="space-y-3">
-                  <label htmlFor="service-price" className="block text-sm font-semibold text-text-primary">
-                    Fixed Price (USD) <span className="text-error">*</span>
-                  </label>
-                  <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary font-bold">
-                      $
-                    </span>
-                    <input
-                      id="service-price"
-                      type="number"
-                      name="price"
-                      value={formData.price || ""}
-                      onChange={handleChange}
-                      min={MIN_PRICE}
-                      step="1"
-                      className={cn(NEUMORPHIC_INPUT, "pl-8 text-base font-bold", errors.price && INPUT_ERROR_STYLES)}
-                      placeholder="50"
-                    />
-                  </div>
-                  {errors.price && <p className="text-xs text-error font-medium">{errors.price}</p>}
+                  <FormField
+                    id="service-price"
+                    label="Fixed Price (USD)"
+                    required
+                    error={errors.price}
+                  >
+                    <div className="relative">
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary font-bold">
+                        $
+                      </span>
+                      <input
+                        id="service-price"
+                        type="number"
+                        name="price"
+                        value={formData.price || ""}
+                        onChange={handleChange}
+                        min={MIN_PRICE}
+                        step="1"
+                        className={cn(NEUMORPHIC_INPUT, "pl-8 text-base font-bold", errors.price && INPUT_ERROR_STYLES)}
+                        placeholder="50"
+                      />
+                    </div>
+                  </FormField>
 
                   {/* Preset chips */}
                   <div className="flex flex-wrap gap-1.5 pt-1">
@@ -462,26 +436,29 @@ export default function EditServicePage({ params }: PageProps): React.JSX.Elemen
 
                 {/* Delivery days & presets */}
                 <div className="space-y-3">
-                  <label htmlFor="service-delivery" className="block text-sm font-semibold text-text-primary">
-                    Estimated Delivery Time <span className="text-error">*</span>
-                  </label>
-                  <div className="relative">
-                    <input
-                      id="service-delivery"
-                      type="number"
-                      name="deliveryDays"
-                      value={formData.deliveryDays || ""}
-                      onChange={handleChange}
-                      min={MIN_DELIVERY_DAYS}
-                      max={MAX_DELIVERY_DAYS}
-                      className={cn(NEUMORPHIC_INPUT, "pr-16 text-base font-bold", errors.deliveryDays && INPUT_ERROR_STYLES)}
-                      placeholder="3"
-                    />
-                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-text-secondary text-sm font-medium">
-                      {formData.deliveryDays === 1 ? "day" : "days"}
-                    </span>
-                  </div>
-                  {errors.deliveryDays && <p className="text-xs text-error font-medium">{errors.deliveryDays}</p>}
+                  <FormField
+                    id="service-delivery"
+                    label="Estimated Delivery Time"
+                    required
+                    error={errors.deliveryDays}
+                  >
+                    <div className="relative">
+                      <input
+                        id="service-delivery"
+                        type="number"
+                        name="deliveryDays"
+                        value={formData.deliveryDays || ""}
+                        onChange={handleChange}
+                        min={MIN_DELIVERY_DAYS}
+                        max={MAX_DELIVERY_DAYS}
+                        className={cn(NEUMORPHIC_INPUT, "pr-16 text-base font-bold", errors.deliveryDays && INPUT_ERROR_STYLES)}
+                        placeholder="3"
+                      />
+                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-text-secondary text-sm font-medium">
+                        {formData.deliveryDays === 1 ? "day" : "days"}
+                      </span>
+                    </div>
+                  </FormField>
 
                   {/* Preset chips */}
                   <div className="flex flex-wrap gap-1.5 pt-1">
