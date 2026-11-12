@@ -10,17 +10,11 @@ vi.mock("@/stores/auth-store", () => ({
     selector({ token: "jwt-token", user: { id: "usr_buyer" } }),
 }));
 
-const mockReleaseFunds = vi.fn();
 const mockOpenDispute = vi.fn();
-const mockRequestRefund = vi.fn();
 
 vi.mock("@/lib/api/orders", () => ({
-  releaseFunds: (...args: unknown[]) => mockReleaseFunds(...args),
   openDispute: (...args: unknown[]) => mockOpenDispute(...args),
-  requestRefund: (...args: unknown[]) => mockRequestRefund(...args),
   cancelOrder: vi.fn(),
-  createEscrow: vi.fn(),
-  fundEscrow: vi.fn(),
   markOrderCompleted: vi.fn(),
   reserveFunds: vi.fn(),
 }));
@@ -30,13 +24,13 @@ vi.mock("@/lib/api/reviews", () => ({
   submitReviewResponse: vi.fn(),
 }));
 
-// One controllable `run()` mock and its real `legacyAction` per instance.
+// One controllable `run()` mock per instance, plus the callerRole it was given.
 // Keys are `"${operation}_${n}"` where n is the call order within an operation
 // (e.g. "release_0" = releaseSigning, "release_1" = completeSigning).
 // Tests that only care about a single instance of an operation can use
 // the bare operation name — "release" resolves to "release_0".
 const runByKey: Record<string, ReturnType<typeof vi.fn>> = {};
-const legacyActionByKey: Record<string, () => Promise<void>> = {};
+const callerRoleByKey: Record<string, string> = {};
 const callCountByOperation: Record<string, number> = {};
 
 vi.mock("@/hooks/useEscrowSigningAction", () => {
@@ -51,15 +45,15 @@ vi.mock("@/hooks/useEscrowSigningAction", () => {
     currentWalletName: () => null,
     useEscrowSigningAction: ({
       operation,
-      legacyAction,
+      callerRole,
     }: {
       operation: string;
-      legacyAction: () => Promise<void>;
+      callerRole: string;
     }) => {
       const count = callCountByOperation[operation] ?? 0;
       callCountByOperation[operation] = count + 1;
       const key = `${operation}_${count}`;
-      legacyActionByKey[key] = legacyAction;
+      callerRoleByKey[key] = callerRole;
       const run = runByKey[key] ?? (runByKey[key] = vi.fn().mockResolvedValue(undefined));
       return {
         run,
@@ -99,22 +93,12 @@ function setup(overrides: Partial<Parameters<typeof useOrderActions>[0]> = {}) {
   );
 }
 
-/**
- * Makes an instance's `run()` behave like an INVISIBLE wallet: call the real legacy action.
- * Key format: `"${operation}_${n}"`, e.g. "release_0" for releaseSigning, "release_1" for completeSigning.
- */
-function useLegacyPath(key: string) {
-  runByKey[key].mockImplementation(() => legacyActionByKey[key]());
-}
-
 beforeEach(() => {
   vi.clearAllMocks();
   Object.keys(runByKey).forEach((k) => delete runByKey[k]);
-  Object.keys(legacyActionByKey).forEach((k) => delete legacyActionByKey[k]);
+  Object.keys(callerRoleByKey).forEach((k) => delete callerRoleByKey[k]);
   Object.keys(callCountByOperation).forEach((k) => delete callCountByOperation[k]);
-  mockReleaseFunds.mockResolvedValue({ id: ORDER_ID, status: "CLOSED" });
   mockOpenDispute.mockResolvedValue({ id: "dsp_1" });
-  mockRequestRefund.mockResolvedValue({ id: ORDER_ID, status: "CLOSED" });
 });
 
 // Instance key order in useOrderActions (determined by hook call order):
@@ -132,18 +116,6 @@ describe("useOrderActions — handleReleaseFunds", () => {
     });
 
     expect(runByKey["release_0"]).toHaveBeenCalledOnce();
-    expect(mockReleaseFunds).not.toHaveBeenCalled();
-  });
-
-  it("still reaches the legacy releaseFunds call for an INVISIBLE wallet", async () => {
-    const { result } = setup();
-    useLegacyPath("release_0");
-
-    await act(async () => {
-      await result.current.handleReleaseFunds();
-    });
-
-    expect(mockReleaseFunds).toHaveBeenCalledWith("jwt-token", ORDER_ID);
   });
 
   it("swallows a rejected run() instead of throwing out of the handler", async () => {
@@ -171,14 +143,15 @@ describe("useOrderActions — handleOpenDispute", () => {
     );
   });
 
-  it("skips the on-chain dispute step entirely when the caller is the seller", async () => {
+  it("has the seller sign the on-chain dispute too when the seller opens it (API #326)", async () => {
     const { result } = setup({ isBuyer: false });
 
     await act(async () => {
       await result.current.handleOpenDispute("OTHER", "Buyer is unresponsive.");
     });
 
-    expect(runByKey["dispute_0"]).not.toHaveBeenCalled();
+    expect(callerRoleByKey["dispute_0"]).toBe("seller");
+    expect(runByKey["dispute_0"]).toHaveBeenCalledOnce();
     expect(mockOpenDispute).toHaveBeenCalledWith(
       "jwt-token",
       expect.objectContaining({ openedBy: "SELLER" })
@@ -209,18 +182,6 @@ describe("useOrderActions — handleOpenDispute", () => {
 });
 
 describe("useOrderActions — handleRequestRefund", () => {
-  it("threads the reason through to the legacy call for an INVISIBLE wallet", async () => {
-    const { result } = setup();
-    useLegacyPath("refund_0");
-
-    await act(async () => {
-      await result.current.handleRequestRefund("The work was never delivered.");
-    });
-
-    expect(runByKey["refund_0"]).toHaveBeenCalledOnce();
-    expect(mockRequestRefund).toHaveBeenCalledWith("jwt-token", ORDER_ID, "The work was never delivered.");
-  });
-
   it("goes through refundSigning.run() without calling requestRefund directly for the client-signing path", async () => {
     const { result } = setup();
 
@@ -229,7 +190,6 @@ describe("useOrderActions — handleRequestRefund", () => {
     });
 
     expect(runByKey["refund_0"]).toHaveBeenCalledOnce();
-    expect(mockRequestRefund).not.toHaveBeenCalled();
   });
 
   it("swallows a rejected run() instead of throwing out of the handler", async () => {
@@ -254,19 +214,6 @@ describe("useOrderActions — handleMarkCompleted", () => {
     // completeSigning is the second "release" instance
     expect(runByKey["release_1"]).toHaveBeenCalledOnce();
     expect(markOrderCompleted).not.toHaveBeenCalled();
-  });
-
-  it("calls markOrderCompleted for an INVISIBLE-wallet seller (legacy path)", async () => {
-    const { result } = setup();
-    const { markOrderCompleted } = await import("@/lib/api/orders");
-    (markOrderCompleted as ReturnType<typeof vi.fn>).mockResolvedValue({ id: ORDER_ID, status: "IN_PROGRESS" });
-    useLegacyPath("release_1");
-
-    await act(async () => {
-      await result.current.handleMarkCompleted();
-    });
-
-    expect(markOrderCompleted).toHaveBeenCalledWith("jwt-token", ORDER_ID);
   });
 
   it("surfaces a signing error in the error banner without throwing", async () => {
@@ -301,29 +248,14 @@ describe("useOrderActions — handleMarkCompleted", () => {
 //   "release_1"→ completeSigning
 
 describe("useOrderActions — handleCreateEscrow (D2.1)", () => {
-  it("always goes through createSigning.run(), not createEscrow directly", async () => {
+  it("always goes through createSigning.run()", async () => {
     const { result } = setup();
-    const { createEscrow } = await import("@/lib/api/orders");
 
     await act(async () => {
       await result.current.handleCreateEscrow();
     });
 
     expect(runByKey["create_0"]).toHaveBeenCalledOnce();
-    expect(createEscrow).not.toHaveBeenCalled();
-  });
-
-  it("reaches the custodial createEscrow call for an INVISIBLE wallet (legacy path)", async () => {
-    const { result } = setup();
-    const { createEscrow } = await import("@/lib/api/orders");
-    (createEscrow as ReturnType<typeof vi.fn>).mockResolvedValue({ id: ORDER_ID, status: "ESCROW_CREATING" });
-    useLegacyPath("create_0");
-
-    await act(async () => {
-      await result.current.handleCreateEscrow();
-    });
-
-    expect(createEscrow).toHaveBeenCalledWith("jwt-token", ORDER_ID);
   });
 
   it("swallows a rejected run() instead of throwing out of the handler", async () => {
@@ -344,29 +276,14 @@ describe("useOrderActions — handleCreateEscrow (D2.1)", () => {
 });
 
 describe("useOrderActions — handleFundEscrow (D2.1)", () => {
-  it("always goes through fundSigning.run(), not fundEscrow directly", async () => {
+  it("always goes through fundSigning.run()", async () => {
     const { result } = setup();
-    const { fundEscrow } = await import("@/lib/api/orders");
 
     await act(async () => {
       await result.current.handleFundEscrow();
     });
 
     expect(runByKey["fund_0"]).toHaveBeenCalledOnce();
-    expect(fundEscrow).not.toHaveBeenCalled();
-  });
-
-  it("reaches the custodial fundEscrow call for an INVISIBLE wallet (legacy path)", async () => {
-    const { result } = setup();
-    const { fundEscrow } = await import("@/lib/api/orders");
-    (fundEscrow as ReturnType<typeof vi.fn>).mockResolvedValue({ id: ORDER_ID, status: "ESCROW_FUNDED" });
-    useLegacyPath("fund_0");
-
-    await act(async () => {
-      await result.current.handleFundEscrow();
-    });
-
-    expect(fundEscrow).toHaveBeenCalledWith("jwt-token", ORDER_ID);
   });
 
   it("swallows a rejected run() instead of throwing out of the handler", async () => {

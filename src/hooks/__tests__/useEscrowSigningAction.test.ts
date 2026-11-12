@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, act, waitFor } from "@testing-library/react";
-import { useEscrowSigningAction, SigningCancelledError } from "../useEscrowSigningAction";
+import { useEscrowSigningAction, SigningCancelledError, CLAIM_WALLET_MESSAGE } from "../useEscrowSigningAction";
 
 // ── Mocks ─────────────────────────────────────────────────────────────────────
 
@@ -45,49 +45,45 @@ beforeEach(() => {
   setSigningState("idle");
 });
 
-describe("useEscrowSigningAction — INVISIBLE wallet (legacy path)", () => {
-  it("calls legacyAction and never touches useEscrowSigning", async () => {
+describe("useEscrowSigningAction — custodial wallet (no server signing, API #326)", () => {
+  it("never signs: it asks the user to claim the wallet", async () => {
     mockUser = { wallet: { type: "INVISIBLE" } };
-    const legacyAction = vi.fn().mockResolvedValue(undefined);
     const onConfirmed = vi.fn();
 
     const { result } = renderHook(() =>
       useEscrowSigningAction({ orderId: ORDER_ID, operation: "release",
-      callerRole: "buyer", legacyAction, onConfirmed })
+      callerRole: "buyer", onConfirmed })
     );
 
     await act(async () => {
-      await result.current.run();
+      await expect(result.current.run()).rejects.toThrow(CLAIM_WALLET_MESSAGE);
     });
 
-    expect(legacyAction).toHaveBeenCalledOnce();
+    expect(result.current.inlineError).toBe(CLAIM_WALLET_MESSAGE);
     expect(mockSign).not.toHaveBeenCalled();
     expect(onConfirmed).not.toHaveBeenCalled();
   });
 
-  it("also uses the legacy path when there is no wallet at all", async () => {
+  it("does the same when there is no wallet at all", async () => {
     mockUser = null;
-    const legacyAction = vi.fn().mockResolvedValue(undefined);
 
     const { result } = renderHook(() =>
       useEscrowSigningAction({ orderId: ORDER_ID, operation: "release",
-      callerRole: "buyer", legacyAction, onConfirmed: vi.fn() })
+      callerRole: "buyer", onConfirmed: vi.fn() })
     );
 
     await act(async () => {
-      await result.current.run();
+      await expect(result.current.run()).rejects.toThrow(CLAIM_WALLET_MESSAGE);
     });
-
-    expect(legacyAction).toHaveBeenCalledOnce();
+    expect(mockSign).not.toHaveBeenCalled();
   });
 });
 
 describe("useEscrowSigningAction — EXTERNAL wallet, connected", () => {
-  it("calls sign() with the fixed operation and never the legacy action", async () => {
-    const legacyAction = vi.fn();
+  it("calls sign() with the fixed operation", async () => {
     const { result } = renderHook(() =>
       useEscrowSigningAction({ orderId: ORDER_ID, operation: "refund",
-      callerRole: "buyer", legacyAction, onConfirmed: vi.fn() })
+      callerRole: "buyer", onConfirmed: vi.fn() })
     );
 
     await act(async () => {
@@ -95,13 +91,12 @@ describe("useEscrowSigningAction — EXTERNAL wallet, connected", () => {
     });
 
     expect(mockSign).toHaveBeenCalledWith(ORDER_ID, "refund", "buyer");
-    expect(legacyAction).not.toHaveBeenCalled();
   });
 
   it("reports isSigningModalOpen for every in-flight and terminal state, only false when idle", () => {
     const { result, rerender } = renderHook(() =>
       useEscrowSigningAction({ orderId: ORDER_ID, operation: "release",
-      callerRole: "buyer", legacyAction: vi.fn(), onConfirmed: vi.fn() })
+      callerRole: "buyer", onConfirmed: vi.fn() })
     );
     expect(result.current.isSigningModalOpen).toBe(false);
 
@@ -134,7 +129,7 @@ describe("useEscrowSigningAction — EXTERNAL wallet, connected", () => {
     const onConfirmed = vi.fn();
     const { result, rerender } = renderHook(() =>
       useEscrowSigningAction({ orderId: ORDER_ID, operation: "release",
-      callerRole: "buyer", legacyAction: vi.fn(), onConfirmed })
+      callerRole: "buyer", onConfirmed })
     );
 
     let runPromise!: Promise<void>;
@@ -156,7 +151,7 @@ describe("useEscrowSigningAction — EXTERNAL wallet, connected", () => {
   it("dismissSigningModal() is what actually resets signing back to idle", () => {
     const { result } = renderHook(() =>
       useEscrowSigningAction({ orderId: ORDER_ID, operation: "release",
-      callerRole: "buyer", legacyAction: vi.fn(), onConfirmed: vi.fn() })
+      callerRole: "buyer", onConfirmed: vi.fn() })
     );
 
     act(() => {
@@ -170,7 +165,7 @@ describe("useEscrowSigningAction — EXTERNAL wallet, connected", () => {
     setSigningState("error", { code: "XDR_EXPIRED", message: "expired" });
     const { result } = renderHook(() =>
       useEscrowSigningAction({ orderId: ORDER_ID, operation: "release",
-      callerRole: "buyer", legacyAction: vi.fn(), onConfirmed: vi.fn() })
+      callerRole: "buyer", onConfirmed: vi.fn() })
     );
 
     expect(result.current.signingError).toEqual({ code: "XDR_EXPIRED", message: "expired" });
@@ -180,7 +175,7 @@ describe("useEscrowSigningAction — EXTERNAL wallet, connected", () => {
   it("sets inlineError and rejects run() when the state transitions to error", async () => {
     const { result, rerender } = renderHook(() =>
       useEscrowSigningAction({ orderId: ORDER_ID, operation: "release",
-      callerRole: "buyer", legacyAction: vi.fn(), onConfirmed: vi.fn() })
+      callerRole: "buyer", onConfirmed: vi.fn() })
     );
 
     let runPromise!: Promise<void>;
@@ -198,7 +193,7 @@ describe("useEscrowSigningAction — EXTERNAL wallet, connected", () => {
   it("clearInlineError resets inlineError to null", () => {
     const { result } = renderHook(() =>
       useEscrowSigningAction({ orderId: ORDER_ID, operation: "release",
-      callerRole: "buyer", legacyAction: vi.fn(), onConfirmed: vi.fn() })
+      callerRole: "buyer", onConfirmed: vi.fn() })
     );
 
     act(() => {
@@ -214,7 +209,7 @@ describe("useEscrowSigningAction — EXTERNAL wallet, not connected", () => {
     mockLiveWalletAddress = null;
     const { result } = renderHook(() =>
       useEscrowSigningAction({ orderId: ORDER_ID, operation: "release",
-      callerRole: "buyer", legacyAction: vi.fn(), onConfirmed: vi.fn() })
+      callerRole: "buyer", onConfirmed: vi.fn() })
     );
 
     act(() => {
@@ -229,7 +224,7 @@ describe("useEscrowSigningAction — EXTERNAL wallet, not connected", () => {
     mockLiveWalletAddress = null;
     const { result } = renderHook(() =>
       useEscrowSigningAction({ orderId: ORDER_ID, operation: "dispute",
-      callerRole: "buyer", legacyAction: vi.fn(), onConfirmed: vi.fn() })
+      callerRole: "buyer", onConfirmed: vi.fn() })
     );
 
     act(() => {
@@ -249,7 +244,7 @@ describe("useEscrowSigningAction — EXTERNAL wallet, not connected", () => {
     mockLiveWalletAddress = null;
     const { result } = renderHook(() =>
       useEscrowSigningAction({ orderId: ORDER_ID, operation: "release",
-      callerRole: "buyer", legacyAction: vi.fn(), onConfirmed: vi.fn() })
+      callerRole: "buyer", onConfirmed: vi.fn() })
     );
 
     let runPromise!: Promise<void>;
