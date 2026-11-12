@@ -16,10 +16,12 @@ export default function WalletPage(): React.JSX.Element {
   const hasHydrated = useAuthStore((state) => state.hasHydrated);
   const walletDashboard = useWalletDashboard(token);
   const walletBalance = useWalletBalance();
+  const { refresh: refreshBalance } = walletBalance;
+  const { refresh: refreshDashboard } = walletDashboard;
   const handleRefresh = useCallback(() => {
-    walletBalance.refresh();
-    void walletDashboard.refresh();
-  }, [walletBalance.refresh, walletDashboard.refresh]);
+    refreshBalance();
+    void refreshDashboard();
+  }, [refreshBalance, refreshDashboard]);
 
   usePullToRefresh(handleRefresh, {
     containerId: "main-content",
