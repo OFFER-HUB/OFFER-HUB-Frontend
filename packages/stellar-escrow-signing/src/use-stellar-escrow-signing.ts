@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from "react";
 import { StellarWalletsKit } from "@creit.tech/stellar-wallets-kit";
-import { isWalletCancellation, toWalletErrorMessage } from "./wallet-error-messages";
+import { isWalletCancellation, toWalletErrorMessage } from "./wallet-error-messages.js";
 import type {
   EscrowOperation,
   EscrowSigningState,
@@ -10,7 +10,7 @@ import type {
   PrepareEscrowStepResult,
   UseStellarEscrowSigningConfig,
   UseStellarEscrowSigningResult,
-} from "./types";
+} from "./types.js";
 
 /**
  * One prepare endpoint per operation — there is no single generic "get me an
@@ -61,7 +61,7 @@ export function useStellarEscrowSigning(
   const [state, setState] = useState<EscrowSigningState>("idle");
   const [error, setError] = useState<EscrowSigningError | null>(null);
   const [transactionHash, setTransactionHash] = useState<string | null>(null);
-  const [currentStep, setCurrentStep] = useState<import("./types").EscrowStepName | null>(null);
+  const [currentStep, setCurrentStep] = useState<import("./types.js").EscrowStepName | null>(null);
 
   // Guards a double-submit racing itself.
   const inFlight = useRef(false);

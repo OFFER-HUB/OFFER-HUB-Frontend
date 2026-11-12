@@ -73,7 +73,13 @@ try {
   writeFileSync(
     path.join(tempDirectory, "vitest.config.mjs"),
     'import { defineConfig } from "vitest/config";\n' +
-      'export default defineConfig({ test: { environment: "happy-dom" } });\n'
+      'export default defineConfig({\n' +
+      '  test: {\n' +
+      '    environment: "happy-dom",\n' +
+      '    // Inline the installed package so vi.mock reaches its SWK import\n' +
+      `    server: { deps: { inline: [${JSON.stringify(packageManifest.name)}] } },\n` +
+      '  },\n' +
+      '});\n'
   );
   writeFileSync(
     path.join(tempDirectory, "signing.test.jsx"),

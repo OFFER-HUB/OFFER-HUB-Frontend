@@ -41,7 +41,7 @@ export type {
   WalletContext,
   UseStellarEscrowSigningConfig,
   UseStellarEscrowSigningResult,
-} from "./types";
+} from "./types.js";
 
-export { useStellarEscrowSigning } from "./use-stellar-escrow-signing";
-export { isWalletCancellation, toWalletErrorMessage } from "./wallet-error-messages";
+export { useStellarEscrowSigning } from "./use-stellar-escrow-signing.js";
+export { isWalletCancellation, toWalletErrorMessage } from "./wallet-error-messages.js";
