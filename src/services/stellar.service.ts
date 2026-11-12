@@ -1,22 +1,23 @@
 /**
- * Stellar Horizon Client
+ * Stellar RPC balance reader
  *
- * A minimal REST wrapper around the Horizon endpoints the frontend needs.
- * Deliberately does not use `@stellar/stellar-sdk`: the SDK is not a direct
- * dependency of this app (it only exists as transitive copies under the wallet
- * kit), reading balances is a single `GET /accounts/{id}`, and owning the
- * transport keeps the T3 Horizon -> Stellar RPC migration (D3.1) local to this
- * file.
+ * Reads the connected wallet's XLM and USDC balances through Stellar RPC
+ * (`getLedgerEntries` for the account entry and the USDC trustline entry, in
+ * one call), the same way the API's StellarRpcClient does (D3.1).
  */
 
-import { HORIZON_URL, STELLAR_EXPLORER_URL, USDC_ASSET_CODE, USDC_ISSUER } from "@/config/wallet";
+import { Asset, Keypair, rpc, xdr } from "@stellar/stellar-sdk";
+import { STELLAR_EXPLORER_URL, STELLAR_RPC_URL, USDC_ASSET_CODE, USDC_ISSUER } from "@/config/wallet";
 import type { StellarAccountBalances, StellarAssetBalance } from "@/types/wallet.types";
 
 export const XLM_ASSET_CODE = "XLM";
 
+/** Classic balances are int64 stroops: 7 decimal places. */
+const STROOPS_PER_UNIT = BigInt(10_000_000);
+
 /**
- * Horizon has no record of the account. On Stellar this is the normal state of
- * a keypair that has never been funded, not a failure.
+ * The ledger has no entry for the account. On Stellar this is the normal state
+ * of a keypair that has never been funded, not a failure.
  */
 export class StellarAccountNotFoundError extends Error {
   readonly accountId: string;
@@ -28,71 +29,45 @@ export class StellarAccountNotFoundError extends Error {
   }
 }
 
-/** Horizon was reachable but answered with something unusable. */
-export class HorizonRequestError extends Error {
-  readonly status: number | null;
-
-  constructor(message: string, status: number | null = null) {
+/** Stellar RPC was unreachable or answered with something unusable. */
+export class StellarRpcRequestError extends Error {
+  constructor(message: string) {
     super(message);
-    this.name = "HorizonRequestError";
-    this.status = status;
+    this.name = "StellarRpcRequestError";
   }
 }
 
 export interface FetchAccountBalancesOptions {
-  /** Aborts the in-flight request, e.g. when the connected wallet changes. */
+  /** Drops the result if the connected wallet changed while the read was in flight. */
   signal?: AbortSignal;
 }
 
-/**
- * A single entry of Horizon's `balances[]` array, narrowed to the fields used
- * here. Liquidity pool shares carry `liquidity_pool_id` instead of an asset
- * code and are ignored by the matchers below.
- */
-interface HorizonBalanceLine {
-  asset_type: string;
-  balance: string;
-  asset_code?: string;
-  asset_issuer?: string;
+/** Only the method this reader needs, so tests can stand in for the server. */
+export interface LedgerEntriesReader {
+  getLedgerEntries(...keys: xdr.LedgerKey[]): Promise<rpc.Api.GetLedgerEntriesResponse>;
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null;
+let defaultServer: LedgerEntriesReader | null = null;
+
+function getDefaultServer(): LedgerEntriesReader {
+  defaultServer ??= new rpc.Server(STELLAR_RPC_URL, {
+    allowHttp: STELLAR_RPC_URL.startsWith("http://"),
+  });
+  return defaultServer;
 }
 
-function readOptionalString(value: unknown): string | undefined {
-  return typeof value === "string" ? value : undefined;
-}
-
-function isHorizonBalanceLine(value: unknown): value is HorizonBalanceLine {
-  return (
-    isRecord(value) && typeof value.asset_type === "string" && typeof value.balance === "string"
-  );
-}
-
-/**
- * Pulls the usable balance lines out of an untrusted Horizon payload. Anything
- * that does not match the expected shape is dropped rather than crashing the
- * card — a malformed line must not hide the rest of the balances.
- */
-function readBalanceLines(payload: unknown): HorizonBalanceLine[] {
-  if (!isRecord(payload) || !Array.isArray(payload.balances)) {
-    throw new HorizonRequestError("Horizon returned an account without a balances list.");
-  }
-
-  return payload.balances.filter(isHorizonBalanceLine).map((line) => ({
-    asset_type: line.asset_type,
-    balance: line.balance,
-    asset_code: readOptionalString(line.asset_code),
-    asset_issuer: readOptionalString(line.asset_issuer),
-  }));
+/** "9974.9999800" from 99749999800 stroops: the 7-decimal fixed point wallets show. */
+export function formatStroops(stroops: bigint): string {
+  const whole = stroops / STROOPS_PER_UNIT;
+  const fraction = (stroops % STROOPS_PER_UNIT).toString().padStart(7, "0");
+  return `${whole}.${fraction}`;
 }
 
 function missingAsset(code: string): StellarAssetBalance {
   return { code, balance: "0", hasTrustline: false };
 }
 
-/** Balances of a keypair Horizon has never seen: nothing held, nothing trusted. */
+/** Balances of a keypair the ledger has never seen: nothing held, nothing trusted. */
 export function emptyAccountBalances(): StellarAccountBalances {
   return {
     xlm: missingAsset(XLM_ASSET_CODE),
@@ -100,74 +75,64 @@ export function emptyAccountBalances(): StellarAccountBalances {
   };
 }
 
-function selectXlm(lines: HorizonBalanceLine[]): StellarAssetBalance {
-  const native = lines.find((line) => line.asset_type === "native");
-  if (native === undefined) {
-    return missingAsset(XLM_ASSET_CODE);
-  }
-  return { code: XLM_ASSET_CODE, balance: native.balance, hasTrustline: true };
-}
-
-function selectUsdc(lines: HorizonBalanceLine[]): StellarAssetBalance {
-  // Code alone is not an identity — any account can issue an asset named USDC.
-  const usdc = lines.find(
-    (line) => line.asset_code === USDC_ASSET_CODE && line.asset_issuer === USDC_ISSUER
-  );
-  if (usdc === undefined) {
-    return missingAsset(USDC_ASSET_CODE);
-  }
-  return { code: USDC_ASSET_CODE, balance: usdc.balance, hasTrustline: true };
+function ledgerKeysFor(accountId: string): [xdr.LedgerKey, xdr.LedgerKey] {
+  const account = Keypair.fromPublicKey(accountId).xdrAccountId();
+  // Code alone is not an identity: any account can issue an asset named USDC,
+  // so the trustline key pins the issuer.
+  const usdc = new Asset(USDC_ASSET_CODE, USDC_ISSUER);
+  return [
+    xdr.LedgerKey.account(new xdr.LedgerKeyAccount({ accountId: account })),
+    xdr.LedgerKey.trustline(new xdr.LedgerKeyTrustLine({ accountId: account, asset: usdc.toTrustLineXDRObject() })),
+  ];
 }
 
 /**
- * Reads the XLM and USDC balances of a Stellar account from Horizon.
+ * Reads the XLM and USDC balances of a Stellar account through Stellar RPC.
  *
  * @throws {StellarAccountNotFoundError} when the account is not funded on this network
- * @throws {HorizonRequestError} when Horizon is unreachable or answers unusably
+ * @throws {StellarRpcRequestError} when the address is invalid or the RPC is unreachable
  */
 export async function fetchAccountBalances(
   accountId: string,
-  options: FetchAccountBalancesOptions = {}
+  options: FetchAccountBalancesOptions = {},
+  server: LedgerEntriesReader = getDefaultServer()
 ): Promise<StellarAccountBalances> {
-  const url = `${HORIZON_URL}/accounts/${encodeURIComponent(accountId)}`;
-
-  let response: Response;
+  let keys: [xdr.LedgerKey, xdr.LedgerKey];
   try {
-    response = await fetch(url, {
-      method: "GET",
-      headers: { Accept: "application/json" },
-      signal: options.signal,
-      cache: "no-store",
-    });
-  } catch (cause) {
-    // Rethrow aborts untouched so callers can tell "cancelled" from "failed".
-    if (cause instanceof DOMException && cause.name === "AbortError") {
-      throw cause;
-    }
-    throw new HorizonRequestError("Could not reach Horizon.");
+    keys = ledgerKeysFor(accountId);
+  } catch {
+    throw new StellarRpcRequestError(`${accountId} is not a valid Stellar address.`);
   }
 
-  if (response.status === 404) {
+  let response: rpc.Api.GetLedgerEntriesResponse;
+  try {
+    response = await server.getLedgerEntries(...keys);
+  } catch {
+    throw new StellarRpcRequestError("Could not reach Stellar RPC.");
+  }
+
+  // The SDK takes no AbortSignal; honour it so a stale read never overwrites
+  // the balances of the wallet the user switched to.
+  if (options.signal?.aborted) {
+    throw new DOMException("The balance read was aborted.", "AbortError");
+  }
+
+  let xlm: StellarAssetBalance | null = null;
+  let usdc = missingAsset(USDC_ASSET_CODE);
+  for (const entry of response.entries) {
+    const kind = entry.val.switch();
+    if (kind === xdr.LedgerEntryType.account()) {
+      xlm = { code: XLM_ASSET_CODE, balance: formatStroops(BigInt(entry.val.account().balance().toString())), hasTrustline: true };
+    } else if (kind === xdr.LedgerEntryType.trustline()) {
+      usdc = { code: USDC_ASSET_CODE, balance: formatStroops(BigInt(entry.val.trustLine().balance().toString())), hasTrustline: true };
+    }
+  }
+
+  if (xlm === null) {
     throw new StellarAccountNotFoundError(accountId);
   }
 
-  if (!response.ok) {
-    throw new HorizonRequestError(`Horizon responded with ${response.status}.`, response.status);
-  }
-
-  let payload: unknown;
-  try {
-    payload = await response.json();
-  } catch {
-    throw new HorizonRequestError("Horizon returned a malformed response.", response.status);
-  }
-
-  const lines = readBalanceLines(payload);
-
-  return {
-    xlm: selectXlm(lines),
-    usdc: selectUsdc(lines),
-  };
+  return { xlm, usdc };
 }
 
 /** Explorer page for an account on the active network, for manual verification. */
