@@ -104,7 +104,6 @@ export function WalletDashboardContent({
 
       <WalletMonthlyMetrics
         monthly={data.monthly}
-        withdrawals={data.withdrawals}
         currency={data.balance.currency}
       />
 
