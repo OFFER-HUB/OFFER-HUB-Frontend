@@ -6,7 +6,7 @@ import { useAuthStore } from "@/stores/auth-store";
 import { useWalletKit } from "@/hooks/use-wallet-kit";
 import { isWalletCancellation, toWalletErrorMessage } from "@/lib/wallet-error-messages";
 import { preparePayoutTransfer, submitPayoutTransfer, type PreparePayoutTransferResult } from "@/lib/api/payout";
-import type { EscrowSigningState, EscrowSigningError } from "@/hooks/useEscrowSigning";
+import { toSigningError, type EscrowSigningState, type EscrowSigningError } from "@/hooks/useEscrowSigning";
 
 export interface UsePayoutSigningResult {
   state: EscrowSigningState;
@@ -106,18 +106,7 @@ export function usePayoutSigning(): UsePayoutSigningResult {
 
         setState("confirmed");
       } catch (cause) {
-        const message =
-          cause && typeof cause === "object" && "message" in cause && typeof cause.message === "string"
-            ? cause.message
-            : "The request failed. Please try again.";
-        // STELLAR_NETWORK_ERROR names a specific, known cause (the signed
-        // transfer went stale) rather than an unclassified failure — same
-        // treatment as useEscrowSigning's toApiError.
-        const code =
-          cause && typeof cause === "object" && "code" in cause && cause.code === "STELLAR_NETWORK_ERROR"
-            ? "STALE_TRANSACTION"
-            : "API_ERROR";
-        setError({ code, message });
+        setError(toSigningError(cause));
         setState("error");
       } finally {
         inFlight.current = false;

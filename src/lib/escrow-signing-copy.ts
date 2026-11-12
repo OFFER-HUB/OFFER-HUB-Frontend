@@ -175,6 +175,20 @@ export function errorCopy(error: EscrowSigningError): {
         actionHint:
           "Please connect your Stellar wallet extension (such as Freighter) and try again.",
       };
+    case "WALLET_REQUIRED":
+      return {
+        title: "Connect your own wallet",
+        message: error.message,
+        actionHint:
+          "On mainnet OfferHub never holds your keys. Connect Freighter, Lobstr or xBull from your wallet settings, then try again.",
+      };
+    case "TRUSTLINE_REQUIRED":
+      return {
+        title: "Your wallet isn't ready for USDC",
+        message: error.message,
+        actionHint:
+          "Activate your account with a little XLM if needed, then enable USDC below. Once it is enabled, click Retry.",
+      };
     case "API_ERROR":
     default:
       return {

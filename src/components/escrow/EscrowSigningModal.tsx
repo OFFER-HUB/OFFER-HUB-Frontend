@@ -15,6 +15,7 @@ import {
 } from "@/lib/escrow-signing-copy";
 import type { EscrowSigningState, EscrowSigningError } from "@/hooks/useEscrowSigning";
 import type { EscrowOperation, EscrowStepName } from "@/lib/api/escrow";
+import { ConnectedWalletReadiness } from "@/components/wallet/ConnectedWalletReadiness";
 
 export interface EscrowSigningModalProps {
   isOpen: boolean;
@@ -446,6 +447,10 @@ export function EscrowSigningModal({
                 {errorCopy(error).message}
               </p>
             </div>
+
+            {(error.code === "WALLET_REQUIRED" || error.code === "TRUSTLINE_REQUIRED") && (
+              <ConnectedWalletReadiness className="text-left" />
+            )}
 
             {/* Action hint card */}
             <div className="rounded-2xl p-3.5 bg-background shadow-[inset_1px_1px_3px_#d1d5db,inset_-1px_-1px_3px_#ffffff] border border-white/60 space-y-1.5 text-left">

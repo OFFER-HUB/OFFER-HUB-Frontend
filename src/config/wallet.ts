@@ -78,6 +78,12 @@ function readPublicKeyOverride(value: string | undefined): string | null {
 export const STELLAR_RPC_URL: string =
   readHttpUrlOverride(process.env.NEXT_PUBLIC_STELLAR_RPC_URL) ?? RPC_URL_BY_NETWORK[STELLAR_NETWORK];
 
+/** Passphrase transactions are built and signed against on the active network. */
+export const NETWORK_PASSPHRASE: string =
+  STELLAR_NETWORK === "public"
+    ? "Public Global Stellar Network ; September 2015"
+    : "Test SDF Network ; September 2015";
+
 /** Block explorer base URL for the active network, without a trailing slash. */
 export const STELLAR_EXPLORER_URL: string = EXPLORER_URL_BY_NETWORK[STELLAR_NETWORK];
 

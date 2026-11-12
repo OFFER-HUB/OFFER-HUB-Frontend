@@ -4,6 +4,12 @@ import userEvent from "@testing-library/user-event";
 import { EscrowSigningModal } from "../EscrowSigningModal";
 import type { EscrowSigningError, EscrowSigningState } from "@/hooks/useEscrowSigning";
 
+// The readiness prompt reads balances itself; stand in for it so these tests
+// only check when the modal shows it.
+vi.mock("@/components/wallet/ConnectedWalletReadiness", () => ({
+  ConnectedWalletReadiness: () => <div data-testid="wallet-readiness" />,
+}));
+
 const onRetry = vi.fn();
 const onClose = vi.fn();
 
@@ -245,5 +251,22 @@ describe("EscrowSigningModal — focus trap", () => {
     expect(document.activeElement).not.toBe(document.body);
     // Wrapped back inside the dialog rather than escaping to the page.
     expect(retryButton.closest('[role="dialog"]')?.contains(document.activeElement)).toBe(true);
+  });
+});
+
+describe("EscrowSigningModal — wallet not ready (mainnet, #522)", () => {
+  it.each(["WALLET_REQUIRED", "TRUSTLINE_REQUIRED"] as const)(
+    "shows the readiness prompt when the API answers %s",
+    (code) => {
+      setup({ state: "error", error: { code, message: "Not ready" } });
+
+      expect(screen.getByTestId("wallet-readiness")).toBeInTheDocument();
+    }
+  );
+
+  it("does not show it for other failures", () => {
+    setup({ state: "error", error: { code: "API_ERROR", message: "boom" } });
+
+    expect(screen.queryByTestId("wallet-readiness")).not.toBeInTheDocument();
   });
 });
