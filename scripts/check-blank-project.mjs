@@ -91,7 +91,7 @@ vi.mock("@creit.tech/stellar-wallets-kit", () => ({
 }));
 
 import { StellarWalletsKit } from "@creit.tech/stellar-wallets-kit";
-import { useStellarEscrowSigning } from "@offer-hub/stellar-escrow-signing";
+import { useStellarEscrowSigning } from "@offerhub/stellar-escrow-signing";
 
 describe("installed package signing flow", () => {
   beforeEach(() => {

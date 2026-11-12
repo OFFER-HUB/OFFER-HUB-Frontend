@@ -1,4 +1,4 @@
-# @offer-hub/stellar-escrow-signing
+# @offerhub/stellar-escrow-signing
 
 A React hook for client-side Stellar/Soroban escrow signing operations using Stellar Wallets Kit. Provides a reusable, MIT-licensed signing layer for escrow operations: create, fund, release, refund, and dispute.
 
@@ -14,11 +14,11 @@ A React hook for client-side Stellar/Soroban escrow signing operations using Ste
 ## Installation
 
 ```bash
-npm install @offer-hub/stellar-escrow-signing @creit.tech/stellar-wallets-kit
+npm install @offerhub/stellar-escrow-signing @creit.tech/stellar-wallets-kit
 # or
-yarn add @offer-hub/stellar-escrow-signing @creit.tech/stellar-wallets-kit
+yarn add @offerhub/stellar-escrow-signing @creit.tech/stellar-wallets-kit
 # or
-pnpm add @offer-hub/stellar-escrow-signing @creit.tech/stellar-wallets-kit
+pnpm add @offerhub/stellar-escrow-signing @creit.tech/stellar-wallets-kit
 ```
 
 ## Peer Dependencies
@@ -31,7 +31,7 @@ pnpm add @offer-hub/stellar-escrow-signing @creit.tech/stellar-wallets-kit
 ### Basic Example
 
 ```tsx
-import { useStellarEscrowSigning } from "@offer-hub/stellar-escrow-signing";
+import { useStellarEscrowSigning } from "@offerhub/stellar-escrow-signing";
 
 function EscrowSigningButton({ orderId, userToken, wallet }) {
   const { state, sign, reset, transactionHash, error, currentStep } = useStellarEscrowSigning({
@@ -199,3 +199,13 @@ This package is part of the OFFER-HUB project. Contributions are welcome through
 ## Support
 
 For issues and questions, please use the [OFFER-HUB issue tracker](https://github.com/OFFER-HUB/OFFER-HUB-Frontend/issues).
+
+## Releasing
+
+Published to npm by the **Release signing package** workflow when a tag is pushed. Bump `version` in `package.json`, merge, then:
+
+```bash
+git tag stellar-escrow-signing-v1.0.0 && git push origin stellar-escrow-signing-v1.0.0
+```
+
+The tag must match the `version`. The job runs the tests (wallet kit mocked, no network), builds, checks the tarball and publishes with npm provenance. It needs the repository secret `NPM_TOKEN` (an automation token with publish rights to the `@offerhub` scope, the same one the API adapters use). Running the workflow by hand is a dry run.
