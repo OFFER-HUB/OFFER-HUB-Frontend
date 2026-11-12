@@ -16,7 +16,6 @@ import { NEUMORPHIC_CARD } from "@/lib/styles";
 import {
   getPortfolioItems,
   deletePortfolioItem,
-  reorderPortfolioItems,
 } from "@/lib/api/portfolio";
 import type { PortfolioItem } from "@/types/portfolio.types";
 

@@ -6,13 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { cn } from "@/lib/cn";
 import { Icon, ICON_PATHS } from "@/components/ui/Icon";
 import { NEUMORPHIC_CARD, PRIMARY_BUTTON, ICON_BUTTON } from "@/lib/styles";
-import {
-  SERVICE_CATEGORIES,
-  ORDER_STATUS_LABELS,
-  ORDER_STATUS_COLORS,
-} from "@/data/service.data";
-import { getChatIdByOrderId } from "@/data/chat.data";
-import { hasClientRating } from "@/data/rating.data";
+import { SERVICE_CATEGORIES } from "@/data/service.data";
 import { RateClientModal } from "@/components/rating";
 import { Toast } from "@/components/ui/Toast";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
@@ -67,7 +61,7 @@ export default function ServiceDetailsPage({ params }: PageProps): React.JSX.Ele
   const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [orders, setOrders] = useState<ServiceOrder[]>([]);
-  const [isFetchingOrders, setIsFetchingOrders] = useState(true);
+  const [, setIsFetchingOrders] = useState(true);
 
   useEffect(() => {
     if (!hasHydrated) return;

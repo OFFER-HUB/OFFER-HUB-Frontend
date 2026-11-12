@@ -15,21 +15,11 @@ import { useAuthStore } from "@/stores/auth-store";
 import type { Service, ServiceStatus } from "@/types/service.types";
 import { ServiceCard } from "@/components/services";
 
-const STATUS_STYLES: Record<ServiceStatus, string> = {
-  ACTIVE: "bg-success/15 text-success border border-success/30",
-  PAUSED: "bg-warning/15 text-warning border border-warning/30",
-  ARCHIVED: "bg-text-secondary/15 text-text-secondary border border-text-secondary/30",
-};
-
 const STATUS_LABELS: Record<ServiceStatus, string> = {
   ACTIVE: "Active",
   PAUSED: "Paused",
   ARCHIVED: "Archived",
 };
-
-function getCategoryLabel(value: string): string {
-  return SERVICE_CATEGORIES.find((c) => c.value === value)?.label || value;
-}
 
 const INITIAL_DELETE_MODAL_STATE = {
   isOpen: false,
