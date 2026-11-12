@@ -29,7 +29,7 @@ const RPC_URL_BY_NETWORK: Record<StellarNetworkName, string> = {
   public: "https://mainnet.sorobanrpc.com",
 };
 
-const EXPLORER_URL_BY_NETWORK: Record<StellarNetworkName, string> = {
+export const EXPLORER_URL_BY_NETWORK: Record<StellarNetworkName, string> = {
   testnet: "https://stellar.expert/explorer/testnet",
   public: "https://stellar.expert/explorer/public",
 };
