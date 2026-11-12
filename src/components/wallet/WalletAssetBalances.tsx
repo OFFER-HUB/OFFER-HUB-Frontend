@@ -10,7 +10,7 @@ import type { StellarAccountBalances, StellarAssetBalance } from "@/types/wallet
 export interface WalletAssetBalancesProps {
   /** Public key of the connected wallet. */
   address: string;
-  /** Balances read from Horizon, or null while none have loaded yet. */
+  /** Balances read through Stellar RPC, or null while none have loaded yet. */
   balances: StellarAccountBalances | null;
   isLoading: boolean;
   isRefreshing: boolean;
@@ -82,7 +82,7 @@ function BalancesSkeleton(): React.JSX.Element {
 
 /**
  * XLM and USDC held by a connected external (non-custodial) wallet, read live
- * from Horizon. Rendered inside `BalanceCard` for `WalletType.EXTERNAL` wallets;
+ * through Stellar RPC. Rendered inside `BalanceCard` for `WalletType.EXTERNAL` wallets;
  * custodial balances keep using the platform ledger figures above it.
  */
 export function WalletAssetBalances({
