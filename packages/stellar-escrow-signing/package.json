@@ -1,5 +1,5 @@
 {
-  "name": "@offer-hub/stellar-escrow-signing",
+  "name": "@offerhub/stellar-escrow-signing",
   "version": "1.0.0",
   "description": "Stellar Wallets Kit client-side signing hook for Soroban escrow operations (create, fund, release, refund, dispute)",
   "type": "module",
@@ -16,6 +16,9 @@
     "README.md",
     "LICENSE"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
@@ -38,6 +41,18 @@
   ],
   "author": "OFFER-HUB",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/OFFER-HUB/OFFER-HUB-Frontend.git",
+    "directory": "packages/stellar-escrow-signing"
+  },
+  "homepage": "https://github.com/OFFER-HUB/OFFER-HUB-Frontend/tree/main/packages/stellar-escrow-signing#readme",
+  "bugs": {
+    "url": "https://github.com/OFFER-HUB/OFFER-HUB-Frontend/issues"
+  },
+  "engines": {
+    "node": ">=20"
+  },
   "peerDependencies": {
     "@creit.tech/stellar-wallets-kit": "^2.5.0",
     "react": "^18.0.0 || ^19.0.0"
@@ -52,14 +67,5 @@
     "prettier": "^3.7.4",
     "typescript": "^5.9.3",
     "vitest": "^4.1.10"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/OFFER-HUB/OFFER-HUB-Frontend.git",
-    "directory": "packages/stellar-escrow-signing"
-  },
-  "bugs": {
-    "url": "https://github.com/OFFER-HUB/OFFER-HUB-Frontend/issues"
-  },
-  "homepage": "https://github.com/OFFER-HUB/OFFER-HUB-Frontend#readme"
+  }
 }

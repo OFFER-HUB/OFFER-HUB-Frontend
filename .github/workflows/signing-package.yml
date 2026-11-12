@@ -1,0 +1,48 @@
+# The SWK signing package (packages/stellar-escrow-signing) must stand on its own:
+# its tests run with the wallet kit mocked and no network, it builds, and a blank
+# React project can install the packed tarball and use it.
+name: Signing package
+
+on:
+  pull_request:
+    paths:
+      - "packages/stellar-escrow-signing/**"
+      - "scripts/check-blank-project.mjs"
+      - ".github/workflows/signing-package.yml"
+  push:
+    branches: [main]
+    paths:
+      - "packages/stellar-escrow-signing/**"
+      - "scripts/check-blank-project.mjs"
+
+jobs:
+  signing-package:
+    name: Tests, build and blank-project install
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: packages/stellar-escrow-signing/package-lock.json
+
+      - name: Install the package's dependencies
+        working-directory: packages/stellar-escrow-signing
+        run: npm ci --ignore-scripts --no-audit --no-fund
+
+      # The wallet kit is mocked in the tests: no wallet, no network
+      - name: Test with no network
+        working-directory: packages/stellar-escrow-signing
+        run: env -i PATH="$PATH" HOME="$HOME" HTTP_PROXY=http://127.0.0.1:9 HTTPS_PROXY=http://127.0.0.1:9 npm test
+
+      - name: Build
+        working-directory: packages/stellar-escrow-signing
+        run: npm run build
+
+      - name: Install the packed tarball into a blank project
+        run: npm run check:blank-project
