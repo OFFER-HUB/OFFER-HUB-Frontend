@@ -74,25 +74,6 @@ export interface WalletBalanceSummary {
   currency: string;
 }
 
-export interface CreateWithdrawalRequestInput {
-  amount: number;
-  destination: string;
-  saveDestination?: boolean;
-}
-
-export interface WithdrawalRequestData {
-  id: string;
-  status: "pending" | "processing" | "completed" | "failed";
-  amount: string;
-  fee: string;
-  totalDeducted: string;
-  currency: string;
-  destination: string;
-  estimatedArrival: string;
-  createdAt: string;
-  message?: string;
-}
-
 /**
  * Canonical sort option for wallet transactions.
  * Used by both the API filter params and the UI filter component.

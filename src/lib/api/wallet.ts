@@ -9,8 +9,6 @@ import type {
   WalletTransactionsData,
   WalletDashboardData,
   WalletBalanceSummary,
-  CreateWithdrawalRequestInput,
-  WithdrawalRequestData,
   WalletTransactionFilters,
 } from "@/types/wallet.types";
 
@@ -24,18 +22,8 @@ export type {
   WalletTransactionsData,
   WalletDashboardData,
   WalletBalanceSummary,
-  CreateWithdrawalRequestInput,
-  WithdrawalRequestData,
   WalletTransactionFilters,
 };
-
-interface WithdrawalApiPayload {
-  amount: string;
-  currency: string;
-  destinationType: string;
-  destinationRef: string;
-  commit: boolean;
-}
 
 type ApiErrorResponse = {
   message?: string;
@@ -123,50 +111,6 @@ export async function getWalletDashboard(token: string): Promise<WalletDashboard
   }
 
   return data;
-}
-
-export async function createWithdrawalRequest(
-  token: string,
-  payload: CreateWithdrawalRequestInput
-): Promise<WithdrawalRequestData> {
-  const response = await fetch(`${API_URL}/wallet/withdraw`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      amount: payload.amount.toFixed(2),
-      currency: "USD",
-      destinationType: "crypto",
-      destinationRef: payload.destination,
-      commit: true,
-    } satisfies WithdrawalApiPayload),
-  });
-
-  const json = (await response.json().catch(() => null)) as
-    | {
-        message?: string;
-        title?: string;
-        data?: WithdrawalRequestData;
-        error?: { message?: string };
-      }
-    | null;
-
-  if (!response.ok) {
-    const message =
-      json?.error?.message ??
-      json?.message ??
-      json?.title ??
-      "Failed to create withdrawal request";
-    throw new Error(message);
-  }
-
-  if (json?.data) {
-    return json.data;
-  }
-
-  throw new Error("Withdrawal request was created, but no response data was returned.");
 }
 
 export async function getWalletTransactions(

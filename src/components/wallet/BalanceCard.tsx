@@ -95,7 +95,7 @@ export function BalanceCard({
             Available for Payout
           </p>
           <p className="text-xl sm:text-2xl font-bold text-success tracking-tight">{formatMoney(available, currency)}</p>
-          <p className="text-[11px] text-text-secondary mt-0.5">Ready for instant withdrawal</p>
+          <p className="text-[11px] text-text-secondary mt-0.5">Available to spend</p>
         </div>
         <div className="flex flex-col justify-between">
           <p className="text-xs font-semibold text-text-secondary uppercase tracking-wider flex items-center gap-1.5 mb-1">

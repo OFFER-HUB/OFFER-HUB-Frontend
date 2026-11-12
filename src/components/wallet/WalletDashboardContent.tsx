@@ -1,22 +1,19 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { BalanceCard } from "@/components/wallet/BalanceCard";
 import { BalanceChart } from "@/components/wallet/BalanceChart";
 import { RecentTransactions } from "@/components/wallet/RecentTransactions";
 import { UsdbTestnetFundingCard } from "@/components/wallet/UsdbTestnetFundingCard";
 import { WalletMonthlyMetrics } from "@/components/wallet/WalletMonthlyMetrics";
-import { WithdrawModal } from "@/components/wallet/WithdrawModal";
+import { MoveFundsOutCard } from "@/components/wallet/MoveFundsOutCard";
 import { Icon, ICON_PATHS } from "@/components/ui/Icon";
 import { STELLAR_NETWORK } from "@/config/wallet";
-import { parseMoney } from "@/lib/earnings-utils";
 import { cn } from "@/lib/cn";
 import type { UseWalletBalanceResult } from "@/hooks/useWalletBalance";
-import type { WalletDashboardData, WithdrawalRequestData } from "@/types/wallet.types";
+import type { WalletDashboardData } from "@/types/wallet.types";
 
 interface WalletDashboardContentProps {
-  token: string;
   data: WalletDashboardData;
   isExternalWallet: boolean;
   isRefreshing: boolean;
@@ -24,35 +21,20 @@ interface WalletDashboardContentProps {
   onRefresh: () => void;
 }
 
-function formatCurrency(value: string, currency: string): string {
-  return new Intl.NumberFormat("en-US", { style: "currency", currency }).format(parseMoney(value));
-}
-
 export function WalletDashboardContent({
-  token,
   data,
   isExternalWallet,
   isRefreshing,
   walletBalance,
   onRefresh,
 }: WalletDashboardContentProps): React.JSX.Element {
-  const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
-  const [withdrawSuccess, setWithdrawSuccess] = useState<string | null>(null);
-
-  function handleWithdrawSuccess(result: WithdrawalRequestData): void {
-    setWithdrawSuccess(
-      `Withdrawal request ${result.id} submitted for ${formatCurrency(result.amount, result.currency)}.`
-    );
-    onRefresh();
-  }
-
   return (
     <div className="mx-auto w-full max-w-7xl pb-12 transition-all duration-300 ease-in-out">
       <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-text-primary sm:text-3xl">Wallet</h1>
           <p className="mt-1 text-sm text-text-secondary">
-            Manage your balance, track earnings, and withdraw funds.
+            Manage your balance, track earnings, and see how to move funds out.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2.5">
@@ -75,13 +57,6 @@ export function WalletDashboardContent({
             />
             Refresh
           </button>
-          <button
-            type="button"
-            onClick={() => setIsWithdrawOpen(true)}
-            className="inline-flex cursor-pointer items-center justify-center rounded-2xl bg-primary px-5 py-2.5 text-sm font-bold text-white shadow-[var(--shadow-neumorphic-light)] transition-all duration-200 hover:bg-primary-hover active:shadow-[var(--shadow-neumorphic-inset-light)]"
-          >
-            Withdraw Funds
-          </button>
           <Link
             href="/app/wallet/transactions"
             className="inline-flex cursor-pointer items-center gap-2 rounded-2xl bg-white px-4 py-2.5 text-sm font-semibold text-text-primary shadow-[var(--shadow-neumorphic-light)] transition-all duration-200 hover:text-primary active:shadow-[var(--shadow-neumorphic-inset-light)] dark:bg-slate-900 dark:shadow-[var(--shadow-neumorphic-dark)] dark:active:shadow-[var(--shadow-neumorphic-inset-dark)]"
@@ -95,15 +70,6 @@ export function WalletDashboardContent({
       <p className="mb-4 text-xs text-text-secondary lg:hidden">
         Tip: pull down on this page to refresh on mobile.
       </p>
-
-      {withdrawSuccess && (
-        <div
-          className="mb-4 rounded-2xl border border-success/20 bg-success/10 p-4 text-sm font-medium text-success"
-          role="status"
-        >
-          {withdrawSuccess}
-        </div>
-      )}
 
       <div className="mb-6">
         <BalanceCard
@@ -124,6 +90,10 @@ export function WalletDashboardContent({
                 }
           }
         />
+      </div>
+
+      <div className="mb-6">
+        <MoveFundsOutCard />
       </div>
 
       {STELLAR_NETWORK === "testnet" && isExternalWallet && (
@@ -150,15 +120,6 @@ export function WalletDashboardContent({
       <p className="text-center text-xs text-text-secondary">
         Balances shown in {data.balance.currency}. Currency conversion may apply at payout.
       </p>
-
-      <WithdrawModal
-        isOpen={isWithdrawOpen}
-        token={token}
-        availableBalance={parseMoney(data.balance.available)}
-        currency={data.balance.currency}
-        onClose={() => setIsWithdrawOpen(false)}
-        onSuccess={handleWithdrawSuccess}
-      />
     </div>
   );
 }

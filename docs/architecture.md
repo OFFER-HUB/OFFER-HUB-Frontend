@@ -139,7 +139,7 @@ All communication with the NestJS backend goes through `src/lib/api/`.
 src/lib/api/
   auth.ts             # Login, register, OAuth, wallet-auth
   orders.ts           # Order CRUD and escrow operations
-  wallet.ts           # Platform ledger (balance, transactions, withdrawal)
+  wallet.ts           # Platform ledger (balance, transactions, dashboard)
   wallet-connect.ts   # Link/unlink external wallets
   disputes.ts         # Dispute creation and resolution
   services.ts         # Freelancer service listings
