@@ -1,0 +1,60 @@
+title: "[QA] "
+labels: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        One thread per QA session. Guide: docs/qa/README.md. Never post a seed phrase or secret key.
+  - type: checkboxes
+    id: consent
+    attributes:
+      label: Consent
+      description: See docs/qa/recording-and-consent.md
+      options:
+        - label: I agree to the consent text, including publication of my report and recording
+          required: true
+  - type: input
+    id: name
+    attributes:
+      label: Name or nickname to publish
+    validations:
+      required: true
+  - type: dropdown
+    id: scenario
+    attributes:
+      label: Scenarios you ran
+      multiple: true
+      options:
+        - 1. Wallet connect and login
+        - 2. Create and fund an order
+        - 3. Deliver and release
+        - 4. Refund through a dispute
+        - 5. Dispute with a split
+        - 6. BlindPay payout
+    validations:
+      required: true
+  - type: input
+    id: wallet
+    attributes:
+      label: Wallet and browser
+      placeholder: Freighter on Chrome 130
+  - type: input
+    id: order
+    attributes:
+      label: Order ids
+  - type: input
+    id: video
+    attributes:
+      label: Recording link
+  - type: textarea
+    id: results
+    attributes:
+      label: Step results
+      description: Mark each step ✅ or ❌ and note the time anything took longer than expected.
+    validations:
+      required: true
+  - type: textarea
+    id: problems
+    attributes:
+      label: Problems found
+      description: What you expected, what happened, which step.
