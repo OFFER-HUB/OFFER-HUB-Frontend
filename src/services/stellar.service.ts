@@ -6,8 +6,14 @@
  * one call), the same way the API's StellarRpcClient does (D3.1).
  */
 
-import { Asset, Keypair, rpc, xdr } from "@stellar/stellar-sdk";
-import { STELLAR_EXPLORER_URL, STELLAR_RPC_URL, USDC_ASSET_CODE, USDC_ISSUER } from "@/config/wallet";
+import { Asset, BASE_FEE, Keypair, Operation, TransactionBuilder, rpc, xdr } from "@stellar/stellar-sdk";
+import {
+  NETWORK_PASSPHRASE,
+  STELLAR_EXPLORER_URL,
+  STELLAR_RPC_URL,
+  USDC_ASSET_CODE,
+  USDC_ISSUER,
+} from "@/config/wallet";
 import type { StellarAccountBalances, StellarAssetBalance } from "@/types/wallet.types";
 
 export const XLM_ASSET_CODE = "XLM";
@@ -47,9 +53,16 @@ export interface LedgerEntriesReader {
   getLedgerEntries(...keys: xdr.LedgerKey[]): Promise<rpc.Api.GetLedgerEntriesResponse>;
 }
 
-let defaultServer: LedgerEntriesReader | null = null;
+/** The RPC methods the trustline flow needs: load the account, submit, poll. */
+export interface TransactionRpc {
+  getAccount(address: string): Promise<{ accountId(): string; sequenceNumber(): string; incrementSequenceNumber(): void }>;
+  sendTransaction(transaction: ReturnType<TransactionBuilder["build"]>): Promise<rpc.Api.SendTransactionResponse>;
+  getTransaction(hash: string): Promise<rpc.Api.GetTransactionResponse>;
+}
 
-function getDefaultServer(): LedgerEntriesReader {
+let defaultServer: rpc.Server | null = null;
+
+function getDefaultServer(): rpc.Server {
   defaultServer ??= new rpc.Server(STELLAR_RPC_URL, {
     allowHttp: STELLAR_RPC_URL.startsWith("http://"),
   });
@@ -133,6 +146,81 @@ export async function fetchAccountBalances(
   }
 
   return { xlm, usdc };
+}
+
+/** A changeTrust the network rejected, or that never landed. */
+export class StellarTransactionError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "StellarTransactionError";
+  }
+}
+
+/** Ledgers close every ~5s; 30 polls a second apart covers a slow close. */
+const CONFIRM_ATTEMPTS = 30;
+const CONFIRM_INTERVAL_MS = 1_000;
+
+/**
+ * Unsigned `changeTrust` for the configured USDC asset, for the wallet to sign
+ * (#522). A trustline is what lets an account hold USDC; it reserves 0.5 XLM.
+ *
+ * @throws {StellarAccountNotFoundError} when the account is not funded yet
+ * @throws {StellarRpcRequestError} when the RPC is unreachable
+ */
+export async function buildUsdcTrustlineXdr(
+  accountId: string,
+  server: TransactionRpc = getDefaultServer()
+): Promise<string> {
+  let account: Awaited<ReturnType<TransactionRpc["getAccount"]>>;
+  try {
+    account = await server.getAccount(accountId);
+  } catch (cause) {
+    if (cause instanceof Error && /not found/i.test(cause.message)) {
+      throw new StellarAccountNotFoundError(accountId);
+    }
+    throw new StellarRpcRequestError("Could not reach Stellar RPC.");
+  }
+
+  return new TransactionBuilder(account, { fee: BASE_FEE, networkPassphrase: NETWORK_PASSPHRASE })
+    .addOperation(Operation.changeTrust({ asset: new Asset(USDC_ASSET_CODE, USDC_ISSUER) }))
+    .setTimeout(180)
+    .build()
+    .toXDR();
+}
+
+/**
+ * Submits a wallet-signed transaction and waits until it is in a closed ledger.
+ * Returns the transaction hash.
+ *
+ * @throws {StellarTransactionError} when it is rejected, fails, or never lands
+ * @throws {StellarRpcRequestError} when the RPC is unreachable
+ */
+export async function submitSignedTransaction(
+  signedXdr: string,
+  server: TransactionRpc = getDefaultServer(),
+  sleep: (ms: number) => Promise<void> = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
+): Promise<string> {
+  const transaction = TransactionBuilder.fromXDR(signedXdr, NETWORK_PASSPHRASE);
+
+  let sent: rpc.Api.SendTransactionResponse;
+  try {
+    sent = await server.sendTransaction(transaction as ReturnType<TransactionBuilder["build"]>);
+  } catch {
+    throw new StellarRpcRequestError("Could not reach Stellar RPC.");
+  }
+  if (sent.status === "ERROR" || sent.status === "TRY_AGAIN_LATER") {
+    throw new StellarTransactionError("The network rejected the transaction. Please try again.");
+  }
+
+  for (let attempt = 0; attempt < CONFIRM_ATTEMPTS; attempt++) {
+    const result = await server.getTransaction(sent.hash).catch(() => null);
+    if (result?.status === rpc.Api.GetTransactionStatus.SUCCESS) return sent.hash;
+    if (result?.status === rpc.Api.GetTransactionStatus.FAILED) {
+      throw new StellarTransactionError("The transaction failed on the network.");
+    }
+    await sleep(CONFIRM_INTERVAL_MS);
+  }
+  throw new StellarTransactionError("The transaction was not confirmed in time. Check the explorer and refresh.");
 }
 
 /** Explorer page for an account on the active network, for manual verification. */

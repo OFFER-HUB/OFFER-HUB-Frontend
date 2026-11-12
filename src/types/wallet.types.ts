@@ -198,3 +198,10 @@ export interface WalletKitContextValue {
   /** Network passphrase SWK signs with. */
   networkPassphrase: string;
 }
+
+/**
+ * Whether the connected wallet can hold USDC (#522). `no_account`: never
+ * funded, so it needs XLM to be activated. `no_trustline`: funded but cannot
+ * receive USDC until it adds the trustline. `unknown`: balances not loaded.
+ */
+export type UsdcReadiness = "unknown" | "no_account" | "no_trustline" | "ready";
