@@ -99,36 +99,6 @@ export async function cancelOrder(token: string, orderId: string): Promise<Order
   return data.data || data;
 }
 
-export async function createEscrow(token: string, orderId: string): Promise<Order> {
-  const response = await fetch(`${API_URL}/orders/${orderId}/escrow`, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${token}` },
-  });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error?.message || "Failed to create escrow");
-  }
-
-  const data = await response.json();
-  return data.data || data;
-}
-
-export async function fundEscrow(token: string, orderId: string): Promise<Order> {
-  const response = await fetch(`${API_URL}/orders/${orderId}/escrow/fund`, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${token}` },
-  });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error?.message || "Failed to fund escrow");
-  }
-
-  const data = await response.json();
-  return data.data || data;
-}
-
 export async function getMilestones(token: string, orderId: string): Promise<Milestone[]> {
   const response = await fetch(`${API_URL}/orders/${orderId}/milestones`, {
     headers: { Authorization: `Bearer ${token}` },
@@ -188,52 +158,6 @@ export async function completeMilestone(token: string, milestoneId: string): Pro
 // =====================
 // Resolution Actions
 // =====================
-
-export async function releaseFunds(
-  token: string,
-  orderId: string,
-  reason?: string
-): Promise<Order> {
-  const response = await fetch(`${API_URL}/orders/${orderId}/resolution/release`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({ reason }),
-  });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error?.message || "Failed to release funds");
-  }
-
-  const data = await response.json();
-  return data.data || data;
-}
-
-export async function requestRefund(
-  token: string,
-  orderId: string,
-  reason: string
-): Promise<Order> {
-  const response = await fetch(`${API_URL}/orders/${orderId}/resolution/refund`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({ reason }),
-  });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error?.message || "Failed to request refund");
-  }
-
-  const data = await response.json();
-  return data.data || data;
-}
 
 export interface OpenDisputePayload {
   orderId: string;

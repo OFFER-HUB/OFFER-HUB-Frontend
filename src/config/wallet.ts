@@ -19,12 +19,17 @@ const CONFIGURED_NETWORK = process.env.NEXT_PUBLIC_STELLAR_NETWORK;
 export const STELLAR_NETWORK: StellarNetworkName =
   CONFIGURED_NETWORK === "public" ? "public" : "testnet";
 
-const HORIZON_URL_BY_NETWORK: Record<StellarNetworkName, string> = {
-  testnet: "https://horizon-testnet.stellar.org",
-  public: "https://horizon.stellar.org",
+/**
+ * SDF runs a public Stellar RPC on testnet only. On mainnet this is the free
+ * provider the API also uses (OFFER-HUB-API #313); both send CORS headers, so
+ * the browser can call them directly.
+ */
+const RPC_URL_BY_NETWORK: Record<StellarNetworkName, string> = {
+  testnet: "https://soroban-testnet.stellar.org",
+  public: "https://mainnet.sorobanrpc.com",
 };
 
-const EXPLORER_URL_BY_NETWORK: Record<StellarNetworkName, string> = {
+export const EXPLORER_URL_BY_NETWORK: Record<StellarNetworkName, string> = {
   testnet: "https://stellar.expert/explorer/testnet",
   public: "https://stellar.expert/explorer/public",
 };
@@ -64,20 +69,20 @@ function readPublicKeyOverride(value: string | undefined): string | null {
 }
 
 /**
- * Horizon REST base URL, without a trailing slash.
+ * Stellar RPC endpoint, without a trailing slash.
  *
  * Defaults are derived from {@link STELLAR_NETWORK} so the URL can never
- * disagree with the network SWK signs against. The override exists for local
- * Horizon instances and is ignored unless it parses as an http(s) URL.
- *
- * Balances are read over plain REST rather than through `@stellar/stellar-sdk`:
- * the SDK is not a direct dependency here (it only appears as a transitive copy
- * under the wallet kit), and a thin wrapper is what the T3 Horizon -> Stellar
- * RPC migration (D3.1) has to swap out anyway.
+ * disagree with the network SWK signs against. The override is for a paid or
+ * self-hosted provider and is ignored unless it parses as an http(s) URL.
  */
-export const HORIZON_URL: string =
-  readHttpUrlOverride(process.env.NEXT_PUBLIC_STELLAR_HORIZON_URL) ??
-  HORIZON_URL_BY_NETWORK[STELLAR_NETWORK];
+export const STELLAR_RPC_URL: string =
+  readHttpUrlOverride(process.env.NEXT_PUBLIC_STELLAR_RPC_URL) ?? RPC_URL_BY_NETWORK[STELLAR_NETWORK];
+
+/** Passphrase transactions are built and signed against on the active network. */
+export const NETWORK_PASSPHRASE: string =
+  STELLAR_NETWORK === "public"
+    ? "Public Global Stellar Network ; September 2015"
+    : "Test SDF Network ; September 2015";
 
 /** Block explorer base URL for the active network, without a trailing slash. */
 export const STELLAR_EXPLORER_URL: string = EXPLORER_URL_BY_NETWORK[STELLAR_NETWORK];

@@ -127,14 +127,14 @@ export interface TransactionFiltersValue {
   sortBy: TransactionSortOption;
 }
 
-// ─── On-chain balance (Horizon / SWK) ────────────────────────────────────────
+// ─── On-chain balance (Stellar RPC / SWK) ────────────────────────────────────────
 
 /**
- * Live USDC balance read from Horizon for the connected external wallet.
+ * Live USDC balance read through Stellar RPC for the connected external wallet.
  * Independent of the platform custodial ledger.
  */
 export interface OnChainUsdcBalance {
-  /** USDC balance as Horizon reports it, e.g. "0" without a trustline. */
+  /** USDC balance as a 7-decimal string, e.g. "0" without a trustline. */
   amount: string;
   isLoading: boolean;
 }
@@ -165,15 +165,15 @@ export interface WalletConnectionState {
 }
 
 /**
- * One asset line of a Stellar account, normalized from Horizon's `balances[]`.
+ * One asset of a Stellar account, read from its ledger entries.
  *
- * Amounts stay strings: Horizon reports 7-decimal fixed point and `number`
+ * Amounts stay strings: balances are 7-decimal fixed point and `number`
  * cannot round-trip large balances exactly. Convert only for display.
  */
 export interface StellarAssetBalance {
   /** Display code, e.g. "XLM" or "USDC". */
   code: string;
-  /** Balance as Horizon reports it, e.g. "9974.9999800". "0" without a trustline. */
+  /** Balance as a 7-decimal string, e.g. "9974.9999800". "0" without a trustline. */
   balance: string;
   /**
    * False when the account holds no trustline for this asset. Always true for
@@ -198,3 +198,10 @@ export interface WalletKitContextValue {
   /** Network passphrase SWK signs with. */
   networkPassphrase: string;
 }
+
+/**
+ * Whether the connected wallet can hold USDC (#522). `no_account`: never
+ * funded, so it needs XLM to be activated. `no_trustline`: funded but cannot
+ * receive USDC until it adds the trustline. `unknown`: balances not loaded.
+ */
+export type UsdcReadiness = "unknown" | "no_account" | "no_trustline" | "ready";

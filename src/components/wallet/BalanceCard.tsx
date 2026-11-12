@@ -8,7 +8,7 @@ import {
 } from "@/components/wallet/WalletAssetBalances";
 
 /**
- * Live Horizon balances for a connected external wallet. Everything the
+ * Live on-chain balances for a connected external wallet. Everything the
  * `useWalletBalance` hook returns, plus its refresh callback.
  */
 export type BalanceCardExternalWallet = Omit<WalletAssetBalancesProps, "className">;
@@ -20,7 +20,7 @@ interface BalanceCardProps {
   className?: string;
   /**
    * On-chain XLM and USDC of the connected `WalletType.EXTERNAL` wallet.
-   * Omitted for custodial (INVISIBLE) wallets, which hold nothing on Horizon —
+   * Omitted for custodial (INVISIBLE) wallets, which hold nothing on-chain for the user —
    * the card then renders exactly as before.
    */
   externalWallet?: BalanceCardExternalWallet;

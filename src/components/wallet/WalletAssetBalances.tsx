@@ -5,12 +5,14 @@ import { cn } from "@/lib/cn";
 import { Icon, ICON_PATHS } from "@/components/ui/Icon";
 import { STELLAR_NETWORK } from "@/config/wallet";
 import { buildAccountExplorerUrl } from "@/services/stellar.service";
+import { usdcReadinessFrom } from "@/lib/wallet-readiness";
+import { UsdcReadinessPrompt } from "@/components/wallet/UsdcReadinessPrompt";
 import type { StellarAccountBalances, StellarAssetBalance } from "@/types/wallet.types";
 
 export interface WalletAssetBalancesProps {
   /** Public key of the connected wallet. */
   address: string;
-  /** Balances read from Horizon, or null while none have loaded yet. */
+  /** Balances read through Stellar RPC, or null while none have loaded yet. */
   balances: StellarAccountBalances | null;
   isLoading: boolean;
   isRefreshing: boolean;
@@ -82,7 +84,7 @@ function BalancesSkeleton(): React.JSX.Element {
 
 /**
  * XLM and USDC held by a connected external (non-custodial) wallet, read live
- * from Horizon. Rendered inside `BalanceCard` for `WalletType.EXTERNAL` wallets;
+ * through Stellar RPC. Rendered inside `BalanceCard` for `WalletType.EXTERNAL` wallets;
  * custodial balances keep using the platform ledger figures above it.
  */
 export function WalletAssetBalances({
@@ -184,15 +186,7 @@ export function WalletAssetBalances({
             <AssetTile asset={balances.xlm} caption="Native Stellar balance" />
             <AssetTile asset={balances.usdc} caption="Stablecoin balance" />
           </div>
-          {isUnfunded ? (
-            <p role="status" className="flex items-start gap-2 text-xs text-text-secondary">
-              <Icon path={ICON_PATHS.infoCircle} size="sm" className="mt-0.5 shrink-0" />
-              <span>
-                This account is not funded on {STELLAR_NETWORK === "public" ? "mainnet" : "testnet"}{" "}
-                yet. Balances appear once it receives its first payment.
-              </span>
-            </p>
-          ) : null}
+          <UsdcReadinessPrompt readiness={usdcReadinessFrom(balances, isUnfunded)} onEnabled={onRefresh} />
         </>
       ) : null}
     </div>

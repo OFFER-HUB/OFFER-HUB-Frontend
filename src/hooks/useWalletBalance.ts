@@ -3,14 +3,14 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useAuthStore } from "@/stores/auth-store";
 import {
-  HorizonRequestError,
+  StellarRpcRequestError,
   StellarAccountNotFoundError,
   emptyAccountBalances,
   fetchAccountBalances,
 } from "@/services/stellar.service";
 import type { StellarAccountBalances } from "@/types/wallet.types";
 
-const FALLBACK_ERROR_MESSAGE = "Could not load balances from Horizon. Try again.";
+const FALLBACK_ERROR_MESSAGE = "Could not load balances from the Stellar network. Try again.";
 
 /** Result keyed by the address it belongs to, so a wallet switch cannot show stale numbers. */
 interface BalanceSnapshot {
@@ -36,16 +36,16 @@ export interface UseWalletBalanceResult {
   /** Failure message for the connected wallet, or null. */
   error: string | null;
   /**
-   * True when Horizon has no record of the account. `balances` is then a zeroed
+   * True when the ledger has no entry for the account. `balances` is then a zeroed
    * record rather than null — an unfunded keypair is a valid state, not an error.
    */
   isUnfunded: boolean;
-  /** Re-read balances from Horizon. No-op while no wallet is connected. */
+  /** Re-read balances from Stellar RPC. No-op while no wallet is connected. */
   refresh: () => void;
 }
 
 function toErrorMessage(cause: unknown): string {
-  if (cause instanceof HorizonRequestError || cause instanceof Error) {
+  if (cause instanceof StellarRpcRequestError || cause instanceof Error) {
     return cause.message.length > 0 ? cause.message : FALLBACK_ERROR_MESSAGE;
   }
   return FALLBACK_ERROR_MESSAGE;

@@ -4,12 +4,8 @@ import { useCallback, useRef, useState } from "react";
 import { useAuthStore } from "@/stores/auth-store";
 import {
   cancelOrder,
-  createEscrow,
-  fundEscrow,
   markOrderCompleted,
   openDispute,
-  releaseFunds,
-  requestRefund,
   reserveFunds,
   type OpenDisputePayload,
 } from "@/lib/api/orders";
@@ -138,8 +134,8 @@ function toMessage(cause: unknown, fallback: string): string {
  * Release, dispute, and refund each additionally own a `useEscrowSigningAction`
  * instance (D2.1): for an EXTERNAL wallet, the action walks through
  * client-side signing instead of calling the server-signed endpoint directly.
- * For an INVISIBLE wallet, `legacyAction` below *is* the exact call this hook
- * made before D2.1 — unchanged.
+ * There is no server-signed path any more (API #326): an unclaimed custodial
+ * (INVISIBLE) wallet is asked to claim the wallet before it can sign.
  */
 export function useOrderActions({
   orderId,
@@ -209,11 +205,6 @@ export function useOrderActions({
     orderId,
     operation: "create",
     callerRole: "buyer",
-    legacyAction: () =>
-      runOrderMutation(
-        (authToken) => createEscrow(authToken, orderId),
-        ORDER_ACTION_MESSAGES.createEscrow
-      ),
     onConfirmed: () => {
       setSuccess(ORDER_ACTION_MESSAGES.createEscrow.success);
       void refetchOrder();
@@ -235,11 +226,6 @@ export function useOrderActions({
     orderId,
     operation: "fund",
     callerRole: "buyer",
-    legacyAction: () =>
-      runOrderMutation(
-        (authToken) => fundEscrow(authToken, orderId),
-        ORDER_ACTION_MESSAGES.fundEscrow
-      ),
     onConfirmed: () => {
       setSuccess(ORDER_ACTION_MESSAGES.fundEscrow.success);
       void refetchOrder();
@@ -269,12 +255,6 @@ export function useOrderActions({
     orderId,
     operation: "release",
     callerRole: "buyer",
-    legacyAction: () =>
-      runOrderMutation(
-        (authToken) => releaseFunds(authToken, orderId),
-        ORDER_ACTION_MESSAGES.releaseFunds,
-        onFundsReleased
-      ),
     onConfirmed: () => {
       setSuccess(ORDER_ACTION_MESSAGES.releaseFunds.success);
       onFundsReleased?.();
@@ -286,10 +266,8 @@ export function useOrderActions({
     try {
       await releaseSigning.run();
     } catch {
-      // Surfaced via releaseSigning.inlineError (client-signing failures) or,
-      // for the legacy path, the shared error banner runOrderMutation already
-      // set — nothing further to do here. A cancelled wallet-connect guard
-      // needs no message at all.
+      // Surfaced via releaseSigning.inlineError — nothing further to do here.
+      // A cancelled wallet-connect guard needs no message at all.
     }
   }, [releaseSigning]);
 
@@ -298,12 +276,9 @@ export function useOrderActions({
   const disputeSigning = useEscrowSigningAction({
     orderId,
     operation: "dispute",
-    callerRole: "buyer",
-    // INVISIBLE wallets never needed an on-chain step here before D2.1 —
-    // opening a dispute has always been a pure admin-review record.
-    legacyAction: async () => {},
-    // The admin dispute record is created by handleOpenDispute itself right
-    // after this resolves, for both wallet types — nothing to do here.
+    // Whoever opens the dispute signs it on-chain (API #326): the admin's
+    // resolution is signed by the platform alone and needs it disputed.
+    callerRole: isBuyer ? "buyer" : "seller",
     onConfirmed: () => {},
   });
 
@@ -315,18 +290,10 @@ export function useOrderActions({
       setError(null);
 
       try {
-        // The on-chain dispute step always disputes on the buyer's behalf
-        // (TrustlessWork's disputeResolver role requires it) regardless of
-        // who calls this — so only run it when the buyer is the one opening
-        // the dispute. A seller-initiated dispute skips straight to the
-        // admin record, same as before D2.1.
-        if (isBuyer) {
-          // For an EXTERNAL wallet, flags the escrow as disputed on-chain
-          // first — a precondition the platform's later resolution already
-          // tolerates being pre-done (TrustlessWork reports "already in
-          // dispute" and the server skips the step rather than failing).
-          await disputeSigning.run();
-        }
+        // The party opening the dispute, buyer or seller, flags the escrow
+        // as disputed on-chain from their own wallet first. The platform's
+        // resolution needs it: without it the API refuses to resolve.
+        await disputeSigning.run();
 
         const payload: OpenDisputePayload = {
           orderId,
@@ -358,22 +325,14 @@ export function useOrderActions({
 
   // ---- D2.1: refund -----------------------------------------------------
 
-  // `legacyAction` below has no way to receive an argument (`run()` calls it
-  // with none), so the reason the buyer typed has to be stashed here first.
-  // The client-signing path has no reason field to send it to at all yet —
-  // see the note on `handleRequestRefund`.
+  // The client-signing path has no reason field to send the buyer's reason
+  // to yet, so it is only kept here.
   const pendingRefundReason = useRef<string>("");
 
   const refundSigning = useEscrowSigningAction({
     orderId,
     operation: "refund",
     callerRole: "buyer",
-    legacyAction: () =>
-      runOrderMutation(
-        (authToken) => requestRefund(authToken, orderId, pendingRefundReason.current),
-        ORDER_ACTION_MESSAGES.requestRefund,
-        onRefundRequested
-      ),
     onConfirmed: () => {
       setSuccess(ORDER_ACTION_MESSAGES.requestRefund.success);
       onRefundRequested?.();
@@ -387,8 +346,7 @@ export function useOrderActions({
       try {
         await refundSigning.run();
       } catch {
-        // Surfaced via refundSigning.inlineError, or the shared error banner
-        // for the legacy path — same as handleReleaseFunds.
+        // Surfaced via refundSigning.inlineError — same as handleReleaseFunds.
       }
     },
     [pendingRefundReason, refundSigning]
@@ -396,20 +354,12 @@ export function useOrderActions({
 
   // ---- D2.1: complete_milestone (seller) ------------------------------------
 
-  // For an EXTERNAL-wallet seller, `complete_milestone` must be signed
-  // client-side before the buyer can sign `approve_milestone` + `release`.
-  // For an INVISIBLE-wallet seller, the server holds both parties' keys and
-  // signs all three steps when the buyer triggers the release flow, so the
-  // off-chain metadata flag is all the seller needs to set here.
+  // The seller signs `complete_milestone` client-side before the buyer can
+  // sign `approve_milestone` + `release`.
   const completeSigning = useEscrowSigningAction({
     orderId,
     operation: "release",
     callerRole: "seller",
-    legacyAction: () =>
-      runOrderMutation(
-        (authToken) => markOrderCompleted(authToken, orderId),
-        ORDER_ACTION_MESSAGES.markCompleted
-      ),
     onConfirmed: async () => {
       // On-chain step confirmed — persist the off-chain flag so the buyer's
       // UI knows the work is delivered and unlocks their "Release Funds" flow.

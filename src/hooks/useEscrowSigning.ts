@@ -5,6 +5,7 @@ import { StellarWalletsKit } from "@creit.tech/stellar-wallets-kit";
 import { useAuthStore } from "@/stores/auth-store";
 import { useWalletKit } from "@/hooks/use-wallet-kit";
 import { isWalletCancellation, toWalletErrorMessage } from "@/lib/wallet-error-messages";
+import { isWalletNotReadyCode, type WalletNotReadyCode } from "@/lib/wallet-readiness";
 import {
   prepareEscrowCreate,
   prepareEscrowFund,
@@ -37,6 +38,7 @@ export type EscrowSigningErrorCode =
   | "NO_WALLET_CONNECTED"
   | "WRONG_SIGNER"
   | "STALE_TRANSACTION"
+  | WalletNotReadyCode
   | "API_ERROR";
 
 export interface EscrowSigningError {
@@ -94,22 +96,26 @@ const PREPARE_BY_OPERATION: Record<EscrowOperation, PrepareFn> = {
   dispute: prepareDisputeStep,
 };
 
-function toApiError(cause: unknown): EscrowSigningError {
+/**
+ * Turns an API failure into a signing error the modal knows how to explain.
+ * Shared by every signing hook (escrow, payout).
+ */
+export function toSigningError(cause: unknown): EscrowSigningError {
   const message =
     cause && typeof cause === "object" && "message" in cause && typeof cause.message === "string"
       ? cause.message
       : "The request failed. Please try again.";
+  const apiCode = cause && typeof cause === "object" && "code" in cause ? cause.code : undefined;
 
   // STELLAR_NETWORK_ERROR names a specific, known cause (the signed XDR went
   // stale — a newer one was already prepared for the same step) rather than
   // an unclassified failure. Carrying the real code through lets the modal
   // show that instead of its generic "check your connection/XLM" copy.
-  const code =
-    cause && typeof cause === "object" && "code" in cause && cause.code === "STELLAR_NETWORK_ERROR"
-      ? "STALE_TRANSACTION"
-      : "API_ERROR";
-
-  return { code, message };
+  if (apiCode === "STELLAR_NETWORK_ERROR") return { code: "STALE_TRANSACTION", message };
+  // On mainnet the API refuses money actions until the wallet can hold USDC
+  // (OFFER-HUB-API #342); the modal then shows how to get it ready.
+  if (isWalletNotReadyCode(apiCode)) return { code: apiCode, message };
+  return { code: "API_ERROR", message };
 }
 
 /**
@@ -229,7 +235,7 @@ export function useEscrowSigning(): UseEscrowSigningResult {
         setTransactionHash(result.transactionHash);
         setState("confirmed");
       } catch (cause) {
-        setError(toApiError(cause));
+        setError(toSigningError(cause));
         setState("error");
       } finally {
         inFlight.current = false;

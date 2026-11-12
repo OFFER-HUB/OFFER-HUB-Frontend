@@ -12,7 +12,7 @@ interface DashboardWalletHeaderProps {
   /** Platform-ledger balance (custodial). The balance pill stays hidden until it loads. */
   balance?: WalletBalanceSummary | null;
   /**
-   * Live USDC balance read from Horizon for the connected wallet (SCF D1.1) — independent
+   * Live USDC balance read through Stellar RPC for the connected wallet (SCF D1.1) — independent
    * of the platform ledger above. Omit while it hasn't loaded yet rather than passing zero.
    */
   onChainUsdc?: OnChainUsdcBalance | null;

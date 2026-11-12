@@ -2,9 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { Navbar } from "@/components/landing";
+import { ValidationRuns } from "@/components/stats/ValidationRuns";
 import { Icon, ICON_PATHS, LoadingSpinner } from "@/components/ui/Icon";
 import { getPlatformStats, type PlatformStatsResponse } from "@/lib/api/stats";
+import { usePublicValidationResults } from "@/hooks/use-public-validation-results";
 import { cn } from "@/lib/cn";
+import { explorerUrl } from "@/lib/explorer";
 
 export default function PlatformStatsPage(): React.JSX.Element {
   const [data, setData] = useState<PlatformStatsResponse | null>(null);
@@ -14,6 +17,7 @@ export default function PlatformStatsPage(): React.JSX.Element {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [walletsLimit, setWalletsLimit] = useState(5);
   const [escrowsLimit, setEscrowsLimit] = useState(5);
+  const validationResults = usePublicValidationResults();
 
   useEffect(() => {
     async function loadStats() {
@@ -83,6 +87,16 @@ export default function PlatformStatsPage(): React.JSX.Element {
             <p className="text-text-secondary max-w-2xl mx-auto text-base animate-fade-in-up" style={{ animationDelay: "0.1s" }}>
               Real-time insights and transparent key metrics showcasing user registration, secure wallet generation, and transaction volume.
             </p>
+          </div>
+
+          <div className="mb-10">
+            <ValidationRuns
+              data={validationResults.data}
+              error={validationResults.error}
+              fetchedAt={validationResults.fetchedAt}
+              isLoading={validationResults.isLoading}
+              onRetry={validationResults.refresh}
+            />
           </div>
 
           {isLoading ? (
@@ -216,7 +230,7 @@ export default function PlatformStatsPage(): React.JSX.Element {
                                 </td>
                                 <td className="py-4 px-6 text-right">
                                   <a
-                                    href={`https://stellar.expert/explorer/testnet/account/${wallet.publicKey}`}
+                                    href={explorerUrl("account", wallet.publicKey)}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold bg-background text-primary border border-border-light shadow-[var(--shadow-neumorphic-light)] hover:shadow-[var(--shadow-neumorphic-inset-light)] active:scale-95 transition-all duration-200"
@@ -328,7 +342,7 @@ export default function PlatformStatsPage(): React.JSX.Element {
                                 <td className="py-4 px-6 text-right">
                                   {contractId ? (
                                     <a
-                                      href={`https://stellar.expert/explorer/testnet/contract/${contractId}`}
+                                      href={explorerUrl("contract", contractId)}
                                       target="_blank"
                                       rel="noopener noreferrer"
                                       className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold bg-background text-primary border border-border-light shadow-[var(--shadow-neumorphic-light)] hover:shadow-[var(--shadow-neumorphic-inset-light)] active:scale-95 transition-all duration-200"

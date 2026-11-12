@@ -11,6 +11,10 @@ import {
 } from "@/hooks/useEscrowSigning";
 import type { EscrowOperation, EscrowStepName } from "@/lib/api/escrow";
 
+/** Shown to an unclaimed custodial wallet, which can no longer sign anything. */
+export const CLAIM_WALLET_MESSAGE =
+  "Your wallet is still custodial, and OfferHub no longer signs for you. Claim it with your own wallet in Settings to continue.";
+
 /** Thrown by `run()` when the user dismisses the wallet-connect guard without connecting. Not a failure — callers should treat it as "nothing happened" rather than showing an error. */
 export class SigningCancelledError extends Error {
   constructor() {
@@ -31,20 +35,15 @@ export interface UseEscrowSigningActionParams {
    * a clear "not your turn yet" message.
    */
   callerRole: "buyer" | "seller";
-  /**
-   * Runs the existing server-side (custodial) path for INVISIBLE-wallet
-   * users. Left completely untouched by this hook — it's called as-is,
-   * unchanged from before D2.1, so there is no regression for those users.
-   */
-  legacyAction: () => Promise<void>;
   /** Order re-read and the action modal closed once the on-chain step lands. */
   onConfirmed: () => void;
 }
 
 export interface UseEscrowSigningActionResult {
   /**
-   * Starts the right path for the current wallet: the legacy call for an
-   * INVISIBLE wallet, or client-side signing for an EXTERNAL one. If SWK
+   * Starts client-side signing. An unclaimed custodial (INVISIBLE) wallet
+   * can't sign — the server no longer signs for anyone (API #326) — so it is
+   * told to claim the wallet instead. If SWK
    * isn't currently connected, opens the wallet-connect guard first and
    * resumes automatically once it reports back a connected address.
    *
@@ -98,7 +97,6 @@ export function useEscrowSigningAction({
   orderId,
   operation,
   callerRole,
-  legacyAction,
   onConfirmed,
 }: UseEscrowSigningActionParams): UseEscrowSigningActionResult {
   const user = useAuthStore((state) => state.user);
@@ -131,7 +129,8 @@ export function useEscrowSigningAction({
 
   const run = useCallback((): Promise<void> => {
     if (!isExternalWallet) {
-      return legacyAction();
+      setInlineError(CLAIM_WALLET_MESSAGE);
+      return Promise.reject(new Error(CLAIM_WALLET_MESSAGE));
     }
 
     if (!liveWalletAddress) {
@@ -143,7 +142,7 @@ export function useEscrowSigningAction({
     }
 
     return startSigning();
-  }, [isExternalWallet, legacyAction, liveWalletAddress, startSigning]);
+  }, [isExternalWallet, liveWalletAddress, startSigning]);
 
   const closeWalletConnect = useCallback(() => {
     hasPendingSign.current = false;

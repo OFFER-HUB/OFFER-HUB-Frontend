@@ -3,14 +3,16 @@
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/cn";
 import { Icon, ICON_PATHS, LoadingSpinner } from "@/components/ui/Icon";
-import { NEUMORPHIC_CARD, NEUMORPHIC_INSET, NEUMORPHIC_INPUT } from "@/lib/styles";
+import { NEUMORPHIC_CARD, NEUMORPHIC_INPUT } from "@/lib/styles";
 import { useAdminUserDetail } from "@/hooks/useAdminUserDetail";
+import { UserStatsGrid } from "@/components/admin/users/UserStatsGrid";
+import { UserBanHistory } from "@/components/admin/users/UserBanHistory";
+import { UserActivityLog } from "@/components/admin/users/UserActivityLog";
 import {
   ADMIN_USER_STATUS_CONFIG,
   ADMIN_USER_ROLE_LABELS,
   adminUserDisplayName,
   type AdminUser,
-  type AdminUserDetail,
   type UpdateAdminUserPayload,
   type AdminUserRole,
 } from "@/types/admin.types";
@@ -62,89 +64,6 @@ export function diffUserPayload(user: AdminUser, form: UserEditFormData): Update
   }
   return payload;
 }
-
-// ─── Stats Grid sub-component ─────────────────────────────────────────────────
-
-function StatsGrid({
-  detail,
-  isLoading,
-  error,
-}: {
-  detail: AdminUserDetail | null;
-  isLoading: boolean;
-  error: string | null;
-}) {
-  const statItems = detail
-    ? [
-        {
-          icon: ICON_PATHS.shoppingCart,
-          label: "Orders (bought / sold)",
-          value: `${detail._count.buyerOrders} / ${detail._count.sellerOrders}`,
-        },
-        {
-          icon: ICON_PATHS.check,
-          label: "Completed as seller",
-          value: String(detail.stats.completedOrders),
-        },
-        {
-          icon: ICON_PATHS.currency,
-          label: "Earnings",
-          value: `$${detail.stats.totalEarnings}`,
-        },
-        {
-          icon: ICON_PATHS.star,
-          label: "Rating",
-          value: detail.stats.averageRating ?? "No ratings",
-        },
-        {
-          icon: ICON_PATHS.briefcase,
-          label: "Services",
-          value: String(detail._count.services),
-        },
-        {
-          icon: ICON_PATHS.creditCard,
-          label: "Balance",
-          value: detail.balance
-            ? `${detail.balance.available} ${detail.balance.currency}`
-            : "—",
-        },
-      ]
-    : [];
-
-  return (
-    <div className={cn(NEUMORPHIC_INSET, "rounded-xl p-4")}>
-      <p className="text-xs font-semibold text-text-secondary uppercase tracking-wider mb-3">
-        Statistics
-      </p>
-      {isLoading ? (
-        <div className="flex items-center gap-2 text-xs text-text-secondary">
-          <LoadingSpinner size="sm" />
-          Loading…
-        </div>
-      ) : error ? (
-        <p className="text-xs text-error">{error}</p>
-      ) : (
-        <div className="grid grid-cols-2 gap-3">
-          {statItems.map(({ icon, label, value }) => (
-            <div key={label} className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                <Icon path={icon} size="sm" className="text-primary" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-[10px] text-text-secondary uppercase tracking-wide leading-none mb-0.5">
-                  {label}
-                </p>
-                <p className="text-xs font-semibold text-text-primary truncate">{value}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ─── Main Component ───────────────────────────────────────────────────────────
 
 export function UserEditModal({ isOpen, user, onClose, onSave, onBan }: UserEditModalProps) {
   const [form, setForm] = useState<UserEditFormData>({
@@ -363,8 +282,26 @@ export function UserEditModal({ isOpen, user, onClose, onSave, onBan }: UserEdit
         </div>
 
         {/* User statistics */}
+        <div className="mb-4">
+          <UserStatsGrid
+            detail={detail.detail}
+            isLoading={detail.isLoading}
+            error={detail.error}
+          />
+        </div>
+
+        {/* Activity log */}
+        <div className="mb-4">
+          <UserActivityLog
+            detail={detail.detail}
+            isLoading={detail.isLoading}
+            error={detail.error}
+          />
+        </div>
+
+        {/* Ban history (only for suspended users) */}
         <div className="mb-5">
-          <StatsGrid detail={detail.detail} isLoading={detail.isLoading} error={detail.error} />
+          <UserBanHistory detail={detail.detail} />
         </div>
 
         {/* Error */}
