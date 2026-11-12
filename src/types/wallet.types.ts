@@ -186,3 +186,23 @@ export interface WalletKitContextValue {
  * receive USDC until it adds the trustline. `unknown`: balances not loaded.
  */
 export type UsdcReadiness = "unknown" | "no_account" | "no_trustline" | "ready";
+
+/**
+ * `GET /wallet/readiness` (OFFER-HUB-API #342, #327). `custodialReadOnly` is set
+ * only on the testnet sandbox, after the cutover, for a user whose custodial
+ * wallet is still unclaimed.
+ */
+export interface CustodialReadOnlyWindow {
+  cutoverAt: string;
+  expiresAt: string;
+}
+
+export interface WalletReadinessData {
+  network: "testnet" | "mainnet";
+  walletType: "EXTERNAL" | "INVISIBLE" | null;
+  publicKey: string | null;
+  accountExists: boolean | null;
+  hasUsdcTrustline: boolean | null;
+  custodialReadOnly: CustodialReadOnlyWindow | null;
+  ready: boolean;
+}
