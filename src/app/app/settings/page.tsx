@@ -8,6 +8,7 @@ import { Icon, ICON_PATHS, LoadingSpinner } from "@/components/ui/Icon";
 import { ToggleSwitch } from "@/components/ui/ToggleSwitch";
 import { NEUMORPHIC_CARD, PRIMARY_BUTTON, DANGER_BUTTON } from "@/lib/styles";
 import { ClaimWalletCard } from "@/components/settings/ClaimWalletCard";
+import { STELLAR_NETWORK } from "@/config/wallet";
 import { WalletManagementCard } from "@/components/settings/WalletManagementCard";
 import { BankAccountSelector } from "@/components/bank-accounts/BankAccountSelector";
 import { KycStatusCard } from "@/components/kyc/KycStatusCard";
@@ -331,7 +332,8 @@ export default function SettingsPage(): React.JSX.Element {
 
       {/* Custodial → non-custodial migration. Sits above the account section
           because it is a one-way change to who holds the keys, not a preference. */}
-      <ClaimWalletCard />
+      {/* Mainnet holds no custodial keys (ADR-001): there is nothing to claim there. */}
+      {STELLAR_NETWORK === "testnet" && <ClaimWalletCard />}
 
       <WalletManagementCard />
 

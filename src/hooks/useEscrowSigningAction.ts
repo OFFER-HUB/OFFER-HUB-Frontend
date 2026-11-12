@@ -10,10 +10,20 @@ import {
   type EscrowSigningError,
 } from "@/hooks/useEscrowSigning";
 import type { EscrowOperation, EscrowStepName } from "@/lib/api/escrow";
+import { STELLAR_NETWORK } from "@/config/wallet";
 
-/** Shown to an unclaimed custodial wallet, which can no longer sign anything. */
+/** Shown to an unclaimed custodial wallet, which can no longer sign anything (testnet sandbox). */
 export const CLAIM_WALLET_MESSAGE =
   "Your wallet is still custodial, and OfferHub no longer signs for you. Claim it with your own wallet in Settings to continue.";
+
+/** Mainnet holds no custodial wallets, so there is nothing to claim: the user connects their own. */
+export const CONNECT_WALLET_MESSAGE =
+  "OfferHub no longer signs for you. Connect your own Stellar wallet (Freighter, Lobstr or xBull) to continue.";
+
+/** The message for a user without an external wallet, by network. */
+export function externalWalletRequiredMessage(): string {
+  return STELLAR_NETWORK === "public" ? CONNECT_WALLET_MESSAGE : CLAIM_WALLET_MESSAGE;
+}
 
 /** Thrown by `run()` when the user dismisses the wallet-connect guard without connecting. Not a failure — callers should treat it as "nothing happened" rather than showing an error. */
 export class SigningCancelledError extends Error {
@@ -129,8 +139,9 @@ export function useEscrowSigningAction({
 
   const run = useCallback((): Promise<void> => {
     if (!isExternalWallet) {
-      setInlineError(CLAIM_WALLET_MESSAGE);
-      return Promise.reject(new Error(CLAIM_WALLET_MESSAGE));
+      const message = externalWalletRequiredMessage();
+      setInlineError(message);
+      return Promise.reject(new Error(message));
     }
 
     if (!liveWalletAddress) {
