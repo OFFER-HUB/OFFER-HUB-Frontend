@@ -141,19 +141,13 @@ XDR expiry and caller role before opening the wallet prompt.
 
 ## Clean-project installation and signing check
 
-After PR #509 is merged, run this from the repository root:
+Run this from the repository root:
 
 ```bash
 npm run check:blank-project
 ```
 
-While #509 is still open, point the check at its canonical package checkout.
-In PowerShell:
-
-```powershell
-$env:SWK_SIGNING_PACKAGE_DIR = "C:\path\to\OFFER-HUB-Frontend\packages\stellar-escrow-signing"
-npm run check:blank-project
-```
+To check a package checkout elsewhere, set `SWK_SIGNING_PACKAGE_DIR` to its path first.
 
 The script installs the canonical package's locked development dependencies,
 builds it, packs the built package, and installs that tarball into a new
