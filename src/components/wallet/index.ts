@@ -10,5 +10,4 @@ export { WalletAssetBalances } from "./WalletAssetBalances";
 export { WalletConnectButton } from "./WalletConnectButton";
 export { WalletConnectModal } from "./WalletConnectModal";
 export { WalletPageSkeleton } from "./WalletPageSkeleton";
-export { WithdrawModal } from "./WithdrawModal";
-export { WithdrawForm } from "./WithdrawForm";
+export { MoveFundsOutCard } from "./MoveFundsOutCard";

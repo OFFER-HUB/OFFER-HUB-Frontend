@@ -83,7 +83,6 @@ export default function WalletPage(): React.JSX.Element {
 
   return (
     <WalletDashboardContent
-      token={token}
       data={walletDashboard.data}
       isExternalWallet={isExternalWallet}
       isRefreshing={walletDashboard.isRefreshing}
