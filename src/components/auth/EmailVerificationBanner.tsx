@@ -90,6 +90,7 @@ export function EmailVerificationBanner({
     const [dismissed, setDismissed] = useState(false);
     const [resending, setResending] = useState(false);
     const [resendSuccess, setResendSuccess] = useState(false);
+    const [resendError, setResendError] = useState<string | null>(null);
     const [cooldownRemaining, setCooldownRemaining] = useState(0);
 
     // Re-read the dismissal flag on mount + whenever the userId
@@ -118,14 +119,19 @@ export function EmailVerificationBanner({
         if (resending || cooldownRemaining > 0 || !onResend) return;
         setResending(true);
         setResendSuccess(false);
+        setResendError(null);
         try {
             await Promise.resolve(onResend());
             setResendSuccess(true);
             setCooldownRemaining(resendCooldownSeconds);
-        } catch {
-            // Surface failures via the caller's own toast / error
-            // pipeline — the banner intentionally stays neutral so
-            // it doesn't clash with the app's global error UI.
+        } catch (err) {
+            // A rejected resend used to vanish silently — the spinner stopped and
+            // nothing else happened, so the button looked dead. Show why it failed.
+            setResendError(
+                err instanceof Error && err.message
+                    ? err.message
+                    : "We couldn't send the email. Please try again."
+            );
         } finally {
             setResending(false);
         }
@@ -164,6 +170,11 @@ export function EmailVerificationBanner({
                             ? `Check ${email} for the verification link to unlock all account features.`
                             : "Check your inbox for the verification link to unlock all account features."}
                     </p>
+                    {resendError && (
+                        <p role="alert" className="mt-1 text-sm font-medium text-error">
+                            {resendError}
+                        </p>
+                    )}
                 </div>
             </div>
 
