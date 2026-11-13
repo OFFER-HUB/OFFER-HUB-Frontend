@@ -35,6 +35,7 @@ export interface OAuthCallbackResult {
     firstName: string | null;
     lastName: string | null;
     type: string;
+    isEmailVerified?: boolean;
     balance: { available: string; reserved: string } | null;
     wallet: { id: string; publicKey: string; type: string } | null;
   };

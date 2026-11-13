@@ -73,6 +73,7 @@ export function useOAuthCallback(): CallbackState {
           lastName: result.user.lastName ?? null,
           avatarUrl: session.oauthAvatarUrl,
           type: result.user.type as "BUYER" | "SELLER" | "BOTH",
+          isEmailVerified: result.user.isEmailVerified,
           balance: result.user.balance || undefined,
           wallet: result.user.wallet || undefined,
         };

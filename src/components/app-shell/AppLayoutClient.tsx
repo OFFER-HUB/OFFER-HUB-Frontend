@@ -68,7 +68,14 @@ export function AppLayoutClient({ children }: AppLayoutClientProps): React.JSX.E
     if (!token) {
       throw new Error("Your session expired. Please log in again.");
     }
-    await sendVerification(token);
+    const result = await sendVerification(token);
+    if (result.alreadyVerified) {
+      // The stored flag was stale (e.g. a session that predates it): the account
+      // is verified, so there is nothing to resend and the banner must go away.
+      useAuthStore.setState((state) => ({
+        user: state.user ? { ...state.user, isEmailVerified: true } : null,
+      }));
+    }
   };
 
   if (!canRenderApp) {
