@@ -2,13 +2,15 @@
 
 import { useMemo, useState } from "react";
 import { changePassword } from "@/lib/api/auth";
+import { revokeOtherSessions } from "@/lib/api/sessions";
+import { SettingsHeader } from "@/components/settings/SettingsHeader";
 import { cn } from "@/lib/cn";
 import { getPasswordChecks, getPasswordStrength, isPasswordValid } from "@/lib/validation";
 import { NEUMORPHIC_CARD, PRIMARY_BUTTON } from "@/lib/styles";
 import { useAuthStore } from "@/stores/auth-store";
 import { Toast } from "@/components/ui/Toast";
 import { Icon, ICON_PATHS, LoadingSpinner } from "@/components/ui/Icon";
-import { PasswordInput, type FieldName } from "@/components/settings/PasswordInput";
+import { PasswordInput } from "@/components/settings/PasswordInput";
 
 const MIN_PASSWORD_LENGTH = 8;
 
@@ -120,8 +122,18 @@ export function ChangePasswordForm(): React.JSX.Element {
       await changePassword(token, {
         currentPassword: form.currentPassword,
         newPassword: form.newPassword,
-        signOutOtherSessions: form.signOutOtherSessions,
+        confirmPassword: form.confirmPassword,
       });
+
+      // The API does not do this as part of a password change, so ask for it explicitly.
+      let signOutFailed = false;
+      if (form.signOutOtherSessions) {
+        try {
+          await revokeOtherSessions(token);
+        } catch {
+          signOutFailed = true;
+        }
+      }
 
       setForm({
         currentPassword: "",
@@ -130,7 +142,11 @@ export function ChangePasswordForm(): React.JSX.Element {
         signOutOtherSessions: false,
       });
       setErrors({});
-      setToast({ type: "success", message: "Password updated successfully" });
+      setToast(
+        signOutFailed
+          ? { type: "error", message: "Password updated, but other sessions could not be signed out" }
+          : { type: "success", message: "Password updated successfully" }
+      );
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Failed to change password. Please try again.";
@@ -162,12 +178,11 @@ export function ChangePasswordForm(): React.JSX.Element {
   return (
     <>
       <div className="space-y-6">
-        <div className="rounded-2xl bg-gradient-to-r from-primary to-secondary p-6 text-white shadow-lg shadow-primary/10">
-          <h1 className="text-2xl font-bold">Security</h1>
-          <p className="mt-1 text-sm text-white/80">
-            Update your password and keep your account access secure.
-          </p>
-        </div>
+        <SettingsHeader
+          icon={ICON_PATHS.lock}
+          title="Security"
+          description="Update your password and keep your account access secure."
+        />
 
         <section className={NEUMORPHIC_CARD}>
           <div className="mb-6 flex items-start gap-4">

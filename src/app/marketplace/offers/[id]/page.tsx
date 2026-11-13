@@ -12,6 +12,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { Toast } from "@/components/ui/Toast";
 import { Navbar } from "@/components/landing/Navbar";
 import { cn } from "@/lib/cn";
+import { formatDate } from "@/lib/date-formatters";
 
 const CATEGORY_MAP: Record<string, string> = {
   WEB_DEVELOPMENT: "Web Development",
@@ -198,11 +199,7 @@ export default function OfferDetailPage(): React.JSX.Element {
   });
   const category = CATEGORY_MAP[offer.category] || offer.category;
   
-  const createdDate = new Date(offer.createdAt).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
+  const createdDate = formatDate(offer.createdAt);
 
   const memberSince = offer.user?.createdAt
     ? new Date(offer.user.createdAt).toLocaleDateString("en-US", {

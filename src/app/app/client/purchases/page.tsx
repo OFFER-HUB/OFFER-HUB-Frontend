@@ -9,6 +9,7 @@ import type { Order } from "@/types/order.types";
 import { Icon, ICON_PATHS, LoadingSpinner } from "@/components/ui/Icon";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { cn } from "@/lib/cn";
+import { formatDate } from "@/lib/date-formatters";
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; bgColor: string }> = {
   ORDER_CREATED: { label: "Created", color: "text-blue-600", bgColor: "bg-blue-100" },
@@ -72,13 +73,6 @@ export default function ClientPurchasesPage() {
     fetchPurchases();
   }, [token, statusFilter]);
 
-  function formatDate(dateString: string): string {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
-  }
 
   function getStatusConfig(status: string) {
     return STATUS_CONFIG[status] || { label: status, color: "text-text-secondary", bgColor: "bg-gray-100" };
