@@ -44,6 +44,7 @@ export async function POST (request: NextRequest) {
         firstName: user.firstName ?? null,
         lastName: user.lastName ?? null,
         type: user.type,
+        isEmailVerified: user.isEmailVerified,
         balance: user.balance,
         wallet: user.wallet,
       },

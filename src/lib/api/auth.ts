@@ -72,7 +72,9 @@ export async function forgotPassword(email: string): Promise<void> {
   throw new Error("Server error — please try again.");
 }
 
-export async function sendVerification(token: string): Promise<{ message: string }> {
+export async function sendVerification(
+  token: string
+): Promise<{ message: string; alreadyVerified?: boolean }> {
   const response = await fetch(`${API_URL}/auth/send-verification`, {
     method: "POST",
     headers: {
