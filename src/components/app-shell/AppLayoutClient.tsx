@@ -65,9 +65,10 @@ export function AppLayoutClient({ children }: AppLayoutClientProps): React.JSX.E
   const isProfilePage = pathname?.endsWith("/profile");
 
   const handleResendVerification = async () => {
-    if (token) {
-      await sendVerification(token);
+    if (!token) {
+      throw new Error("Your session expired. Please log in again.");
     }
+    await sendVerification(token);
   };
 
   if (!canRenderApp) {
@@ -121,7 +122,7 @@ export function AppLayoutClient({ children }: AppLayoutClientProps): React.JSX.E
             <EmailVerificationBanner
               userId={user.id}
               email={user.email}
-              isVerified={user.isEmailVerified}
+              isVerified={user.isEmailVerified || !user.email}
               onResend={handleResendVerification}
             />
           )}
