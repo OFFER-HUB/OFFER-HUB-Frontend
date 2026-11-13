@@ -1,5 +1,5 @@
 {
-  "name": "@offerhub/stellar-escrow-signing",
+  "name": "@offerhub-orchestrator/stellar-escrow-signing",
   "version": "1.0.0",
   "description": "Stellar Wallets Kit client-side signing hook for Soroban escrow operations (create, fund, release, refund, dispute)",
   "type": "module",
@@ -43,7 +43,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/OFFER-HUB/OFFER-HUB-Frontend.git",
+    "url": "git+https://github.com/OFFER-HUB/OFFER-HUB-Frontend.git",
     "directory": "packages/stellar-escrow-signing"
   },
   "homepage": "https://github.com/OFFER-HUB/OFFER-HUB-Frontend/tree/main/packages/stellar-escrow-signing#readme",
