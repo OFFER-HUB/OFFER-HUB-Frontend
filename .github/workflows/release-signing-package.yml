@@ -1,6 +1,6 @@
 # Publishes @offerhub-orchestrator/stellar-escrow-signing to npm when its release tag is pushed:
 #
-#   git tag stellar-escrow-signing-v1.0.1 && git push origin stellar-escrow-signing-v1.0.1
+#   git tag stellar-escrow-signing-v1.0.2 && git push origin stellar-escrow-signing-v1.0.2
 #
 # The tag must match the version in packages/stellar-escrow-signing/package.json.
 # The job tests the package (wallet kit mocked, no network), builds it, checks the
@@ -43,9 +43,6 @@ jobs:
           cache-dependency-path: packages/stellar-escrow-signing/package-lock.json
           registry-url: "https://registry.npmjs.org"
 
-      - name: Use an npm that supports Trusted Publishing
-        run: npm install -g npm@^11.5.1
-
       - name: Check the tag against the package version
         if: github.event_name == 'push'
         env:
@@ -79,6 +76,12 @@ jobs:
             }
             console.log(files.length + ' files, none unexpected');
           "
+
+      # Only the publish step needs npm 11.5.1+ (Trusted Publishing). Upgrading before
+      # `npm ci` breaks the install: npm 11 rejects this lockfile's optional entries.
+      - name: Use an npm that supports Trusted Publishing
+        if: github.event_name == 'push'
+        run: npm install -g npm@^11.5.1
 
       # OIDC: no NODE_AUTH_TOKEN, and npm adds provenance on its own (public repository)
       - name: Publish
