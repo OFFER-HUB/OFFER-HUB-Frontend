@@ -7,6 +7,7 @@ import { Icon, ICON_PATHS } from "@/components/ui/Icon";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 import type { Application } from "@/types/application.types";
 import { APPLICATION_STATUS_CONFIG } from "@/types/application.types";
+import { formatDate } from "@/lib/date-formatters";
 
 export interface ApplicationCardProps {
   application: Application;
@@ -32,11 +33,7 @@ export function ApplicationCard({
 
   const statusConfig = APPLICATION_STATUS_CONFIG[application.status];
   const freelancerName = application.freelancer?.email?.split("@")[0] || "Anonymous";
-  const proposalDate = new Date(application.createdAt).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
+  const proposalDate = formatDate(application.createdAt);
 
   async function handleAccept() {
     if (!onAccept) return;

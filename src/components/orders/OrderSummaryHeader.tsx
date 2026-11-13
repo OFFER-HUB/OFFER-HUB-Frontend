@@ -5,6 +5,7 @@ import { cn } from "@/lib/cn";
 import { NEUMORPHIC_CARD } from "@/lib/styles";
 import { Icon, ICON_PATHS } from "@/components/ui/Icon";
 import { ORDER_STATUS_CONFIG, type Order, type OrderStatus } from "@/types/order.types";
+import { formatDate } from "@/lib/date-formatters";
 
 const FALLBACK_STATUS_STYLE = {
   color: "text-text-secondary",
@@ -36,11 +37,7 @@ export function OrderSummaryHeader({
   const statusStyle = resolveStatusStyle(order.status);
   const amount = parseFloat(order.amount);
 
-  const createdDate = new Date(order.createdAt).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
+  const createdDate = formatDate(order.createdAt);
 
   const handleCopyId = async () => {
     try {

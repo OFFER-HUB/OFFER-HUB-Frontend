@@ -24,6 +24,7 @@ import {
 } from "@/types/dispute.types";
 import type { Dispute, DisputeStatus, DisputeComment } from "@/types/dispute.types";
 import type { EvidenceUploadItem } from "@/components/disputes/EvidenceItem";
+import { formatDate, formatDateTime } from "@/lib/date-formatters";
 
 const STATUS_COLORS: Record<DisputeStatus, string> = {
   open: "bg-warning/20 text-warning",
@@ -53,23 +54,7 @@ const FILLED_PRIMARY_BUTTON = cn(
   "transition-all duration-200"
 );
 
-function formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
-}
 
-function formatDateTime(dateString: string): string {
-  return new Date(dateString).toLocaleString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
 
 interface InfoRowProps {
   label: string;

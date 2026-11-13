@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from "next";
 import "@/app/globals.css";
 import { NavigationProgressProvider } from "@/components/providers/NavigationProgressProvider";
 import { AuthProvider } from "@/components/providers/AuthProvider";
-import { PreferencesProvider } from "@/components/providers/PreferencesProvider";
 import { WalletKitProvider } from "@/components/providers/WalletKitProvider";
 import { GlobalErrorHandler } from "@/components/error";
 import { CookieConsentBanner } from "@/components/cookie";
@@ -87,7 +86,6 @@ export default function RootLayout({
       <body>
         <AuthProvider>
           <WalletKitProvider>
-            <PreferencesProvider />
             <GlobalErrorHandler />
             <NavigationProgressProvider />
             {children}

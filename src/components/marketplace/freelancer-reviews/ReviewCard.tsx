@@ -6,6 +6,7 @@ import { NEUMORPHIC_CARD } from "@/lib/styles";
 import type { PublicFreelancerReview } from "@/types/public-freelancer.types";
 
 import { FreelancerReviewsActions } from "./FreelancerReviewsActions";
+import { formatDate } from "@/lib/date-formatters";
 
 interface ReviewCardProps {
   review: PublicFreelancerReview;
@@ -46,11 +47,7 @@ export function ReviewCard({
   freelancerDisplayName,
   freelancerId,
 }: ReviewCardProps): React.JSX.Element {
-  const dateLabel = new Date(review.createdAt).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
+  const dateLabel = formatDate(review.createdAt);
 
   return (
     <article className={cn(NEUMORPHIC_CARD, "space-y-3")}>

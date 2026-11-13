@@ -14,6 +14,7 @@ import { getServiceById, updateServiceStatus, deleteService, getServiceOrders } 
 import { useAuthStore } from "@/stores/auth-store";
 import type { Service, ServiceOrder, ServiceStatus } from "@/types/service.types";
 import { OrderCard, ServiceActions } from "@/components/services";
+import { formatDate } from "@/lib/date-formatters";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -35,13 +36,6 @@ function getCategoryLabel(value: string): string {
   return SERVICE_CATEGORIES.find((c) => c.value === value)?.label || value;
 }
 
-function formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
-}
 
 export default function ServiceDetailsPage({ params }: PageProps): React.JSX.Element {
   const { id } = use(params);

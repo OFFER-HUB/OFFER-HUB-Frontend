@@ -10,14 +10,8 @@ import {
 import { getChatIdByOrderId } from "@/data/chat.data";
 import { hasClientRating } from "@/data/rating.data";
 import type { ServiceOrder } from "@/types/service.types";
+import { formatDate } from "@/lib/date-formatters";
 
-function formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
-}
 
 export interface OrderCardProps {
   order: ServiceOrder;

@@ -3,7 +3,7 @@ import { API_URL } from "@/config/api";
 export interface ChangePasswordPayload {
   currentPassword: string;
   newPassword: string;
-  signOutOtherSessions?: boolean;
+  confirmPassword: string;
 }
 
 type AuthApiError = Error & { status?: number };

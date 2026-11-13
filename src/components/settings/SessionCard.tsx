@@ -55,7 +55,7 @@ export function SessionCard({
           </div>
           <p className="text-sm text-text-secondary flex items-center gap-1.5 mb-1">
             <Icon path={ICON_PATHS.mapPin} size="sm" />
-            {session.location} ({session.ip})
+            {session.ip}
           </p>
           <p className="text-xs text-text-secondary">Last active {relativeTime}</p>
         </div>

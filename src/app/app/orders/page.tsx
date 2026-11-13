@@ -10,6 +10,7 @@ import { cn } from "@/lib/cn";
 import { Icon, ICON_PATHS, LoadingSpinner } from "@/components/ui/Icon";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { NEUMORPHIC_CARD, NEUMORPHIC_INSET, NEUMORPHIC_INPUT } from "@/lib/styles";
+import { formatDate } from "@/lib/date-formatters";
 
 type OrderTabFilter = "all" | "active" | "purchases" | "sales";
 
@@ -48,11 +49,7 @@ function OrderCard({
   };
   const isActive = ACTIVE_STATUSES.has(order.status);
 
-  const formattedDate = new Date(order.createdAt).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
+  const formattedDate = formatDate(order.createdAt);
 
   return (
     <Link

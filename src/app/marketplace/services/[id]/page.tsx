@@ -12,6 +12,7 @@ import { Navbar } from "@/components/landing/Navbar";
 import { HireServiceModal } from "@/components/marketplace/HireServiceModal";
 import { useAuthStore } from "@/stores/auth-store";
 import { cn } from "@/lib/cn";
+import { formatDate } from "@/lib/date-formatters";
 
 const CATEGORY_MAP: Record<string, string> = {
   WEB_DEVELOPMENT: "Web Development",
@@ -159,11 +160,7 @@ export default function ServiceDetailPage(): React.JSX.Element {
   const averageRating = service.averageRating ? parseFloat(service.averageRating) : null;
   const category = CATEGORY_MAP[service.category] || service.category;
   
-  const createdDate = new Date(service.createdAt).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
+  const createdDate = formatDate(service.createdAt);
 
   const memberSince = service.user?.createdAt
     ? new Date(service.user.createdAt).toLocaleDateString("en-US", {

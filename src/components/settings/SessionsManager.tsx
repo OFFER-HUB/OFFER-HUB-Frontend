@@ -51,7 +51,7 @@ export function SessionsManager(): React.JSX.Element {
       await revokeSession(token, id);
       setSessions((prev) => prev.filter((s) => s.id !== id));
       setToast({ type: "success", message: "Session signed out successfully." });
-    } catch (err) {
+    } catch {
       setToast({ type: "error", message: "Failed to sign out session." });
     } finally {
       setRevokingId(null);
@@ -66,7 +66,7 @@ export function SessionsManager(): React.JSX.Element {
       setSessions((prev) => prev.filter((s) => s.isCurrent));
       setToast({ type: "success", message: "All other sessions signed out." });
       setShowRevokeAllModal(false);
-    } catch (err) {
+    } catch {
       setToast({ type: "error", message: "Failed to sign out other sessions." });
     } finally {
       setRevokingAll(false);

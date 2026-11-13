@@ -8,6 +8,7 @@ import { NEUMORPHIC_CARD, DANGER_BUTTON } from "@/lib/styles";
 import { Icon, ICON_PATHS } from "@/components/ui/Icon";
 import { useAuthStore } from "@/stores/auth-store";
 import { deleteAccount, describeDeleteAccountError, type DeleteAccountError } from "@/lib/api/account";
+import { SettingsHeader } from "@/components/settings/SettingsHeader";
 import { DeleteAccountModal } from "@/components/settings/DeleteAccountModal";
 
 const ACCOUNT_ITEMS = [
@@ -16,12 +17,6 @@ const ACCOUNT_ITEMS = [
     label: "Edit Profile",
     description: "Update your name, bio, and avatar",
     href: "/app/profile",
-  },
-  {
-    icon: ICON_PATHS.lock,
-    label: "Change Password",
-    description: "Update your login password",
-    href: "/forgot-password",
   },
   {
     icon: ICON_PATHS.shield,
@@ -61,23 +56,12 @@ export default function AccountSettingsPage(): React.JSX.Element {
 
   return (
     <>
-      <div className="space-y-4 max-w-2xl">
-        {/* Back link */}
-        <Link
-          href="/app/settings"
-          className="inline-flex items-center gap-2 text-sm text-text-secondary hover:text-primary transition-colors"
-        >
-          <Icon path={ICON_PATHS.chevronLeft} size="sm" />
-          Back to Settings
-        </Link>
-
-        {/* Header */}
-        <div>
-          <h1 className="text-2xl font-bold text-text-primary">Account</h1>
-          <p className="text-text-secondary text-sm mt-1">
-            Manage your account details and linked services
-          </p>
-        </div>
+      <div className="space-y-6">
+        <SettingsHeader
+          icon={ICON_PATHS.user}
+          title="Account"
+          description="Manage your account details and linked services."
+        />
 
         {/* Account links */}
         <div className={NEUMORPHIC_CARD}>
