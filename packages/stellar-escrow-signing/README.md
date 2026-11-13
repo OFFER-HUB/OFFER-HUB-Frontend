@@ -205,7 +205,7 @@ For issues and questions, please use the [OFFER-HUB issue tracker](https://githu
 Published to npm by the **Release signing package** workflow when a tag is pushed. Bump `version` in `package.json`, merge, then:
 
 ```bash
-git tag stellar-escrow-signing-v1.0.0 && git push origin stellar-escrow-signing-v1.0.0
+git tag stellar-escrow-signing-v1.0.1 && git push origin stellar-escrow-signing-v1.0.1
 ```
 
-The tag must match the `version`. The job runs the tests (wallet kit mocked, no network), builds, checks the tarball and publishes with npm provenance. It needs the repository secret `NPM_TOKEN` (an automation token with publish rights to the `@offerhub` scope, the same one the API adapters use). Running the workflow by hand is a dry run.
+The tag must match the `version`. The job runs the tests (wallet kit mocked, no network), builds, checks the tarball and publishes with npm provenance. It authenticates with **npm Trusted Publishing** (OIDC), so no npm token is stored: on npmjs.com the package trusts `OFFER-HUB/OFFER-HUB-Frontend` and `release-signing-package.yml` (account `offer-hub-team`, scope `@offerhub-orchestrator`). Running the workflow by hand is a dry run.

@@ -1,13 +1,15 @@
 # Publishes @offerhub-orchestrator/stellar-escrow-signing to npm when its release tag is pushed:
 #
-#   git tag stellar-escrow-signing-v1.0.0 && git push origin stellar-escrow-signing-v1.0.0
+#   git tag stellar-escrow-signing-v1.0.1 && git push origin stellar-escrow-signing-v1.0.1
 #
 # The tag must match the version in packages/stellar-escrow-signing/package.json.
 # The job tests the package (wallet kit mocked, no network), builds it, checks the
 # tarball and publishes it with npm provenance (this repository is public).
 #
-# Secret: NPM_TOKEN, an npm automation token with publish rights to the @offerhub-orchestrator scope
-# (the same one the API adapters use). A manual run is a dry run: it publishes nothing.
+# Authentication: npm Trusted Publishing (OIDC). No npm token is stored anywhere: the package
+# on npmjs.com trusts this repository and this workflow file, and GitHub issues a short-lived
+# identity for the run (https://docs.npmjs.com/trusted-publishers). Provenance is added
+# automatically because this repository is public. A manual run is a dry run: it publishes nothing.
 name: Release signing package
 
 on:
@@ -18,7 +20,7 @@ on:
 
 permissions:
   contents: read
-  id-token: write # npm provenance
+  id-token: write # npm Trusted Publishing (OIDC) and provenance
 
 jobs:
   publish:
@@ -35,10 +37,14 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          # Trusted Publishing needs Node 22.14+ and npm 11.5.1+
+          node-version: "22"
           cache: "npm"
           cache-dependency-path: packages/stellar-escrow-signing/package-lock.json
           registry-url: "https://registry.npmjs.org"
+
+      - name: Use an npm that supports Trusted Publishing
+        run: npm install -g npm@^11.5.1
 
       - name: Check the tag against the package version
         if: github.event_name == 'push'
@@ -74,8 +80,7 @@ jobs:
             console.log(files.length + ' files, none unexpected');
           "
 
+      # OIDC: no NODE_AUTH_TOKEN, and npm adds provenance on its own (public repository)
       - name: Publish
         if: github.event_name == 'push'
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npm publish --access public --provenance
+        run: npm publish --access public
