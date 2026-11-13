@@ -1,6 +1,6 @@
 # Publishes @offerhub-orchestrator/stellar-escrow-signing to npm when its release tag is pushed:
 #
-#   git tag stellar-escrow-signing-v1.0.2 && git push origin stellar-escrow-signing-v1.0.2
+#   git tag stellar-escrow-signing-v1.0.3 && git push origin stellar-escrow-signing-v1.0.3
 #
 # The tag must match the version in packages/stellar-escrow-signing/package.json.
 # The job tests the package (wallet kit mocked, no network), builds it, checks the
@@ -41,7 +41,9 @@ jobs:
           node-version: "22"
           cache: "npm"
           cache-dependency-path: packages/stellar-escrow-signing/package-lock.json
-          registry-url: "https://registry.npmjs.org"
+          # No registry-url: with it, setup-node writes an .npmrc that sends a placeholder
+          # NODE_AUTH_TOKEN (XXXXX-XXXXX-...), which npm uses instead of the OIDC identity
+          # and the registry rejects. The default registry is already registry.npmjs.org.
 
       - name: Check the tag against the package version
         if: github.event_name == 'push'
