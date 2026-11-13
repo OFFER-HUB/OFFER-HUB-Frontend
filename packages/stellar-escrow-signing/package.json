@@ -43,7 +43,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/OFFER-HUB/OFFER-HUB-Frontend.git",
+    "url": "git+https://github.com/OFFER-HUB/OFFER-HUB-Frontend.git",
     "directory": "packages/stellar-escrow-signing"
   },
   "homepage": "https://github.com/OFFER-HUB/OFFER-HUB-Frontend/tree/main/packages/stellar-escrow-signing#readme",
