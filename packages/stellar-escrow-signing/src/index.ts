@@ -1,5 +1,5 @@
 /**
- * @offerhub/stellar-escrow-signing
+ * @offerhub-orchestrator/stellar-escrow-signing
  *
  * A React hook for client-side Stellar/Soroban escrow signing operations.
  * Provides a reusable, MIT-licensed signing layer that can be integrated
@@ -7,7 +7,7 @@
  *
  * @example
  * ```tsx
- * import { useStellarEscrowSigning } from "@offerhub/stellar-escrow-signing";
+ * import { useStellarEscrowSigning } from "@offerhub-orchestrator/stellar-escrow-signing";
  *
  * function MyComponent() {
  *   const { state, sign, reset, transactionHash, error, currentStep } =

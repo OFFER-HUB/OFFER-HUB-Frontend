@@ -1,4 +1,4 @@
-# Publishes @offerhub/stellar-escrow-signing to npm when its release tag is pushed:
+# Publishes @offerhub-orchestrator/stellar-escrow-signing to npm when its release tag is pushed:
 #
 #   git tag stellar-escrow-signing-v1.0.0 && git push origin stellar-escrow-signing-v1.0.0
 #
@@ -6,7 +6,7 @@
 # The job tests the package (wallet kit mocked, no network), builds it, checks the
 # tarball and publishes it with npm provenance (this repository is public).
 #
-# Secret: NPM_TOKEN, an npm automation token with publish rights to the @offerhub scope
+# Secret: NPM_TOKEN, an npm automation token with publish rights to the @offerhub-orchestrator scope
 # (the same one the API adapters use). A manual run is a dry run: it publishes nothing.
 name: Release signing package
 

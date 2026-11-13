@@ -1,4 +1,4 @@
-# @offerhub/stellar-escrow-signing
+# @offerhub-orchestrator/stellar-escrow-signing
 
 A React hook for client-side Stellar/Soroban escrow signing operations using Stellar Wallets Kit. Provides a reusable, MIT-licensed signing layer for escrow operations: create, fund, release, refund, and dispute.
 
@@ -14,11 +14,11 @@ A React hook for client-side Stellar/Soroban escrow signing operations using Ste
 ## Installation
 
 ```bash
-npm install @offerhub/stellar-escrow-signing @creit.tech/stellar-wallets-kit
+npm install @offerhub-orchestrator/stellar-escrow-signing @creit.tech/stellar-wallets-kit
 # or
-yarn add @offerhub/stellar-escrow-signing @creit.tech/stellar-wallets-kit
+yarn add @offerhub-orchestrator/stellar-escrow-signing @creit.tech/stellar-wallets-kit
 # or
-pnpm add @offerhub/stellar-escrow-signing @creit.tech/stellar-wallets-kit
+pnpm add @offerhub-orchestrator/stellar-escrow-signing @creit.tech/stellar-wallets-kit
 ```
 
 ## Peer Dependencies
@@ -31,7 +31,7 @@ pnpm add @offerhub/stellar-escrow-signing @creit.tech/stellar-wallets-kit
 ### Basic Example
 
 ```tsx
-import { useStellarEscrowSigning } from "@offerhub/stellar-escrow-signing";
+import { useStellarEscrowSigning } from "@offerhub-orchestrator/stellar-escrow-signing";
 
 function EscrowSigningButton({ orderId, userToken, wallet }) {
   const { state, sign, reset, transactionHash, error, currentStep } = useStellarEscrowSigning({

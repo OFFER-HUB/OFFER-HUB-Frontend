@@ -1,6 +1,6 @@
-# Integrating `@offerhub/stellar-escrow-signing`
+# Integrating `@offerhub-orchestrator/stellar-escrow-signing`
 
-`@offerhub/stellar-escrow-signing` is the canonical React hook package for
+`@offerhub-orchestrator/stellar-escrow-signing` is the canonical React hook package for
 client-side Stellar/Soroban escrow signing. It coordinates the app's prepare
 and submit API calls with a wallet signature from Stellar Wallets Kit (SWK).
 It does not build escrow transactions or hold private keys.
@@ -31,7 +31,7 @@ This guide documents it rather than shipping a second signing implementation.
 After the package is published:
 
 ```bash
-npm install @offerhub/stellar-escrow-signing @creit.tech/stellar-wallets-kit
+npm install @offerhub-orchestrator/stellar-escrow-signing @creit.tech/stellar-wallets-kit
 ```
 
 For local development in this repository, first build the canonical package,
@@ -64,12 +64,12 @@ around your own API endpoints; the package deliberately does not own those
 endpoints.
 
 ```tsx
-import { useStellarEscrowSigning } from "@offerhub/stellar-escrow-signing";
+import { useStellarEscrowSigning } from "@offerhub-orchestrator/stellar-escrow-signing";
 import type {
   PrepareEscrowResult,
   PrepareEscrowStepResult,
   SubmitEscrowXdrResult,
-} from "@offerhub/stellar-escrow-signing";
+} from "@offerhub-orchestrator/stellar-escrow-signing";
 
 interface EscrowSignerProps {
   token: string;
