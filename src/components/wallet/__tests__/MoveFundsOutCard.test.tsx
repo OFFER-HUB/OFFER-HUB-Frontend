@@ -10,7 +10,7 @@ describe("MoveFundsOutCard", () => {
 
     expect(screen.getByRole("heading", { name: "Moving funds out" })).toBeInTheDocument();
     expect(screen.getByText(/send your USDC from your own wallet app/)).toBeInTheDocument();
-    expect(screen.getByText(/Freighter, Lobstr or xBull/)).toBeInTheDocument();
+    expect(screen.getByText(/Varial, Lobstr or xBull/)).toBeInTheDocument();
   });
 
   it("explains that a bank payout starts when an order is released, in the four supported countries", () => {

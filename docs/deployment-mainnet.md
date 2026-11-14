@@ -30,7 +30,7 @@ Same repository, with `NEXT_PUBLIC_STELLAR_NETWORK=testnet` and `NEXT_PUBLIC_PRO
 ## Check after the deploy
 
 1. The wallet page header reads **Stellar mainnet**.
-2. For each wallet (Freighter, Lobstr, xBull): connect, sign in, and confirm the address and balances match the wallet app. Their prompts must say the Public network.
+2. For each wallet (Varial, Lobstr, xBull): connect, sign in, and confirm the address and balances match the wallet app. Their prompts must say the Public network.
 3. Settings has no Claim Your Wallet; no "Testnet" text anywhere in the app.
 4. An explorer link on an order opens `stellar.expert/explorer/public/...`.
 5. `offer-hub.org/stats` lists mainnet runs only.

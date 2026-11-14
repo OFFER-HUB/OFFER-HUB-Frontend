@@ -4,6 +4,16 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Image from "next/image";
 import { StellarWalletsKit, type ISupportedWallet } from "@creit.tech/stellar-wallets-kit";
+
+/**
+ * Freighter was renamed Varial (Oct 2026). The kit still reports the old name
+ * and icon under the "freighter" id, so the modal shows the current brand.
+ */
+function withCurrentBrand(wallet: ISupportedWallet): ISupportedWallet {
+  return wallet.id === "freighter"
+    ? { ...wallet, name: "Varial", icon: "/wallets/varial_logo.png" }
+    : wallet;
+}
 import { cn } from "@/lib/cn";
 import { LoadingSpinner } from "@/components/ui/Icon";
 import { useAuthStore } from "@/stores/auth-store";
@@ -51,7 +61,7 @@ export function WalletConnectModal({
     if (!isOpen) return;
     let cancelled = false;
     StellarWalletsKit.refreshSupportedWallets()
-      .then((supported) => { if (!cancelled) { setWallets(supported); setLoadError(null); } })
+      .then((supported) => { if (!cancelled) { setWallets(supported.map(withCurrentBrand)); setLoadError(null); } })
       .catch((err: unknown) => { if (!cancelled) setLoadError(toWalletErrorMessage(err, "Could not load wallets.")); });
     return () => { cancelled = true; };
   }, [isOpen]);

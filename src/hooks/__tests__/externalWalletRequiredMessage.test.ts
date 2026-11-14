@@ -30,6 +30,6 @@ describe("externalWalletRequiredMessage", () => {
 
     expect(externalWalletRequiredMessage()).toBe(CONNECT_WALLET_MESSAGE);
     expect(CONNECT_WALLET_MESSAGE).not.toMatch(/claim/i);
-    expect(CONNECT_WALLET_MESSAGE).toMatch(/Freighter, Lobstr or xBull/);
+    expect(CONNECT_WALLET_MESSAGE).toMatch(/Varial, Lobstr or xBull/);
   });
 });

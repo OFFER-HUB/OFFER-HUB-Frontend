@@ -18,7 +18,7 @@ export const CLAIM_WALLET_MESSAGE =
 
 /** Mainnet holds no custodial wallets, so there is nothing to claim: the user connects their own. */
 export const CONNECT_WALLET_MESSAGE =
-  "OfferHub no longer signs for you. Connect your own Stellar wallet (Freighter, Lobstr or xBull) to continue.";
+  "OfferHub no longer signs for you. Connect your own Stellar wallet (Varial, Lobstr or xBull) to continue.";
 
 /** The message for a user without an external wallet, by network. */
 export function externalWalletRequiredMessage(): string {
@@ -237,7 +237,9 @@ export function useEscrowSigningAction({
 /** Connected wallet's display name, for the "check your wallet" copy — best-effort. */
 export function currentWalletName(): string | null {
   try {
-    return StellarWalletsKit.selectedModule?.productName ?? null;
+    const name = StellarWalletsKit.selectedModule?.productName ?? null;
+    // Freighter was renamed Varial (Oct 2026); the kit still reports the old name
+    return name === "Freighter" ? "Varial" : name;
   } catch {
     return null;
   }
