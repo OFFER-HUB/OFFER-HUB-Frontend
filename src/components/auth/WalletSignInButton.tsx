@@ -20,7 +20,7 @@ const STEP_LABEL: Record<Exclude<WalletAuthStep, "idle">, string> = {
 };
 
 const WALLETS = [
-  { id: "freighter", name: "Freighter", src: "/wallets/freighter_logo.png" },
+  { id: "freighter", name: "Varial", src: "/wallets/varial_logo.png" },
   { id: "lobstr", name: "Lobstr", src: "/wallets/lobstr_logo.png" },
   { id: "xbull", name: "xBull", src: "/wallets/xbull_logo.png" },
 ] as const;

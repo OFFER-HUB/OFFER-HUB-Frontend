@@ -13,11 +13,11 @@ You need:
 
 | Item | Details |
 |------|---------|
-| A Stellar wallet | [Freighter](https://www.freighter.app), [Lobstr](https://lobstr.co) or [xBull](https://xbull.app), set to **mainnet** |
+| A Stellar wallet | [Varial](https://www.freighter.app) (formerly Freighter), [Lobstr](https://lobstr.co) or [xBull](https://xbull.app), set to **mainnet** |
 | Two wallets for most scenarios | One plays the buyer, one the seller. Two browser profiles, or a wallet plus a second device |
 | XLM | About **3 XLM** per wallet: the 1 XLM base reserve, 0.5 XLM for the USDC trustline, and fees |
 | USDC | About **5 USDC** on the buyer wallet. The seller wallet needs none |
-| USDC trustline | Each wallet must be able to hold USDC. In Freighter or Lobstr: add the asset USDC issued by Circle (`GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN`). If you forget, the app notices on mainnet and walks you through adding it with your wallet: that is a step worth reporting on, too |
+| USDC trustline | Each wallet must be able to hold USDC. In Varial or Lobstr: add the asset USDC issued by Circle (`GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN`). If you forget, the app notices on mainnet and walks you through adding it with your wallet: that is a step worth reporting on, too |
 | A desktop browser | Chrome, Brave or Firefox, with the wallet extension installed |
 
 **Money limits.** You bring your own USDC and keep what is not spent: a scenario order is **1 USDC**, and nothing in these scripts needs more than **5 USDC** in total. The team never asks you to send funds to anyone. If any screen asks for more than that, stop and report it.

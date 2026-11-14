@@ -103,7 +103,7 @@ export const faqCategories: FAQCategory[] = [
         id: "technical-1",
         question: "Which wallets are compatible with OFFER HUB?",
         answer:
-          "We support all major Stellar wallets including Freighter, Lobstr, and Solar. Hardware wallet support is available through compatible browser extensions.",
+          "We support all major Stellar wallets including Varial (formerly Freighter), Lobstr, and xBull. Hardware wallet support is available through compatible browser extensions.",
       },
       {
         id: "technical-2",

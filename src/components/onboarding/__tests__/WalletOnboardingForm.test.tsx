@@ -80,7 +80,7 @@ describe("WalletOnboardingForm inline optional wallet connect", () => {
     render(<WalletOnboardingForm />);
 
     expect(screen.getByText("Connect a wallet")).toBeInTheDocument();
-    expect(screen.getByText("(Freighter, Lobstr, xBull)")).toBeInTheDocument();
+    expect(screen.getByText("(Varial, Lobstr, xBull)")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Connect wallet" })).toBeInTheDocument();
   });
 

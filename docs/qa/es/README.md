@@ -10,7 +10,7 @@ Gracias por ayudarnos a probar OfferHub en **mainnet** de Stellar. Usas tu propi
 
 | Qué | Detalle |
 |-----|---------|
-| Wallet Stellar | [Freighter](https://www.freighter.app), [Lobstr](https://lobstr.co) o [xBull](https://xbull.app), en **mainnet** |
+| Wallet Stellar | [Varial](https://www.freighter.app) (antes Freighter), [Lobstr](https://lobstr.co) o [xBull](https://xbull.app), en **mainnet** |
 | Dos wallets | Una hace de comprador y otra de vendedor. Usa dos perfiles del navegador o un segundo dispositivo |
 | XLM | Unos **3 XLM** por wallet (reserva base, trustline de USDC y comisiones) |
 | USDC | Unos **5 USDC** en la wallet compradora. La vendedora no necesita |

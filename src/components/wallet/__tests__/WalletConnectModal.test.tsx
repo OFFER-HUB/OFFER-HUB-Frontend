@@ -121,7 +121,7 @@ describe("WalletConnectModal — persisting the link server-side", () => {
     const onConnected = vi.fn();
     render(<WalletConnectModal isOpen onClose={vi.fn()} onConnected={onConnected} />);
 
-    await user.click(await screen.findByRole("button", { name: "Connect Freighter" }));
+    await user.click(await screen.findByRole("button", { name: "Connect Varial" }));
 
     await waitFor(() => expect(mockConnectWalletApi).toHaveBeenCalledWith("jwt-token", {
       publicKey: PUBLIC_KEY,
@@ -138,7 +138,7 @@ describe("WalletConnectModal — persisting the link server-side", () => {
     const user = userEvent.setup();
     render(<WalletConnectModal isOpen onClose={vi.fn()} />);
 
-    await user.click(await screen.findByRole("button", { name: "Connect Freighter" }));
+    await user.click(await screen.findByRole("button", { name: "Connect Varial" }));
 
     await waitFor(() =>
       expect(mockSetPrimaryWallet).toHaveBeenCalledWith({
@@ -154,7 +154,7 @@ describe("WalletConnectModal — persisting the link server-side", () => {
     const onClose = vi.fn();
     render(<WalletConnectModal isOpen onClose={onClose} />);
 
-    await user.click(await screen.findByRole("button", { name: "Connect Freighter" }));
+    await user.click(await screen.findByRole("button", { name: "Connect Varial" }));
 
     await waitFor(() => expect(mockConnectWallet).toHaveBeenCalledWith(PUBLIC_KEY));
     expect(onClose).toHaveBeenCalled();
@@ -171,7 +171,7 @@ describe("WalletConnectModal — persisting the link server-side", () => {
     const onClose = vi.fn();
     render(<WalletConnectModal isOpen onClose={onClose} />);
 
-    await user.click(await screen.findByRole("button", { name: "Connect Freighter" }));
+    await user.click(await screen.findByRole("button", { name: "Connect Varial" }));
 
     await screen.findByText("This wallet is already linked to another account");
     expect(mockConnectWallet).not.toHaveBeenCalled();
@@ -184,7 +184,7 @@ describe("WalletConnectModal — persisting the link server-side", () => {
     const user = userEvent.setup();
     render(<WalletConnectModal isOpen onClose={vi.fn()} />);
 
-    await user.click(await screen.findByRole("button", { name: "Connect Freighter" }));
+    await user.click(await screen.findByRole("button", { name: "Connect Varial" }));
 
     await waitFor(() => expect(mockConnectWallet).toHaveBeenCalledWith(PUBLIC_KEY));
     expect(mockConnectWalletApi).not.toHaveBeenCalled();
@@ -197,7 +197,7 @@ describe("WalletConnectModal — wallet list rendering", () => {
     mockRefreshSupportedWallets.mockResolvedValue([FREIGHTER, LOBSTR_NOT_INSTALLED]);
     render(<WalletConnectModal isOpen onClose={vi.fn()} />);
 
-    expect(await screen.findByRole("button", { name: "Connect Freighter" })).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: "Connect Varial" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Install Lobstr" })).toBeInTheDocument();
     expect(screen.getByText("Available")).toBeInTheDocument();
     expect(screen.getByText("Not installed")).toBeInTheDocument();
@@ -227,7 +227,7 @@ describe("WalletConnectModal — display reflects the account, not the browser s
     render(<WalletConnectModal isOpen onClose={vi.fn()} />);
 
     expect(screen.getByText("Connect wallet")).toBeInTheDocument();
-    expect(await screen.findByRole("button", { name: "Connect Freighter" })).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: "Connect Varial" })).toBeInTheDocument();
     expect(screen.queryByText("Wallet connected")).not.toBeInTheDocument();
   });
 

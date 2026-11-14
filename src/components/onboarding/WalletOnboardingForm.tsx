@@ -200,7 +200,7 @@ export function WalletOnboardingForm() {
               <p className="text-sm font-medium text-text-primary">
                 Connect a wallet{" "}
                 <span className="text-xs font-normal text-text-secondary">
-                  (Freighter, Lobstr, xBull)
+                  (Varial, Lobstr, xBull)
                 </span>
               </p>
               <button

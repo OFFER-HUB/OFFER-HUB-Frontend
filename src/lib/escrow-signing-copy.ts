@@ -173,14 +173,14 @@ export function errorCopy(error: EscrowSigningError): {
         title: "No wallet connected",
         message: error.message || "Your wallet was disconnected.",
         actionHint:
-          "Please connect your Stellar wallet extension (such as Freighter) and try again.",
+          "Please connect your Stellar wallet extension (such as Varial) and try again.",
       };
     case "WALLET_REQUIRED":
       return {
         title: "Connect your own wallet",
         message: error.message,
         actionHint:
-          "On mainnet OfferHub never holds your keys. Connect Freighter, Lobstr or xBull from your wallet settings, then try again.",
+          "On mainnet OfferHub never holds your keys. Connect Varial, Lobstr or xBull from your wallet settings, then try again.",
       };
     case "TRUSTLINE_REQUIRED":
       return {

@@ -28,7 +28,7 @@ export function MoveFundsOutCard(): React.JSX.Element {
           <ul className="mt-2 list-disc space-y-1.5 pl-5 text-sm text-text-secondary">
             <li>
               <span className="font-semibold text-text-primary">To another wallet or an exchange:</span>{" "}
-              send your USDC from your own wallet app (Freighter, Lobstr or xBull). OfferHub never holds
+              send your USDC from your own wallet app (Varial, Lobstr or xBull). OfferHub never holds
               it, so there is nothing to withdraw here.
             </li>
             <li>
