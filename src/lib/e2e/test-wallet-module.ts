@@ -53,7 +53,8 @@ export class E2ETestWalletModule implements ModuleInterface {
   productId = E2E_TEST_WALLET_ID;
   productName = "E2E Test Wallet";
   productUrl = "https://example.com/e2e-test-wallet";
-  productIcon = "https://example.com/e2e-test-wallet.png";
+  // A local asset: next/image rejects hosts not listed in next.config
+  productIcon = "/icon.svg";
 
   async isAvailable(): Promise<boolean> {
     return true;

@@ -33,7 +33,7 @@ export function Modal({ isOpen, title, onClose, children }: ModalProps): React.J
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className={cn(NEUMORPHIC_CARD, "relative w-full max-w-lg animate-scale-in")}
+        className={cn(NEUMORPHIC_CARD, "relative w-full max-w-lg max-h-[calc(100dvh-2rem)] overflow-y-auto animate-scale-in")}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-5">

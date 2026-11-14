@@ -20,6 +20,29 @@ export const BUYER_USER = {
   wallet: { id: "wal_e2e_buyer", publicKey: E2E_TEST_WALLET_ADDRESS, type: "EXTERNAL" },
 };
 
+/** A signed-in user as the auth store persists it. */
+export type SessionUser = Omit<typeof BUYER_USER, "type"> & { type: "BUYER" | "SELLER" | "BOTH"; isAdmin?: boolean };
+
+export const ADMIN_USER: SessionUser = {
+  ...BUYER_USER,
+  id: "usr_e2e_admin00000000000000000",
+  email: "admin@e2e.test",
+  username: "e2e_admin",
+  firstName: "Ada",
+  lastName: "Admin",
+  isAdmin: true,
+};
+
+/**
+ * An unsigned JWT carrying `isAdmin: true`. The browser only decodes the claim
+ * to show admin pages (src/lib/jwt.ts); the API, mocked here, is what would
+ * verify the signature.
+ */
+export function fakeAdminJwt(): string {
+  const b64 = (value: object) => Buffer.from(JSON.stringify(value)).toString("base64url");
+  return `${b64({ alg: "none", typ: "JWT" })}.${b64({ sub: ADMIN_USER.id, isAdmin: true, exp: 4102444800 })}.e2e`;
+}
+
 export function buildOrder(overrides: Partial<Order> = {}): Order {
   return {
     id: ORDER_ID,
@@ -60,16 +83,17 @@ export function buildOrder(overrides: Partial<Order> = {}): Order {
  */
 export async function seedSignedInSession(
   page: Page,
-  options: { swkConnected?: boolean } = {}
+  options: { swkConnected?: boolean; user?: SessionUser; token?: string } = {}
 ): Promise<void> {
   const swkConnected = options.swkConnected ?? true;
+  const user = options.user ?? BUYER_USER;
 
   const authState = {
     state: {
-      user: BUYER_USER,
-      token: BUYER_TOKEN,
+      user,
+      token: options.token ?? BUYER_TOKEN,
       isAuthenticated: true,
-      walletAddress: BUYER_USER.wallet.publicKey,
+      walletAddress: user.wallet.publicKey,
       walletConnected: true,
     },
     version: 0,
@@ -88,6 +112,12 @@ export async function seedSignedInSession(
     ({ authStateJson, onboardingStateJson, walletAddress, connected }) => {
       window.localStorage.setItem("auth-state", authStateJson);
       window.localStorage.setItem("offerhub-onboarding", onboardingStateJson);
+      // A returning user already answered the cookie banner; left open, it covers
+      // the bottom of modals (e.g. the admin's "Resolve Dispute" button).
+      window.localStorage.setItem(
+        "cookie-consent",
+        JSON.stringify({ version: "1.0", necessary: true, analytics: false, marketing: false, timestamp: "2026-01-01T00:00:00.000Z" })
+      );
       if (connected) {
         window.localStorage.setItem("@StellarWalletsKit/activeAddress", walletAddress);
         window.localStorage.setItem("@StellarWalletsKit/selectedModuleId", "e2e-test-wallet");
@@ -96,7 +126,7 @@ export async function seedSignedInSession(
     {
       authStateJson: JSON.stringify(authState),
       onboardingStateJson: JSON.stringify(onboardingState),
-      walletAddress: BUYER_USER.wallet.publicKey,
+      walletAddress: user.wallet.publicKey,
       connected: swkConnected,
     }
   );

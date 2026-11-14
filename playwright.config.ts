@@ -17,7 +17,10 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  reporter: "list",
+  // In CI: an HTML report and a JSON summary, uploaded and posted to the run summary.
+  reporter: process.env.CI
+    ? [["list"], ["html", { open: "never", outputFolder: "playwright-report" }], ["json", { outputFile: "playwright-report/results.json" }]]
+    : "list",
   use: {
     baseURL: BASE_URL,
     trace: "retain-on-failure",
@@ -36,6 +39,10 @@ export default defineConfig({
     env: {
       NEXT_PUBLIC_E2E: "true",
       PORT: String(PORT),
+      // Auth.js refuses to start without a secret; this one only signs the
+      // throwaway sessions of the local test server.
+      AUTH_SECRET: process.env.AUTH_SECRET ?? "e2e-only-not-a-real-secret",
+      AUTH_TRUST_HOST: "true",
     },
   },
 });

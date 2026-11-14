@@ -1,0 +1,68 @@
+name: UI E2E
+
+# Drives the real UI (wallet sign-in, escrow create and fund, delivery,
+# release, dispute and an admin split) with a fake wallet and mocked API.
+# See e2e/ and playwright.config.ts. Issue #484.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  playwright:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run UI E2E
+        run: npx playwright test
+        env:
+          CI: "true"
+
+      - name: Publish summary
+        if: always()
+        run: |
+          node -e '
+            const fs = require("fs");
+            const file = "playwright-report/results.json";
+            if (!fs.existsSync(file)) { console.log("No results file."); process.exit(0); }
+            const r = JSON.parse(fs.readFileSync(file, "utf8"));
+            const rows = [];
+            const walk = (suite, prefix) => {
+              for (const s of suite.suites ?? []) walk(s, prefix ? prefix + " › " + s.title : s.title);
+              for (const spec of suite.specs ?? []) {
+                const ok = spec.ok ? "✅" : "❌";
+                rows.push("| " + ok + " | " + prefix + " | " + spec.title + " |");
+              }
+            };
+            walk(r, "");
+            const st = r.stats ?? {};
+            const out = ["## UI E2E", "", "Passed: " + (st.expected ?? 0) + " · Failed: " + (st.unexpected ?? 0) + " · Flaky: " + (st.flaky ?? 0), "", "| | Suite | Test |", "|---|---|---|", ...rows].join("\n");
+            fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, out + "\n");
+          '
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 90
