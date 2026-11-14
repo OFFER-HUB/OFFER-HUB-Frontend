@@ -4,7 +4,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        One thread per QA session. Guide: docs/qa/README.md. Never post a seed phrase or secret key.
+        One thread per QA session. Guide: docs/qa/README.md (español: docs/qa/es/README.md). Never post a seed phrase or secret key.
   - type: checkboxes
     id: consent
     attributes:

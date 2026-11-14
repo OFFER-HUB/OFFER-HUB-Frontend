@@ -2,6 +2,7 @@
 
 Thank you for helping test OfferHub on Stellar **mainnet**. You use your own wallet and a few dollars of real USDC. OfferHub never holds your funds: every payment is signed in your wallet.
 
+- Guía en español: [es/README.md](./es/README.md)
 - Scenarios to run: [scenarios.md](./scenarios.md)
 - Recording and consent: [recording-and-consent.md](./recording-and-consent.md)
 - App: https://www.offer-hub.org · Public results: https://www.offer-hub.org/stats
