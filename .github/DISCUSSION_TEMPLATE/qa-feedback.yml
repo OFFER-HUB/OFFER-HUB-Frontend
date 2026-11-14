@@ -4,25 +4,25 @@ body:
   - type: markdown
     attributes:
       value: |
-        One thread per QA session. Guide: docs/qa/README.md (español: docs/qa/es/README.md). Never post a seed phrase or secret key.
+        One thread per QA session. / Un hilo por sesión de QA. Guide: docs/qa/README.md (español: docs/qa/es/README.md). Never post a seed phrase or secret key.
   - type: checkboxes
     id: consent
     attributes:
-      label: Consent
+      label: Consent / Consentimiento
       description: See docs/qa/recording-and-consent.md
       options:
-        - label: I agree to the consent text, including publication of my report and recording
+        - label: I agree to the consent text, including publication of my report and recording / Acepto el texto de consentimiento, incluida la publicación de mi reporte y grabación
           required: true
   - type: input
     id: name
     attributes:
-      label: Name or nickname to publish
+      label: Name or nickname to publish / Nombre o apodo a publicar
     validations:
       required: true
   - type: dropdown
     id: scenario
     attributes:
-      label: Scenarios you ran
+      label: Scenarios you ran / Escenarios que hiciste
       multiple: true
       options:
         - 1. Wallet connect and login
@@ -36,25 +36,25 @@ body:
   - type: input
     id: wallet
     attributes:
-      label: Wallet and browser
+      label: Wallet and browser / Wallet y navegador
       placeholder: Freighter on Chrome 130
   - type: input
     id: order
     attributes:
-      label: Order ids
+      label: Order ids / IDs de las órdenes
   - type: input
     id: video
     attributes:
-      label: Recording link
+      label: Recording link / Enlace de la grabación
   - type: textarea
     id: results
     attributes:
-      label: Step results
-      description: Mark each step ✅ or ❌ and note the time anything took longer than expected.
+      label: Step results / Resultado de cada paso
+      description: Mark each step ✅ or ❌ and note the time anything took longer than expected. / Marca cada paso ✅ o ❌ y anota si algo tardó más de lo esperado.
     validations:
       required: true
   - type: textarea
     id: problems
     attributes:
-      label: Problems found
-      description: What you expected, what happened, which step.
+      label: Problems found / Problemas encontrados
+      description: What you expected, what happened, which step. / Qué esperabas, qué pasó y en qué paso.
