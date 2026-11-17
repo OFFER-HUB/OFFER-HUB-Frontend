@@ -1,10 +1,10 @@
 import { expect, test } from "@playwright/test";
+import type { Locator, Page } from "@playwright/test";
 import { seedSignedInSession } from "./fixtures";
 
 /**
- * The offer form's budget rule: at least $5, no upper limit. Submitting an
- * otherwise empty form is enough — the budget check runs with the rest of the
- * validation, before anything is sent to the API.
+ * The offer form's budget rule: at least $5, no upper limit. The publish
+ * checklist shows the budget item as met (primary text) or not (secondary text).
  */
 test.describe("offer budget", () => {
   test.beforeEach(async ({ page }) => {
@@ -16,28 +16,31 @@ test.describe("offer budget", () => {
     await expect(page.locator("#offer-budget")).toBeVisible();
   });
 
-  async function submitWithBudget(page: import("@playwright/test").Page, budget: string): Promise<void> {
-    await page.locator("#offer-budget").fill(budget);
-    await page.getByRole("button", { name: "Publish Job Offer" }).click();
+  function budgetItem(page: Page): Locator {
+    return page.getByText("Budget (min $5)");
   }
 
-  test("labels the minimum as $5", async ({ page }) => {
-    await expect(page.getByText("Budget (min $5)")).toBeVisible();
+  async function enterBudget(page: Page, budget: string): Promise<void> {
+    await page.locator("#offer-budget").fill(budget);
+  }
+
+  test("starts unmet and labels the minimum as $5", async ({ page }) => {
+    await expect(budgetItem(page)).toBeVisible();
+    await expect(budgetItem(page)).toHaveClass(/text-text-secondary/);
   });
 
-  test("rejects $4", async ({ page }) => {
-    await submitWithBudget(page, "4");
-    await expect(page.getByText("Budget must be at least $5")).toBeVisible();
+  test("$4 does not meet the minimum", async ({ page }) => {
+    await enterBudget(page, "4");
+    await expect(budgetItem(page)).toHaveClass(/text-text-secondary/);
   });
 
-  test("accepts $5", async ({ page }) => {
-    await submitWithBudget(page, "5");
-    await expect(page.getByText("Budget must be at least $5")).toHaveCount(0);
-    await expect(page.getByText("Budget is required")).toHaveCount(0);
+  test("$5 meets the minimum", async ({ page }) => {
+    await enterBudget(page, "5");
+    await expect(budgetItem(page)).toHaveClass(/text-text-primary/);
   });
 
-  test("accepts a very large budget", async ({ page }) => {
-    await submitWithBudget(page, "25000000");
-    await expect(page.getByText("Budget must be at least $5")).toHaveCount(0);
+  test("a very large budget meets it too, there is no maximum", async ({ page }) => {
+    await enterBudget(page, "25000000");
+    await expect(budgetItem(page)).toHaveClass(/text-text-primary/);
   });
 });
