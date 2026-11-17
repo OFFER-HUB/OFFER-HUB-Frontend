@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { MIN_BUDGET, validateOfferForm } from "./client-offer.data";
-import type { OfferFormData } from "./client-offer.data";
+import type { OfferFormData } from "@/types/client-offer.types";
 
 function form(budget: string): OfferFormData {
   const next = new Date();
@@ -11,7 +11,7 @@ function form(budget: string): OfferFormData {
     budget,
     category: "DEVELOPMENT",
     deadline: next.toISOString().slice(0, 10),
-  } as OfferFormData;
+  };
 }
 
 describe("offer budget validation", () => {
