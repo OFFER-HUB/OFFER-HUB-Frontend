@@ -33,7 +33,7 @@ export const INITIAL_FORM_DATA: OfferFormData = {
 
 export const MIN_TITLE_LENGTH = 10;
 export const MIN_DESCRIPTION_LENGTH = 50;
-export const MIN_BUDGET = 10;
+export const MIN_BUDGET = 1;
 export { MOCK_API_DELAY };
 export const MAX_FILE_SIZE = 10 * 1024 * 1024;
 export const MAX_ATTACHMENTS = 5;
