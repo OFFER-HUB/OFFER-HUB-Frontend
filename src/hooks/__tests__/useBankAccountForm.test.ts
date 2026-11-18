@@ -195,6 +195,23 @@ describe("useBankAccountForm — step 2 validation", () => {
     expect(result.current.errors.accountNumber).toMatch(/18/);
   });
 
+  it("blocks submit for MX when the CLABE check digit is wrong", async () => {
+    const { result } = renderHook(() => useBankAccountForm());
+    act(() => {
+      result.current.handleCountryChange("MX");
+      advanceToStep2(result.current);
+      result.current.setAccountNumber("032180000118359718"); // 18 digits, wrong check digit
+      result.current.setBankName("BBVA");
+      result.current.setHolderName("Jane Doe");
+    });
+
+    const fakeEvent = { preventDefault: vi.fn() } as unknown as React.FormEvent;
+    await act(async () => {
+      await result.current.handleSubmit(fakeEvent);
+    });
+    expect(result.current.errors.accountNumber).toMatch(/not valid/);
+  });
+
   it("blocks submit for AR when CBU/CVU is not exactly 22 digits", async () => {
     const { result } = renderHook(() => useBankAccountForm());
     act(() => {
