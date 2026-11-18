@@ -1,6 +1,12 @@
-import type { MarketplaceService } from "@/lib/api/marketplace";
+/** The parts of a marketplace user that decide how their name is shown. */
+interface DisplayableUser {
+  email: string;
+  username?: string | null;
+  firstName?: string | null;
+  lastName?: string | null;
+}
 
-type MarketplaceServiceUser = MarketplaceService["user"];
+type MarketplaceServiceUser = DisplayableUser;
 
 /**
  * Full name when both parts are present, otherwise the username, otherwise the
