@@ -317,34 +317,42 @@ export function PayoutStatusCard({ orderId, className }: PayoutStatusCardProps):
             <p className="text-sm text-text-primary">
               {payout.failureReason ?? "This payout could not be completed."}
             </p>
-            <p className="text-xs text-text-secondary">
-              This usually resolves itself on retry — for example, if it failed because of an
-              issue with your bank account, add a new one, set it as your default, then retry.
-            </p>
+            {payout.retryable === false ? (
+              <p className="text-xs text-text-secondary">
+                Retrying will not change this. Your funds are not lost: the USDC is in your wallet.
+              </p>
+            ) : (
+              <p className="text-xs text-text-secondary">
+                This can resolve itself on retry. If the problem is your bank account, add a new
+                one, set it as your default, then retry.
+              </p>
+            )}
             {retryError && (
               <div role="alert" className="rounded-xl bg-error/10 p-3 text-xs text-error">
                 {retryError}
               </div>
             )}
             <div className="flex flex-wrap items-center gap-4">
-              <button
-                type="button"
-                onClick={() => void handleRetryPayout()}
-                disabled={isRetrying}
-                className={cn(PRIMARY_BUTTON, "justify-center")}
-              >
-                {isRetrying ? (
-                  <>
-                    <LoadingSpinner size="sm" className="text-white" />
-                    <span>Retrying...</span>
-                  </>
-                ) : (
-                  <>
-                    <Icon path={ICON_PATHS.refresh} size="sm" />
-                    <span>Retry Payout</span>
-                  </>
-                )}
-              </button>
+              {payout.retryable !== false && (
+                <button
+                  type="button"
+                  onClick={() => void handleRetryPayout()}
+                  disabled={isRetrying}
+                  className={cn(PRIMARY_BUTTON, "justify-center")}
+                >
+                  {isRetrying ? (
+                    <>
+                      <LoadingSpinner size="sm" className="text-white" />
+                      <span>Retrying...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Icon path={ICON_PATHS.refresh} size="sm" />
+                      <span>Retry Payout</span>
+                    </>
+                  )}
+                </button>
+              )}
               <Link
                 href="/app/chat"
                 className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline"

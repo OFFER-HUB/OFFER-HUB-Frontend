@@ -15,17 +15,17 @@ function form(budget: string): OfferFormData {
 }
 
 describe("offer budget validation", () => {
-  it("sets the minimum at $5", () => {
-    expect(MIN_BUDGET).toBe(5);
+  it("sets the minimum at $10", () => {
+    expect(MIN_BUDGET).toBe(10);
   });
 
-  it("accepts $5", () => {
-    expect(validateOfferForm(form("5")).budget).toBeUndefined();
+  it("accepts $10", () => {
+    expect(validateOfferForm(form("10")).budget).toBeUndefined();
   });
 
-  it("rejects less than $5", () => {
-    expect(validateOfferForm(form("4.99")).budget).toBe("Budget must be at least $5");
-    expect(validateOfferForm(form("0")).budget).toBe("Budget must be at least $5");
+  it("rejects less than $10", () => {
+    expect(validateOfferForm(form("9.99")).budget).toBe("Budget must be at least $10");
+    expect(validateOfferForm(form("0")).budget).toBe("Budget must be at least $10");
   });
 
   it("has no maximum", () => {

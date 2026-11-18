@@ -134,6 +134,11 @@ export interface Payout {
   exchangeRate: string | null;
   /** Set only when `status` is `FAILED`. */
   failureReason: string | null;
+  /**
+   * False when trying again can never work (the amount is outside what a bank
+   * payout accepts, $10 to $10,000). Missing on older API versions: treat as true.
+   */
+  retryable?: boolean;
   createdAt: string;
   updatedAt: string;
 }
