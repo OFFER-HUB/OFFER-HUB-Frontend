@@ -3,7 +3,7 @@ import type { Service, ServiceCategory, ServiceFormData, ServiceFormErrors, Serv
 export const MIN_TITLE_LENGTH = 10;
 export const MIN_DESCRIPTION_LENGTH = 50;
 export const MAX_DESCRIPTION_LENGTH = 2000;
-export const MIN_PRICE = 5;
+export const MIN_PRICE = 10;
 export const MIN_DELIVERY_DAYS = 1;
 export const MAX_DELIVERY_DAYS = 90;
 

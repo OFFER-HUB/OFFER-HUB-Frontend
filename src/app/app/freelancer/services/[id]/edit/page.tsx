@@ -594,7 +594,7 @@ export default function EditServicePage({ params }: PageProps): React.JSX.Elemen
                     className={checklist.price ? "text-success" : "text-border"}
                   />
                   <span className={checklist.price ? "text-text-primary font-medium" : "text-text-secondary"}>
-                    Price at least $5
+                    Price at least $10
                   </span>
                 </div>
                 <div className="flex items-center gap-2">

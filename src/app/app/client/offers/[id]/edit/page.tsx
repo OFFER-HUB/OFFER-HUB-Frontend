@@ -833,7 +833,7 @@ export default function EditOfferPage(): React.JSX.Element {
                     className={checklist.budget ? "text-success" : "text-border"}
                   />
                   <span className={checklist.budget ? "text-text-primary font-medium" : "text-text-secondary"}>
-                    Budget (min $5)
+                    Budget (min $10)
                   </span>
                 </div>
                 <div className="flex items-center gap-2">

@@ -3,7 +3,7 @@ import type { Locator, Page } from "@playwright/test";
 import { seedSignedInSession } from "./fixtures";
 
 /**
- * The offer form's budget rule: at least $5, no upper limit. The publish
+ * The offer form's budget rule: at least $10, no upper limit. The publish
  * checklist shows the budget item as met (primary text) or not (secondary text).
  */
 test.describe("offer budget", () => {
@@ -17,25 +17,25 @@ test.describe("offer budget", () => {
   });
 
   function budgetItem(page: Page): Locator {
-    return page.getByText("Budget (min $5)");
+    return page.getByText("Budget (min $10)");
   }
 
   async function enterBudget(page: Page, budget: string): Promise<void> {
     await page.locator("#offer-budget").fill(budget);
   }
 
-  test("starts unmet and labels the minimum as $5", async ({ page }) => {
+  test("starts unmet and labels the minimum as $10", async ({ page }) => {
     await expect(budgetItem(page)).toBeVisible();
     await expect(budgetItem(page)).toHaveClass(/text-text-secondary/);
   });
 
-  test("$4 does not meet the minimum", async ({ page }) => {
-    await enterBudget(page, "4");
+  test("$9 does not meet the minimum", async ({ page }) => {
+    await enterBudget(page, "9");
     await expect(budgetItem(page)).toHaveClass(/text-text-secondary/);
   });
 
-  test("$5 meets the minimum", async ({ page }) => {
-    await enterBudget(page, "5");
+  test("$10 meets the minimum", async ({ page }) => {
+    await enterBudget(page, "10");
     await expect(budgetItem(page)).toHaveClass(/text-text-primary/);
   });
 

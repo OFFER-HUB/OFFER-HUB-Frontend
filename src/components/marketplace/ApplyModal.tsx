@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { MIN_BUDGET } from '@/data/client-offer.data';
 import { cn } from "@/lib/cn";
 import { Icon, ICON_PATHS, LoadingSpinner } from "@/components/ui/Icon";
 import { FormField } from "@/components/ui/FormField";
@@ -38,6 +39,8 @@ export function ApplyModal({
 
     if (proposedRate && !/^\d+(\.\d{1,2})?$/.test(proposedRate)) {
       newErrors.proposedRate = 'Invalid rate format';
+    } else if (proposedRate && parseFloat(proposedRate) < MIN_BUDGET) {
+      newErrors.proposedRate = `Proposed rate must be at least $${MIN_BUDGET}`;
     }
 
     setErrors(newErrors);
@@ -126,7 +129,7 @@ export function ApplyModal({
           <FormField
             label="Proposed Rate (Optional)"
             error={errors.proposedRate}
-            hint="Your proposed hourly or project rate (USD)"
+            hint={`Your proposed project rate (USD), at least $${MIN_BUDGET}`}
             optional
           >
             <div className="relative">

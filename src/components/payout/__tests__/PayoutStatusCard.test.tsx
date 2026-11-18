@@ -159,6 +159,27 @@ describe("PayoutStatusCard", () => {
     expect(mockGetPayoutStatus).toHaveBeenCalledTimes(1);
   });
 
+  it("does not offer Retry when the amount is outside what a bank payout accepts, and says the funds are safe", async () => {
+    mockGetPayoutStatus.mockResolvedValue({
+      ...PENDING_PAYOUT,
+      status: "FAILED",
+      usdcAmount: "5.00",
+      retryable: false,
+      failureReason:
+        "Bank payouts must be between $10 and $10,000. This order is $5.00, so it cannot be sent to a bank account. Your USDC is safe in your own wallet.",
+    });
+
+    render(<PayoutStatusCard orderId="order_1" />);
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(screen.getByText(/between \$10 and \$10,000/)).toBeInTheDocument();
+    expect(screen.getByText(/the USDC is in your wallet/i)).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Retry Payout/ })).toBeNull();
+    expect(screen.getByRole("link", { name: /Contact Support/ })).toBeInTheDocument();
+  });
+
   it("offers Retry Payout on FAILED, re-resolving the seller's bank account server-side instead of resigning a stale one", async () => {
     // Reported live: a seller stuck on a broken bank account (e.g. BlindPay
     // rejected registration) had no way to retry after fixing it — the old
