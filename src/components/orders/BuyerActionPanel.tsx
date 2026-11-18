@@ -73,6 +73,10 @@ export function BuyerActionPanel({
   const formattedAmount = amount ? `$${Number(amount).toFixed(2)} USD` : null;
   const isDelivered = status === "DELIVERED" || isWorkCompleted;
   const refundGoesThroughDispute = status === "DELIVERED" || refundRequiresDispute;
+  // With an external wallet the release is signed on-chain, and the contract only
+  // lets the client sign after the freelancer signs "delivered". Offering the button
+  // earlier just ends in a "not your turn" error, so it unlocks once they deliver.
+  const releaseWaitsForDelivery = isExternalWallet && !isDelivered;
 
   return (
     <div className={cn(NEUMORPHIC_CARD, "p-6 border border-white/80 space-y-5")}>
@@ -300,7 +304,9 @@ export function BuyerActionPanel({
             description={
               isDelivered
                 ? "The specialist has marked work as completed. Please inspect all files and deliverables before releasing payment."
-                : "Funds are safely protected in escrow. The specialist is currently working on your order."
+                : releaseWaitsForDelivery
+                  ? "Funds are safely protected in escrow. You can release them once the specialist marks the work as delivered."
+                  : "Funds are safely protected in escrow. The specialist is currently working on your order."
             }
           />
 
@@ -337,15 +343,42 @@ export function BuyerActionPanel({
               <h3 className="text-xs font-bold uppercase tracking-wider text-text-secondary">
                 Order Actions
               </h3>
-              <div className={cn("grid gap-2", refundGoesThroughDispute ? "grid-cols-2" : "grid-cols-3")}>
-                <button
-                  type="button"
-                  onClick={onRequestRelease}
-                  className={cn(REVIEW_ACTION_BUTTON, "text-emerald-700 hover:text-emerald-800")}
+              {releaseWaitsForDelivery && (
+                <div
+                  role="status"
+                  className="flex items-start gap-3 p-3.5 rounded-xl bg-white/70 border border-dashed border-black/10"
                 >
-                  <Icon path={ICON_PATHS.check} size="sm" className="text-emerald-600" />
-                  <span>Release Funds</span>
-                </button>
+                  <div className="w-8 h-8 rounded-lg bg-black/5 text-text-secondary flex items-center justify-center flex-shrink-0">
+                    <Icon path={ICON_PATHS.lock} size="sm" />
+                  </div>
+                  <div className="space-y-0.5">
+                    <p className="text-xs font-bold text-text-primary">Release unlocks after delivery</p>
+                    <p className="text-[11px] text-text-secondary leading-relaxed">
+                      The specialist still has to mark the work as delivered. Once they do, you can review it and release the payment.
+                    </p>
+                  </div>
+                </div>
+              )}
+              <div
+                className={cn(
+                  "grid gap-2",
+                  (releaseWaitsForDelivery ? 0 : 1) + 1 + (refundGoesThroughDispute ? 0 : 1) === 3
+                    ? "grid-cols-3"
+                    : (releaseWaitsForDelivery ? 0 : 1) + 1 + (refundGoesThroughDispute ? 0 : 1) === 2
+                      ? "grid-cols-2"
+                      : "grid-cols-1"
+                )}
+              >
+                {!releaseWaitsForDelivery && (
+                  <button
+                    type="button"
+                    onClick={onRequestRelease}
+                    className={cn(REVIEW_ACTION_BUTTON, "text-emerald-700 hover:text-emerald-800")}
+                  >
+                    <Icon path={ICON_PATHS.check} size="sm" className="text-emerald-600" />
+                    <span>Release Funds</span>
+                  </button>
+                )}
                 {!refundGoesThroughDispute && (
                   <button
                     type="button"
