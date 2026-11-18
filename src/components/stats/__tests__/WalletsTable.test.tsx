@@ -19,7 +19,7 @@ describe("WalletsTable", () => {
       <WalletsTable wallets={[]} totalWallets={0} isLoadingMore={false} onShowMore={vi.fn()} />
     );
 
-    expect(screen.getByText("No Stellar wallets have been initialized yet.")).toBeInTheDocument();
+    expect(screen.getByText("No Stellar wallets have been connected yet.")).toBeInTheDocument();
     expect(screen.queryByRole("table")).not.toBeInTheDocument();
   });
 

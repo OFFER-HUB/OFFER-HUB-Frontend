@@ -32,8 +32,8 @@ export default function PlatformStatsPage(): React.JSX.Element {
               Platform Stats
             </h1>
             <p className="mx-auto max-w-2xl animate-fade-in-up text-base text-text-secondary">
-              Real-time insights and transparent key metrics showcasing user registration, secure
-              wallet generation, and transaction volume.
+              Real-time insights and transparent key metrics showcasing user registration, connected
+              wallets, and transaction volume.
             </p>
           </div>
 

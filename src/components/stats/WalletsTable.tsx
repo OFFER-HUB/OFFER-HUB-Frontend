@@ -45,17 +45,17 @@ export function WalletsTable({
       <div className="border-b border-border-light pb-4">
         <h2 className="flex items-center gap-2 text-xl font-bold text-text-primary">
           <Icon path={ICON_PATHS.link} size="md" className="text-primary" />
-          Recent Generated Stellar Wallets
+          Recently Connected Stellar Wallets
         </h2>
         <p className="mt-1 text-sm text-text-secondary">
-          Decentralized accounts dynamically compiled on-chain to handle secure payments,
-          milestones, and dispute resolution.
+          Wallets users connected with Freighter, Lobstr or xBull. They sign their own payments;
+          OfferHub never holds their keys.
         </p>
       </div>
 
       {wallets.length === 0 ? (
         <div className="rounded-2xl border-2 border-dashed border-border-light bg-background py-12 text-center">
-          <p className="text-sm text-text-secondary">No Stellar wallets have been initialized yet.</p>
+          <p className="text-sm text-text-secondary">No Stellar wallets have been connected yet.</p>
         </div>
       ) : (
         <div className="space-y-4">
@@ -64,7 +64,7 @@ export function WalletsTable({
               <thead>
                 <tr className="border-b border-border-light bg-background text-xs font-semibold uppercase tracking-wider text-text-secondary">
                   <th className="px-6 py-4">Wallet Address</th>
-                  <th className="px-6 py-4">Date Created</th>
+                  <th className="px-6 py-4">Date Connected</th>
                   <th className="px-6 py-4 text-right">Blockchain Explorer</th>
                 </tr>
               </thead>
