@@ -22,6 +22,7 @@ function setup(overrides: {
   walletName?: string | null;
   operation?: import("@/lib/api/escrow").EscrowOperation;
   step?: import("@/lib/api/escrow").EscrowStepName | null;
+  onChangeWallet?: () => void;
 } = {}) {
   return render(
     <EscrowSigningModal
@@ -33,6 +34,7 @@ function setup(overrides: {
       operation={overrides.operation}
       step={overrides.step}
       onRetry={onRetry}
+      onChangeWallet={overrides.onChangeWallet}
       onClose={onClose}
     />
   );
@@ -178,6 +180,17 @@ describe("EscrowSigningModal — confirmed", () => {
 });
 
 describe("EscrowSigningModal — error states", () => {
+  it("offers another wallet after a declined signature, only when the caller allows it", async () => {
+    const onChangeWallet = vi.fn();
+    const { unmount } = setup({ state: "error", error: { code: "USER_REJECTED", message: "declined" }, onChangeWallet });
+    await userEvent.click(screen.getByRole("button", { name: /use a different wallet/i }));
+    expect(onChangeWallet).toHaveBeenCalledTimes(1);
+    unmount();
+
+    setup({ state: "error", error: { code: "USER_REJECTED", message: "declined" } });
+    expect(screen.queryByRole("button", { name: /use a different wallet/i })).toBeNull();
+  });
+
   it("USER_REJECTED shows the cancellation copy with Retry and Cancel", async () => {
     setup({ state: "error", error: { code: "USER_REJECTED", message: "declined" } });
 

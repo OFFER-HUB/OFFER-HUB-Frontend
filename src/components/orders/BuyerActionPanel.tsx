@@ -213,14 +213,41 @@ export function BuyerActionPanel({
       )}
 
       {status === "ESCROW_CREATING" && (
-        <div className="p-5 rounded-xl bg-background border border-black/5 flex items-center gap-4">
-          <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
-            <LoadingSpinner size="sm" />
+        <div className="space-y-3">
+          <div className="p-5 rounded-xl bg-background border border-black/5 flex items-center gap-4">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
+              <LoadingSpinner size="sm" />
+            </div>
+            <div>
+              <p className="font-bold text-sm text-[#111827]">Creating Escrow Contract...</p>
+              <p className="text-xs text-text-secondary mt-0.5">
+                {isExternalWallet
+                  ? "If your wallet did not ask you to sign, or you closed it, try again."
+                  : "Please wait while the blockchain contract is prepared."}
+              </p>
+            </div>
           </div>
-          <div>
-            <p className="font-bold text-sm text-[#111827]">Creating Escrow Contract...</p>
-            <p className="text-xs text-text-secondary mt-0.5">Please wait while the blockchain contract is prepared.</p>
-          </div>
+          {/* The backend discards the unsigned attempt and starts a fresh one, so retrying is safe. */}
+          {isExternalWallet && (
+            <button
+              type="button"
+              onClick={onStartSecurePayment}
+              disabled={isProcessing}
+              className={SOLID_PRIMARY_BUTTON}
+            >
+              {isProcessing ? (
+                <>
+                  <LoadingSpinner size="sm" className="text-white" />
+                  <span>Processing...</span>
+                </>
+              ) : (
+                <>
+                  <Icon path={ICON_PATHS.lock} size="sm" />
+                  <span>Try again</span>
+                </>
+              )}
+            </button>
+          )}
         </div>
       )}
 

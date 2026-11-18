@@ -47,6 +47,8 @@ export interface EscrowSigningModalProps {
   copy?: EscrowSigningCopyOverride;
   /** Re-runs the same operation from scratch (a fresh XDR is fetched). */
   onRetry: () => void;
+  /** Lets the user pick another wallet after declining the signature. Hidden when not given. */
+  onChangeWallet?: () => void;
   /** Dismisses the modal. Has no effect while a wallet or submission is in flight. */
   onClose: () => void;
 }
@@ -89,6 +91,7 @@ export function EscrowSigningModal({
   step,
   copy,
   onRetry,
+  onChangeWallet,
   onClose,
 }: EscrowSigningModalProps): React.JSX.Element | null {
   const [copied, setCopied] = useState(false);
@@ -473,6 +476,16 @@ export function EscrowSigningModal({
               >
                 <span>Retry</span>
               </button>
+
+              {onChangeWallet && error.code === "USER_REJECTED" && (
+                <button
+                  type="button"
+                  onClick={onChangeWallet}
+                  className={NEUMORPHIC_SECONDARY_BUTTON}
+                >
+                  <span>Use a different wallet</span>
+                </button>
+              )}
 
               {error.code !== "XDR_EXPIRED" && (
                 <button
