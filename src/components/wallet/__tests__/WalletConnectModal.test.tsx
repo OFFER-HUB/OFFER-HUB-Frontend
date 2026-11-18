@@ -239,6 +239,29 @@ describe("WalletConnectModal — display reflects the account, not the browser s
     expect(screen.getByText("GBUFHWMF…ULOX274N")).toBeInTheDocument();
   });
 
+  describe("a wallet linked to the account but no live wallet session in this browser", () => {
+    const LINKED = "GBUFHWMF2GCVS3MEBM7Q55XR73UHUVI5VYUDHSEXTHAJXORYULOX274N";
+
+    it("asks to reconnect instead of showing a Done button that signs nothing", async () => {
+      mockUser = { id: "usr_1", wallet: { id: "wal_1", publicKey: LINKED, type: "EXTERNAL" } };
+      render(<WalletConnectModal isOpen onClose={vi.fn()} liveAddress={null} />);
+
+      expect(screen.getByText("Reconnect your wallet")).toBeInTheDocument();
+      expect(screen.getByText(/in this browser to sign/)).toBeInTheDocument();
+      expect(await screen.findByRole("button", { name: "Connect Varial" })).toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: "Done" })).not.toBeInTheDocument();
+      expect(screen.queryByText("Wallet connected")).not.toBeInTheDocument();
+    });
+
+    it("still shows connected when this browser has a live wallet session", () => {
+      mockUser = { id: "usr_1", wallet: { id: "wal_1", publicKey: LINKED, type: "EXTERNAL" } };
+      render(<WalletConnectModal isOpen onClose={vi.fn()} liveAddress={LINKED} />);
+
+      expect(screen.getByText("Wallet connected")).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Done" })).toBeInTheDocument();
+    });
+  });
+
   it("disconnecting calls the backend with the linked wallet's id, then clears it from the store", async () => {
     mockUser = { id: "usr_1", wallet: { id: "wal_1", publicKey: OTHER_ACCOUNTS_KEY, type: "EXTERNAL" } };
     const user = userEvent.setup();

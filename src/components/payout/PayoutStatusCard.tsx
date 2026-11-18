@@ -433,6 +433,7 @@ export function PayoutStatusCard({ orderId, className }: PayoutStatusCardProps):
           setIsWalletConnectOpen(false);
           void signing.sign(orderId);
         }}
+        liveAddress={connectedWalletAddress}
       />
     </div>
   );

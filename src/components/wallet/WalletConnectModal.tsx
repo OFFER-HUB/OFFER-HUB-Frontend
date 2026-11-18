@@ -28,6 +28,12 @@ export interface WalletConnectModalProps {
   isOpen: boolean;
   onClose: () => void;
   onConnected?: (address: string) => void;
+  /**
+   * Address of the wallet session live in this browser, or null when there is none.
+   * Leave it out when the caller does not know. The signing guard passes it so a
+   * wallet that is only linked to the account is not shown as "connected".
+   */
+  liveAddress?: string | null;
 }
 
 function truncateAddress(address: string): string {
@@ -38,6 +44,7 @@ export function WalletConnectModal({
   isOpen,
   onClose,
   onConnected,
+  liveAddress,
 }: WalletConnectModalProps): React.JSX.Element | null {
   const user = useAuthStore((state) => state.user);
   const connectWallet = useAuthStore((state) => state.connectWallet);
@@ -48,6 +55,14 @@ export function WalletConnectModal({
   // The one thing this modal should ever call "connected": a wallet the
   // backend has actually confirmed belongs to the signed-in account.
   const linkedWallet = user?.wallet ?? null;
+
+  // The account can have a wallet linked while THIS browser has no live wallet
+  // session (new browser, cleared site data, signed in by email). Calling that
+  // "connected" made the Done button close the modal with nothing signed, so the
+  // connected view needs a live session too, when the caller tells us.
+  const hasLiveSession = liveAddress === undefined ? true : Boolean(liveAddress);
+  const showConnected = Boolean(linkedWallet) && hasLiveSession;
+  const needsReconnect = Boolean(linkedWallet) && !hasLiveSession;
 
   const [wallets, setWallets] = useState<ISupportedWallet[] | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -164,10 +179,14 @@ export function WalletConnectModal({
         <div className="flex items-start justify-between mb-5">
           <div>
             <h2 id="wc-title" className="text-lg font-bold text-text-primary">
-              {linkedWallet ? "Wallet connected" : "Connect wallet"}
+              {showConnected ? "Wallet connected" : needsReconnect ? "Reconnect your wallet" : "Connect wallet"}
             </h2>
             <p className="text-sm text-text-secondary mt-0.5">
-              {linkedWallet ? "Your Stellar wallet is active" : "Choose a wallet to sign in securely"}
+              {showConnected
+                ? "Your Stellar wallet is active"
+                : needsReconnect && linkedWallet
+                  ? `Connect ${truncateAddress(linkedWallet.publicKey)} in this browser to sign`
+                  : "Choose a wallet to sign in securely"}
             </p>
           </div>
 
@@ -192,7 +211,7 @@ export function WalletConnectModal({
         <div className="h-px bg-border/40 mb-5" />
 
         {/* Content */}
-        {linkedWallet ? (
+        {showConnected && linkedWallet ? (
           <div className="space-y-4">
             <div className="rounded-2xl p-4 bg-background border border-border/40">
               <p className="text-xs font-medium text-text-secondary mb-1.5">Connected address</p>
