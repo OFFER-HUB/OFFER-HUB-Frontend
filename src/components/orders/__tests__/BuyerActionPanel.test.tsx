@@ -85,6 +85,21 @@ describe("BuyerActionPanel — ESCROW_CREATING", () => {
     render(<BuyerActionPanel {...BASE_PROPS} status="ESCROW_CREATING" />);
     expect(screen.getByText(/creating escrow contract/i)).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /sign/i })).toBeNull();
+    expect(screen.queryByRole("button", { name: /try again/i })).toBeNull();
+  });
+
+  it("lets an external-wallet buyer try again when the signature never happened", async () => {
+    const onStartSecurePayment = vi.fn();
+    render(
+      <BuyerActionPanel
+        {...BASE_PROPS}
+        status="ESCROW_CREATING"
+        isExternalWallet
+        onStartSecurePayment={onStartSecurePayment}
+      />
+    );
+    await userEvent.click(screen.getByRole("button", { name: /try again/i }));
+    expect(onStartSecurePayment).toHaveBeenCalledTimes(1);
   });
 });
 
