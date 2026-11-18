@@ -14,7 +14,7 @@ const METRICS = [
   },
   {
     key: "wallets",
-    label: "Stellar Wallets",
+    label: "Connected Wallets",
     icon: ICON_PATHS.creditCard,
     iconClass: "bg-success/10 text-success",
   },
