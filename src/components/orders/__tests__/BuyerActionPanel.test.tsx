@@ -253,3 +253,26 @@ describe("BuyerActionPanel — IN_PROGRESS vs DELIVERED action comparison (#448)
     expect(screen.getByText(/refunds on delivered work are decided through a dispute/i)).toBeInTheDocument();
   });
 });
+
+// ── IN_PROGRESS with an external wallet ───────────────────────────────────────
+
+describe("BuyerActionPanel — release waits for delivery (external wallet)", () => {
+  it("hides Release Funds until the freelancer delivers, and says why", () => {
+    render(<BuyerActionPanel {...BASE_PROPS} status="IN_PROGRESS" isExternalWallet isWorkCompleted={false} />);
+    expect(screen.queryByRole("button", { name: /release funds/i })).toBeNull();
+    expect(screen.getByText(/release unlocks after delivery/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /request refund/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /open dispute/i })).toBeInTheDocument();
+  });
+
+  it("offers Release Funds once the freelancer has delivered", () => {
+    render(<BuyerActionPanel {...BASE_PROPS} status="IN_PROGRESS" isExternalWallet isWorkCompleted />);
+    expect(screen.getByRole("button", { name: /release funds/i })).toBeInTheDocument();
+    expect(screen.queryByText(/release unlocks after delivery/i)).toBeNull();
+  });
+
+  it("keeps the early release for a buyer without an external wallet", () => {
+    render(<BuyerActionPanel {...BASE_PROPS} status="IN_PROGRESS" isWorkCompleted={false} />);
+    expect(screen.getByRole("button", { name: /release funds/i })).toBeInTheDocument();
+  });
+});
