@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { resolveOrderStep } from "@/constants/order-steps";
 import { useOrderActions } from "@/hooks/useOrderActions";
+import { useWalletKit } from "@/hooks/use-wallet-kit";
 import { useOrderData } from "@/hooks/useOrderData";
 import { useOrderModals } from "@/hooks/useOrderModals";
 import { useOrderRoles } from "@/hooks/useOrderRoles";
@@ -69,6 +70,7 @@ export default function OrderDetailPage(): React.JSX.Element {
   });
 
   const currentUserWallet = useAuthStore((s) => s.user?.wallet);
+  const { address: liveWalletAddress } = useWalletKit();
   const isExternalWallet = roles.isBuyer && currentUserWallet?.type === "EXTERNAL";
 
   const activeWalletConnectGuard = actions.createSigning.isWalletConnectOpen
@@ -383,6 +385,7 @@ export default function OrderDetailPage(): React.JSX.Element {
         isOpen={activeWalletConnectGuard !== null}
         onClose={() => activeWalletConnectGuard?.closeWalletConnect()}
         onConnected={() => activeWalletConnectGuard?.onWalletConnected()}
+        liveAddress={liveWalletAddress}
       />
 
       <OrderReviewPromptModal

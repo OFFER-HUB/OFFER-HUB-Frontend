@@ -107,13 +107,12 @@ test.describe("D2.1 client-side signing — Release Funds", () => {
 
     await openReleaseFundsModal(page);
 
-    // WalletConnectModal's title reflects the *account's* linked wallet
-    // (always present here — "Wallet connected"), not SWK's live browser
-    // session, which is what's actually missing — so this asserts on the
-    // component itself (its "Connected address" detail, unique to it) rather
-    // than a title string that doesn't vary with the thing under test.
-    const walletModal = page.getByRole("dialog").filter({ hasText: "Connected address" });
+    // The account has a wallet linked, but this browser has no live wallet
+    // session: the modal must ask to reconnect (with the wallet list), not
+    // claim "Wallet connected" with a Done button that signs nothing.
+    const walletModal = page.getByRole("dialog", { name: "Reconnect your wallet" });
     await expect(walletModal).toBeVisible();
+    await expect(walletModal.getByRole("button", { name: "Done" })).toHaveCount(0);
     await expect(page.getByRole("dialog", { name: "Check your wallet" })).toHaveCount(0);
     expect(prepareCalled).toBe(false);
   });
