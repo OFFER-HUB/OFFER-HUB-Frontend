@@ -363,21 +363,57 @@ export function PayoutStatusCard({ orderId, className }: PayoutStatusCardProps):
             </div>
           </div>
         ) : payout.status === "REFUNDED" ? (
-          <>
+          /* The bank sent the transfer back and BlindPay returned the USDC to the
+             seller's own wallet, so nothing is lost and a new attempt is safe. */
+          <div className="space-y-3">
             <p className="text-sm text-text-primary">
-              {payout.failureReason ?? "BlindPay returned the funds to OfferHub."}
+              {payout.failureReason ?? "The bank sent the transfer back."}
             </p>
-            <p className="text-xs text-text-secondary mt-1">
-              Our team will reach out to arrange a new transfer to your bank account.
+            <p className="text-xs text-text-secondary">
+              Your USDC is back in your wallet. Check your bank account details in Settings
+              (for Mexico, the 18-digit CLABE), then retry.
             </p>
-            <Link
-              href="/app/chat"
-              className="inline-flex items-center gap-2 mt-2 text-sm font-medium text-primary hover:underline"
-            >
-              <Icon path={ICON_PATHS.chat} size="sm" />
-              Contact Support
-            </Link>
-          </>
+            {retryError && (
+              <div role="alert" className="rounded-xl bg-error/10 p-3 text-xs text-error">
+                {retryError}
+              </div>
+            )}
+            <div className="flex flex-wrap items-center gap-4">
+              {payout.retryable !== false && (
+                <button
+                  type="button"
+                  onClick={() => void handleRetryPayout()}
+                  disabled={isRetrying}
+                  className={cn(PRIMARY_BUTTON, "justify-center")}
+                >
+                  {isRetrying ? (
+                    <>
+                      <LoadingSpinner size="sm" className="text-white" />
+                      <span>Retrying...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Icon path={ICON_PATHS.refresh} size="sm" />
+                      <span>Retry Payout</span>
+                    </>
+                  )}
+                </button>
+              )}
+              <Link
+                href="/app/settings"
+                className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline"
+              >
+                Check bank account
+              </Link>
+              <Link
+                href="/app/chat"
+                className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline"
+              >
+                <Icon path={ICON_PATHS.chat} size="sm" />
+                Contact Support
+              </Link>
+            </div>
+          </div>
         ) : payout.status === "AWAITING_SIGNATURE" ? (
           <div className="space-y-3">
             <p className="text-sm text-text-primary">

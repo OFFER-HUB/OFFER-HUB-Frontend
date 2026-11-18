@@ -7,7 +7,7 @@ const COVER_LETTER = "I have built many projects like this one and can deliver i
 
 function setup() {
   const onSubmit = vi.fn().mockResolvedValue(undefined);
-  render(<ApplyModal isOpen onClose={vi.fn()} onSubmit={onSubmit} />);
+  render(<ApplyModal isOpen onClose={vi.fn()} onSubmit={onSubmit} offerTitle="Logo design" offerBudget="50.00" />);
   return onSubmit;
 }
 

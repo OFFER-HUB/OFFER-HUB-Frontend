@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { isValidClabe } from "@/lib/clabe";
 import { useAuthStore } from "@/stores/auth-store";
 import {
   addBankAccount,
@@ -182,6 +183,8 @@ export function useBankAccountForm({
       accountNumber.replace(/\D/g, "").length !== 18
     ) {
       nextErrors.accountNumber = "CLABE must be exactly 18 digits";
+    } else if (rail === "SPEI_BITSO" && !isValidClabe(accountNumber.replace(/\D/g, ""))) {
+      nextErrors.accountNumber = "This CLABE is not valid. Check each digit against your bank app.";
     } else if (
       rail === "TRANSFERS_BITSO" &&
       accountNumber.replace(/\D/g, "").length !== 22

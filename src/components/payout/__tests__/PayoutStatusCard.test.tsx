@@ -180,6 +180,28 @@ describe("PayoutStatusCard", () => {
     expect(screen.getByRole("link", { name: /Contact Support/ })).toBeInTheDocument();
   });
 
+  it("on REFUNDED, says the USDC is back in the wallet and offers Retry and a link to the bank account", async () => {
+    mockGetPayoutStatus.mockResolvedValue({
+      ...PENDING_PAYOUT,
+      status: "REFUNDED",
+      usdcAmount: "12.00",
+      retryable: true,
+      failureReason:
+        "The bank (via Nvio Pagos) rejected the transfer. Your USDC was returned to your wallet. Check your bank account details and retry.",
+    });
+
+    render(<PayoutStatusCard orderId="order_1" />);
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(screen.getByText(/rejected the transfer/)).toBeInTheDocument();
+    expect(screen.getByText(/Your USDC is back in your wallet/)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Retry Payout/ })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Check bank account/ })).toHaveAttribute("href", "/app/settings");
+    expect(screen.queryByText(/Our team will reach out/)).toBeNull();
+  });
+
   it("offers Retry Payout on FAILED, re-resolving the seller's bank account server-side instead of resigning a stale one", async () => {
     // Reported live: a seller stuck on a broken bank account (e.g. BlindPay
     // rejected registration) had no way to retry after fixing it — the old
