@@ -305,6 +305,7 @@ export default function OrderDetailPage(): React.JSX.Element {
         operation="create"
         step={actions.createSigning.currentStep}
         onRetry={() => void actions.handleCreateEscrow()}
+        onChangeWallet={actions.createSigning.changeWallet}
         onClose={actions.createSigning.dismissSigningModal}
       />
 
@@ -317,6 +318,7 @@ export default function OrderDetailPage(): React.JSX.Element {
         operation="fund"
         step={actions.fundSigning.currentStep}
         onRetry={() => void actions.handleFundEscrow()}
+        onChangeWallet={actions.fundSigning.changeWallet}
         onClose={actions.fundSigning.dismissSigningModal}
       />
 

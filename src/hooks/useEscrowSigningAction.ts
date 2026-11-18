@@ -87,6 +87,12 @@ export interface UseEscrowSigningActionResult {
   closeWalletConnect: () => void;
   onWalletConnected: () => void;
   /**
+   * Closes the signing modal and opens the wallet picker, so a user who was
+   * asked to sign with the wrong wallet can switch to another. Signing resumes
+   * by itself once a wallet is connected.
+   */
+  changeWallet: () => void;
+  /**
    * Returns signing to `idle`, which is what actually closes
    * EscrowSigningModal (see `isSigningModalOpen`) — wire this into the
    * modal's `onClose` alongside whatever closes the caller's own confirm
@@ -167,6 +173,13 @@ export function useEscrowSigningAction({
     pendingSettlers.current = null;
   }, []);
 
+  const changeWallet = useCallback(() => {
+    signing.reset();
+    setInlineError(null);
+    hasPendingSign.current = true;
+    setIsWalletConnectOpen(true);
+  }, [signing]);
+
   const onWalletConnected = useCallback(() => {
     setIsWalletConnectOpen(false);
     // Connection just succeeded — sign directly, reusing the settlers the
@@ -230,6 +243,7 @@ export function useEscrowSigningAction({
     isWalletConnectOpen,
     closeWalletConnect,
     onWalletConnected,
+    changeWallet,
     dismissSigningModal,
   };
 }
