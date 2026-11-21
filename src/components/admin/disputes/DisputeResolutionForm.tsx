@@ -5,6 +5,7 @@ import { cn } from "@/lib/cn";
 import { Icon, ICON_PATHS, LoadingSpinner } from "@/components/ui/Icon";
 import { NEUMORPHIC_INPUT, NEUMORPHIC_INSET } from "@/lib/styles";
 import { amountsSumTo, suggestRefundSplit } from "@/lib/disputes/refund-suggestion";
+import { DisputeNetPreview } from "@/components/disputes/DisputeNetPreview";
 import {
   RESOLUTION_DECISION_CONFIG,
   type AdminDispute,
@@ -266,6 +267,14 @@ export function DisputeResolutionForm({ dispute, onSubmit, onCancel }: DisputeRe
           </p>
         </div>
       )}
+
+      {/* What each party really receives once the contract takes its fees */}
+      <DisputeNetPreview
+        decision={decision}
+        orderAmount={order.amount}
+        releaseAmount={splitFormatValid ? releaseAmount : undefined}
+        refundAmount={splitFormatValid ? refundAmount : undefined}
+      />
 
       <div>
         <label htmlFor="decision-note" className="block text-sm font-semibold text-text-primary mb-2">
