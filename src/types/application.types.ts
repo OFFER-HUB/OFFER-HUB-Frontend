@@ -42,3 +42,14 @@ export const APPLICATION_STATUS_CONFIG: Record<ApplicationStatus, { label: strin
   REJECTED: { label: 'Rejected', color: 'text-error', bg: 'bg-error/10' },
   WITHDRAWN: { label: 'Withdrawn', color: 'text-text-secondary', bg: 'bg-gray-100' },
 };
+
+/**
+ * What a freelancer who already applied sees, by the state of their proposal.
+ * It used to say "Proposal Submitted" even after the client accepted them.
+ */
+export const APPLIED_COPY: Record<ApplicationStatus, { title: string; detail: string }> = {
+  PENDING: { title: "Proposal Submitted", detail: "You have applied to this offer. The client has not answered yet." },
+  ACCEPTED: { title: "Assigned to you", detail: "The client chose you for this offer. An order was created." },
+  REJECTED: { title: "Not selected", detail: "The client chose someone else for this offer." },
+  WITHDRAWN: { title: "Proposal withdrawn", detail: "You withdrew your proposal for this offer." },
+};

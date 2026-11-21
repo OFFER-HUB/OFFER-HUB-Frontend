@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { getPublicOfferById, type MarketplaceOffer } from "@/lib/api/marketplace";
 import { applyToOffer, getMyApplications } from "@/lib/api/applications";
+import { APPLIED_COPY, type ApplicationStatus } from "@/types/application.types";
 import { useAuthStore } from "@/stores/auth-store";
 import { ApplyModal } from "@/components/marketplace/ApplyModal";
 import { Icon, ICON_PATHS, LoadingSpinner } from "@/components/ui/Icon";
@@ -58,6 +59,7 @@ export default function OfferDetailPage(): React.JSX.Element {
   const [error, setError] = useState<string | null>(null);
   const [showApplyModal, setShowApplyModal] = useState(false);
   const [hasApplied, setHasApplied] = useState(false);
+  const [applicationStatus, setApplicationStatus] = useState<ApplicationStatus>("PENDING");
   const [copiedLink, setCopiedLink] = useState(false);
   const [copiedOfferId, setCopiedOfferId] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
@@ -93,8 +95,9 @@ export default function OfferDetailPage(): React.JSX.Element {
 
       try {
         const myApplications = await getMyApplications(token);
-        const alreadyApplied = myApplications.some((app) => app.offerId === offerId);
-        setHasApplied(alreadyApplied);
+        const mine = myApplications.find((app) => app.offerId === offerId);
+        setHasApplied(Boolean(mine));
+        if (mine) setApplicationStatus(mine.status);
       } catch (err) {
         console.error("Failed to check existing application:", err);
       }
@@ -109,6 +112,7 @@ export default function OfferDetailPage(): React.JSX.Element {
     try {
       await applyToOffer(token, offerId, { coverLetter, proposedRate });
       setHasApplied(true);
+      setApplicationStatus("PENDING");
       const refreshedData = await getPublicOfferById(offerId);
       setOffer(refreshedData);
       setToast({
@@ -830,11 +834,19 @@ export default function OfferDetailPage(): React.JSX.Element {
                   <div className="p-4 rounded-2xl bg-primary/10 border border-primary/20 text-center">
                     <div className="flex items-center justify-center gap-2 text-primary font-bold text-sm mb-1">
                       <Icon path={ICON_PATHS.checkCircle} size="sm" />
-                      <span>Proposal Submitted</span>
+                      <span>{APPLIED_COPY[applicationStatus].title}</span>
                     </div>
                     <p className="text-xs text-text-secondary">
-                      You have applied to this offer.
+                      {APPLIED_COPY[applicationStatus].detail}
                     </p>
+                    {applicationStatus === "ACCEPTED" && (
+                      <Link
+                        href="/app/orders"
+                        className="mt-3 inline-block text-xs font-bold text-primary hover:underline"
+                      >
+                        Go to your order
+                      </Link>
+                    )}
                   </div>
                 ) : (
                   <button
