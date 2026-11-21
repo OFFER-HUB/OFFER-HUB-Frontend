@@ -173,6 +173,7 @@ function toUser(payload: Record<string, unknown>): User {
   return {
     id: String(payload.id),
     email: readString(payload.email) ?? "",
+    isEmailVerified: typeof payload.isEmailVerified === "boolean" ? payload.isEmailVerified : undefined,
     username: readString(payload.username) ?? String(payload.id),
     firstName: readString(payload.firstName),
     lastName: readString(payload.lastName),

@@ -1,5 +1,10 @@
 "use client";
 
+import {
+  ATTACHMENT_ACCEPT,
+  ATTACHMENT_FORMATS_LABEL,
+  attachmentProblem,
+} from "@/lib/attachment-files";
 import { useState, useRef, useEffect } from "react";
 import { cn } from "@/lib/cn";
 import { NEUMORPHIC_CARD } from "@/lib/styles";
@@ -88,11 +93,11 @@ export function OrderDeliverablesCard({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      if (file.size > 10 * 1024 * 1024) {
-        setStatusMessage({
-          type: "error",
-          text: "File size exceeds 10MB limit. Please select a smaller file.",
-        });
+      const problem = attachmentProblem(file);
+      if (problem) {
+        setStatusMessage({ type: "error", text: problem });
+        setSelectedFile(null);
+        e.target.value = "";
         return;
       }
       setSelectedFile(file);
@@ -354,6 +359,9 @@ export function OrderDeliverablesCard({
                   Max 10MB • Cloud Storage
                 </span>
               </div>
+              <p className="text-[11px] text-text-secondary -mt-1">
+                Accepted: {ATTACHMENT_FORMATS_LABEL}. Put anything else, like source code, in a ZIP.
+              </p>
 
               {/* Category Selector with Raised Neumorphic Buttons */}
               <div>
@@ -396,6 +404,7 @@ export function OrderDeliverablesCard({
                   <input
                     ref={fileInputRef}
                     type="file"
+                    accept={ATTACHMENT_ACCEPT}
                     onChange={handleFileChange}
                     className="w-full text-xs text-text-secondary file:mr-3 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-white file:text-primary file:shadow-[2px_2px_5px_#d1d5db,-2px_-2px_5px_#ffffff] hover:file:shadow-[1px_1px_3px_#d1d5db] file:cursor-pointer cursor-pointer"
                   />
