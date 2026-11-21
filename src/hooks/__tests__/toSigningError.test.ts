@@ -17,4 +17,10 @@ describe("toSigningError", () => {
   it("falls back to API_ERROR with a default message", () => {
     expect(toSigningError(null)).toEqual({ code: "API_ERROR", message: "The request failed. Please try again." });
   });
+
+  it("treats a Stellar tx_too_late rejection as an expired request", () => {
+    expect(
+      toSigningError({ code: "API_ERROR", message: "Transaction rejected by Stellar: tx_too_late" }).code,
+    ).toBe("XDR_EXPIRED");
+  });
 });

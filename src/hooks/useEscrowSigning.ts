@@ -112,6 +112,12 @@ export function toSigningError(cause: unknown): EscrowSigningError {
   // an unclassified failure. Carrying the real code through lets the modal
   // show that instead of its generic "check your connection/XLM" copy.
   if (apiCode === "STELLAR_NETWORK_ERROR") return { code: "STALE_TRANSACTION", message };
+  // Stellar refuses a transaction whose validity window has passed
+  // (`tx_too_late`) or whose sequence moved on (`tx_bad_seq`). Both mean the
+  // prepared XDR is no longer usable; Retry builds a fresh one.
+  if (/tx_too_late|tx_bad_seq/.test(message)) {
+    return { code: "XDR_EXPIRED", message: "This signing request expired. Please try again." };
+  }
   // On mainnet the API refuses money actions until the wallet can hold USDC
   // (OFFER-HUB-API #342); the modal then shows how to get it ready.
   if (isWalletNotReadyCode(apiCode)) return { code: apiCode, message };
