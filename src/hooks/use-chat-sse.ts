@@ -9,6 +9,15 @@ import type { SSEChatEvent } from "@/types/chat.types";
 const MIN_BACKOFF_MS = 1_000;
 const MAX_BACKOFF_MS = 30_000;
 const BACKOFF_MULTIPLIER = 2;
+const TYPING_VISIBLE_MS = 3_000;
+
+/** Server events after which the conversation is read again. */
+const CHAT_REFRESH_EVENTS = [
+  "chat.message_sent",
+  "chat.message_edited",
+  "chat.message_deleted",
+  "chat.read_receipt",
+] as const;
 
 interface UseChatSSEOptions {
   /** The conversation to subscribe to. Pass null/undefined to disconnect. */
@@ -36,6 +45,7 @@ export function useChatSSE({ conversationId }: UseChatSSEOptions): void {
     updateConversationLastMessage,
     incrementUnread,
     applyReadReceipt,
+    fetchMessages,
   } = useChatStore();
 
   // Stable refs so the connect function doesn't capture stale closures
@@ -148,6 +158,38 @@ export function useChatSSE({ conversationId }: UseChatSSEOptions): void {
       }
     });
 
+    // What the server really sends: events named after the catalog ("chat.message_sent"),
+    // carrying only ids, never the message text. The listeners above never fired for them,
+    // so a message was saved but the other person only saw it after reloading. On any change
+    // the conversation is read again from the server.
+    function readEnvelope(event: MessageEvent): { conversationId?: string; userId?: string } | null {
+      try {
+        const envelope = JSON.parse(event.data as string) as {
+          payload?: { conversationId?: string; userId?: string; senderId?: string };
+        };
+        const payload = envelope.payload;
+        if (!payload || payload.conversationId !== cid) return null;
+        return { conversationId: payload.conversationId, userId: payload.userId ?? payload.senderId };
+      } catch {
+        return null;
+      }
+    }
+
+    for (const name of CHAT_REFRESH_EVENTS) {
+      es.addEventListener(name, (event: MessageEvent) => {
+        if (!isMountedRef.current || !readEnvelope(event)) return;
+        void fetchMessages(cid);
+      });
+    }
+
+    es.addEventListener("chat.typing", (event: MessageEvent) => {
+      if (!isMountedRef.current) return;
+      const info = readEnvelope(event);
+      if (!info?.userId || info.userId === currentUserId) return;
+      setTyping(cid, info.userId, true);
+      setTimeout(() => setTyping(cid, info.userId as string, false), TYPING_VISIBLE_MS);
+    });
+
     es.onerror = () => {
       if (!isMountedRef.current) return;
 
@@ -218,6 +260,7 @@ export function useChatSSE({ conversationId }: UseChatSSEOptions): void {
     updateConversationLastMessage,
     incrementUnread,
     applyReadReceipt,
+    fetchMessages,
     currentUserId,
   ]);
 

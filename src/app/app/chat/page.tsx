@@ -6,10 +6,12 @@ import { Icon, ICON_PATHS } from "@/components/ui/Icon";
 import { ConversationList } from "@/components/chat/ConversationList";
 import { useSidebarStore } from "@/stores/sidebar-store";
 import { useChatStore } from "@/stores/chat-store";
+import { useStartConversation } from "@/hooks/use-start-conversation";
 
 export default function ChatPage(): React.JSX.Element {
   const { setCollapsed } = useSidebarStore();
   const { fetchConversations, conversations } = useChatStore();
+  const { isStarting, error: startError } = useStartConversation();
 
   useEffect(() => {
     setCollapsed(true);
@@ -50,10 +52,10 @@ export default function ChatPage(): React.JSX.Element {
           <Icon path={ICON_PATHS.chat} size="xl" className="text-primary" />
         </div>
         <h2 className="text-xl font-bold text-text-primary mb-2">
-          Your Messages
+          {isStarting ? "Opening conversation…" : "Your Messages"}
         </h2>
         <p className="text-text-secondary text-center max-w-xs text-sm">
-          Select a conversation from the list to start messaging
+          {startError ?? "Select a conversation from the list to start messaging"}
         </p>
       </div>
     </div>

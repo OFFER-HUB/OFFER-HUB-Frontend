@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { cn } from "@/lib/cn";
 import { Icon, ICON_PATHS } from "@/components/ui/Icon";
 import type { ChatUser } from "@/types/chat.types";
@@ -17,6 +18,8 @@ export function ChatHeader({
   onToggleInfo,
   showInfoButton = true,
 }: ChatHeaderProps) {
+  const router = useRouter();
+
   return (
     <div
       className={cn(
@@ -26,6 +29,21 @@ export function ChatHeader({
       )}
     >
       <div className="flex items-center gap-3 sm:gap-4">
+        {/* Back to the list of conversations */}
+        <button
+          type="button"
+          onClick={() => router.push("/app/chat")}
+          aria-label="Back to messages"
+          className={cn(
+            "p-2 rounded-lg cursor-pointer",
+            "text-text-secondary hover:text-text-primary",
+            "hover:bg-background",
+            "transition-all duration-200"
+          )}
+        >
+          <Icon path={ICON_PATHS.arrowLeft} size="md" />
+        </button>
+
         {/* Mobile menu button */}
         {onToggleSidebar && (
           <button

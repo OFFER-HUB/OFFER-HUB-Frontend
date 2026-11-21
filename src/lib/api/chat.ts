@@ -1,9 +1,17 @@
-import { httpGet, httpPost, httpPatch } from "@/services/http-client";
+import { httpGet, httpPost } from "@/services/http-client";
 import { API_URL } from "@/config/api";
+import { useAuthStore } from "@/stores/auth-store";
+import {
+  mapConversationsList,
+  mapMessage,
+  mapMessagesPage,
+} from "@/lib/chat-mappers";
 import type { ApiResponse } from "@/types/api-response.types";
 import type {
+  ApiConversation,
+  ApiMessage,
+  ApiMessagesPage,
   ChatMessage,
-  Conversation,
   ConversationsResponse,
   CreateConversationPayload,
   MessagesResponse,
@@ -11,19 +19,29 @@ import type {
 
 const BASE = `${API_URL}/conversations`;
 
-interface MarkConversationReadPayload {
-  lastReadMessageId?: string;
+/**
+ * The server answers `{ data }` on success and `{ error }` on failure, with no `ok` flag,
+ * while the chat store checks `res.ok`. This turns one into the other and maps the
+ * payload to the shapes the screens use.
+ */
+function adapt<Raw, Out>(res: ApiResponse<Raw>, map: (raw: Raw) => Out): ApiResponse<Out> {
+  const failed = res.ok === false || "error" in (res as object) || res.data == null;
+  if (failed) {
+    return { ...res, ok: false, data: null } as ApiResponse<Out>;
+  }
+  return { ...res, ok: true, data: map(res.data as Raw) } as ApiResponse<Out>;
 }
 
 /**
- * Fetch paginated conversations for the current user.
+ * Fetch the user's conversations. The server returns all of them at once.
  */
 export async function getConversations(
-  cursor?: string
+  // Kept for the store's "load more"; the endpoint has no pages.
+  _cursor?: string
 ): Promise<ApiResponse<ConversationsResponse>> {
-  return httpGet<ConversationsResponse>(BASE, {
-    params: cursor ? { cursor, limit: "20" } : { limit: "20" },
-  });
+  const res = await httpGet<ApiConversation[]>(BASE);
+  const me = useAuthStore.getState().user?.id;
+  return adapt(res, (list) => mapConversationsList(list, me));
 }
 
 /**
@@ -33,21 +51,22 @@ export async function getConversations(
  */
 export async function createConversation(
   payload: CreateConversationPayload
-): Promise<ApiResponse<Conversation>> {
-  return httpPost<Conversation>(BASE, payload);
+): Promise<ApiResponse<{ id: string }>> {
+  const res = await httpPost<{ id: string }>(BASE, payload);
+  return adapt(res, (conversation) => ({ id: conversation.id }));
 }
 
 /**
- * Fetch paginated messages for a conversation.
- * Messages are returned in ascending order (oldest first).
+ * Fetch a page of messages for a conversation, oldest first.
  */
 export async function getMessages(
   conversationId: string,
   cursor?: string
 ): Promise<ApiResponse<MessagesResponse>> {
-  return httpGet<MessagesResponse>(`${BASE}/${conversationId}/messages`, {
+  const res = await httpGet<ApiMessagesPage>(`${BASE}/${conversationId}/messages`, {
     params: cursor ? { cursor, limit: "30" } : { limit: "30" },
   });
+  return adapt(res, mapMessagesPage);
 }
 
 /**
@@ -57,9 +76,8 @@ export async function sendMessage(
   conversationId: string,
   content: string
 ): Promise<ApiResponse<ChatMessage>> {
-  return httpPost<ChatMessage>(`${BASE}/${conversationId}/messages`, {
-    content,
-  });
+  const res = await httpPost<ApiMessage>(`${BASE}/${conversationId}/messages`, { content });
+  return adapt(res, mapMessage);
 }
 
 /**
@@ -79,25 +97,15 @@ export async function sendTypingStatus(
 }
 
 /**
- * Mark all messages in a conversation as read.
- */
-export async function markConversationRead(
-  conversationId: string,
-  payload?: MarkConversationReadPayload
-): Promise<ApiResponse<null>> {
-  return httpPatch<null>(`${BASE}/${conversationId}/read`, payload);
-}
-
-/**
- * Mark messages as read up to an optional message ID.
+ * Mark messages as read, up to an optional message id (all of them otherwise).
  */
 export async function markMessagesAsRead(
   conversationId: string,
   lastReadMessageId?: string
 ): Promise<ApiResponse<null>> {
-  return markConversationRead(
-    conversationId,
-    lastReadMessageId ? { lastReadMessageId } : undefined
+  return httpPost<null>(
+    `${BASE}/${conversationId}/read`,
+    lastReadMessageId ? { messageId: lastReadMessageId } : undefined
   );
 }
 
@@ -108,13 +116,4 @@ export async function markMessagesAsRead(
  */
 export function getChatSSEUrl(conversationId: string, token: string): string {
   return `${API_URL}/conversations/${conversationId}/stream?token=${encodeURIComponent(token)}`;
-}
-
-/**
- * Fetch conversation detail (participant info etc.) by ID.
- */
-export async function getConversation(
-  conversationId: string
-): Promise<ApiResponse<Conversation>> {
-  return httpGet<Conversation>(`${BASE}/${conversationId}`);
 }
