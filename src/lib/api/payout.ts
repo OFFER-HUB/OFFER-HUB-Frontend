@@ -20,6 +20,10 @@ export interface PreparePayoutTransferResult {
   fiatAmount: string | null;
   fiatCurrency: string;
   corridor: string;
+  /** Local currency per USDC in this quote. Missing on older API versions. */
+  exchangeRate?: string | null;
+  /** BlindPay's fees for this quote, in USD. Null when the quote was reused; missing on older API versions. */
+  blindpayFeeUsd?: string | null;
 }
 
 export type PayoutApiError = Error & { code?: string; status?: number };

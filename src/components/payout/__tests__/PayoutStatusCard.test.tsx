@@ -25,7 +25,14 @@ vi.mock("@/hooks/use-wallet-kit", () => ({
 const mockSign = vi.fn();
 const mockReset = vi.fn();
 let mockSigningState: "idle" | "building" | "awaiting_signature" | "submitting" | "confirmed" | "error" = "idle";
-let mockPrepared: { fiatAmount: string; fiatCurrency: string; expiresAt: number } | null = null;
+let mockPrepared: {
+  fiatAmount: string;
+  fiatCurrency: string;
+  expiresAt: number;
+  usdcAmount?: string;
+  exchangeRate?: string;
+  blindpayFeeUsd?: string;
+} | null = null;
 
 vi.mock("@/hooks/usePayoutSigning", () => ({
   usePayoutSigning: () => ({
@@ -288,8 +295,31 @@ describe("PayoutStatusCard", () => {
     });
 
     expect(screen.getByText("Your signature is needed")).toBeInTheDocument();
-    expect(screen.getByText(/Sending as/)).toBeInTheDocument();
+    expect(screen.getByText("Arrives at your bank (est.)").nextElementSibling?.textContent).toBe("MX$1,850.00");
+    expect(screen.getByText(/Quote valid for/)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Sign & Send/ })).toBeInTheDocument();
+  });
+
+  it("shows what is sent, the rate and the BlindPay fee before the seller signs", async () => {
+    mockGetPayoutStatus.mockResolvedValue({
+      ...PENDING_PAYOUT,
+      status: "AWAITING_SIGNATURE",
+      usdcAmount: "11.36",
+      fiatAmount: "204.48",
+      exchangeRate: "18.0000",
+    });
+    mockPrepared = { usdcAmount: "11.36", fiatAmount: "204.48", fiatCurrency: "MXN", exchangeRate: "18.0000", blindpayFeeUsd: "0.25", expiresAt: Date.now() + 90_000 };
+
+    render(<PayoutStatusCard orderId="order_1" />);
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    const value = (label: string) => screen.getByText(label).nextElementSibling?.textContent;
+    expect(value("You send")).toBe("11.36 USDC");
+    expect(value("BlindPay fee")).toBe("$0.25");
+    expect(value("Exchange rate")).toBe("1 USDC = 18.00 MXN");
+    expect(value("Arrives at your bank (est.)")).toBe("MX$204.48");
   });
 
   it("signs directly when a wallet is already connected", async () => {

@@ -38,6 +38,7 @@ export type EscrowSigningErrorCode =
   | "NO_WALLET_CONNECTED"
   | "WRONG_SIGNER"
   | "STALE_TRANSACTION"
+  | "INSUFFICIENT_BALANCE"
   | WalletNotReadyCode
   | "API_ERROR";
 
@@ -112,6 +113,10 @@ export function toSigningError(cause: unknown): EscrowSigningError {
   // an unclassified failure. Carrying the real code through lets the modal
   // show that instead of its generic "check your connection/XLM" copy.
   if (apiCode === "STELLAR_NETWORK_ERROR") return { code: "STALE_TRANSACTION", message };
+  // The bank payout: the wallet can't fund it (the API names the missing
+  // amount), or the signed transfer went stale and a fresh one fixes it.
+  if (apiCode === "PAYOUT_INSUFFICIENT_BALANCE") return { code: "INSUFFICIENT_BALANCE", message };
+  if (apiCode === "PAYOUT_TRANSFER_REJECTED") return { code: "XDR_EXPIRED", message };
   // Stellar refuses a transaction whose validity window has passed
   // (`tx_too_late`) or whose sequence moved on (`tx_bad_seq`). Both mean the
   // prepared XDR is no longer usable; Retry builds a fresh one.
