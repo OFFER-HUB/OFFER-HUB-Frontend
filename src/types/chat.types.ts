@@ -118,3 +118,39 @@ export interface CreateConversationPayload {
   /** ID of the user to start a conversation with. */
   participantId: string;
 }
+
+// ─── Raw API shapes (what the server really returns) ───────────────────────
+
+export interface ApiChatUser {
+  id: string;
+  externalUserId?: string | null;
+  username?: string | null;
+  firstName?: string | null;
+  lastName?: string | null;
+  avatarUrl?: string | null;
+  professionalTitle?: string | null;
+}
+
+export interface ApiConversation {
+  id: string;
+  lastMessageAt: string | null;
+  lastMessagePreview: string | null;
+  createdAt: string;
+  unreadCount: number;
+  participants: { userId: string; user: ApiChatUser }[];
+}
+
+export interface ApiMessage {
+  id: string;
+  content: string;
+  createdAt: string;
+  readAt: string | null;
+  sender: ApiChatUser;
+}
+
+export interface ApiMessagesPage {
+  /** Newest first, as the server returns them. */
+  items: ApiMessage[];
+  nextCursor: string | null;
+  hasMore: boolean;
+}

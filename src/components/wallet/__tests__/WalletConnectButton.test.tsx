@@ -10,8 +10,10 @@ vi.mock("@creit.tech/stellar-wallets-kit", () => ({
 }));
 
 const mockDisconnectWalletApi = vi.fn();
+const mockListWallets = vi.fn();
 vi.mock("@/lib/api/wallet-connect", () => ({
   disconnectWallet: (...args: unknown[]) => mockDisconnectWalletApi(...args),
+  listWallets: (...args: unknown[]) => mockListWallets(...args),
 }));
 
 vi.mock("@/components/wallet/WalletConnectModal", () => ({
@@ -20,6 +22,7 @@ vi.mock("@/components/wallet/WalletConnectModal", () => ({
 
 const mockDisconnectWallet = vi.fn();
 const mockSetPrimaryWallet = vi.fn();
+const mockLogout = vi.fn().mockResolvedValue(undefined);
 let mockUser: { id: string; wallet?: { id: string; publicKey: string; type: string } } | null = null;
 let mockToken: string | null = "jwt-token";
 
@@ -32,6 +35,7 @@ vi.mock("@/stores/auth-store", () => ({
       hasHydrated: boolean;
       disconnectWallet: typeof mockDisconnectWallet;
       setPrimaryWallet: typeof mockSetPrimaryWallet;
+      logout: typeof mockLogout;
     }) => unknown
   ) =>
     selector({
@@ -41,6 +45,7 @@ vi.mock("@/stores/auth-store", () => ({
       hasHydrated: true,
       disconnectWallet: mockDisconnectWallet,
       setPrimaryWallet: mockSetPrimaryWallet,
+      logout: mockLogout,
     }),
 }));
 
@@ -78,6 +83,49 @@ describe("WalletConnectButton", () => {
 
     await waitFor(() => expect(mockDisconnectWalletApi).toHaveBeenCalledWith("jwt-token", "wal_1"));
     expect(mockSetPrimaryWallet).toHaveBeenCalledWith(undefined);
+  });
+
+  it("ends the session when the user signed in with this very wallet", async () => {
+    const payload = btoa(JSON.stringify({ sub: "usr_1", walletAddress: LINKED_WALLET.publicKey }))
+      .replace(/\+/g, "-")
+      .replace(/\//g, "_")
+      .replace(/=+$/, "");
+    mockToken = `header.${payload}.signature`;
+    const original = window.location;
+    Object.defineProperty(window, "location", { value: { href: "" }, writable: true, configurable: true });
+
+    const user = userEvent.setup();
+    render(<WalletConnectButton />);
+    await user.click(screen.getByRole("button", { name: /GDRX...UJUJ/ }));
+    await user.click(await screen.findByText("Disconnect"));
+
+    await waitFor(() => expect(mockLogout).toHaveBeenCalled());
+    expect(mockDisconnectWalletApi).not.toHaveBeenCalled();
+    Object.defineProperty(window, "location", { value: original, writable: true, configurable: true });
+  });
+
+  it("looks the wallet id up when the stored session has none", async () => {
+    mockUser = { id: "usr_1", wallet: { publicKey: LINKED_WALLET.publicKey, type: "EXTERNAL" } as never };
+    mockListWallets.mockResolvedValue([{ id: "wal_9", publicKey: LINKED_WALLET.publicKey }]);
+
+    const user = userEvent.setup();
+    render(<WalletConnectButton />);
+    await user.click(screen.getByRole("button", { name: /GDRX...UJUJ/ }));
+    await user.click(await screen.findByText("Disconnect"));
+
+    await waitFor(() => expect(mockDisconnectWalletApi).toHaveBeenCalledWith("jwt-token", "wal_9"));
+  });
+
+  it("tells the user when disconnecting fails instead of staying silent", async () => {
+    mockDisconnectWalletApi.mockRejectedValue(new Error("Wallet not found"));
+
+    const user = userEvent.setup();
+    render(<WalletConnectButton />);
+    await user.click(screen.getByRole("button", { name: /GDRX...UJUJ/ }));
+    await user.click(await screen.findByText("Disconnect"));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("Wallet not found");
+    expect(mockSetPrimaryWallet).not.toHaveBeenCalled();
   });
 
   it("still clears the local SWK session even when the account has no linked wallet to unlink", async () => {

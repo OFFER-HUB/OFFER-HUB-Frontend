@@ -9,7 +9,8 @@ import { WalletAddress } from "@/components/ui/WalletAddress";
 import { WalletConnectModal } from "@/components/wallet/WalletConnectModal";
 import { DROPDOWN_MENU, DROPDOWN_ITEM_DANGER } from "@/lib/styles";
 import { useAuthStore } from "@/stores/auth-store";
-import { disconnectWallet as disconnectWalletApi } from "@/lib/api/wallet-connect";
+import { disconnectWallet as disconnectWalletApi, listWallets } from "@/lib/api/wallet-connect";
+import { decodeSessionToken } from "@/lib/jwt";
 
 export interface WalletConnectButtonProps {
   /**
@@ -61,7 +62,9 @@ export function WalletConnectButton({
   const hasHydrated = useAuthStore((state) => state.hasHydrated);
   const disconnectWallet = useAuthStore((state) => state.disconnectWallet);
   const setPrimaryWallet = useAuthStore((state) => state.setPrimaryWallet);
+  const logout = useAuthStore((state) => state.logout);
   const [isDisconnecting, setIsDisconnecting] = useState(false);
+  const [disconnectError, setDisconnectError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isMenuOpen) return;
@@ -89,22 +92,48 @@ export function WalletConnectButton({
   }, [isMenuOpen]);
 
   async function handleDisconnect(): Promise<void> {
-    // Unlink the account's actual wallet server-side — clearing only the
-    // local SWK session (below) left the header showing a real, backend-
-    // linked wallet as still connected no matter how many times "Disconnect"
-    // was clicked, because nothing had ever asked the backend to drop it.
-    const walletId = user?.wallet?.id;
-    if (walletId && token) {
+    setDisconnectError(null);
+
+    // Signed in WITH this wallet: the session itself comes from it, so "disconnect" can
+    // only mean ending the session. Unlinking it from the account would leave the user
+    // inside an account with no wallet, and the button looked like it did nothing.
+    const sessionWallet = token ? decodeSessionToken(token)?.walletAddress : undefined;
+    if (sessionWallet && sessionWallet === user?.wallet?.publicKey) {
       setIsDisconnecting(true);
       try {
-        await disconnectWalletApi(token, walletId);
-        setPrimaryWallet(undefined);
+        await StellarWalletsKit.disconnect();
       } catch (error) {
-        console.error("Failed to disconnect wallet from the account:", error);
-      } finally {
-        setIsDisconnecting(false);
+        console.error("Failed to disconnect the wallet from Stellar Wallets Kit:", error);
       }
+      await logout();
+      window.location.href = "/";
+      return;
     }
+
+    // Signed in another way (email or OAuth) with a wallet linked: unlink it server-side.
+    // Clearing only the local session left the header showing a wallet the backend
+    // still had linked.
+    if (!token || !user?.wallet) return;
+    setIsDisconnecting(true);
+    try {
+      // Sessions stored before wallets had ids carry no id: look it up.
+      const walletId =
+        user.wallet.id ??
+        (await listWallets(token)).find((w) => w.publicKey === user.wallet?.publicKey)?.id;
+      if (!walletId) {
+        throw new Error("We could not find this wallet on your account.");
+      }
+      await disconnectWalletApi(token, walletId);
+      setPrimaryWallet(undefined);
+    } catch (error) {
+      console.error("Failed to disconnect wallet from the account:", error);
+      setDisconnectError(
+        error instanceof Error ? error.message : "We could not disconnect this wallet. Try again."
+      );
+      setIsDisconnecting(false);
+      return;
+    }
+    setIsDisconnecting(false);
 
     try {
       await StellarWalletsKit.disconnect();
@@ -177,6 +206,11 @@ export function WalletConnectButton({
               <Icon path={ICON_PATHS.logout} size="sm" />
               {isDisconnecting ? "Disconnecting..." : "Disconnect"}
             </button>
+            {disconnectError && (
+              <p role="alert" className="text-xs text-error">
+                {disconnectError}
+              </p>
+            )}
           </>
         )}
 
@@ -257,6 +291,11 @@ export function WalletConnectButton({
                     <span>{isDisconnecting ? "Disconnecting..." : "Disconnect"}</span>
                   </div>
                 </button>
+                {disconnectError && (
+                  <p role="alert" className="px-4 pt-2 text-xs text-error">
+                    {disconnectError}
+                  </p>
+                )}
               </div>
             </div>
           )}
