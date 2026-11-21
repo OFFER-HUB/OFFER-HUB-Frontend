@@ -1,3 +1,5 @@
+import type { FeeBreakdown } from './fees.types';
+
 export type OrderStatus =
   | 'ORDER_CREATED'
   | 'FUNDS_RESERVED'
@@ -58,6 +60,8 @@ export interface Order {
   };
   escrow?: OrderEscrow;
   milestones?: Milestone[];
+  /** Fees and what the freelancer receives. Missing on older API versions. */
+  feeBreakdown?: FeeBreakdown;
   metadata?: {
     attachments?: OrderAttachment[];
     notes?: OrderProjectNote[];

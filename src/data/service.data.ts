@@ -1,9 +1,11 @@
 import type { Service, ServiceCategory, ServiceFormData, ServiceFormErrors, ServiceOrder } from "@/types/service.types";
+import { MIN_ORDER_AMOUNT, MIN_ORDER_AMOUNT_LABEL, MIN_ORDER_AMOUNT_REASON } from "@/lib/fees";
 
 export const MIN_TITLE_LENGTH = 10;
 export const MIN_DESCRIPTION_LENGTH = 50;
 export const MAX_DESCRIPTION_LENGTH = 2000;
-export const MIN_PRICE = 10;
+/** Smallest price: the freelancer must still net $10 after fees (see lib/fees). */
+export const MIN_PRICE = MIN_ORDER_AMOUNT;
 export const MIN_DELIVERY_DAYS = 1;
 export const MAX_DELIVERY_DAYS = 90;
 
@@ -177,7 +179,7 @@ export function validateServiceForm(data: ServiceFormData): ServiceFormErrors {
   }
 
   if (!data.price || data.price < MIN_PRICE) {
-    errors.price = `Price must be at least $${MIN_PRICE}`;
+    errors.price = `Price must be at least ${MIN_ORDER_AMOUNT_LABEL}, ${MIN_ORDER_AMOUNT_REASON}`;
   }
 
   if (!data.deliveryDays || data.deliveryDays < MIN_DELIVERY_DAYS) {

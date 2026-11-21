@@ -29,6 +29,8 @@ import {
   ALLOWED_DOC_TYPES,
   validateOfferForm,
 } from "@/data/client-offer.data";
+import { FeeBreakdownNote } from "@/components/fees/FeeBreakdownNote";
+import { MIN_ORDER_AMOUNT_LABEL } from "@/lib/fees";
 
 const API_CATEGORIES: { value: OfferCategory | ""; label: string }[] = [
   { value: "", label: "Select a category" },
@@ -423,12 +425,13 @@ export default function CreateOfferPage(): React.JSX.Element {
                     value={formData.budget}
                     onChange={handleChange}
                     min={MIN_BUDGET}
-                    step="1"
+                    step="0.01"
                     className={cn(NEUMORPHIC_INPUT, "pl-8 text-base font-bold", errors.budget && INPUT_ERROR_STYLES)}
                     placeholder="500"
                   />
                 </div>
                 {errors.budget && <p className="text-xs text-error font-medium">{errors.budget}</p>}
+                <FeeBreakdownNote amount={formData.budget} audience="client" showRefundNote />
 
                 {/* Budget preset chips */}
                 <div className="flex flex-wrap gap-1.5 pt-1">
@@ -587,7 +590,7 @@ export default function CreateOfferPage(): React.JSX.Element {
                     className={checklist.budget ? "text-success" : "text-border"}
                   />
                   <span className={checklist.budget ? "text-text-primary font-medium" : "text-text-secondary"}>
-                    Budget (min $10)
+                    Budget (min {MIN_ORDER_AMOUNT_LABEL})
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
