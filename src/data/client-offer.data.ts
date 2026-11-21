@@ -5,6 +5,7 @@ import type {
   FormErrors,
 } from "@/types/client-offer.types";
 import { MOCK_API_DELAY } from "@/lib/constants";
+import { MIN_ORDER_AMOUNT, MIN_ORDER_AMOUNT_LABEL, MIN_ORDER_AMOUNT_REASON } from "@/lib/fees";
 
 export const CATEGORIES = [
   { value: "", label: "Select a category" },
@@ -33,7 +34,8 @@ export const INITIAL_FORM_DATA: OfferFormData = {
 
 export const MIN_TITLE_LENGTH = 10;
 export const MIN_DESCRIPTION_LENGTH = 50;
-export const MIN_BUDGET = 10;
+/** Smallest budget: the freelancer must still net $10 after fees (see lib/fees). */
+export const MIN_BUDGET = MIN_ORDER_AMOUNT;
 export { MOCK_API_DELAY };
 export const MAX_FILE_SIZE = 10 * 1024 * 1024;
 export const MAX_ATTACHMENTS = 5;
@@ -65,7 +67,7 @@ export function validateOfferForm(formData: OfferFormData, originalDeadline?: st
   } else {
     const budgetNum = parseFloat(formData.budget);
     if (isNaN(budgetNum) || budgetNum < MIN_BUDGET) {
-      errors.budget = `Budget must be at least $${MIN_BUDGET}`;
+      errors.budget = `Budget must be at least ${MIN_ORDER_AMOUNT_LABEL}, ${MIN_ORDER_AMOUNT_REASON}`;
     }
   }
 

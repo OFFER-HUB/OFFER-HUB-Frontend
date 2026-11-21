@@ -26,6 +26,8 @@ import {
   validateServiceForm,
 } from "@/data/service.data";
 import type { ServiceCategory, ServiceFormData, ServiceFormErrors } from "@/types/service.types";
+import { FeeBreakdownNote } from "@/components/fees/FeeBreakdownNote";
+import { MIN_ORDER_AMOUNT_LABEL } from "@/lib/fees";
 
 const INITIAL_FORM_DATA: ServiceFormData = {
   title: "",
@@ -305,12 +307,13 @@ export default function CreateServicePage(): React.JSX.Element {
                         value={formData.price || ""}
                         onChange={handleChange}
                         min={MIN_PRICE}
-                        step="1"
+                        step="0.01"
                         className={cn(NEUMORPHIC_INPUT, "pl-8 text-base font-bold", errors.price && INPUT_ERROR_STYLES)}
                         placeholder="50"
                       />
                     </div>
                   </FormField>
+                  <FeeBreakdownNote amount={formData.price || null} audience="freelancer" />
 
                   {/* Preset chips */}
                   <div className="flex flex-wrap gap-1.5 pt-1">
@@ -494,7 +497,7 @@ export default function CreateServicePage(): React.JSX.Element {
                     className={checklist.price ? "text-success" : "text-border"}
                   />
                   <span className={checklist.price ? "text-text-primary font-medium" : "text-text-secondary"}>
-                    Price at least $10
+                    Price at least {MIN_ORDER_AMOUNT_LABEL}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">

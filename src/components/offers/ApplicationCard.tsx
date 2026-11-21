@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { cn } from "@/lib/cn";
 import { Icon, ICON_PATHS } from "@/components/ui/Icon";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
+import { FeeBreakdownNote } from "@/components/fees/FeeBreakdownNote";
 import type { Application } from "@/types/application.types";
 import { APPLICATION_STATUS_CONFIG } from "@/types/application.types";
 import { formatDate } from "@/lib/date-formatters";
@@ -222,7 +223,17 @@ export function ApplicationCard({
         onClose={() => setShowAcceptModal(false)}
         onConfirm={handleAccept}
         title="Accept Application"
-        message={`Are you sure you want to accept ${freelancerName}'s application? This will notify the freelancer.`}
+        message={
+          <div className="space-y-3 text-left">
+            <p>{`Are you sure you want to accept ${freelancerName}'s application? This will notify the freelancer.`}</p>
+            {/* The order is created for the proposed rate, or the offer budget when there is none. */}
+            <FeeBreakdownNote
+              amount={application.proposedRate || application.offer?.budget}
+              audience="client"
+              showRefundNote
+            />
+          </div>
+        }
         confirmText="Accept"
         variant="info"
         isLoading={isProcessing}

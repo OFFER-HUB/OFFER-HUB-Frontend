@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { cn } from "@/lib/cn";
 import { Icon, ICON_PATHS, LoadingSpinner } from "@/components/ui/Icon";
 import type { MarketplaceService } from "@/lib/api/marketplace";
+import { FeeBreakdownNote } from "@/components/fees/FeeBreakdownNote";
 
 export interface HireServiceModalProps {
   isOpen: boolean;
@@ -162,6 +163,9 @@ export function HireServiceModal({
               </span>
             </div>
           </div>
+
+          {/* What reaches the freelancer after the escrow fees */}
+          <FeeBreakdownNote amount={service.price} audience="client" showRefundNote className="mt-3" />
         </div>
 
         {/* Hire Form */}

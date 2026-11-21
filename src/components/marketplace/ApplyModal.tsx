@@ -3,6 +3,8 @@
 import React, { useState } from "react";
 import { MIN_BUDGET } from '@/data/client-offer.data';
 import { cn } from "@/lib/cn";
+import { MIN_ORDER_AMOUNT_LABEL, MIN_ORDER_AMOUNT_REASON } from "@/lib/fees";
+import { FeeBreakdownNote } from "@/components/fees/FeeBreakdownNote";
 import { Icon, ICON_PATHS, LoadingSpinner } from "@/components/ui/Icon";
 import { FormField } from "@/components/ui/FormField";
 
@@ -40,7 +42,7 @@ export function ApplyModal({
     if (proposedRate && !/^\d+(\.\d{1,2})?$/.test(proposedRate)) {
       newErrors.proposedRate = 'Invalid rate format';
     } else if (proposedRate && parseFloat(proposedRate) < MIN_BUDGET) {
-      newErrors.proposedRate = `Proposed rate must be at least $${MIN_BUDGET}`;
+      newErrors.proposedRate = `Proposed rate must be at least ${MIN_ORDER_AMOUNT_LABEL}, ${MIN_ORDER_AMOUNT_REASON}`;
     }
 
     setErrors(newErrors);
@@ -129,7 +131,7 @@ export function ApplyModal({
           <FormField
             label="Proposed Rate (Optional)"
             error={errors.proposedRate}
-            hint={`Your proposed project rate (USD), at least $${MIN_BUDGET}`}
+            hint={`Your proposed project rate (USD), at least ${MIN_ORDER_AMOUNT_LABEL}`}
             optional
           >
             <div className="relative">
@@ -148,6 +150,9 @@ export function ApplyModal({
               />
             </div>
           </FormField>
+
+          {/* What reaches the freelancer after fees, for the rate typed (or the offer budget) */}
+          <FeeBreakdownNote amount={proposedRate || offerBudget} audience="freelancer" />
 
           {/* Actions */}
           <div className="flex gap-3 pt-4">

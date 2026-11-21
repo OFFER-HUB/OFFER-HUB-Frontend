@@ -13,6 +13,7 @@ import { BuyerActionPanel } from "@/components/orders/BuyerActionPanel";
 import { EscrowDetailsCard } from "@/components/orders/EscrowDetailsCard";
 import { OpenDisputeModal } from "@/components/orders/OpenDisputeModal";
 import { OrderDescriptionCard } from "@/components/orders/OrderDescriptionCard";
+import { OrderFinancialSummary } from "@/components/orders/OrderFinancialSummary";
 import { OrderDeliverablesCard } from "@/components/orders/OrderDeliverablesCard";
 import { MilestonePaymentStatusCard } from "@/components/orders/MilestonePaymentStatusCard";
 import { OrderDetailLoading } from "@/components/orders/OrderDetailLoading";
@@ -32,7 +33,6 @@ import { WalletConnectModal } from "@/components/wallet/WalletConnectModal";
 import { currentWalletName } from "@/hooks/useEscrowSigningAction";
 import { useAuthStore } from "@/stores/auth-store";
 import { cn } from "@/lib/cn";
-import { NEUMORPHIC_CARD } from "@/lib/styles";
 
 const ORDERS_ROUTE = "/app/orders";
 
@@ -91,7 +91,6 @@ export default function OrderDetailPage(): React.JSX.Element {
   if (!order) return <OrderNotFoundCard />;
 
   const step = resolveOrderStep(order.status);
-  const amount = parseFloat(order.amount);
 
   return (
     <div className="max-w-[1340px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
@@ -230,36 +229,7 @@ export default function OrderDetailPage(): React.JSX.Element {
           )}
 
           {/* Order Financial & Security Overview */}
-          <div className={cn(NEUMORPHIC_CARD, "p-6 space-y-4")}>
-            <div className="flex items-center justify-between pb-3">
-              <span className="text-xs font-bold uppercase tracking-wider text-text-secondary">
-                Financial Summary
-              </span>
-              <span className="text-xs font-mono font-bold text-text-primary">
-                ${amount.toFixed(2)} USD
-              </span>
-            </div>
-
-            <div className="space-y-2.5 text-xs">
-              <div className="flex items-center justify-between text-text-secondary">
-                <span>Agreed Project Price:</span>
-                <span className="font-semibold text-text-primary font-mono">${amount.toFixed(2)}</span>
-              </div>
-              <div className="flex items-center justify-between text-text-secondary">
-                <span>Escrow Smart Contract:</span>
-                <span className="font-semibold text-emerald-600">Included</span>
-              </div>
-              <div className="flex items-center justify-between text-text-secondary">
-                <span>Payment Settlement:</span>
-                <span className="font-semibold text-text-primary">Stellar Blockchain</span>
-              </div>
-            </div>
-
-            <div className="pt-3 flex items-start gap-2 text-[11px] text-text-secondary leading-relaxed">
-              <Icon path={ICON_PATHS.lock} size="sm" className="text-primary flex-shrink-0 mt-0.5" />
-              <span>Funds remain safely held in smart escrow until the order is signed off.</span>
-            </div>
-          </div>
+          <OrderFinancialSummary order={order} isBuyer={roles.isBuyer} />
 
           {/* Counterparty Card (Freelancer / Client) */}
           <OrderParticipantCard

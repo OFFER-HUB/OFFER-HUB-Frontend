@@ -14,18 +14,23 @@ function form(budget: string): OfferFormData {
   };
 }
 
+const BELOW_MIN =
+  "Budget must be at least $10.56, so the freelancer still receives at least $10 after fees and can cash it out to a bank";
+
 describe("offer budget validation", () => {
-  it("sets the minimum at $10", () => {
-    expect(MIN_BUDGET).toBe(10);
+  it("sets the minimum at $10.56, the smallest amount that nets the $10 BlindPay payout minimum after fees", () => {
+    expect(MIN_BUDGET).toBe(10.56);
   });
 
-  it("accepts $10", () => {
-    expect(validateOfferForm(form("10")).budget).toBeUndefined();
+  it("accepts $10.56 and more", () => {
+    expect(validateOfferForm(form("10.56")).budget).toBeUndefined();
+    expect(validateOfferForm(form("12")).budget).toBeUndefined();
   });
 
-  it("rejects less than $10", () => {
-    expect(validateOfferForm(form("9.99")).budget).toBe("Budget must be at least $10");
-    expect(validateOfferForm(form("0")).budget).toBe("Budget must be at least $10");
+  it("rejects less than $10.56, saying why", () => {
+    expect(validateOfferForm(form("10.55")).budget).toBe(BELOW_MIN);
+    expect(validateOfferForm(form("10")).budget).toBe(BELOW_MIN);
+    expect(validateOfferForm(form("0")).budget).toBe(BELOW_MIN);
   });
 
   it("has no maximum", () => {
