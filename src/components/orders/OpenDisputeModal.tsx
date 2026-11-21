@@ -5,6 +5,7 @@ import { cn } from "@/lib/cn";
 import { NEUMORPHIC_CARD, NEUMORPHIC_INSET, PRIMARY_BUTTON, DANGER_BUTTON } from "@/lib/styles";
 import { Icon, ICON_PATHS, LoadingSpinner } from "@/components/ui/Icon";
 import type { OpenDisputePayload } from "@/lib/api/orders";
+import { DisputeFeeNotice } from "@/components/disputes/DisputeFeeNotice";
 
 export type DisputeReason = OpenDisputePayload["reason"];
 
@@ -17,6 +18,8 @@ const REASON_LABELS: Record<DisputeReason, string> = {
 interface OpenDisputeModalProps {
   isOpen: boolean;
   orderTitle: string;
+  /** Shows what a full refund or release really pays after the contract fees. */
+  orderAmount?: string;
   onClose: () => void;
   onSubmit: (reason: DisputeReason, description: string) => Promise<void>;
 }
@@ -24,6 +27,7 @@ interface OpenDisputeModalProps {
 export function OpenDisputeModal({
   isOpen,
   orderTitle,
+  orderAmount,
   onClose,
   onSubmit,
 }: OpenDisputeModalProps): React.JSX.Element | null {
@@ -180,6 +184,8 @@ export function OpenDisputeModal({
                         arbitration team will review the case which may take up to 72 hours. Are you
                         sure you want to proceed?
                       </p>
+
+                      <DisputeFeeNotice orderAmount={orderAmount} />
 
                       <div className={cn("p-4 rounded-xl", NEUMORPHIC_INSET)}>
                         <h4 className="text-sm font-medium text-text-primary mb-1">

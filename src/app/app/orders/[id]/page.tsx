@@ -254,6 +254,7 @@ export default function OrderDetailPage(): React.JSX.Element {
       <OpenDisputeModal
         isOpen={modals.isDisputeModalOpen && !actions.disputeSigning.isSigningModalOpen}
         orderTitle={order.title}
+        orderAmount={order.amount}
         onClose={modals.closeDisputeModal}
         onSubmit={actions.handleOpenDispute}
       />
