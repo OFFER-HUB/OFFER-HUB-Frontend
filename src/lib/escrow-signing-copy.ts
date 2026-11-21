@@ -154,6 +154,13 @@ export function errorCopy(error: EscrowSigningError): {
         actionHint:
           "Soroban transactions expire after 4 minutes for security reasons. Click Retry below to generate a fresh transaction for your wallet.",
       };
+    case "INSUFFICIENT_BALANCE":
+      return {
+        title: "Not enough funds in your wallet",
+        message: error.message,
+        actionHint:
+          "No funds were moved. Add the missing amount to the wallet you sign with, then click Retry.",
+      };
     case "WRONG_SIGNER":
       return {
         title: "Not your turn yet",

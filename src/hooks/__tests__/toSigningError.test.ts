@@ -18,6 +18,18 @@ describe("toSigningError", () => {
     expect(toSigningError(null)).toEqual({ code: "API_ERROR", message: "The request failed. Please try again." });
   });
 
+  it("keeps the API's missing-balance message for a payout the wallet can't fund", () => {
+    const message = "This payout needs 12.00 USDC and your wallet holds 11.364. Add 0.636 USDC to your wallet and try again.";
+    expect(toSigningError({ code: "PAYOUT_INSUFFICIENT_BALANCE", message })).toEqual({
+      code: "INSUFFICIENT_BALANCE",
+      message,
+    });
+  });
+
+  it("treats a rejected payout transfer as expired, so Retry signs a fresh one", () => {
+    expect(toSigningError({ code: "PAYOUT_TRANSFER_REJECTED", message: "stale" }).code).toBe("XDR_EXPIRED");
+  });
+
   it("treats a Stellar tx_too_late rejection as an expired request", () => {
     expect(
       toSigningError({ code: "API_ERROR", message: "Transaction rejected by Stellar: tx_too_late" }).code,

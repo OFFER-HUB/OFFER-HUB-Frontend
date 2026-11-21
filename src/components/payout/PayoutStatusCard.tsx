@@ -15,6 +15,7 @@ import { usePayoutSigning } from "@/hooks/usePayoutSigning";
 import { currentWalletName } from "@/hooks/useEscrowSigningAction";
 import { EscrowSigningModal } from "@/components/escrow/EscrowSigningModal";
 import { WalletConnectModal } from "@/components/wallet/WalletConnectModal";
+import { PayoutEstimate } from "@/components/payout/PayoutEstimate";
 
 const POLL_INTERVAL_MS = 5000;
 
@@ -420,12 +421,16 @@ export function PayoutStatusCard({ orderId, className }: PayoutStatusCardProps):
               Your signature is needed to send the funds — your connected wallet is non-custodial, so
               OfferHub can't sign this transfer on your behalf.
             </p>
-            {signing.prepared?.fiatAmount && (
+            <PayoutEstimate
+              usdcAmount={signing.prepared?.usdcAmount ?? payout.usdcAmount}
+              fiatAmount={signing.prepared?.fiatAmount ?? payout.fiatAmount}
+              fiatCurrency={signing.prepared?.fiatCurrency ?? payout.fiatCurrency}
+              exchangeRate={signing.prepared?.exchangeRate ?? payout.exchangeRate}
+              blindpayFeeUsd={signing.prepared?.blindpayFeeUsd ?? null}
+            />
+            {signing.prepared?.expiresAt && (
               <p className="text-xs text-text-secondary">
-                Sending as {formatFiat(signing.prepared.fiatAmount, signing.prepared.fiatCurrency)}
-                {signing.prepared.expiresAt && (
-                  <> — quote valid for {formatCountdown(signing.prepared.expiresAt)}</>
-                )}
+                Quote valid for {formatCountdown(signing.prepared.expiresAt)}
               </p>
             )}
             <button type="button" onClick={handleSignClick} className={cn(PRIMARY_BUTTON, "justify-center")}>
