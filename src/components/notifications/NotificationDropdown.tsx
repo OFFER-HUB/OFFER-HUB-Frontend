@@ -24,6 +24,7 @@ export function NotificationDropdown({
     isLoading,
     isLoadingMore,
     isMutating,
+    error,
     fetchNotifications,
     fetchMore,
     markAsRead,
@@ -113,6 +114,18 @@ export function NotificationDropdown({
         {isLoading ? (
           <div className="flex items-center justify-center py-10">
             <LoadingSpinner size="md" className="text-primary" />
+          </div>
+        ) : error && notifications.length === 0 ? (
+          /* Error state */
+          <div role="alert" className="flex flex-col items-center justify-center py-10 px-4 gap-3">
+            <p className="text-sm font-semibold text-text-primary">{error}</p>
+            <button
+              type="button"
+              onClick={fetchNotifications}
+              className="text-xs font-medium text-primary hover:text-primary/70 transition-colors"
+            >
+              Try again
+            </button>
           </div>
         ) : notifications.length === 0 ? (
           /* Empty state */

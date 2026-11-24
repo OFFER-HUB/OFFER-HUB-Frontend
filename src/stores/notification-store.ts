@@ -14,6 +14,7 @@ interface NotificationState {
   isLoading: boolean;
   isLoadingMore: boolean;
   isMutating: boolean;
+  error: string | null;
 
   // Actions
   fetchNotifications: () => Promise<void>;
@@ -24,6 +25,8 @@ interface NotificationState {
   incrementUnread: () => void;
 }
 
+const NOTIFICATIONS_ERROR = "We couldn't load your notifications.";
+
 export const useNotificationStore = create<NotificationState>()((set, get) => ({
   notifications: [],
   unreadCount: 0,
@@ -32,9 +35,10 @@ export const useNotificationStore = create<NotificationState>()((set, get) => ({
   isLoading: false,
   isLoadingMore: false,
   isMutating: false,
+  error: null,
 
   fetchNotifications: async () => {
-    set({ isLoading: true });
+    set({ isLoading: true, error: null });
     const res = await getNotifications();
     if (res.ok && res.data) {
       set({
@@ -43,6 +47,8 @@ export const useNotificationStore = create<NotificationState>()((set, get) => ({
         hasMore: res.data.hasMore,
         nextCursor: res.data.nextCursor,
       });
+    } else {
+      set({ error: NOTIFICATIONS_ERROR });
     }
     set({ isLoading: false });
   },
@@ -51,7 +57,7 @@ export const useNotificationStore = create<NotificationState>()((set, get) => ({
     const { isLoadingMore, hasMore, nextCursor, notifications } = get();
     if (isLoadingMore || !hasMore) return;
 
-    set({ isLoadingMore: true });
+    set({ isLoadingMore: true, error: null });
     const res = await getNotifications(nextCursor);
     if (res.ok && res.data) {
       set({
@@ -59,6 +65,8 @@ export const useNotificationStore = create<NotificationState>()((set, get) => ({
         hasMore: res.data.hasMore,
         nextCursor: res.data.nextCursor,
       });
+    } else {
+      set({ error: NOTIFICATIONS_ERROR });
     }
     set({ isLoadingMore: false });
   },
