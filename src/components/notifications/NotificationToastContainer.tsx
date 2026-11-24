@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { useNotificationSSE } from "@/hooks/use-notification-sse";
 import { useNotificationStore } from "@/stores/notification-store";
+import { isPopupEnabled } from "@/stores/notification-preferences-store";
 import { NotificationToast } from "./NotificationToast";
 import type { Notification } from "@/types/notification.types";
 
@@ -23,7 +24,7 @@ export function NotificationToastContainer(): React.JSX.Element {
     return useNotificationStore.subscribe((state, prevState) => {
       const latest = state.notifications[0];
       const previous = prevState.notifications[0];
-      if (latest && latest !== previous && !latest.isRead) {
+      if (latest && latest !== previous && !latest.isRead && isPopupEnabled(latest.type)) {
         setToasts((prev) => [
           { id: latest.id, notification: latest },
           ...prev.slice(0, 4),

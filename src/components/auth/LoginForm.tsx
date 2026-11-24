@@ -160,7 +160,7 @@ export function LoginForm() {
             <AuthDivider />
 
             {/* Form */}
-            <form onSubmit={handleSubmit} className="space-y-3">
+            <form onSubmit={handleSubmit} noValidate className="space-y-3">
               <AuthInput
                 label="Email"
                 type="email"

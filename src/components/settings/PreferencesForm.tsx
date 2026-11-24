@@ -11,6 +11,10 @@ import {
   type DateFormatPreference,
   type TimeFormatPreference,
 } from "@/stores/display-preferences-store";
+import {
+  NOTIFICATION_CATEGORIES,
+  useNotificationPreferences,
+} from "@/stores/notification-preferences-store";
 
 const DATE_FORMATS: { value: DateFormatPreference; label: string }[] = [
   { value: "MDY", label: "Nov 13, 2026" },
@@ -71,6 +75,56 @@ function OptionGroup<T extends string>({
   );
 }
 
+function NotificationPreferences(): React.JSX.Element {
+  const { popups, setPopup } = useNotificationPreferences();
+
+  return (
+    <section className={cn(NEUMORPHIC_CARD, "space-y-4")} aria-labelledby="notification-preferences-title">
+      <div>
+        <h2 id="notification-preferences-title" className="text-lg font-semibold text-text-primary">
+          Notifications
+        </h2>
+        <p className="mt-1 text-sm text-text-secondary">
+          Choose which new notifications pop up while you use OFFER-HUB. Everything still appears in the
+          bell and on your notifications page. Saved on this device. Email notifications are not
+          available yet.
+        </p>
+      </div>
+
+      <ul className="space-y-3">
+        {NOTIFICATION_CATEGORIES.map((category) => (
+          <li key={category.id} className="flex items-center justify-between gap-4">
+            <div>
+              <p id={`notif-${category.id}-label`} className="text-sm font-medium text-text-primary">
+                {category.label}
+              </p>
+              <p className="text-xs text-text-secondary">{category.description}</p>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={popups[category.id]}
+              aria-labelledby={`notif-${category.id}-label`}
+              onClick={() => setPopup(category.id, !popups[category.id])}
+              className={cn(
+                "relative h-7 w-12 shrink-0 cursor-pointer rounded-full transition-colors duration-200",
+                popups[category.id] ? "bg-primary" : "bg-background shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]"
+              )}
+            >
+              <span
+                className={cn(
+                  "absolute top-0.5 left-0.5 h-6 w-6 rounded-full bg-white shadow transition-transform duration-200",
+                  popups[category.id] && "translate-x-5"
+                )}
+              />
+            </button>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
 export function PreferencesForm(): React.JSX.Element {
   const { timezone, dateFormat, timeFormat, setPreference, reset } = useDisplayPreferences();
   const timezones = useMemo(() => listTimezones(timezone), [timezone]);
@@ -81,7 +135,7 @@ export function PreferencesForm(): React.JSX.Element {
       <SettingsHeader
         icon={ICON_PATHS.settings}
         title="Preferences"
-        description="Choose your time zone and how dates and times appear across OFFER-HUB. Saved on this device and applied instantly."
+        description="Choose your time zone, how dates and times appear, and which notifications pop up. Saved on this device and applied instantly."
       />
 
       <section className={cn(NEUMORPHIC_CARD, "space-y-6")}>
@@ -137,6 +191,8 @@ export function PreferencesForm(): React.JSX.Element {
           </button>
         </div>
       </section>
+
+      <NotificationPreferences />
     </div>
   );
 }
