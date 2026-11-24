@@ -83,8 +83,8 @@ export default function ClientDashboardPage(): React.JSX.Element {
 
       {/* Header */}
       <div className="flex items-start justify-between gap-4 animate-fade-in-up">
-        <div>
-          <h1 className="text-3xl font-extrabold text-text-primary tracking-tight">
+        <div className="min-w-0">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-text-primary tracking-tight break-words">
             {welcome}, <span className="text-primary">{greetingName(user)}</span>!
           </h1>
           <p className="text-text-secondary mt-2 text-lg">
