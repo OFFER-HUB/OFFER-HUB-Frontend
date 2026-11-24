@@ -518,9 +518,19 @@ html:has(.app-no-scroll) body {
   display: none;
 }
 
+/* App shell height. 100vh on mobile browsers is taller than the visible area
+   (the address bar is counted), which pushes the header and menu button off
+   screen in a shell that cannot scroll. dvh follows the visible viewport,
+   including after rotating the phone. */
+.app-shell-height {
+  height: 100vh;
+  height: 100dvh;
+}
+
 /* App main content area - scrollable by default */
 .app-main-content {
   overflow-y: auto;
+  overflow-x: clip;
 }
 
 /* When main contains a full-height page, disable scroll on main */

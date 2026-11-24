@@ -118,7 +118,7 @@ export function AppHeader({ onMenuClick }: AppHeaderProps): React.JSX.Element {
         <button
           onClick={onMenuClick}
           className={cn(
-            "lg:hidden p-2 rounded-xl cursor-pointer",
+            "lg:hidden flex h-11 w-11 shrink-0 items-center justify-center rounded-xl cursor-pointer",
             "text-text-primary",
             "hover:bg-background transition-colors"
           )}

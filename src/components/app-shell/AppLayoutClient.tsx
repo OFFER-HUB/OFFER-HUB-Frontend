@@ -23,6 +23,28 @@ export function AppLayoutClient({ children }: AppLayoutClientProps): React.JSX.E
   const pathname = usePathname();
   const router = useRouter();
 
+  // Close the mobile menu whenever the page changes. Without this the open
+  // overlay survives navigation and keeps covering the new page.
+  const [lastPathname, setLastPathname] = useState(pathname);
+  if (pathname !== lastPathname) {
+    setLastPathname(pathname);
+    setIsSidebarOpen(false);
+  }
+
+  // Rotating a phone or resizing across the desktop breakpoint swaps the mobile
+  // drawer for the static sidebar; drop the drawer state so it cannot come back
+  // stuck open (or stuck closed) when the viewport changes back.
+  useEffect(() => {
+    const desktop = window.matchMedia("(min-width: 1024px)");
+    const handleChange = (): void => setIsSidebarOpen(false);
+    desktop.addEventListener("change", handleChange);
+    window.addEventListener("orientationchange", handleChange);
+    return () => {
+      desktop.removeEventListener("change", handleChange);
+      window.removeEventListener("orientationchange", handleChange);
+    };
+  }, []);
+
   const hasHydrated = useAuthStore((state) => state.hasHydrated);
   const user = useAuthStore((state) => state.user);
   const token = useAuthStore((state) => state.token);
@@ -90,7 +112,7 @@ export function AppLayoutClient({ children }: AppLayoutClientProps): React.JSX.E
   }
 
   return (
-    <div className="app-no-scroll h-screen bg-background flex flex-col overflow-hidden">
+    <div className="app-no-scroll app-shell-height bg-background flex flex-col overflow-hidden">
       <OnboardingTour />
       <NotificationToastContainer />
 
