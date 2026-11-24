@@ -7,6 +7,7 @@ import { useModeStore } from "@/stores/mode-store";
 import { useClientDashboardData } from "@/hooks/useClientDashboardData";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { useWalletBalance } from "@/hooks/useWalletBalance";
+import { useWelcomeGreeting } from "@/hooks/useWelcomeGreeting";
 import { cn } from "@/lib/cn";
 import { NEUMORPHIC_CARD } from "@/lib/styles";
 import type { ClientActivity } from "@/lib/api/client";
@@ -38,6 +39,7 @@ function greetingName(user: User | null): string {
 export default function ClientDashboardPage(): React.JSX.Element {
   const { setMode } = useModeStore();
   const user = useAuthStore((s) => s.user);
+  const welcome = useWelcomeGreeting(user?.id);
 
   const {
     stats,
@@ -83,7 +85,7 @@ export default function ClientDashboardPage(): React.JSX.Element {
       <div className="flex items-start justify-between gap-4 animate-fade-in-up">
         <div>
           <h1 className="text-3xl font-extrabold text-text-primary tracking-tight">
-            Welcome back, <span className="text-primary">{greetingName(user)}</span>!
+            {welcome}, <span className="text-primary">{greetingName(user)}</span>!
           </h1>
           <p className="text-text-secondary mt-2 text-lg">
             Find talented freelancers and manage your projects effectively

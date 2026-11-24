@@ -5,6 +5,7 @@ import { useAuthStore } from "@/stores/auth-store";
 import { useFreelancerDashboardData } from "@/hooks/useFreelancerDashboardData";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { useWalletBalance } from "@/hooks/useWalletBalance";
+import { useWelcomeGreeting } from "@/hooks/useWelcomeGreeting";
 import { cn } from "@/lib/cn";
 import { NEUMORPHIC_CARD } from "@/lib/styles";
 import type { FreelancerActivity } from "@/lib/api/freelancer";
@@ -29,6 +30,7 @@ const ACTIVITY_SKELETON_COUNT = 5;
 
 export function FreelancerDashboard(): React.JSX.Element {
   const user = useAuthStore((s) => s.user);
+  const welcome = useWelcomeGreeting(user?.id);
   const token = useAuthStore((s) => s.token);
 
   const {
@@ -72,7 +74,7 @@ export function FreelancerDashboard(): React.JSX.Element {
       <div className="flex items-start justify-between gap-4 animate-fade-in-up">
         <div>
           <h1 className="text-3xl font-extrabold text-text-primary tracking-tight">
-            Welcome back, <span className="text-primary">{user?.username ?? "Freelancer"}</span>!
+            {welcome}, <span className="text-primary">{user?.username ?? "Freelancer"}</span>!
           </h1>
           <p className="text-text-secondary mt-2 text-lg">
             Manage your services and grow your freelance business

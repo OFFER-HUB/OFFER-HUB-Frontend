@@ -183,3 +183,20 @@ describe("WalletOnboardingForm inline optional wallet connect", () => {
     expect(mockPush).toHaveBeenCalledWith("/app");
   });
 });
+
+describe("WalletOnboardingForm role landing", () => {
+  it("switches to client mode when the user chose Client, so the dashboard redirect lands on the client dashboard", async () => {
+    const { useModeStore } = await import("@/stores/mode-store");
+    useModeStore.setState({ mode: "freelancer" });
+    mockUser = { id: "usr_3", username: "cora_c", email: "c@example.com" };
+    mockUpdateProfile.mockResolvedValue({ firstName: "Jane", lastName: "Doe", username: "cora_c", type: "BUYER" });
+    const user = userEvent.setup();
+    render(<WalletOnboardingForm />);
+
+    await fillStep1(user);
+    await user.click(screen.getByRole("button", { name: "Get started" }));
+
+    await vi.waitFor(() => expect(mockPush).toHaveBeenCalledWith("/app"));
+    expect(useModeStore.getState().mode).toBe("client");
+  });
+});

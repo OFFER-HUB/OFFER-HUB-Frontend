@@ -12,6 +12,7 @@ import { useModeStore, getNavigationItems, type UserMode } from "@/stores/mode-s
 import { useSidebarStore } from "@/stores/sidebar-store";
 import { useAuthStore } from "@/stores/auth-store";
 import { useChatStore } from "@/stores/chat-store";
+import { canUseMode } from "@/lib/roles/roles";
 
 const ADMIN_NAV_ITEMS = [
   { href: "/admin", label: "Dashboard", icon: ICON_PATHS.home },
@@ -186,7 +187,8 @@ export function AppSidebar({ isOpen, onClose }: AppSidebarProps): React.JSX.Elem
                   type="button"
                   onClick={() => handleModeChange("freelancer")}
                   className={getModeToggleStyles(hydrated && currentMode === "freelancer")}
-                  disabled={!hydrated}
+                  disabled={!hydrated || !canUseMode(user?.type, "freelancer")}
+                  title={canUseMode(user?.type, "freelancer") ? undefined : "Your account is registered as a client"}
                 >
                   Freelancer
                 </button>
@@ -194,7 +196,8 @@ export function AppSidebar({ isOpen, onClose }: AppSidebarProps): React.JSX.Elem
                   type="button"
                   onClick={() => handleModeChange("client")}
                   className={getModeToggleStyles(hydrated && currentMode === "client")}
-                  disabled={!hydrated}
+                  disabled={!hydrated || !canUseMode(user?.type, "client")}
+                  title={canUseMode(user?.type, "client") ? undefined : "Your account is registered as a freelancer"}
                 >
                   Client
                 </button>
