@@ -104,7 +104,7 @@ export function WalletOnboardingForm() {
             error={step1Errors.username}
             placeholder="jane_dev"
             autoComplete="username"
-            readOnly={!isWalletFirstAccount}
+            readOnly={!isWalletFirstAccount && Boolean(user?.username)}
           />
 
           <div>
@@ -197,12 +197,17 @@ export function WalletOnboardingForm() {
 
           {!walletAddress && (
             <div className="flex items-center justify-between gap-3 py-1">
-              <p className="text-sm font-medium text-text-primary">
-                Connect a wallet{" "}
-                <span className="text-xs font-normal text-text-secondary">
-                  (Varial, Lobstr, xBull)
-                </span>
-              </p>
+              <div>
+                <p className="text-sm font-medium text-text-primary">
+                  Connect a wallet{" "}
+                  <span className="text-xs font-normal text-text-secondary">
+                    (optional — Varial, Lobstr, xBull)
+                  </span>
+                </p>
+                <p className="text-xs text-text-secondary mt-0.5">
+                  You can skip this and connect a wallet later from Settings.
+                </p>
+              </div>
               <button
                 type="button"
                 onClick={() => setIsWalletModalOpen(true)}

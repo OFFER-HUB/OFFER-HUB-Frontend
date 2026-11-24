@@ -75,12 +75,27 @@ describe("WalletOnboardingForm username lock", () => {
   });
 });
 
+describe("WalletOnboardingForm username without a saved value", () => {
+  it("lets an account with no username type one (for example a Google sign-up)", async () => {
+    const user = userEvent.setup();
+    mockUser = { id: "usr_2", email: "new@example.com" };
+    render(<WalletOnboardingForm />);
+
+    const usernameInput = screen.getByPlaceholderText("jane_dev");
+    expect(usernameInput).not.toHaveAttribute("readonly");
+
+    await user.type(usernameInput, "new_freelancer");
+    expect(usernameInput).toHaveValue("new_freelancer");
+  });
+});
+
 describe("WalletOnboardingForm inline optional wallet connect", () => {
   it("shows a Connect wallet option alongside the profile fields when the account has no wallet linked", () => {
     render(<WalletOnboardingForm />);
 
     expect(screen.getByText("Connect a wallet")).toBeInTheDocument();
-    expect(screen.getByText("(Varial, Lobstr, xBull)")).toBeInTheDocument();
+    expect(screen.getByText(/optional — Varial, Lobstr, xBull/)).toBeInTheDocument();
+    expect(screen.getByText(/skip this and connect a wallet later/i)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Connect wallet" })).toBeInTheDocument();
   });
 
