@@ -48,7 +48,7 @@ export default function SettingsPage(): React.JSX.Element {
             <div>
               <h2 className="text-lg font-semibold text-text-primary">Preferences</h2>
               <p className="mt-1 text-sm text-text-secondary">
-                Choose your time zone and how dates and times are displayed.
+                Choose your time zone, how dates are displayed and which notifications pop up.
               </p>
             </div>
           </div>
