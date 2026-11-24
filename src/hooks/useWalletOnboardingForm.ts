@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { updateProfile, ProfileApiError } from "@/lib/api/profile";
 import { useAuthStore, type User } from "@/stores/auth-store";
+import { useModeStore } from "@/stores/mode-store";
+import { initialModeForType } from "@/lib/roles/roles";
 import {
   onboardingStep1Schema,
   onboardingStep2Schema,
@@ -27,6 +29,7 @@ export function useWalletOnboardingForm() {
   const user = useAuthStore((state) => state.user);
   const token = useAuthStore((state) => state.token);
   const login = useAuthStore((state) => state.login);
+  const setMode = useModeStore((state) => state.setMode);
 
   const walletAddress = user?.wallet?.publicKey ?? null;
   const isWalletFirstAccount = walletAddress !== null && !user?.email;
@@ -108,6 +111,9 @@ export function useWalletOnboardingForm() {
           token,
         );
       }
+
+      // Land in the area the user chose instead of the store's default mode.
+      setMode(initialModeForType(toUserType(profile.type) ?? step1.type));
 
       router.push("/app");
     } catch (error) {
