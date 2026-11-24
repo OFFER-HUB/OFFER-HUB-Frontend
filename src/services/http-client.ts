@@ -19,10 +19,16 @@ const DEFAULT_HEADERS: Record<string, string> = {
 };
 
 /**
- * Build URL with query parameters
+ * Build URL with query parameters.
+ *
+ * The path is appended to the base URL instead of resolved against it, so the
+ * base path (for example `/api/v1`) is kept whether or not `path` starts with
+ * a slash. `new URL("/x", "https://host/api/v1")` would drop `/api/v1`.
  */
-function buildUrl(path: string, params?: RequestOptions["params"]): string {
-  const url = new URL(path, API_BASE_URL);
+export function buildUrl(path: string, params?: RequestOptions["params"]): string {
+  const base = API_BASE_URL.replace(/\/+$/, "");
+  const relative = path.startsWith("/") ? path : `/${path}`;
+  const url = new URL(`${base}${relative}`);
 
   if (params) {
     Object.entries(params).forEach(([key, value]) => {
