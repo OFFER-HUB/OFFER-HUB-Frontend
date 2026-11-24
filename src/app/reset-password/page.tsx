@@ -1,14 +1,14 @@
 "use client";
 
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { Suspense, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AuthLayout, AuthInput, PasswordRequirements } from "@/components/auth";
 import { cn } from "@/lib/cn";
-import { resetPassword, validateResetToken } from "@/lib/api/password-reset";
+import { ResetPasswordError, resetPassword } from "@/lib/api/password-reset";
 import { getPasswordStrength, isPasswordValid } from "@/lib/validation";
 
-type PageState = "loading" | "invalid" | "valid" | "success";
+type PageState = "invalid" | "valid" | "success";
 
 const STRENGTH_STYLES = {
   weak: {
@@ -36,41 +36,15 @@ function ResetPasswordContent(): React.JSX.Element {
   const router = useRouter();
   const token = searchParams.get("token") ?? "";
 
-  const [pageState, setPageState] = useState<PageState>("loading");
-  const [email, setEmail] = useState("");
+  // The API has no validate-token route, so a link with a token is shown as
+  // valid and a dead token is reported when the new password is submitted.
+  const [pageState, setPageState] = useState<PageState>(token ? "valid" : "invalid");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [errors, setErrors] = useState<{ password?: string; confirmPassword?: string; general?: string }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const passwordStrength = useMemo(() => getPasswordStrength(password), [password]);
-
-  useEffect(() => {
-    let isMounted = true;
-
-    async function validate(): Promise<void> {
-      if (!token) {
-        if (isMounted) setPageState("invalid");
-        return;
-      }
-
-      try {
-        const result = await validateResetToken(token);
-        if (!isMounted) return;
-
-        setEmail(result.email);
-        setPageState(result.valid ? "valid" : "invalid");
-      } catch {
-        if (isMounted) setPageState("invalid");
-      }
-    }
-
-    void validate();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [token]);
 
   function validateForm(): boolean {
     const nextErrors: { password?: string; confirmPassword?: string } = {};
@@ -109,6 +83,11 @@ function ResetPasswordContent(): React.JSX.Element {
         router.push("/login");
       }, 1800);
     } catch (error) {
+      if (error instanceof ResetPasswordError && error.kind === "invalid-token") {
+        setPageState("invalid");
+        return;
+      }
+
       setErrors({
         general:
           error instanceof Error ? error.message : "Unable to reset password. Please try again.",
@@ -116,20 +95,6 @@ function ResetPasswordContent(): React.JSX.Element {
     } finally {
       setIsSubmitting(false);
     }
-  }
-
-  if (pageState === "loading") {
-    return (
-      <AuthLayout>
-        <div className="py-8 text-center">
-          <div className="mx-auto h-10 w-10 rounded-full border-2 border-primary border-t-transparent animate-spin" />
-          <h1 className="mt-6 text-xl font-bold text-text-primary">Validating reset link</h1>
-          <p className="mt-2 text-sm text-text-secondary">
-            Please wait while we verify your password reset token.
-          </p>
-        </div>
-      </AuthLayout>
-    );
   }
 
   if (pageState === "invalid") {
@@ -189,7 +154,7 @@ function ResetPasswordContent(): React.JSX.Element {
       <div className="mb-5 text-center">
         <h1 className="text-2xl font-bold text-text-primary">Set a new password</h1>
         <p className="mt-2 text-sm text-text-secondary">
-          {email ? `Resetting password for ${email}` : "Choose a new password for your account."}
+          Choose a new password for your account.
         </p>
       </div>
 
