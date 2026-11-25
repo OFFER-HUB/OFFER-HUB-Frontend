@@ -15,6 +15,7 @@ export interface AuthFormErrors {
   username?: string;
   password?: string;
   confirmPassword?: string;
+  captcha?: string;
   general?: string;
 }
 
