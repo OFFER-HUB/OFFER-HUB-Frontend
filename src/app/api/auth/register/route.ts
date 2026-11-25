@@ -1,17 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { API_URL } from "@/config/api";
+import { visitorHeaders } from "@/lib/api/proxy-headers";
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, password, username, type = "BOTH" } = await request.json();
+    const { email, password, username, type = "BOTH", captchaToken } = await request.json();
 
     // Call API register endpoint
     const response = await fetch(`${API_URL}/auth/register`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        ...visitorHeaders(request),
       },
-      body: JSON.stringify({ email, password, username, type }),
+      body: JSON.stringify({ email, password, username, type, captchaToken }),
     });
 
     const data = await response.json();

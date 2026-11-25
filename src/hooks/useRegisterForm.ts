@@ -6,6 +6,7 @@ import { isNewUser } from "@/lib/auth/is-new-user";
 import { useAuthStore } from "@/stores/auth-store";
 import { useModeStore } from "@/stores/mode-store";
 import type { RegisterFormData, AuthFormErrors } from "@/types/auth.types";
+import { turnstileSiteKey } from "@/components/auth/TurnstileWidget";
 
 export interface UseRegisterFormReturn {
   formData: RegisterFormData;
@@ -15,6 +16,11 @@ export interface UseRegisterFormReturn {
   handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleSubmit: (e: React.FormEvent) => Promise<void>;
   handleWalletSignedIn: () => void;
+  /** Whether the sign-up captcha is configured and must be passed. */
+  captchaRequired: boolean;
+  /** Bumped after each failed attempt so the widget issues a new single-use token. */
+  captchaResetKey: number;
+  handleCaptchaToken: (token: string | null) => void;
 }
 
 export function useRegisterForm(): UseRegisterFormReturn {
@@ -33,6 +39,9 @@ export function useRegisterForm(): UseRegisterFormReturn {
   const [errors, setErrors] = useState<AuthFormErrors>({});
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [captchaResetKey, setCaptchaResetKey] = useState(0);
+  const captchaRequired = turnstileSiteKey() !== "";
 
   function validateForm(): boolean {
     const newErrors: AuthFormErrors = {};
@@ -61,6 +70,10 @@ export function useRegisterForm(): UseRegisterFormReturn {
       newErrors.confirmPassword = "Passwords do not match";
     }
 
+    if (captchaRequired && !captchaToken) {
+      newErrors.captcha = "Please complete the human check";
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   }
@@ -70,6 +83,13 @@ export function useRegisterForm(): UseRegisterFormReturn {
     setFormData((prev) => ({ ...prev, [name]: value }));
     if (errors[name as keyof AuthFormErrors]) {
       setErrors((prev) => ({ ...prev, [name]: undefined }));
+    }
+  }
+
+  function handleCaptchaToken(token: string | null): void {
+    setCaptchaToken(token);
+    if (token && errors.captcha) {
+      setErrors((prev) => ({ ...prev, captcha: undefined }));
     }
   }
 
@@ -87,6 +107,8 @@ export function useRegisterForm(): UseRegisterFormReturn {
         newErrors.email = `This email is registered via ${providerNames}. Please use the ${providerNames} button above to sign in.`;
       } else if (data.error.code === "EMAIL_ALREADY_EXISTS") {
         newErrors.email = data.error.message ?? "This email is already registered";
+      } else if (data.error.code === "CAPTCHA_FAILED") {
+        newErrors.captcha = data.error.message ?? "We could not verify you are human. Please try again";
       } else if (data.error.code === "USERNAME_TAKEN") {
         newErrors.username = data.error.message ?? "This username is already taken";
       } else if (data.error.code === "VALIDATION_ERROR" && data.error.details?.validationErrors) {
@@ -122,6 +144,7 @@ export function useRegisterForm(): UseRegisterFormReturn {
           password: formData.password,
           username: formData.username,
           type: "BOTH",
+          ...(captchaToken ? { captchaToken } : {}),
         }),
       });
 
@@ -129,6 +152,8 @@ export function useRegisterForm(): UseRegisterFormReturn {
 
       if (!response.ok) {
         setErrors(mapRegistrationErrors(data));
+        // The API used up the token; get a fresh one for the next attempt
+        setCaptchaResetKey((key) => key + 1);
         setIsLoading(false);
         return;
       }
@@ -172,6 +197,7 @@ export function useRegisterForm(): UseRegisterFormReturn {
     } catch (error) {
       console.error("Register error:", error);
       setErrors({ email: "Connection error. Please try again." });
+      setCaptchaResetKey((key) => key + 1);
       setIsLoading(false);
     }
   }
@@ -195,5 +221,8 @@ export function useRegisterForm(): UseRegisterFormReturn {
     handleChange,
     handleSubmit,
     handleWalletSignedIn,
+    captchaRequired,
+    captchaResetKey,
+    handleCaptchaToken,
   };
 }

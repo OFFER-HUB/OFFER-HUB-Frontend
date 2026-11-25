@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { API_URL } from "@/config/api";
+import { visitorHeaders } from "@/lib/api/proxy-headers";
 
 export async function POST (request: NextRequest) {
   try {
@@ -11,6 +12,7 @@ export async function POST (request: NextRequest) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        ...visitorHeaders(request),
       },
       body: JSON.stringify({ email, password }),
     });

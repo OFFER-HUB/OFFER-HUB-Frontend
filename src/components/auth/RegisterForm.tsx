@@ -10,6 +10,7 @@ import {
   PasswordRequirements,
 } from "@/components/auth";
 import { WalletSignInButton } from "@/components/auth/WalletSignInButton";
+import { TurnstileWidget } from "@/components/auth/TurnstileWidget";
 import { cn } from "@/lib/cn";
 import { useRegisterForm } from "@/hooks/useRegisterForm";
 
@@ -21,8 +22,18 @@ const AUTH_TABS: ReadonlyArray<{ id: AuthTabId; label: string }> = [
 ];
 
 export function RegisterForm() {
-  const { formData, errors, isLoading, isSuccess, handleChange, handleSubmit, handleWalletSignedIn } =
-    useRegisterForm();
+  const {
+    formData,
+    errors,
+    isLoading,
+    isSuccess,
+    handleChange,
+    handleSubmit,
+    handleWalletSignedIn,
+    captchaRequired,
+    captchaResetKey,
+    handleCaptchaToken,
+  } = useRegisterForm();
 
   const [passwordFocused, setPasswordFocused] = useState(false);
   const [activeTab, setActiveTab] = useState<AuthTabId>("email");
@@ -248,6 +259,21 @@ export function RegisterForm() {
                 error={errors.confirmPassword}
                 autoComplete="new-password"
               />
+
+              {captchaRequired && (
+                <div className="pt-1">
+                  <TurnstileWidget
+                    action="register"
+                    resetKey={captchaResetKey}
+                    onTokenChange={handleCaptchaToken}
+                  />
+                  {errors.captcha && (
+                    <p role="alert" className="text-xs text-error mt-1 text-center">
+                      {errors.captcha}
+                    </p>
+                  )}
+                </div>
+              )}
 
               {/* Submit Button */}
               <button
