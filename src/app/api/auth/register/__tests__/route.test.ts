@@ -2,6 +2,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
 import { POST } from "@/app/api/auth/register/route";
 
+// Generated per run so no credential-looking literal sits in the repo
+const TEST_PASSWORD = `Aa1-${crypto.randomUUID()}`;
+
 describe("POST /api/auth/register", () => {
   const fetchMock = vi.fn();
 
@@ -29,7 +32,7 @@ describe("POST /api/auth/register", () => {
     );
 
   it("forwards the captcha token and the visitor IP to the API", async () => {
-    const res = await call({ email: "new@example.com", password: "Passw0rd!", username: "newbie", captchaToken: "tok" });
+    const res = await call({ email: "new@example.com", password: TEST_PASSWORD, username: "newbie", captchaToken: "tok" });
 
     expect(res.status).toBe(200);
     const [, init] = fetchMock.mock.calls[0];
@@ -44,7 +47,7 @@ describe("POST /api/auth/register", () => {
     const apiError = { error: { code: "CAPTCHA_FAILED", message: "We could not verify you are human." } };
     fetchMock.mockResolvedValue(new Response(JSON.stringify(apiError), { status: 400 }));
 
-    const res = await call({ email: "new@example.com", password: "Passw0rd!" });
+    const res = await call({ email: "new@example.com", password: TEST_PASSWORD });
 
     expect(res.status).toBe(400);
     expect(await res.json()).toEqual(apiError);

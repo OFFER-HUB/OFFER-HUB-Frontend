@@ -43,6 +43,9 @@ vi.mock("@/components/auth/TurnstileWidget", () => ({
   },
 }));
 
+// Generated per run so no credential-looking literal sits in the repo
+const TEST_PASSWORD = `Aa1-${crypto.randomUUID()}`;
+
 describe("RegisterForm", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -91,8 +94,8 @@ describe("RegisterForm", () => {
       const user = userEvent.setup();
       await user.type(screen.getByPlaceholderText("you@example.com"), "new@example.com");
       await user.type(screen.getByPlaceholderText("Choose a username"), "newbie");
-      await user.type(screen.getByPlaceholderText("Create a password"), "Passw0rd!");
-      await user.type(screen.getByPlaceholderText("Confirm your password"), "Passw0rd!");
+      await user.type(screen.getByPlaceholderText("Create a password"), TEST_PASSWORD);
+      await user.type(screen.getByPlaceholderText("Confirm your password"), TEST_PASSWORD);
       return user;
     }
 
