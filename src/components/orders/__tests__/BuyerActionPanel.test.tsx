@@ -40,9 +40,9 @@ describe("BuyerActionPanel — ORDER_CREATED (custodial)", () => {
 });
 
 describe("BuyerActionPanel — ORDER_CREATED (external wallet / non-custodial)", () => {
-  it("shows 'Lock Funds in Escrow' and not 'Confirm Order'", () => {
-    render(<BuyerActionPanel {...BASE_PROPS} status="ORDER_CREATED" isExternalWallet />);
-    expect(screen.getByRole("button", { name: /lock funds in escrow/i })).toBeInTheDocument();
+  it("shows 'Pay' and not 'Confirm Order'", () => {
+    render(<BuyerActionPanel {...BASE_PROPS} status="ORDER_CREATED" isExternalWallet amount="280" />);
+    expect(screen.getByRole("button", { name: /pay \$280.00 usdc/i })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /confirm order/i })).toBeNull();
   });
 
@@ -58,7 +58,7 @@ describe("BuyerActionPanel — ORDER_CREATED (external wallet / non-custodial)",
         onConfirmOrder={onConfirmOrder}
       />
     );
-    await userEvent.click(screen.getByRole("button", { name: /lock funds in escrow/i }));
+    await userEvent.click(screen.getByRole("button", { name: /pay \$/i }));
     expect(onStartSecurePayment).toHaveBeenCalledOnce();
     expect(onConfirmOrder).not.toHaveBeenCalled();
   });
@@ -72,9 +72,9 @@ describe("BuyerActionPanel — ORDER_CREATED (external wallet / non-custodial)",
 // ── FUNDS_RESERVED ────────────────────────────────────────────────────────────
 
 describe("BuyerActionPanel — FUNDS_RESERVED", () => {
-  it("shows 'Start Secure Payment'", () => {
-    render(<BuyerActionPanel {...BASE_PROPS} status="FUNDS_RESERVED" />);
-    expect(screen.getByRole("button", { name: /start secure payment/i })).toBeInTheDocument();
+  it("shows 'Pay'", () => {
+    render(<BuyerActionPanel {...BASE_PROPS} status="FUNDS_RESERVED" amount="280" />);
+    expect(screen.getByRole("button", { name: /pay \$280.00 usdc/i })).toBeInTheDocument();
   });
 });
 
@@ -83,7 +83,7 @@ describe("BuyerActionPanel — FUNDS_RESERVED", () => {
 describe("BuyerActionPanel — ESCROW_CREATING", () => {
   it("shows a processing message and no action button", () => {
     render(<BuyerActionPanel {...BASE_PROPS} status="ESCROW_CREATING" />);
-    expect(screen.getByText(/creating escrow contract/i)).toBeInTheDocument();
+    expect(screen.getByText(/creating the payment contract/i)).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /sign/i })).toBeNull();
     expect(screen.queryByRole("button", { name: /try again/i })).toBeNull();
   });
@@ -114,9 +114,9 @@ describe("BuyerActionPanel — ESCROW_FUNDING (custodial)", () => {
 });
 
 describe("BuyerActionPanel — ESCROW_FUNDING (external wallet / non-custodial)", () => {
-  it("shows 'Sign Fund Transaction' button", () => {
+  it("shows 'Retry step 2 of 2' button", () => {
     render(<BuyerActionPanel {...BASE_PROPS} status="ESCROW_FUNDING" isExternalWallet />);
-    expect(screen.getByRole("button", { name: /sign fund transaction/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /retry step 2 of 2/i })).toBeInTheDocument();
   });
 
   it("calls onSignFundEscrow when clicked", async () => {
@@ -124,7 +124,7 @@ describe("BuyerActionPanel — ESCROW_FUNDING (external wallet / non-custodial)"
     render(
       <BuyerActionPanel {...BASE_PROPS} status="ESCROW_FUNDING" isExternalWallet onSignFundEscrow={onSignFundEscrow} />
     );
-    await userEvent.click(screen.getByRole("button", { name: /sign fund transaction/i }));
+    await userEvent.click(screen.getByRole("button", { name: /retry step 2 of 2/i }));
     expect(onSignFundEscrow).toHaveBeenCalledOnce();
   });
 
@@ -137,7 +137,7 @@ describe("BuyerActionPanel — ESCROW_FUNDING (external wallet / non-custodial)"
         isProcessing
       />
     );
-    expect(screen.getByRole("button", { name: /sign fund transaction|processing/i })).toBeDisabled();
+    expect(screen.getByRole("button", { name: /retry step 2 of 2|processing/i })).toBeDisabled();
   });
 });
 

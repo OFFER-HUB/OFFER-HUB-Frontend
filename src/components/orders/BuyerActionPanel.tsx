@@ -131,7 +131,7 @@ export function BuyerActionPanel({
                 ) : (
                   <>
                     <Icon path={ICON_PATHS.lock} size="sm" />
-                    <span>Lock Funds in Escrow</span>
+                    <span>Pay ${amount ? Number(amount).toFixed(2) : "0.00"} USDC</span>
                   </>
                 )}
               </button>
@@ -184,24 +184,24 @@ export function BuyerActionPanel({
           </div>
 
           <div className="space-y-2.5">
-            <button
-              type="button"
-              onClick={onStartSecurePayment}
-              disabled={isProcessing}
-              className={SOLID_PRIMARY_BUTTON}
-            >
-              {isProcessing ? (
-                <>
-                  <LoadingSpinner size="sm" className="text-white" />
-                  <span>Setting Up Escrow...</span>
-                </>
-              ) : (
-                <>
-                  <Icon path={ICON_PATHS.lock} size="sm" />
-                  <span>Start Secure Payment</span>
-                </>
-              )}
-            </button>
+              <button
+                type="button"
+                onClick={onStartSecurePayment}
+                disabled={isProcessing}
+                className={SOLID_PRIMARY_BUTTON}
+              >
+                {isProcessing ? (
+                  <>
+                    <LoadingSpinner size="sm" className="text-white" />
+                    <span>Setting Up Escrow...</span>
+                  </>
+                ) : (
+                  <>
+                    <Icon path={ICON_PATHS.lock} size="sm" />
+                    <span>Pay ${amount ? Number(amount).toFixed(2) : "0.00"} USDC</span>
+                  </>
+                )}
+              </button>
 
             <button
               type="button"
@@ -223,7 +223,7 @@ export function BuyerActionPanel({
               <LoadingSpinner size="sm" />
             </div>
             <div>
-              <p className="font-bold text-sm text-[#111827]">Creating Escrow Contract...</p>
+              <p className="font-bold text-sm text-[#111827]">Creating the payment contract…</p>
               <p className="text-xs text-text-secondary mt-0.5">
                 {isExternalWallet
                   ? "If your wallet did not ask you to sign, or you closed it, try again."
@@ -263,24 +263,24 @@ export function BuyerActionPanel({
                 The escrow contract is ready. Sign the transaction with your wallet to lock funds and begin work.
               </p>
             </div>
-            <button
-              type="button"
-              onClick={onSignFundEscrow}
-              disabled={isProcessing}
-              className={SOLID_PRIMARY_BUTTON}
-            >
-              {isProcessing ? (
-                <>
-                  <LoadingSpinner size="sm" className="text-white" />
-                  <span>Processing...</span>
-                </>
-              ) : (
-                <>
-                  <Icon path={ICON_PATHS.lock} size="sm" />
-                  <span>Sign Fund Transaction</span>
-                </>
-              )}
-            </button>
+              <button
+                type="button"
+                onClick={onSignFundEscrow}
+                disabled={isProcessing}
+                className={SOLID_PRIMARY_BUTTON}
+              >
+                {isProcessing ? (
+                  <>
+                    <LoadingSpinner size="sm" className="text-white" />
+                    <span>Processing...</span>
+                  </>
+                ) : (
+                  <>
+                    <Icon path={ICON_PATHS.lock} size="sm" />
+                    <span>Retry step 2 of 2</span>
+                  </>
+                )}
+              </button>
           </div>
         ) : (
           <div className="p-5 rounded-xl bg-background border border-black/5 flex items-center gap-4">
