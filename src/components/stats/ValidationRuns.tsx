@@ -5,7 +5,12 @@ import { ErrorState } from "@/components/ui/ErrorState";
 import { ICON_PATHS } from "@/components/ui/Icon";
 import { LoadingState } from "@/components/ui/LoadingState";
 import { explorerUrl } from "@/lib/explorer";
-import type { PublicValidationResults, PublicValidationRun, ValidationReceipt } from "@/types/stats.types";
+import type {
+  PublicValidationResults,
+  PublicValidationRun,
+  ValidationReceipt,
+  ValidationStep,
+} from "@/types/stats.types";
 
 interface ValidationRunsProps {
   data: PublicValidationResults | null;
@@ -22,14 +27,16 @@ function formatTimestamp(value: string): string {
     : date.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
 }
 
-const linkClass =
-  "rounded-xl px-2 py-1 text-sm font-semibold text-primary underline underline-offset-4 transition-colors hover:text-primary-hover";
-
 function humanizeStep(name: string): string {
   return name.replace(/_/g, " ");
 }
 
+function capitalize(text: string): string {
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
 function formatDuration(ms: number): string {
+  if (ms < 1000) return `${Math.max(0, Math.round(ms))} ms`;
   const seconds = Math.round(ms / 1000);
   return seconds < 60 ? `${seconds}s` : `${Math.floor(seconds / 60)}m ${seconds % 60}s`;
 }
@@ -42,17 +49,6 @@ function formatFiat(receipt: ValidationReceipt): string {
   } catch {
     return `${amount.toFixed(2)} ${receipt.currency}`;
   }
-}
-
-/** One link per transaction, labelled by the step that submitted it (same order as stellarExpertUrls). */
-function transactionLinks(run: PublicValidationRun): Array<{ label: string; url: string }> {
-  const labels = run.steps.flatMap((step) =>
-    step.txHashes.map((_, i) => (step.txHashes.length > 1 ? `${humanizeStep(step.name)} ${i + 1}` : humanizeStep(step.name)))
-  );
-  return run.stellarExpertUrls.flatMap((value, i) => {
-    const url = getSafeExternalUrl(value, "stellar.expert");
-    return url ? [{ label: labels[i] ?? `transaction ${i + 1}`, url }] : [];
-  });
 }
 
 /**
@@ -68,7 +64,7 @@ function verifiedCorridors(runs: PublicValidationRun[]): string[] {
   return [...new Set(runs.filter((r) => r.status === "passed" && r.receipt).map((r) => r.corridor))].sort();
 }
 
-function getSafeExternalUrl(value: string | null, hostname: string): string | null {
+function getSafeExternalUrl(value: string | null | undefined, hostname: string): string | null {
   if (!value) {
     return null;
   }
@@ -81,6 +77,211 @@ function getSafeExternalUrl(value: string | null, hostname: string): string | nu
   }
 }
 
+interface StepRow {
+  step: ValidationStep;
+  links: Array<{ label: string; url: string }>;
+}
+
+/** Every step with the Stellar Expert links of its own transactions (the API lists the URLs in step order). */
+function stepRows(run: PublicValidationRun): StepRow[] {
+  let next = 0;
+  return run.steps.map((step) => {
+    const links = step.txHashes.flatMap((_, i) => {
+      const url = getSafeExternalUrl(run.stellarExpertUrls[next++], "stellar.expert");
+      const label = step.txHashes.length > 1 ? `${humanizeStep(step.name)} ${i + 1}` : humanizeStep(step.name);
+      return url ? [{ label, url }] : [];
+    });
+    return { step, links };
+  });
+}
+
+const linkButtonClass =
+  "inline-flex items-center gap-1.5 rounded-xl bg-background px-3 py-1.5 text-sm font-semibold text-primary " +
+  "shadow-[var(--shadow-neumorphic-light)] transition-colors hover:text-primary-hover " +
+  "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary";
+
+function ExternalIcon(): React.JSX.Element {
+  return (
+    <svg aria-hidden="true" className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 01-1 1H5a1 1 0 01-1-1V7a1 1 0 011-1h5" />
+    </svg>
+  );
+}
+
+function StatusIcon({ status }: { status: "passed" | "failed" | "skipped" }): React.JSX.Element {
+  const tone =
+    status === "passed"
+      ? "bg-success/10 text-success"
+      : status === "failed"
+        ? "bg-error/10 text-error"
+        : "bg-background text-text-secondary";
+  const path = status === "passed" ? "M5 13l4 4L19 7" : status === "failed" ? "M6 6l12 12M18 6L6 18" : "M6 12h12";
+  return (
+    <span aria-hidden="true" className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${tone}`}>
+      <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+        <path d={path} />
+      </svg>
+    </span>
+  );
+}
+
+function SummaryTile({
+  label,
+  value,
+  hint,
+  wide,
+}: {
+  label: string;
+  value: string;
+  hint?: string;
+  wide?: boolean;
+}): React.JSX.Element {
+  return (
+    <div
+      className={
+        "rounded-xl bg-background p-4 shadow-[var(--shadow-neumorphic-inset-light)]" +
+        (wide ? " col-span-2 sm:col-span-1" : "")
+      }
+    >
+      <p className="text-xs font-semibold uppercase tracking-wide text-text-secondary">{label}</p>
+      <p className="mt-1 text-2xl font-bold text-text-primary">{value}</p>
+      {hint && <p className="mt-0.5 text-xs text-text-secondary">{hint}</p>}
+    </div>
+  );
+}
+
+function RunCard({ run, defaultOpen }: { run: PublicValidationRun; defaultOpen: boolean }): React.JSX.Element {
+  const rows = stepRows(run);
+  const contractUrl = getSafeExternalUrl(run.stellarExpertContractUrl, "stellar.expert");
+  const failedStep = run.steps.find((step) => step.status === "failed");
+  const escrowOnly = isEscrowOnly(run);
+  const receipt = run.receipt;
+  const receiptTxUrl =
+    receipt?.stellarTxHash && /^[0-9a-f]{64}$/.test(receipt.stellarTxHash)
+      ? explorerUrl("tx", receipt.stellarTxHash, run.network === "mainnet" ? "public" : "testnet")
+      : null;
+  const passed = run.status === "passed";
+  const title = `${escrowOnly ? "Escrow flow" : `${run.corridor} corridor`} · ${run.network}`;
+
+  return (
+    <article className="rounded-2xl border border-border-light bg-white">
+      <details open={defaultOpen} className="group">
+        <summary className="flex cursor-pointer list-none flex-wrap items-start gap-x-4 gap-y-2 rounded-2xl p-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:p-5 [&::-webkit-details-marker]:hidden">
+          <StatusIcon status={passed ? "passed" : "failed"} />
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+              <h3 className="font-semibold text-text-primary">{title}</h3>
+              <span
+                className={
+                  "rounded-full px-2.5 py-0.5 text-xs font-semibold " +
+                  (passed ? "bg-success/10 text-success" : "bg-error/10 text-error")
+                }
+              >
+                {run.status}
+              </span>
+            </div>
+            <p className="mt-0.5 text-sm text-text-secondary">
+              <time dateTime={run.finishedAt}>{formatTimestamp(run.finishedAt)}</time> · {formatDuration(run.durationMs)} ·{" "}
+              {run.trigger === "schedule" ? "Scheduled" : "Manual"}
+            </p>
+            {failedStep && (
+              <span className="mt-2 block rounded-xl bg-error/5 px-3 py-2 text-sm text-error">
+                Failed at {humanizeStep(failedStep.name)}
+                {failedStep.error ? `: ${failedStep.error}` : ""}
+              </span>
+            )}
+          </div>
+          <svg
+            aria-hidden="true"
+            className="mt-1 h-5 w-5 shrink-0 text-text-secondary transition-transform group-open:rotate-180"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M6 9l6 6 6-6" />
+          </svg>
+        </summary>
+
+        <div className="flex flex-col gap-5 border-t border-border-light p-4 sm:p-5">
+          <ol className="flex flex-col">
+            {rows.map(({ step, links }, index) => (
+              <li key={`${step.name}-${index}`} className="relative flex gap-3 pb-4 last:pb-0">
+                {index < rows.length - 1 && (
+                  <span aria-hidden="true" className="absolute left-3.5 top-8 h-[calc(100%-1.75rem)] w-px bg-border-light" />
+                )}
+                <StatusIcon status={step.status} />
+                <div className="flex min-w-0 flex-1 flex-wrap items-center justify-between gap-x-4 gap-y-1">
+                  <div>
+                    <p className="text-sm font-semibold text-text-primary">{capitalize(humanizeStep(step.name))}</p>
+                    <p className="text-xs text-text-secondary">
+                      {step.status === "skipped" ? "Skipped" : formatDuration(step.durationMs)}
+                    </p>
+                  </div>
+                  {links.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {links.map((link) => (
+                        <a
+                          key={link.url}
+                          href={link.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          aria-label={link.label}
+                          className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-semibold text-primary underline-offset-4 hover:text-primary-hover hover:underline"
+                        >
+                          {links.length > 1 ? `Tx ${links.indexOf(link) + 1}` : "Transaction"}
+                          <ExternalIcon />
+                        </a>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ol>
+
+          {receipt ? (
+            <div className="rounded-xl bg-primary/5 p-4">
+              <p className="text-xs font-semibold uppercase tracking-wide text-primary">Bank payout verified by BlindPay</p>
+              <p className="mt-1 text-2xl font-bold text-text-primary">{formatFiat(receipt)}</p>
+              <p className="mt-1 text-sm text-text-secondary">
+                BlindPay payout <span className="font-mono">{receipt.blindpayPayoutId}</span> completed
+                {receipt.paymentProvider && <> via {receipt.paymentProvider}</>} on{" "}
+                <time dateTime={receipt.completedAt}>{formatTimestamp(receipt.completedAt)}</time>
+              </p>
+            </div>
+          ) : (
+            run.blindpayPayoutId && (
+              <p className="text-sm text-text-secondary">
+                BlindPay payout <span className="font-mono">{run.blindpayPayoutId}</span>: not verified
+              </p>
+            )
+          )}
+
+          {(contractUrl || receiptTxUrl) && (
+            <div className="flex flex-wrap gap-3">
+              {contractUrl && (
+                <a href={contractUrl} target="_blank" rel="noopener noreferrer" className={linkButtonClass}>
+                  Escrow contract
+                  <ExternalIcon />
+                </a>
+              )}
+              {receiptTxUrl && (
+                <a href={receiptTxUrl} target="_blank" rel="noopener noreferrer" className={linkButtonClass}>
+                  BlindPay deposit tx
+                  <ExternalIcon />
+                </a>
+              )}
+            </div>
+          )}
+        </div>
+      </details>
+    </article>
+  );
+}
+
 export function ValidationRuns({
   data,
   error,
@@ -88,23 +289,58 @@ export function ValidationRuns({
   isLoading,
   onRetry,
 }: ValidationRunsProps): React.JSX.Element {
+  const runs = data?.runs ?? [];
+  const passedCount = runs.filter((run) => run.status === "passed").length;
+  const latest = runs[0];
+  const hasEscrowOnly = runs.some(isEscrowOnly);
+
   return (
     <section className="rounded-2xl bg-white p-6 shadow-[var(--shadow-neumorphic-light)] sm:p-8">
-      <div className="mb-6 border-b border-border-light pb-4">
-        <h2 className="text-xl font-bold text-text-primary">Published validation results</h2>
-        <p className="mt-1 text-sm text-text-secondary">
-          Recent platform validation runs with links to their on-chain and payout receipts.
-        </p>
+      <div className="mb-6 flex flex-col gap-4 border-b border-border-light pb-6">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 className="text-xl font-bold text-text-primary">Published validation results</h2>
+            <p className="mt-1 text-sm text-text-secondary">
+              Recent platform validation runs with links to their on-chain and payout receipts.
+            </p>
+          </div>
+          {latest && (
+            <span className="inline-flex items-center gap-2 rounded-full bg-background px-3 py-1.5 text-xs font-semibold capitalize text-text-primary shadow-[var(--shadow-neumorphic-inset-light)]">
+              <span aria-hidden="true" className="h-2 w-2 rounded-full bg-success" />
+              {latest.network}
+            </span>
+          )}
+        </div>
+
+        {data && latest && (
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+            <SummaryTile label="Runs published" value={String(data.total)} />
+            <SummaryTile label="Passed" value={`${passedCount} of ${runs.length}`} hint="Among the runs shown" />
+            <SummaryTile
+              wide
+              label="Latest run"
+              value={latest.status === "passed" ? "Passed" : "Failed"}
+              hint={`${formatTimestamp(latest.finishedAt)} · ${formatDuration(latest.durationMs)}`}
+            />
+          </div>
+        )}
+
         {data && (
-          <p className="mt-3 text-xs text-text-secondary">
+          <p className="text-xs text-text-secondary">
             {data.runs[0] ? <>Last published {formatTimestamp(data.runs[0].publishedAt)}</> : <>No runs published yet</>}
             {fetchedAt && <> · Last refreshed {formatTimestamp(fetchedAt)}</>}
             {data.total > data.runs.length && <> · Showing {data.runs.length} of {data.total}</>}
           </p>
         )}
         {data && verifiedCorridors(data.runs).length > 0 && (
-          <p className="mt-2 text-sm font-semibold text-text-primary">
+          <p className="text-sm font-semibold text-text-primary">
             Verified fiat corridors: {verifiedCorridors(data.runs).join(", ")}
+          </p>
+        )}
+        {hasEscrowOnly && (
+          <p className="rounded-xl bg-background px-4 py-3 text-sm text-text-secondary">
+            An escrow flow run covers OfferHub&apos;s own flow: wallet sign-in, order, escrow create, fund and release,
+            with every transaction confirmed through Stellar RPC. The bank payout is not part of these runs.
           </p>
         )}
       </div>
@@ -131,88 +367,10 @@ export function ValidationRuns({
               Refresh failed: {error}. Showing the last published results.
             </p>
           )}
-          <div className="divide-y divide-border-light">
-            {data.runs.map((run) => {
-              const txLinks = transactionLinks(run);
-              const contractUrl = getSafeExternalUrl(run.stellarExpertContractUrl, "stellar.expert");
-              const failedStep = run.steps.find((step) => step.status === "failed");
-              const escrowOnly = isEscrowOnly(run);
-              const receipt = run.receipt;
-              const receiptTxUrl =
-                receipt?.stellarTxHash && /^[0-9a-f]{64}$/.test(receipt.stellarTxHash)
-                  ? explorerUrl("tx", receipt.stellarTxHash, run.network === "mainnet" ? "public" : "testnet")
-                  : null;
-
-              return (
-                <article key={run.id} className="flex flex-col gap-3 py-5 first:pt-0 last:pb-0">
-                  <div className="flex flex-wrap items-center gap-3">
-                    <h3 className="font-semibold text-text-primary">
-                      {escrowOnly ? "Escrow flow" : `${run.corridor} corridor`} · {run.network}
-                    </h3>
-                    <span
-                      className={
-                        "rounded-full bg-background px-3 py-1 text-xs font-semibold shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff] " +
-                        (run.status === "passed" ? "text-success" : "text-error")
-                      }
-                    >
-                      {run.status}
-                    </span>
-                    <span className="text-sm text-text-secondary">
-                      <time dateTime={run.finishedAt}>{formatTimestamp(run.finishedAt)}</time> · {formatDuration(run.durationMs)}
-                    </span>
-                  </div>
-
-                  {escrowOnly && (
-                    <p className="text-sm text-text-secondary">
-                      Wallet sign-in, order, escrow create, fund and release, each transaction confirmed through
-                      Stellar RPC. The bank payout is not part of this run.
-                    </p>
-                  )}
-
-                  {failedStep && (
-                    <p className="text-sm text-error">
-                      Failed at {humanizeStep(failedStep.name)}
-                      {failedStep.error ? `: ${failedStep.error}` : ""}
-                    </p>
-                  )}
-
-                  {receipt ? (
-                    <p className="text-sm text-text-secondary">
-                      BlindPay payout <span className="font-mono">{receipt.blindpayPayoutId}</span> completed:{" "}
-                      <span className="font-semibold text-text-primary">{formatFiat(receipt)}</span>
-                      {receipt.paymentProvider && <> via {receipt.paymentProvider}</>} on{" "}
-                      <time dateTime={receipt.completedAt}>{formatTimestamp(receipt.completedAt)}</time>
-                    </p>
-                  ) : (
-                    run.blindpayPayoutId && (
-                      <p className="text-sm text-text-secondary">
-                        BlindPay payout <span className="font-mono">{run.blindpayPayoutId}</span>: not verified
-                      </p>
-                    )
-                  )}
-
-                  {(txLinks.length > 0 || contractUrl || receiptTxUrl) && (
-                    <div className="flex flex-wrap gap-2">
-                      {contractUrl && (
-                        <a href={contractUrl} target="_blank" rel="noopener noreferrer" className={linkClass}>
-                          Escrow contract
-                        </a>
-                      )}
-                      {txLinks.map((tx) => (
-                        <a key={tx.url} href={tx.url} target="_blank" rel="noopener noreferrer" className={linkClass}>
-                          {tx.label}
-                        </a>
-                      ))}
-                      {receiptTxUrl && (
-                        <a href={receiptTxUrl} target="_blank" rel="noopener noreferrer" className={linkClass}>
-                          BlindPay deposit tx
-                        </a>
-                      )}
-                    </div>
-                  )}
-                </article>
-              );
-            })}
+          <div className="flex flex-col gap-4">
+            {data.runs.map((run, index) => (
+              <RunCard key={run.id} run={run} defaultOpen={index === 0} />
+            ))}
           </div>
         </div>
       ) : null}
