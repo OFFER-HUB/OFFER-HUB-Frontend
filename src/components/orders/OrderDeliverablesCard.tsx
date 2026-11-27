@@ -15,7 +15,14 @@ import {
   deleteOrderAttachment,
   addOrderProjectNote,
 } from "@/lib/api/orders";
-import type { Order, OrderStatus, OrderAttachment, OrderProjectNote } from "@/types/order.types";
+import { useOrderAttachmentUrl } from "@/hooks/useOrderAttachmentUrl";
+import type {
+  Order,
+  OrderStatus,
+  OrderAttachment,
+  OrderAttachmentUrlError,
+  OrderProjectNote,
+} from "@/types/order.types";
 
 interface OrderDeliverablesCardProps {
   orderId: string;
@@ -27,7 +34,71 @@ interface OrderDeliverablesCardProps {
   };
   isBuyer: boolean;
   isSeller: boolean;
+  /** The escrow paid the seller, which unlocks final files for the client. */
+  isReleased: boolean;
   onOrderUpdated: (order: Order) => void;
+}
+
+const FINAL_LOCKED_TEXT = "Unlocks when you release the payment";
+
+/** Message for a file that could not be opened. */
+function openErrorText(err: unknown): string {
+  if ((err as OrderAttachmentUrlError)?.code === "FINAL_LOCKED") return `${FINAL_LOCKED_TEXT}.`;
+  return err instanceof Error ? err.message : "Could not open this file. Please try again.";
+}
+
+/**
+ * Image thumbnail for a private order file: asks for a short-lived URL when
+ * it renders and retries once with a fresh one if the link has expired.
+ */
+function SignedThumbnail({
+  file,
+  resolveUrl,
+}: {
+  file: OrderAttachment;
+  resolveUrl: (file: OrderAttachment, options?: { fresh?: boolean }) => Promise<string>;
+}): React.JSX.Element {
+  const [src, setSrc] = useState<string | null>(file.url ?? null);
+  const [failed, setFailed] = useState(false);
+  const retried = useRef(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    resolveUrl(file)
+      .then((url) => !cancelled && setSrc(url))
+      .catch(() => !cancelled && setFailed(true));
+    return () => {
+      cancelled = true;
+    };
+  }, [file, resolveUrl]);
+
+  const handleError = () => {
+    if (retried.current) {
+      setFailed(true);
+      return;
+    }
+    retried.current = true;
+    resolveUrl(file, { fresh: true })
+      .then(setSrc)
+      .catch(() => setFailed(true));
+  };
+
+  if (failed || !src) {
+    return (
+      <div className="w-full h-full flex items-center justify-center text-text-secondary">
+        {failed ? <Icon path={ICON_PATHS.document} size="sm" /> : <LoadingSpinner size="sm" />}
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={src}
+      alt={file.name}
+      onError={handleError}
+      className="w-full h-full object-cover transition-transform duration-300 group-hover/thumb:scale-110"
+    />
+  );
 }
 
 type TabType = "files" | "notes";
@@ -38,9 +109,11 @@ export function OrderDeliverablesCard({
   metadata,
   isBuyer,
   isSeller,
+  isReleased,
   onOrderUpdated,
 }: OrderDeliverablesCardProps): React.JSX.Element {
   const { token, user } = useAuthStore();
+  const { resolveUrl } = useOrderAttachmentUrl(token, orderId);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const isInProgress = [
@@ -73,12 +146,15 @@ export function OrderDeliverablesCard({
 
   // Lightbox Image Preview Modal state
   const [previewImage, setPreviewImage] = useState<OrderAttachment | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [openingId, setOpeningId] = useState<string | null>(null);
 
   // Close lightbox on Escape key
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         setPreviewImage(null);
+        setPreviewUrl(null);
       }
     };
     if (previewImage) {
@@ -88,6 +164,49 @@ export function OrderDeliverablesCard({
   }, [previewImage]);
 
   const attachments = metadata?.attachments || [];
+
+  /** Final files stay locked for everyone but the seller until the escrow releases (S-05). */
+  const isLocked = (file: OrderAttachment): boolean =>
+    file.category === "final" && !isSeller && !isReleased;
+
+  const openPreview = async (file: OrderAttachment) => {
+    setPreviewImage(file);
+    setPreviewUrl(file.url ?? null);
+    try {
+      setPreviewUrl(await resolveUrl(file));
+    } catch (err: unknown) {
+      setPreviewImage(null);
+      setStatusMessage({ type: "error", text: openErrorText(err) });
+    }
+  };
+
+  const closePreview = () => {
+    setPreviewImage(null);
+    setPreviewUrl(null);
+  };
+
+  /**
+   * Opens a file in a new tab. The tab is opened before the signed URL
+   * arrives, inside the click, so popup blockers allow it.
+   */
+  const handleOpenFile = async (file: OrderAttachment) => {
+    const tab = window.open("about:blank", "_blank");
+    if (tab) tab.opener = null;
+    try {
+      setOpeningId(file.id);
+      const url = await resolveUrl(file, { fresh: true });
+      if (tab) {
+        tab.location.href = url;
+      } else {
+        window.location.assign(url);
+      }
+    } catch (err: unknown) {
+      tab?.close();
+      setStatusMessage({ type: "error", text: openErrorText(err) });
+    } finally {
+      setOpeningId(null);
+    }
+  };
   const notes = metadata?.notes || [];
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -152,7 +271,7 @@ export function OrderDeliverablesCard({
       const updated = await deleteOrderAttachment(token, orderId, attachmentId);
       onOrderUpdated(updated);
       if (previewImage?.id === attachmentId) {
-        setPreviewImage(null);
+        closePreview();
       }
       setStatusMessage({
         type: "success",
@@ -376,8 +495,9 @@ export function OrderDeliverablesCard({
                         { id: "evidence", label: "Assets & Brand Materials" },
                       ]
                     : [
-                        { id: "deliverable", label: "Final Deliverable" },
-                        { id: "evidence", label: "Work Evidence / WIP" },
+                        { id: "final", label: "Final Package" },
+                        { id: "deliverable", label: "Work in Progress" },
+                        { id: "evidence", label: "Work Evidence" },
                         { id: "reference", label: "Source Files" },
                       ]
                   ).map((cat) => (
@@ -396,6 +516,12 @@ export function OrderDeliverablesCard({
                     </button>
                   ))}
                 </div>
+                {fileCategory === "final" && (
+                  <p className="mt-2 text-[11px] text-text-secondary flex items-center gap-1.5">
+                    <Icon path={ICON_PATHS.lock} size="sm" className="w-3.5 h-3.5 text-primary" />
+                    The client can download the final package once they release the payment.
+                  </p>
+                )}
               </div>
 
               {/* Sunken Neumorphic File & Note Inputs */}
@@ -495,6 +621,7 @@ export function OrderDeliverablesCard({
                     const isPdf = file.mimeType?.includes("pdf");
                     const isZip =
                       file.mimeType?.includes("zip") || file.name.endsWith(".zip");
+                    const locked = isLocked(file);
 
                     return (
                       <div
@@ -505,18 +632,21 @@ export function OrderDeliverablesCard({
                           <div className="flex items-start justify-between gap-2.5">
                             <div className="flex items-center gap-3 min-w-0">
                               {/* Visual Thumbnail for Images or Icon for Documents */}
-                              {isImage ? (
+                              {locked ? (
+                                <div
+                                  className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 bg-background text-text-secondary shadow-[inset_2px_2px_5px_#d1d5db,inset_-2px_-2px_5px_#ffffff]"
+                                  title={FINAL_LOCKED_TEXT}
+                                >
+                                  <Icon path={ICON_PATHS.lock} size="sm" />
+                                </div>
+                              ) : isImage ? (
                                 <button
                                   type="button"
-                                  onClick={() => setPreviewImage(file)}
+                                  onClick={() => openPreview(file)}
                                   className="relative group/thumb cursor-pointer overflow-hidden rounded-xl w-12 h-12 flex-shrink-0 bg-background shadow-[2px_2px_5px_#cbd5e1] border border-white focus:outline-none"
                                   title="Click to enlarge"
                                 >
-                                  <img
-                                    src={file.url}
-                                    alt={file.name}
-                                    className="w-full h-full object-cover transition-transform duration-300 group-hover/thumb:scale-110"
-                                  />
+                                  <SignedThumbnail file={file} resolveUrl={resolveUrl} />
                                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/thumb:opacity-100 transition-opacity flex items-center justify-center text-white">
                                     <Icon path={ICON_PATHS.eye} size="sm" />
                                   </div>
@@ -555,7 +685,9 @@ export function OrderDeliverablesCard({
                             <span
                               className={cn(
                                 "px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider flex-shrink-0",
-                                file.category === "deliverable"
+                                file.category === "final"
+                                  ? "bg-violet-100 text-violet-800"
+                                  : file.category === "deliverable" || file.category === "preview"
                                   ? "bg-emerald-100 text-emerald-800"
                                   : file.category === "evidence"
                                     ? "bg-amber-100 text-amber-800"
@@ -595,25 +727,37 @@ export function OrderDeliverablesCard({
                           </span>
 
                           <div className="flex items-center gap-2">
-                            {isImage ? (
+                            {locked ? (
+                              <span
+                                className="px-3 py-1.5 rounded-xl bg-background text-text-secondary font-semibold text-[11px] shadow-[inset_1px_1px_3px_#d1d5db,inset_-1px_-1px_3px_#ffffff] flex items-center gap-1.5"
+                                title="Final files unlock for the client when the escrow releases the payment"
+                              >
+                                <Icon path={ICON_PATHS.lock} size="sm" className="w-3.5 h-3.5" />
+                                <span>{FINAL_LOCKED_TEXT}</span>
+                              </span>
+                            ) : isImage ? (
                               <button
                                 type="button"
-                                onClick={() => setPreviewImage(file)}
+                                onClick={() => openPreview(file)}
                                 className="px-3 py-1.5 rounded-xl bg-background text-primary font-bold text-xs shadow-[2px_2px_5px_#d1d5db,-2px_-2px_5px_#ffffff] hover:shadow-[inset_1px_1px_3px_#d1d5db,inset_-1px_-1px_3px_#ffffff] transition-all flex items-center gap-1.5 cursor-pointer"
                               >
                                 <Icon path={ICON_PATHS.eye} size="sm" className="w-3.5 h-3.5" />
                                 <span>Enlarge</span>
                               </button>
                             ) : (
-                              <a
-                                href={file.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="px-3 py-1.5 rounded-xl bg-background text-primary font-bold text-xs shadow-[2px_2px_5px_#d1d5db,-2px_-2px_5px_#ffffff] hover:shadow-[inset_1px_1px_3px_#d1d5db,inset_-1px_-1px_3px_#ffffff] transition-all flex items-center gap-1.5"
+                              <button
+                                type="button"
+                                onClick={() => handleOpenFile(file)}
+                                disabled={openingId === file.id}
+                                className="px-3 py-1.5 rounded-xl bg-background text-primary font-bold text-xs shadow-[2px_2px_5px_#d1d5db,-2px_-2px_5px_#ffffff] hover:shadow-[inset_1px_1px_3px_#d1d5db,inset_-1px_-1px_3px_#ffffff] transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-60"
                               >
-                                <Icon path={ICON_PATHS.externalLink} size="sm" className="w-3.5 h-3.5" />
+                                {openingId === file.id ? (
+                                  <LoadingSpinner size="sm" className="w-3.5 h-3.5" />
+                                ) : (
+                                  <Icon path={ICON_PATHS.externalLink} size="sm" className="w-3.5 h-3.5" />
+                                )}
                                 <span>Open</span>
-                              </a>
+                              </button>
                             )}
 
                             {(file.uploadedBy === user?.id || isBuyer || isSeller) && (
@@ -792,7 +936,7 @@ export function OrderDeliverablesCard({
           role="dialog"
           aria-modal="true"
           className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6 animate-fade-in"
-          onClick={() => setPreviewImage(null)}
+          onClick={closePreview}
         >
           <div
             className="relative max-w-4xl w-full bg-white rounded-2xl p-5 shadow-2xl space-y-4 max-h-[92vh] flex flex-col justify-between"
@@ -816,19 +960,19 @@ export function OrderDeliverablesCard({
               </div>
 
               <div className="flex items-center gap-2 flex-shrink-0">
-                <a
-                  href={previewImage.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-3 py-1.5 rounded-xl bg-background text-primary font-semibold text-xs shadow-[2px_2px_5px_#d1d5db,-2px_-2px_5px_#ffffff] hover:shadow-[inset_1px_1px_3px_#d1d5db] transition-all flex items-center gap-1.5"
+                <button
+                  type="button"
+                  onClick={() => handleOpenFile(previewImage)}
+                  disabled={openingId === previewImage.id}
+                  className="px-3 py-1.5 rounded-xl bg-background text-primary font-semibold text-xs shadow-[2px_2px_5px_#d1d5db,-2px_-2px_5px_#ffffff] hover:shadow-[inset_1px_1px_3px_#d1d5db] transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-60"
                 >
                   <Icon path={ICON_PATHS.externalLink} size="sm" className="w-3.5 h-3.5" />
                   <span>Open Original</span>
-                </a>
+                </button>
 
                 <button
                   type="button"
-                  onClick={() => setPreviewImage(null)}
+                  onClick={closePreview}
                   className="p-2 rounded-xl bg-background text-text-secondary hover:text-text-primary shadow-[2px_2px_5px_#d1d5db,-2px_-2px_5px_#ffffff] hover:shadow-[inset_1px_1px_3px_#d1d5db] transition-all cursor-pointer"
                   title="Close preview"
                 >
@@ -839,11 +983,15 @@ export function OrderDeliverablesCard({
 
             {/* Enlarged Image Display */}
             <div className="flex-1 min-h-0 flex items-center justify-center bg-background rounded-xl p-2 sm:p-4 shadow-[inset_2px_2px_5px_#d1d5db,inset_-2px_-2px_5px_#ffffff] overflow-hidden">
-              <img
-                src={previewImage.url}
-                alt={previewImage.name}
-                className="max-h-[68vh] max-w-full rounded-lg object-contain"
-              />
+              {previewUrl ? (
+                <img
+                  src={previewUrl}
+                  alt={previewImage.name}
+                  className="max-h-[68vh] max-w-full rounded-lg object-contain"
+                />
+              ) : (
+                <LoadingSpinner size="md" />
+              )}
             </div>
 
             {previewImage.note && (

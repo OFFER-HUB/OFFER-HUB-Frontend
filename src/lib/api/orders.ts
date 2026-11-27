@@ -1,4 +1,13 @@
-import type { Order, CreateOrderPayload, Milestone, Payout } from "@/types/order.types";
+import type {
+  Order,
+  CreateOrderPayload,
+  Milestone,
+  Payout,
+  OrderAttachmentUrl,
+  OrderAttachmentUrlError,
+} from "@/types/order.types";
+
+export type { OrderAttachmentUrlError } from "@/types/order.types";
 import type { Dispute } from "@/types/dispute.types";
 import { API_URL } from "@/config/api";
 
@@ -274,6 +283,41 @@ export async function uploadOrderAttachment(
 
   const data = await response.json();
   return data.data || data;
+}
+
+/**
+ * Short-lived download URL for one order file (valid ~10 minutes).
+ * GET /orders/:id/attachments/:attachmentId/url
+ *
+ * Throws an error with `code: "FINAL_LOCKED"` when the client asks for a
+ * final file before releasing the payment. Never cache the URL beyond
+ * `expiresAt`.
+ */
+export async function getOrderAttachmentUrl(
+  token: string,
+  orderId: string,
+  attachmentId: string
+): Promise<OrderAttachmentUrl> {
+  const response = await fetch(
+    `${API_URL}/orders/${encodeURIComponent(orderId)}/attachments/${encodeURIComponent(attachmentId)}/url`,
+    {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
+    }
+  );
+
+  if (!response.ok) {
+    const body = await response.json().catch(() => ({}));
+    const error = new Error(
+      body.error?.message || body.message || "Could not open this file"
+    ) as OrderAttachmentUrlError;
+    error.code = body.error?.code;
+    error.status = response.status;
+    throw error;
+  }
+
+  const body = await response.json();
+  return body.data ?? body;
 }
 
 /**
