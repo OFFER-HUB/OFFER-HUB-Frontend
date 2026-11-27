@@ -59,6 +59,20 @@ function isEscrowOnly(run: PublicValidationRun): boolean {
   return !run.steps.some((step) => step.name === "payout_transfer");
 }
 
+/**
+ * A run that refused to start (the test wallet needs funds, say) moved nothing and tested nothing:
+ * it is not a failure of the platform, so it is shown quietly instead of as an alarm.
+ */
+function neverStarted(run: PublicValidationRun): boolean {
+  const first = run.steps[0];
+  return first?.name === "preflight" && first.status === "failed";
+}
+
+function statusLabel(run: PublicValidationRun): string {
+  if (run.status === "passed") return "passed";
+  return neverStarted(run) ? "not started" : "did not pass";
+}
+
 /** Corridors with a passed run whose disbursement BlindPay itself confirmed. */
 function verifiedCorridors(runs: PublicValidationRun[]): string[] {
   return [...new Set(runs.filter((r) => r.status === "passed" && r.receipt).map((r) => r.corridor))].sort();
@@ -108,14 +122,15 @@ function ExternalIcon(): React.JSX.Element {
   );
 }
 
-function StatusIcon({ status }: { status: "passed" | "failed" | "skipped" }): React.JSX.Element {
+function StatusIcon({ status }: { status: "passed" | "failed" | "skipped" | "idle" }): React.JSX.Element {
   const tone =
     status === "passed"
       ? "bg-success/10 text-success"
       : status === "failed"
-        ? "bg-error/10 text-error"
+        ? "bg-warning/10 text-warning"
         : "bg-background text-text-secondary";
-  const path = status === "passed" ? "M5 13l4 4L19 7" : status === "failed" ? "M6 6l12 12M18 6L6 18" : "M6 12h12";
+  const path =
+    status === "passed" ? "M5 13l4 4L19 7" : status === "failed" ? "M12 8v5m0 3.5h.01" : status === "idle" ? "M10 8v8M14 8v8" : "M6 12h12";
   return (
     <span aria-hidden="true" className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${tone}`}>
       <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
@@ -161,23 +176,24 @@ function RunCard({ run, defaultOpen }: { run: PublicValidationRun; defaultOpen: 
       ? explorerUrl("tx", receipt.stellarTxHash, run.network === "mainnet" ? "public" : "testnet")
       : null;
   const passed = run.status === "passed";
+  const idle = neverStarted(run);
   const title = `${escrowOnly ? "Escrow flow" : `${run.corridor} corridor`} · ${run.network}`;
 
   return (
     <article className="rounded-2xl border border-border-light bg-white">
       <details open={defaultOpen} className="group">
         <summary className="flex cursor-pointer list-none flex-wrap items-start gap-x-4 gap-y-2 rounded-2xl p-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:p-5 [&::-webkit-details-marker]:hidden">
-          <StatusIcon status={passed ? "passed" : "failed"} />
+          <StatusIcon status={passed ? "passed" : idle ? "idle" : "failed"} />
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
               <h3 className="font-semibold text-text-primary">{title}</h3>
               <span
                 className={
                   "rounded-full px-2.5 py-0.5 text-xs font-semibold " +
-                  (passed ? "bg-success/10 text-success" : "bg-error/10 text-error")
+                  (passed ? "bg-success/10 text-success" : idle ? "bg-background text-text-secondary" : "bg-warning/10 text-warning")
                 }
               >
-                {run.status}
+                {statusLabel(run)}
               </span>
             </div>
             <p className="mt-0.5 text-sm text-text-secondary">
@@ -185,8 +201,12 @@ function RunCard({ run, defaultOpen }: { run: PublicValidationRun; defaultOpen: 
               {run.trigger === "schedule" ? "Scheduled" : "Manual"}
             </p>
             {failedStep && (
-              <span className="mt-2 block rounded-xl bg-error/5 px-3 py-2 text-sm text-error">
-                Failed at {humanizeStep(failedStep.name)}
+              <span
+                className={
+                  "mt-2 block rounded-xl px-3 py-2 text-sm text-text-secondary " + (idle ? "bg-background" : "bg-warning/10")
+                }
+              >
+                {idle ? "Not started" : `Failed at ${humanizeStep(failedStep.name)}`}
                 {failedStep.error ? `: ${failedStep.error}` : ""}
               </span>
             )}
@@ -290,7 +310,8 @@ export function ValidationRuns({
   onRetry,
 }: ValidationRunsProps): React.JSX.Element {
   const runs = data?.runs ?? [];
-  const passedCount = runs.filter((run) => run.status === "passed").length;
+  const startedRuns = runs.filter((run) => !neverStarted(run));
+  const passedCount = startedRuns.filter((run) => run.status === "passed").length;
   const latest = runs[0];
   const hasEscrowOnly = runs.some(isEscrowOnly);
 
@@ -315,11 +336,11 @@ export function ValidationRuns({
         {data && latest && (
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             <SummaryTile label="Runs published" value={String(data.total)} />
-            <SummaryTile label="Passed" value={`${passedCount} of ${runs.length}`} hint="Among the runs shown" />
+            <SummaryTile label="Passed" value={`${passedCount} of ${startedRuns.length}`} hint="Among the runs that started" />
             <SummaryTile
               wide
               label="Latest run"
-              value={latest.status === "passed" ? "Passed" : "Failed"}
+              value={latest.status === "passed" ? "Passed" : neverStarted(latest) ? "Not started" : "Did not pass"}
               hint={`${formatTimestamp(latest.finishedAt)} · ${formatDuration(latest.durationMs)}`}
             />
           </div>
