@@ -55,6 +55,14 @@ function transactionLinks(run: PublicValidationRun): Array<{ label: string; url:
   });
 }
 
+/**
+ * A run with no payout step stops at the escrow release and never reaches BlindPay, so its
+ * corridor is only a label for the program, not a bank payout.
+ */
+function isEscrowOnly(run: PublicValidationRun): boolean {
+  return !run.steps.some((step) => step.name === "payout_transfer");
+}
+
 /** Corridors with a passed run whose disbursement BlindPay itself confirmed. */
 function verifiedCorridors(runs: PublicValidationRun[]): string[] {
   return [...new Set(runs.filter((r) => r.status === "passed" && r.receipt).map((r) => r.corridor))].sort();
@@ -128,6 +136,7 @@ export function ValidationRuns({
               const txLinks = transactionLinks(run);
               const contractUrl = getSafeExternalUrl(run.stellarExpertContractUrl, "stellar.expert");
               const failedStep = run.steps.find((step) => step.status === "failed");
+              const escrowOnly = isEscrowOnly(run);
               const receipt = run.receipt;
               const receiptTxUrl =
                 receipt?.stellarTxHash && /^[0-9a-f]{64}$/.test(receipt.stellarTxHash)
@@ -138,7 +147,7 @@ export function ValidationRuns({
                 <article key={run.id} className="flex flex-col gap-3 py-5 first:pt-0 last:pb-0">
                   <div className="flex flex-wrap items-center gap-3">
                     <h3 className="font-semibold text-text-primary">
-                      {run.corridor} corridor · {run.network}
+                      {escrowOnly ? "Escrow flow" : `${run.corridor} corridor`} · {run.network}
                     </h3>
                     <span
                       className={
@@ -152,6 +161,13 @@ export function ValidationRuns({
                       <time dateTime={run.finishedAt}>{formatTimestamp(run.finishedAt)}</time> · {formatDuration(run.durationMs)}
                     </span>
                   </div>
+
+                  {escrowOnly && (
+                    <p className="text-sm text-text-secondary">
+                      Wallet sign-in, order, escrow create, fund and release, each transaction confirmed through
+                      Stellar RPC. The bank payout is not part of this run.
+                    </p>
+                  )}
 
                   {failedStep && (
                     <p className="text-sm text-error">

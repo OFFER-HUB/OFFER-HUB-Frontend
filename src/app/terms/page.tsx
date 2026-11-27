@@ -101,6 +101,12 @@ export default function TermsPage(): React.JSX.Element {
                   Current fee structures are displayed in your account settings. We reserve the right
                   to modify fees with reasonable notice.
                 </p>
+                <p className="text-text-secondary mb-4">
+                  Fees apply on every release, refund and dispute resolution: 5% for the Platform and
+                  0.3% for the escrow provider (Trustless Work), taken from the escrowed amount. What is
+                  paid out or returned to a user is therefore net of fees. For example, a 5 USDC escrow
+                  refunded in full to the client returns 4.735 USDC.
+                </p>
                 <p className="text-text-secondary">
                   All payments are processed through secure third-party payment providers. Users are
                   responsible for any taxes applicable to their earnings or purchases.
