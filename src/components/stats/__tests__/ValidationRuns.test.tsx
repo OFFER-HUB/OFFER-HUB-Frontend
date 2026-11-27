@@ -57,6 +57,49 @@ function renderRuns(data: PublicValidationResults, fetchedAt: string | null = nu
 }
 
 describe("ValidationRuns", () => {
+  it("shows a run that never started as a quiet note, not as an alarm", () => {
+    const { container } = renderRuns(
+      results([
+        run({
+          status: "failed",
+          receipt: null,
+          blindpayPayoutId: null,
+          blindpayStatus: null,
+          steps: [
+            { name: "preflight", status: "failed", txHashes: [], confirmations: [], durationMs: 300, error: "Buyer USDC balance 1 is below the floor" },
+            { name: "authenticate", status: "skipped", txHashes: [], confirmations: [], durationMs: 0 },
+          ],
+          stellarExpertUrls: [],
+        }),
+      ])
+    );
+
+    expect(screen.getByText("not started")).toBeInTheDocument();
+    expect(screen.getByText("Not started: Buyer USDC balance 1 is below the floor")).toBeInTheDocument();
+    expect(screen.queryByText(/^failed$/)).not.toBeInTheDocument();
+    expect(container.querySelector(".text-error, .bg-error\\/10")).toBeNull();
+  });
+
+  it("describes a failure after the run started calmly, without the word failed as a status", () => {
+    const { container } = renderRuns(
+      results([
+        run({
+          status: "failed",
+          receipt: null,
+          steps: [
+            { name: "preflight", status: "passed", txHashes: [], confirmations: [], durationMs: 300 },
+            { name: "escrow_fund", status: "failed", txHashes: [], confirmations: [], durationMs: 900, error: "Funding was rejected" },
+          ],
+          stellarExpertUrls: [],
+        }),
+      ])
+    );
+
+    expect(screen.getByText("did not pass")).toBeInTheDocument();
+    expect(screen.getByText("Failed at escrow fund: Funding was rejected")).toBeInTheDocument();
+    expect(container.querySelector(".text-error")).toBeNull();
+  });
+
   it("labels a run that stops at the escrow release as the escrow flow, not a corridor", () => {
     renderRuns(
       results([
