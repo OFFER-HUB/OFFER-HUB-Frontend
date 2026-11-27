@@ -76,7 +76,7 @@ describe("ValidationRuns", () => {
 
     expect(screen.getByRole("heading", { name: "Escrow flow · mainnet" })).toBeInTheDocument();
     expect(screen.queryByText(/MX corridor/)).not.toBeInTheDocument();
-    expect(screen.getByText(/The bank payout is not part of this run/)).toBeInTheDocument();
+    expect(screen.getByText(/The bank payout is not part of these runs/)).toBeInTheDocument();
   });
 
   it("keeps the corridor title on a run that includes the payout", () => {
@@ -92,7 +92,7 @@ describe("ValidationRuns", () => {
     );
 
     expect(screen.getByRole("heading", { name: "BR corridor · mainnet" })).toBeInTheDocument();
-    expect(screen.queryByText(/The bank payout is not part of this run/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/The bank payout is not part of these runs/)).not.toBeInTheDocument();
   });
 
   it("links every transaction, the escrow contract and BlindPay's deposit on Stellar Expert", () => {
