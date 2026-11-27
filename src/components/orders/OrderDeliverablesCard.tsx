@@ -186,22 +186,17 @@ export function OrderDeliverablesCard({
   };
 
   /**
-   * Opens a file in a new tab. The tab is opened before the signed URL
-   * arrives, inside the click, so popup blockers allow it.
+   * Downloads a file. The signed link answers with `Content-Disposition:
+   * attachment` and the original file name, so navigating to it starts the
+   * download and leaves this page where it is; opening a tab would leave an
+   * empty one behind.
    */
   const handleOpenFile = async (file: OrderAttachment) => {
-    const tab = window.open("about:blank", "_blank");
-    if (tab) tab.opener = null;
     try {
       setOpeningId(file.id);
       const url = await resolveUrl(file, { fresh: true });
-      if (tab) {
-        tab.location.href = url;
-      } else {
-        window.location.assign(url);
-      }
+      window.location.assign(url);
     } catch (err: unknown) {
-      tab?.close();
       setStatusMessage({ type: "error", text: openErrorText(err) });
     } finally {
       setOpeningId(null);
@@ -703,10 +698,17 @@ export function OrderDeliverablesCard({
                               "{file.note}"
                             </p>
                           )}
+
+                          {locked && (
+                            <p className="flex items-center gap-2 rounded-xl bg-background px-3 py-2 text-[11px] font-semibold text-text-secondary shadow-[inset_1px_1px_3px_#d1d5db,inset_-1px_-1px_3px_#ffffff]">
+                              <Icon path={ICON_PATHS.lock} size="sm" className="w-3.5 h-3.5 flex-shrink-0" />
+                              <span>{FINAL_LOCKED_TEXT}</span>
+                            </p>
+                          )}
                         </div>
 
                         {/* Footer: Neumorphic Actions & Role Pill */}
-                        <div className="pt-3 border-t border-black/5 flex items-center justify-between text-xs">
+                        <div className="pt-3 border-t border-black/5 flex flex-wrap items-center justify-between gap-2 text-xs">
                           <span className="text-[11px] text-text-secondary flex items-center gap-1.5">
                             <span
                               className={cn(
@@ -727,15 +729,7 @@ export function OrderDeliverablesCard({
                           </span>
 
                           <div className="flex items-center gap-2">
-                            {locked ? (
-                              <span
-                                className="px-3 py-1.5 rounded-xl bg-background text-text-secondary font-semibold text-[11px] shadow-[inset_1px_1px_3px_#d1d5db,inset_-1px_-1px_3px_#ffffff] flex items-center gap-1.5"
-                                title="Final files unlock for the client when the escrow releases the payment"
-                              >
-                                <Icon path={ICON_PATHS.lock} size="sm" className="w-3.5 h-3.5" />
-                                <span>{FINAL_LOCKED_TEXT}</span>
-                              </span>
-                            ) : isImage ? (
+                            {locked ? null : isImage ? (
                               <button
                                 type="button"
                                 onClick={() => openPreview(file)}
@@ -754,9 +748,9 @@ export function OrderDeliverablesCard({
                                 {openingId === file.id ? (
                                   <LoadingSpinner size="sm" className="w-3.5 h-3.5" />
                                 ) : (
-                                  <Icon path={ICON_PATHS.externalLink} size="sm" className="w-3.5 h-3.5" />
+                                  <Icon path={ICON_PATHS.download} size="sm" className="w-3.5 h-3.5" />
                                 )}
-                                <span>Open</span>
+                                <span>Download</span>
                               </button>
                             )}
 
@@ -966,8 +960,8 @@ export function OrderDeliverablesCard({
                   disabled={openingId === previewImage.id}
                   className="px-3 py-1.5 rounded-xl bg-background text-primary font-semibold text-xs shadow-[2px_2px_5px_#d1d5db,-2px_-2px_5px_#ffffff] hover:shadow-[inset_1px_1px_3px_#d1d5db] transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-60"
                 >
-                  <Icon path={ICON_PATHS.externalLink} size="sm" className="w-3.5 h-3.5" />
-                  <span>Open Original</span>
+                  <Icon path={ICON_PATHS.download} size="sm" className="w-3.5 h-3.5" />
+                  <span>Download</span>
                 </button>
 
                 <button
