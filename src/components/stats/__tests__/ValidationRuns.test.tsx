@@ -57,6 +57,44 @@ function renderRuns(data: PublicValidationResults, fetchedAt: string | null = nu
 }
 
 describe("ValidationRuns", () => {
+  it("labels a run that stops at the escrow release as the escrow flow, not a corridor", () => {
+    renderRuns(
+      results([
+        run({
+          corridor: "MX",
+          steps: [
+            { name: "create_order", status: "passed", txHashes: [], confirmations: [], durationMs: 100 },
+            { name: "escrow_release", status: "passed", txHashes: [H2], confirmations: [], durationMs: 3000 },
+          ],
+          stellarExpertUrls: [`https://stellar.expert/explorer/public/tx/${H2}`],
+          blindpayPayoutId: null,
+          blindpayStatus: null,
+          receipt: null,
+        }),
+      ])
+    );
+
+    expect(screen.getByRole("heading", { name: "Escrow flow · mainnet" })).toBeInTheDocument();
+    expect(screen.queryByText(/MX corridor/)).not.toBeInTheDocument();
+    expect(screen.getByText(/The bank payout is not part of this run/)).toBeInTheDocument();
+  });
+
+  it("keeps the corridor title on a run that includes the payout", () => {
+    renderRuns(
+      results([
+        run({
+          steps: [
+            { name: "payout_transfer", status: "passed", txHashes: [H3], confirmations: [], durationMs: 1000 },
+            { name: "disbursement_verification", status: "passed", txHashes: [], confirmations: [], durationMs: 300 },
+          ],
+        }),
+      ])
+    );
+
+    expect(screen.getByRole("heading", { name: "BR corridor · mainnet" })).toBeInTheDocument();
+    expect(screen.queryByText(/The bank payout is not part of this run/)).not.toBeInTheDocument();
+  });
+
   it("links every transaction, the escrow contract and BlindPay's deposit on Stellar Expert", () => {
     renderRuns(results([run()]), "2026-11-16T15:00:00.000Z");
 
