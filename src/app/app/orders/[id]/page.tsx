@@ -162,6 +162,7 @@ export default function OrderDetailPage(): React.JSX.Element {
             metadata={order.metadata}
             isBuyer={roles.isBuyer}
             isSeller={roles.isSeller}
+            isReleased={order.escrow?.status === "RELEASED" || Boolean(order.escrow?.releasedAt)}
             onOrderUpdated={setOrder}
           />
 

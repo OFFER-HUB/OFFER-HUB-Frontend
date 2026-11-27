@@ -38,6 +38,8 @@ export interface OrderEscrow {
   id: string;
   status: string;
   trustlessContractId?: string;
+  /** Set when the escrow paid the seller, including dispute and milestone splits. */
+  releasedAt?: string | null;
 }
 
 export interface Order {
@@ -74,15 +76,30 @@ export interface OrderAttachment {
   name: string;
   size: number;
   mimeType: string;
-  url: string;
+  /**
+   * Permanent public URL. Only sent by API versions before private storage
+   * (S-05); newer ones send none and files are opened through
+   * `getOrderAttachmentUrl`.
+   */
+  url?: string;
   publicId?: string;
   uploadedBy: string;
   uploaderRole: 'buyer' | 'seller';
   uploaderName?: string;
-  category?: 'brief' | 'deliverable' | 'evidence' | 'reference';
+  category?: 'brief' | 'reference' | 'evidence' | 'preview' | 'deliverable' | 'final';
   note?: string | null;
   createdAt: string;
 }
+
+/** Short-lived download link for one order file. */
+export interface OrderAttachmentUrl {
+  url: string;
+  /** ISO time after which the link stops working (about 10 minutes). */
+  expiresAt: string;
+}
+
+/** An order file error the UI reacts to, e.g. `FINAL_LOCKED`. */
+export type OrderAttachmentUrlError = Error & { code?: string; status?: number };
 
 export interface OrderProjectNote {
   id: string;
