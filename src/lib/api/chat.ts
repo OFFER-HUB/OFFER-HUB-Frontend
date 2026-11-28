@@ -17,7 +17,11 @@ import type {
   MessagesResponse,
 } from "@/types/chat.types";
 
-const BASE = `${API_URL}/conversations`;
+/**
+ * Relative to the API base: the http client prepends `API_URL` itself, so an
+ * absolute URL here would end up as `…/api/v1/http://…/api/v1/conversations`.
+ */
+const BASE = "/conversations";
 
 /**
  * The server answers `{ data }` on success and `{ error }` on failure, with no `ok` flag,
